@@ -25,7 +25,11 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
-            applicationIdSuffix = ".debug"
+            // No applicationIdSuffix: the Firebase project registers only
+            // com.stockcheck.app, and google-services matches the applicationId
+            // exactly. Adding a suffix here would need a second Android app in
+            // the Firebase console or the build fails outright. The only thing
+            // given up is installing debug and release side by side.
         }
     }
 
