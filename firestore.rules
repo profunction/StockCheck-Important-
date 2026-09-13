@@ -1,0 +1,178 @@
+rules_version = '2';
+
+// Server-side mirror of com.stockcheck.app.model.Permission.
+//
+// The app checks permissions before every write so the UI stays honest, but
+// that check runs on a device the user controls. These rules are the boundary
+// that actually holds: a modified client, a stolen token or a direct REST call
+// is stopped here. Any permission added to the Kotlin enum that gates a write
+// must be reflected below, or the write will succeed in the app and be denied
+// on the server.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /workspaces/{ws} {
+
+      // ------------------------------------------------------------ helpers
+
+      function signedIn() {
+        return request.auth != null;
+      }
+
+      function profile() {
+        return get(/databases/$(database)/documents/workspaces/$(ws)/users/$(request.auth.uid)).data;
+      }
+
+      function profileExists() {
+        return exists(/databases/$(database)/documents/workspaces/$(ws)/users/$(request.auth.uid));
+      }
+
+      function active() {
+        return signedIn() && profileExists() && profile().active == true;
+      }
+
+      function roleDoc() {
+        return get(/databases/$(database)/documents/workspaces/$(ws)/roles/$(profile().roleId)).data;
+      }
+
+      // The admin role is authoritative in code, not in its stored permission
+      // list, so an admin who empties that list is still an admin here.
+      function isAdmin() {
+        return active() && profile().roleId == 'admin';
+      }
+
+      function can(perm) {
+        return isAdmin() || (active() && perm in roleDoc().permissions);
+      }
+
+      function isOwner(uid) {
+        return active() && request.auth.uid == uid;
+      }
+
+      // Fields the client is never allowed to set or move.
+      function keepsAuthor(existing) {
+        return request.resource.data.createdByUid == existing.createdByUid;
+      }
+
+      // ------------------------------------------------------------- users
+
+      match /users/{uid} {
+        // Self-registration writes exactly one document: the user's own, with
+        // their own uid, active, and never onto the admin role.
+        allow create: if signedIn()
+                      && request.auth.uid == uid
+                      && request.resource.data.uid == uid
+                      && request.resource.data.active == true
+                      && (request.resource.data.roleId != 'admin' || !profileExists());
+
+        allow read: if isOwner(uid) || can('VIEW_USERS');
+
+        // A user may refresh their own lastSeenAt but may not promote
+        // themselves: role and active are reserved for user administrators.
+        allow update: if (isOwner(uid)
+                          && request.resource.data.roleId == resource.data.roleId
+                          && request.resource.data.active == resource.data.active)
+                      || can('EDIT_USER')
+                      || can('CHANGE_PERMISSION');
+
+        allow delete: if can('DELETE_USER') && request.auth.uid != uid;
+      }
+
+      // ------------------------------------------------------------- roles
+
+      match /roles/{roleId} {
+        allow read: if active();
+        // Seeding is allowed only while the workspace has no roles at all.
+        allow create: if can('CREATE_ROLE')
+                      || (signedIn() && !exists(/databases/$(database)/documents/workspaces/$(ws)/roles/admin));
+        allow update: if can('EDIT_ROLE') && roleId != 'admin';
+        allow delete: if can('DELETE_ROLE') && resource.data.builtIn == false;
+      }
+
+      // --------------------------------------------------------- templates
+
+      match /templates/{templateId} {
+        allow read: if active();
+        allow create: if can('CREATE_TEMPLATE')
+                      || (signedIn() && isAdmin());
+        allow update: if can('EDIT_TEMPLATE');
+        allow delete: if can('DELETE_TEMPLATE');
+      }
+
+      // ------------------------------------------------------- stock checks
+
+      match /stockChecks/{checkId} {
+
+        function existing() { return resource.data; }
+        function frozen() { return existing().status == 'LOCKED'; }
+
+        allow read: if can('VIEW_ALL_HISTORY')
+                    || (can('VIEW_OWN_HISTORY') && isOwner(existing().createdByUid));
+
+        allow create: if can('CREATE_STOCK_CHECK')
+                      && request.resource.data.createdByUid == request.auth.uid;
+
+        // A locked record moves only for someone who can unlock it.
+        allow update: if keepsAuthor(existing())
+                      && (!frozen() || can('UNLOCK_STOCK'))
+                      && (can('EDIT_ANY_STOCK')
+                          || can('MARK_REVIEWED')
+                          || can('LOCK_STOCK')
+                          || (can('EDIT_OWN_STOCK') && isOwner(existing().createdByUid)));
+
+        allow delete: if (!frozen() || can('UNLOCK_STOCK'))
+                      && (can('DELETE_ANY_STOCK')
+                          || (can('DELETE_OWN_STOCK') && isOwner(existing().createdByUid)));
+
+        function parentCheck() {
+          return get(/databases/$(database)/documents/workspaces/$(ws)/stockChecks/$(checkId)).data;
+        }
+        function parentFrozen() { return parentCheck().status == 'LOCKED'; }
+        function parentOwner() { return parentCheck().createdByUid; }
+
+        function mayReadParent() {
+          return can('VIEW_ALL_HISTORY')
+                 || (can('VIEW_OWN_HISTORY') && isOwner(parentOwner()));
+        }
+
+        function mayWriteParent() {
+          return (!parentFrozen() || can('UNLOCK_STOCK'))
+                 && (can('EDIT_ANY_STOCK')
+                     || (can('EDIT_OWN_STOCK') && isOwner(parentOwner())));
+        }
+
+        match /items/{itemId} {
+          allow read: if mayReadParent();
+          allow create: if (can('SCAN_BARCODE') || can('VOICE_INPUT') || can('CREATE_STOCK_CHECK'))
+                        && !parentFrozen()
+                        && (isOwner(parentOwner()) || can('EDIT_ANY_STOCK'));
+          allow update, delete: if mayWriteParent();
+        }
+
+        match /photos/{photoId} {
+          allow read: if mayReadParent();
+          allow create: if can('TAKE_PHOTO')
+                        && !parentFrozen()
+                        && (isOwner(parentOwner()) || can('EDIT_ANY_STOCK'));
+          allow update, delete: if mayWriteParent();
+        }
+      }
+
+      // --------------------------------------------------------- audit log
+
+      match /auditLog/{entryId} {
+        // Append-only by design: anyone active may add an entry attributed to
+        // themselves, and nobody — admin included — may rewrite or remove one.
+        // That is the whole point of keeping the trail.
+        allow read: if can('VIEW_AUDIT_LOG');
+        allow create: if active() && request.resource.data.actorUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      match /meta/{docId} {
+        allow read: if active();
+        allow write: if isAdmin();
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+# Gradle / Android build output
+.gradle/
+build/
+app/build/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Machine-specific SDK path
+local.properties
+
+# IDE
+.idea/
+*.iml
+.kotlin/
+
+# Signing material must never be committed
+*.jks
+*.keystore
+keystore.properties
+
+# OS noise
+.DS_Store
+Thumbs.db

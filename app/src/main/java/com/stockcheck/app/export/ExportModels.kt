@@ -1,0 +1,126 @@
+package com.stockcheck.app.export
+
+import com.stockcheck.app.model.Permission
+import com.stockcheck.app.model.PermissionSet
+import com.stockcheck.app.model.StockCheck
+import com.stockcheck.app.model.StockItem
+import com.stockcheck.app.model.Template
+
+enum class ExportFormat(val label: String, val extension: String, val mime: String) {
+    CSV("CSV (.csv)", "csv", "text/csv"),
+    XLSX(
+        "Excel (.xlsx)",
+        "xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ),
+}
+
+enum class ExportScope(val label: String) {
+    OWN("My records only"),
+    ALL("All workers' records"),
+}
+
+/**
+ * One column of the exported sheet.
+ *
+ * [editableWhenGranted] marks columns that a user holding EDIT_EXPORTED_FILE
+ * is allowed to change in the produced file. Everything else is locked, which
+ * is what stops a worker from receiving an export, retyping the quantities and
+ * sending it on as if it were the counted record.
+ */
+data class ExportColumn(
+    val key: String,
+    val header: String,
+    val width: Int = 16,
+    val numeric: Boolean = false,
+    val editableWhenGranted: Boolean = false,
+    /** Columns the role may not even see are exported blank, not omitted. */
+    val requiresPermission: Permission? = null,
+) {
+    companion object {
+        val REF = ExportColumn("refNo", "Ref No", width = 14)
+        val DATE = ExportColumn("date", "Date", width = 12)
+        val TIME = ExportColumn("time", "Time", width = 10)
+        val WORKER = ExportColumn("worker", "Worker", width = 18)
+        val TEMPLATE = ExportColumn("template", "Template", width = 20)
+        val STATUS = ExportColumn("status", "Status", width = 13)
+        val BARCODE = ExportColumn("barcode", "Barcode", width = 20)
+        val PRODUCT = ExportColumn("product", "Product", width = 26, editableWhenGranted = true)
+        val QUANTITY = ExportColumn(
+            "quantity", "Quantity", width = 11, numeric = true, editableWhenGranted = true,
+        )
+        val UNIT = ExportColumn("unit", "Unit", width = 9, editableWhenGranted = true)
+        val REMARK = ExportColumn("remark", "Remark", width = 30, editableWhenGranted = true)
+        val SOURCE = ExportColumn("source", "Entered by", width = 12)
+
+        /** The columns every export offers, before template fields are added. */
+        val standard: List<ExportColumn> = listOf(
+            REF, DATE, TIME, WORKER, TEMPLATE, STATUS,
+            BARCODE, PRODUCT, QUANTITY, UNIT, REMARK, SOURCE,
+        )
+
+        /** Ticked by default in the export sheet. */
+        val defaultSelection: Set<String> = setOf(
+            REF.key, DATE.key, WORKER.key, BARCODE.key, PRODUCT.key, QUANTITY.key, UNIT.key,
+        )
+
+        /** Standard columns plus the custom fields of [template]. */
+        fun availableFor(template: Template?): List<ExportColumn> =
+            standard + template?.fields.orEmpty()
+                .filter { it.includeInExport }
+                .map { field ->
+                    ExportColumn(
+                        key = "field:${field.key}",
+                        header = field.label,
+                        width = 18,
+                        editableWhenGranted = true,
+                    )
+                }
+    }
+}
+
+data class ExportOptions(
+    val format: ExportFormat = ExportFormat.CSV,
+    val scope: ExportScope = ExportScope.OWN,
+    val selectedKeys: Set<String> = ExportColumn.defaultSelection,
+    /** Inclusive day bounds in epoch millis; null means unbounded. */
+    val fromMillis: Long? = null,
+    val toMillis: Long? = null,
+    /**
+     * Produce a file whose data cells can be edited. Only offered to holders of
+     * EDIT_EXPORTED_FILE; otherwise the sheet is protected and fully read-only.
+     */
+    val editable: Boolean = false,
+) {
+    fun columns(template: Template?): List<ExportColumn> =
+        ExportColumn.availableFor(template).filter { it.key in selectedKeys }
+}
+
+/** One exported line: an item together with the check it belongs to. */
+data class ExportRow(val check: StockCheck, val item: StockItem)
+
+/**
+ * Decides what a given role may actually put in the file.
+ *
+ * Narrowing happens here rather than in the UI so that an export triggered from
+ * anywhere produces the same, permitted result.
+ */
+fun ExportOptions.narrowedFor(permissions: PermissionSet): ExportOptions {
+    val scope = if (this.scope == ExportScope.ALL && !permissions.has(Permission.EXPORT_ALL_DATA)) {
+        ExportScope.OWN
+    } else {
+        this.scope
+    }
+    val format = when {
+        this.format == ExportFormat.XLSX && !permissions.has(Permission.EXPORT_EXCEL) ->
+            ExportFormat.CSV
+        this.format == ExportFormat.CSV && !permissions.has(Permission.EXPORT_CSV) ->
+            ExportFormat.XLSX
+        else -> this.format
+    }
+    return copy(
+        scope = scope,
+        format = format,
+        editable = this.editable && permissions.has(Permission.EDIT_EXPORTED_FILE),
+    )
+}
