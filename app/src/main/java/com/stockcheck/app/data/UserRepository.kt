@@ -19,19 +19,39 @@ class UserRepository(private val audit: AuditRepository) {
     fun observeUsers(): Flow<List<UserProfile>> =
         Db.users().orderBy("displayName", Query.Direction.ASCENDING).asFlow()
 
-    suspend fun isWorkspaceEmpty(): Boolean =
-        runCatching { Db.users().limit(1).get().await().isEmpty }.getOrDefault(false)
-
+    /**
+     * The registration flow used to decide "am I the first user?" by reading
+     * the users collection first and seeding roles only if it was empty. That
+     * read is denied by firestore.rules for a brand-new account: `VIEW_USERS`
+     * and `isOwner` both require a profile document to already exist, which is
+     * exactly what registration is in the middle of creating — a chicken-and-
+     * egg permission deadlock. The read was wrapped in `runCatching { }
+     * .getOrDefault(false)`, so the denial was swallowed silently: every
+     * registration, including the true first one, always looked like "not
+     * first", the built-in roles were never seeded, and the new account ended
+     * up with a role id but no matching role document — zero permissions,
+     * every tab and button gone.
+     *
+     * [trySeedBuiltInRoles] replaces that read-then-decide with attempt-then-
+     * check: the roles rule already has a bootstrap clause that allows
+     * creating the roles ONLY while `roles/admin` does not yet exist, with no
+     * profile required. So the write is just attempted, and whether Firestore
+     * allowed it tells us whether this is the first registration — the same
+     * fact the old code tried and failed to determine by reading first.
+     */
     suspend fun createProfile(uid: String, email: String, displayName: String, roleId: String) {
-        val role = Db.role(roleId).getAs<Role>()
         val now = System.currentTimeMillis()
+        // No Firestore read here either, for the same reason: the role
+        // document cannot be read back before the profile exists. The display
+        // name is taken from the in-memory seed list instead.
+        val roleName = BuiltInRoles.seeds.firstOrNull { it.id == roleId }?.name ?: roleId
         Db.user(uid).set(
             UserProfile(
                 uid = uid,
                 email = email,
                 displayName = displayName,
                 roleId = roleId,
-                roleName = role?.name ?: roleId,
+                roleName = roleName,
                 active = true,
                 createdAt = now,
                 lastSeenAt = now,
@@ -121,12 +141,24 @@ class UserRepository(private val audit: AuditRepository) {
     fun observeRoles(): Flow<List<Role>> =
         Db.roles().orderBy("name", Query.Direction.ASCENDING).asFlow()
 
-    suspend fun seedBuiltInRoles() {
+    /**
+     * Attempts to write the built-in roles and reports whether it succeeded.
+     * See the note on [createProfile] for why this doubles as "is this the
+     * first user" — success here IS the definition of "first", per the
+     * bootstrap clause in firestore.rules.
+     *
+     * A second call (from a second user registering, or a retry) correctly
+     * returns false: the roles now exist, so Firestore evaluates the same
+     * `set()` as an update, `roleId != 'admin'` on the admin document is
+     * false, and the whole batch is denied atomically.
+     */
+    suspend fun trySeedBuiltInRoles(): Boolean {
         val batch = Db.batch()
+        val now = System.currentTimeMillis()
         BuiltInRoles.seeds.forEach { role ->
-            batch.set(Db.role(role.id), role.copy(createdAt = System.currentTimeMillis()))
+            batch.set(Db.role(role.id), role.copy(createdAt = now))
         }
-        batch.commit().await()
+        return runCatching { batch.commit().await() }.isSuccess
     }
 
     suspend fun saveRole(session: Session, role: Role) {

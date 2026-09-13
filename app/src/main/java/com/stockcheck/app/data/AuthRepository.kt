@@ -75,12 +75,17 @@ class AuthRepository(
      *
      * The very first account in a workspace becomes the Admin and seeds the
      * built-in roles; every later self-registration lands on Worker.
+     *
+     * "First" is decided by attempting [UserRepository.trySeedBuiltInRoles]
+     * and checking whether it succeeded, not by reading the users collection
+     * beforehand — a brand-new account has no profile yet, and every read
+     * that could answer "is this workspace empty" requires one. See the
+     * comment on that function for the full reasoning.
      */
     suspend fun register(email: String, password: String, displayName: String) {
         val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
         val uid = result.user?.uid ?: error("Registration returned no user")
-        val isFirstUser = users.isWorkspaceEmpty()
-        if (isFirstUser) users.seedBuiltInRoles()
+        val isFirstUser = users.trySeedBuiltInRoles()
         val roleId = if (isFirstUser) BuiltInRoles.ADMIN_ID else BuiltInRoles.WORKER_ID
         users.createProfile(
             uid = uid,
