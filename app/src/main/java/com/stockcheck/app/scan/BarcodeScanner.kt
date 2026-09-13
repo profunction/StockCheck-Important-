@@ -17,6 +17,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.concurrent.futures.await
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -87,12 +88,12 @@ fun BarcodeScannerPreview(
         }
     }
 
-    // Bound from a coroutine via CameraX's suspending accessor rather than the
-    // ListenableFuture overload, which would drag Guava onto the classpath just
-    // to await a single value.
+    // Bound from a coroutine so the provider is awaited without blocking and
+    // without a nested listener callback; `await()` comes from
+    // androidx.concurrent:concurrent-futures-ktx.
     LaunchedEffect(enabled, lifecycleOwner) {
-        val provider = runCatching { ProcessCameraProvider.awaitInstance(context) }.getOrNull()
-            ?: return@LaunchedEffect
+        val provider = runCatching { ProcessCameraProvider.getInstance(context).await() }
+            .getOrNull() ?: return@LaunchedEffect
 
         provider.unbindAll()
         if (!enabled) return@LaunchedEffect

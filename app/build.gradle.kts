@@ -64,6 +64,8 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.mlkit.barcode.scanning)
+    implementation(libs.androidx.concurrent.futures.ktx)
+    implementation(libs.guava)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)

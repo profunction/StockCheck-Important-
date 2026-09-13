@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
@@ -293,11 +295,11 @@ private fun CheckSelector(
     selectedId: String?,
     onSelect: (String) -> Unit,
 ) {
-    androidx.compose.foundation.lazy.LazyRow(
+    LazyRow(
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        androidx.compose.foundation.lazy.items(checks, key = { it.id }) { check ->
+        rowItems(checks, key = { it.id }) { check ->
             AssistChip(
                 onClick = { onSelect(check.id) },
                 label = {
