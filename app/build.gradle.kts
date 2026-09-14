@@ -33,19 +33,15 @@ android {
         }
     }
 
-    // ML Kit ships a native barcode engine for every ABI, which makes a single
-    // universal APK roughly four times larger than any phone actually needs.
-    // Splitting produces one file per architecture; arm64-v8a covers essentially
-    // every Android phone made since 2017, armeabi-v7a covers older ones.
-    // Play Store delivery would use an App Bundle instead and do this itself.
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = false
-        }
-    }
+    // Per-ABI splits were tried to shrink the debug APK for easier transfer,
+    // but on at least one real test device the 32-bit armeabi-v7a split
+    // wouldn't install at all -- modern phones increasingly ship as 64-bit
+    // only, with no ARM32 support in the OS to run it against, and Android
+    // reports that as a generic "incompatible" dialog rather than naming the
+    // ABI mismatch. A single universal APK carries every ABI's native code and
+    // always runs, at the cost of size; that trade is worth it for manual
+    // sideloading onto a handful of test phones. Play Store delivery would use
+    // an Android App Bundle instead, which solves this properly server-side.
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
