@@ -85,16 +85,17 @@ class AuthRepository(
 
         // Which company this account belongs to has to be settled before any
         // per-company path is touched; Db.workspaceId is what every query
-        // below hangs off.
-        flow<AuthState> {
-            val workspaceId = workspaces.workspaceOf(user.uid)
+        // below hangs off. Watched rather than read once: creating a company
+        // signs the account in before its index entry exists, and a one-shot
+        // read there would answer "no company" and never revisit it.
+        workspaces.observeWorkspaceOf(user.uid).flatMapLatest { workspaceId ->
             if (workspaceId.isNullOrEmpty()) {
                 Db.workspaceId = ""
-                emit(AuthState.NoWorkspace(user.uid, user.email.orEmpty()))
-                return@flow
+                flowOf<AuthState>(AuthState.NoWorkspace(user.uid, user.email.orEmpty()))
+            } else {
+                Db.workspaceId = workspaceId
+                sessionFor(user)
             }
-            Db.workspaceId = workspaceId
-            emitAll(sessionFor(user))
         }
     }
 
@@ -222,7 +223,6 @@ class AuthRepository(
         Db.workspaceId = target.workspaceId
 
         runCatching {
-            workspaces.linkUserToWorkspace(uid, target.workspaceId)
             users.createProfile(
                 uid = uid,
                 email = email.trim(),
@@ -230,6 +230,7 @@ class AuthRepository(
                 roleId = BuiltInRoles.WORKER_ID,
                 joinCode = joinCode,
             )
+            workspaces.linkUserToWorkspace(uid, target.workspaceId)
         }.onFailure { error ->
             rollbackAccount()
             throw IllegalStateException(
@@ -256,7 +257,7 @@ class AuthRepository(
         val uid = result.user?.uid ?: error("Registration returned no user")
 
         runCatching {
-            workspaces.createWorkspace(uid, companyName, joinCode)
+            val workspaceId = workspaces.createWorkspace(uid, companyName, joinCode)
             users.createProfile(
                 uid = uid,
                 email = email.trim(),
@@ -264,6 +265,9 @@ class AuthRepository(
                 roleId = BuiltInRoles.ADMIN_ID,
                 joinCode = joinCode,
             )
+            // Last, on purpose: this is what the session is waiting on, so
+            // everything it needs must already be in place.
+            workspaces.linkUserToWorkspace(uid, workspaceId)
         }.onFailure { error ->
             rollbackAccount()
             throw IllegalStateException(

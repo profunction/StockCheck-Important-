@@ -4,6 +4,9 @@ import com.stockcheck.app.model.BuiltInRoles
 import com.stockcheck.app.model.UserIndex
 import com.stockcheck.app.model.WorkspaceCode
 import com.stockcheck.app.model.WorkspaceConfig
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -30,6 +33,21 @@ class WorkspaceRepository {
         return runCatching { Db.workspaceCode(code).getAs<WorkspaceCode>() }.getOrNull()
     }
 
+    /**
+     * Watches which company an account belongs to.
+     *
+     * Creating a company signs the new account in the instant the Auth record
+     * exists, which is several writes before its index entry does. A one-shot
+     * read at that moment answers "no company" and, having answered, never
+     * looks again — so the app settled on that screen while the company was
+     * being built successfully behind it. Observing the document instead means
+     * the session continues by itself the moment the entry lands.
+     */
+    fun observeWorkspaceOf(uid: String): Flow<String?> =
+        Db.userIndex(uid).asFlow<UserIndex>()
+            .map { it?.workspaceId?.takeIf(String::isNotEmpty) }
+            .catch { emit(null) }
+
     /** The company this account belongs to, or null if it has joined none. */
     suspend fun workspaceOf(uid: String): String? =
         runCatching { Db.userIndex(uid).getAs<UserIndex>()?.workspaceId }
@@ -55,6 +73,12 @@ class WorkspaceRepository {
      * Returns the new workspace id. Throws when the code is already taken —
      * the rules allow creating a code document only when none exists, so two
      * companies racing for the same code cannot both win.
+     *
+     * Deliberately does NOT link the account to the workspace. The app watches
+     * that link to decide the company is ready, so it has to be written last,
+     * after the caller has also created the profile — otherwise the session
+     * advances into a workspace whose profile does not exist yet and flashes
+     * the "setup didn't finish" screen on the way past.
      */
     suspend fun createWorkspace(
         uid: String,
@@ -111,7 +135,6 @@ class WorkspaceRepository {
             ),
         ).awaitAck()
 
-        linkUserToWorkspace(uid, workspaceId)
         return workspaceId
     }
 

@@ -71,7 +71,6 @@ class UserRepository(
 
         val uid = provisioning.createAccount(email, password)
         return try {
-            workspaces.linkUserToWorkspace(uid, workspaceId)
             val role = Db.role(roleId).getAs<Role>()
             val now = System.currentTimeMillis()
             Db.user(uid).set(
@@ -86,6 +85,8 @@ class UserRepository(
                     lastSeenAt = 0L,
                 ),
             ).awaitAck()
+            // Linked last: the app treats this as "the account is ready".
+            workspaces.linkUserToWorkspace(uid, workspaceId)
             audit.record(
                 session = session,
                 entity = "User",
