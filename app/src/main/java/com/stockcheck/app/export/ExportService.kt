@@ -86,6 +86,23 @@ class ExportService(
             items.forEach { rows += ExportRow(check, it) }
         }
 
+        // A file with headers and no rows looks like a successful export of
+        // nothing, and the usual cause is a scope that excluded everything --
+        // "Mine" when the counts belong to a colleague. Say that instead of
+        // handing over an empty spreadsheet.
+        if (rows.isEmpty()) {
+            throw IllegalStateException(
+                if (options.scope == ExportScope.OWN && checks.isNotEmpty()) {
+                    "Nothing to export: none of these stock checks were created by you. " +
+                        "Choose Everyone under Data to include your colleagues' counts."
+                } else if (scoped.isEmpty()) {
+                    "Nothing to export: no stock checks match the current filter."
+                } else {
+                    "Nothing to export: these stock checks have no items counted yet."
+                },
+            )
+        }
+
         // Every template represented in the selection contributes its
         // columns. Reading only the first check's template quietly dropped
         // the rest, so a mixed export lost the very fields that distinguish

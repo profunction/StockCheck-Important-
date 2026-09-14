@@ -177,7 +177,7 @@ fun HistoryScreen(
     if (exporting) {
         ExportDialog(
             session = session,
-            checkCount = checks.size,
+            checks = checks,
             customColumns = customColumns,
             onDismiss = { exporting = false },
             onExport = { options ->
@@ -477,7 +477,7 @@ private fun ItemLine(item: StockItem, canEdit: Boolean, onEdit: (StockItem) -> U
 @Composable
 private fun ExportDialog(
     session: Session,
-    checkCount: Int,
+    checks: List<StockCheck>,
     customColumns: List<com.stockcheck.app.export.ExportColumn>,
     onDismiss: () -> Unit,
     onExport: (ExportOptions) -> Unit,
@@ -505,7 +505,14 @@ private fun ExportDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Export $checkCount stock check(s)") },
+        title = {
+            // Counted against the chosen scope, not the whole list: the header
+            // used to promise more records than "Mine" would actually include.
+            val included = checks.count {
+                scope == ExportScope.ALL || it.createdByUid == session.uid
+            }
+            Text("Export $included of ${checks.size} stock checks")
+        },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text("Format", style = MaterialTheme.typography.labelLarge)
@@ -528,6 +535,11 @@ private fun ExportDialog(
 
                 Spacer(Modifier.height(14.dp))
                 Text("Data", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    text = "\"Mine\" means stock checks you created yourself.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = scope == ExportScope.OWN,
@@ -616,7 +628,8 @@ private fun ExportDialog(
                         ),
                     )
                 },
-                enabled = selected.isNotEmpty() && (canCsv || canExcel),
+                enabled = selected.isNotEmpty() && (canCsv || canExcel) &&
+                    checks.any { scope == ExportScope.ALL || it.createdByUid == session.uid },
             ) { Text("Export") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
