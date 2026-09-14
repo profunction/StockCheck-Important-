@@ -46,6 +46,7 @@ data class ExportColumn(
         val STATUS = ExportColumn("status", "Status", width = 13)
         val BARCODE = ExportColumn("barcode", "Barcode", width = 20)
         val PRODUCT = ExportColumn("product", "Product", width = 26, editableWhenGranted = true)
+        val SKU = ExportColumn("sku", "SKU", width = 16, editableWhenGranted = true)
         val QUANTITY = ExportColumn(
             "quantity", "Quantity", width = 11, numeric = true, editableWhenGranted = true,
         )
@@ -56,7 +57,7 @@ data class ExportColumn(
         /** The columns every export offers, before template fields are added. */
         val standard: List<ExportColumn> = listOf(
             REF, DATE, TIME, WORKER, TEMPLATE, STATUS,
-            BARCODE, PRODUCT, QUANTITY, UNIT, REMARK, SOURCE,
+            BARCODE, PRODUCT, SKU, QUANTITY, UNIT, REMARK, SOURCE,
         )
 
         /** Ticked by default in the export sheet. */

@@ -21,6 +21,8 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -116,6 +118,7 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
 fun StockHomeScreen(
     session: Session,
     onOpenCheck: (String) -> Unit,
+    onOpenProducts: () -> Unit,
 ) {
     val viewModel: StockHomeViewModel = viewModel(
         factory = StockHomeViewModel.factory(session),
@@ -134,17 +137,27 @@ fun StockHomeScreen(
     Scaffold(
         topBar = { TopAppBar(title = { Text("Stock check") }) },
         floatingActionButton = {
-            if (session.role.permissionSet.has(Permission.CREATE_STOCK_CHECK) ||
-                session.role.id == "admin"
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        viewModel.seedTemplatesIfNeeded()
-                        picking = true
-                    },
-                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text("New stock check") },
-                )
+            Column(horizontalAlignment = Alignment.End) {
+                // Above the primary action, because naming products is the
+                // preparation that makes counting fast -- a scan resolves to a
+                // name instead of a row of digits -- but it is not the thing
+                // someone opens this tab to do.
+                SmallFloatingActionButton(onClick = onOpenProducts) {
+                    Icon(Icons.Filled.Inventory2, contentDescription = "Products")
+                }
+                Spacer(Modifier.height(12.dp))
+                if (session.role.permissionSet.has(Permission.CREATE_STOCK_CHECK) ||
+                    session.role.id == "admin"
+                ) {
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            viewModel.seedTemplatesIfNeeded()
+                            picking = true
+                        },
+                        icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                        text = { Text("New stock check") },
+                    )
+                }
             }
         },
     ) { padding ->

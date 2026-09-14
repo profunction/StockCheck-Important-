@@ -50,6 +50,7 @@ import com.stockcheck.app.ui.common.NoticeTone
 import com.stockcheck.app.ui.history.HistoryDetailScreen
 import com.stockcheck.app.ui.history.HistoryScreen
 import com.stockcheck.app.ui.photos.PhotosScreen
+import com.stockcheck.app.ui.products.ProductsScreen
 import com.stockcheck.app.ui.profile.AuditLogScreen
 import com.stockcheck.app.ui.profile.ProfileScreen
 import com.stockcheck.app.ui.profile.RoleEditorScreen
@@ -66,6 +67,7 @@ sealed class Dest(val route: String) {
         fun of(checkId: String) = "stock/$checkId"
     }
 
+    data object Products : Dest("products")
     data object Photos : Dest("photos")
     data object Templates : Dest("templates")
     data object TemplateEditor : Dest("templates/edit/{templateId}") {
@@ -255,6 +257,7 @@ private fun MainScaffold(
                     onOpenCheck = { checkId ->
                         navController.navigate(Dest.StockDetail.of(checkId))
                     },
+                    onOpenProducts = { navController.navigate(Dest.Products.route) },
                 )
             }
             composable(Dest.StockDetail.route) { entry ->
@@ -264,6 +267,10 @@ private fun MainScaffold(
                     onBack = { navController.popBackStack() },
                     onOpenPhotos = { navController.navigate(Dest.Photos.route) },
                 )
+            }
+
+            composable(Dest.Products.route) {
+                ProductsScreen(session = session, onBack = { navController.popBackStack() })
             }
 
             composable(Dest.Photos.route) {

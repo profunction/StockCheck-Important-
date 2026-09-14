@@ -58,6 +58,12 @@ data class StockItem(
     @DocumentId val id: String = "",
     val barcode: String = "",
     val productName: String = "",
+    /**
+     * Copied from the catalogue at scan time rather than looked up on demand,
+     * so a count stays readable even if the product is renamed or removed
+     * afterwards. A stock check is a record of what was true that day.
+     */
+    val sku: String = "",
     val quantity: Int = 0,
     val unit: String = "pcs",
     val remark: String = "",
@@ -89,6 +95,31 @@ data class PhotoRecord(
     val takenAt: Long = 0L,
     val takenByUid: String = "",
     val takenByName: String = "",
+)
+
+// ------------------------------------------------------------------ products
+
+/**
+ * A known product, held at `products/{barcode}`.
+ *
+ * The barcode IS the document id, so a scan is a direct lookup rather than a
+ * query — which matters because it happens on every scan, often with no
+ * signal, and has to resolve from the offline cache in the time between the
+ * camera reading a code and the row appearing.
+ *
+ * Without this a counted line shows nothing but a number, which nobody can
+ * check against the shelf in front of them.
+ */
+data class Product(
+    @DocumentId val barcode: String = "",
+    val name: String = "",
+    val sku: String = "",
+    /** Pre-fills the unit on a counted line, e.g. ctn for a case. */
+    val unit: String = "pcs",
+    val active: Boolean = true,
+    val createdAt: Long = 0L,
+    val createdByUid: String = "",
+    val updatedAt: Long = 0L,
 )
 
 // ------------------------------------------------------------------ templates

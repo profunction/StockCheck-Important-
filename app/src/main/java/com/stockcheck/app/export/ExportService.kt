@@ -244,6 +244,7 @@ class ExportService(
             ExportColumn.STATUS.key -> StockStatus.parse(check.status).label
             ExportColumn.BARCODE.key -> item.barcode
             ExportColumn.PRODUCT.key -> item.productName
+            ExportColumn.SKU.key -> item.sku
             ExportColumn.QUANTITY.key -> item.quantity.toString()
             ExportColumn.UNIT.key -> item.unit
             ExportColumn.REMARK.key -> item.remark

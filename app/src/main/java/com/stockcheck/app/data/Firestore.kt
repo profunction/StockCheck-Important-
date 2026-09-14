@@ -65,6 +65,10 @@ object Db {
     fun roles(): CollectionReference = workspace().collection("roles")
     fun role(id: String): DocumentReference = roles().document(id)
 
+    /** Known products, keyed by barcode so a scan is a direct document read. */
+    fun products(): CollectionReference = workspace().collection("products")
+    fun product(barcode: String): DocumentReference = products().document(barcode)
+
     fun templates(): CollectionReference = workspace().collection("templates")
     fun template(id: String): DocumentReference = templates().document(id)
 

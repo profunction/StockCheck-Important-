@@ -19,7 +19,8 @@ object ServiceLocator {
     val provisioning: UserProvisioning by lazy { UserProvisioning(appContext) }
     val users: UserRepository by lazy { UserRepository(audit, provisioning, workspaces) }
     val auth: AuthRepository by lazy { AuthRepository(users = users, workspaces = workspaces) }
-    val stock: StockRepository by lazy { StockRepository(audit) }
+    val products: ProductRepository by lazy { ProductRepository(audit) }
+    val stock: StockRepository by lazy { StockRepository(audit, products) }
     val templates: TemplateRepository by lazy { TemplateRepository(audit) }
     val photos: PhotoRepository by lazy { PhotoRepository(appContext, audit) }
     val exports: com.stockcheck.app.export.ExportService by lazy {

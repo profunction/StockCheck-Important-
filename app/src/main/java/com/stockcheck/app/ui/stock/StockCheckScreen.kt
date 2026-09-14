@@ -455,10 +455,16 @@ private fun ItemRow(
                     maxLines = 1,
                 )
                 Text(
-                    text = if (item.productName.isEmpty()) {
-                        item.sourceEnum.name.lowercase()
-                    } else {
-                        item.barcode
+                    // Barcode plus SKU once the catalogue has named it; the
+                    // scan source only matters while the line is still just a
+                    // number nobody has identified.
+                    text = buildString {
+                        if (item.productName.isEmpty()) {
+                            append(item.sourceEnum.name.lowercase())
+                        } else {
+                            append(item.barcode)
+                            if (item.sku.isNotEmpty()) append("  ·  ${item.sku}")
+                        }
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

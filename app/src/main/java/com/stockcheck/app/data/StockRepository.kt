@@ -27,7 +27,10 @@ sealed interface ScanOutcome {
     data class AlreadyPresent(val item: StockItem) : ScanOutcome
 }
 
-class StockRepository(private val audit: AuditRepository) {
+class StockRepository(
+    private val audit: AuditRepository,
+    private val products: ProductRepository,
+) {
 
     // --------------------------------------------------------- stock checks
 
@@ -241,14 +244,21 @@ class StockRepository(private val audit: AuditRepository) {
             .firstOrNull()
         if (existing != null) return ScanOutcome.AlreadyPresent(existing)
 
+        // A known barcode names itself. Without this every counted line is a
+        // row of digits that cannot be checked against the shelf it came from.
+        val known = if (productName.isBlank()) products.find(trimmed) else null
+
         val now = System.currentTimeMillis()
         val doc = Db.items(stockCheckId).document()
         val item = StockItem(
             id = doc.id,
             barcode = trimmed,
-            productName = productName,
+            productName = productName.ifBlank { known?.name.orEmpty() },
+            sku = known?.sku.orEmpty(),
             quantity = quantity,
-            unit = unit,
+            // The catalogue's unit only wins when the caller did not state one,
+            // so a spoken "25 cartons" is not overridden by the default.
+            unit = if (unit == "pcs") known?.unit ?: unit else unit,
             source = source.name,
             createdByUid = session.uid,
             createdAt = now,
