@@ -8,13 +8,29 @@ import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.Template
 import com.stockcheck.app.model.TemplateField
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class TemplateRepository(private val audit: AuditRepository) {
 
+    /**
+     * Sorting happens in memory, not in the query.
+     *
+     * Firestore needs a composite index for an equality filter on one field
+     * combined with an order on another, and without it the query does not
+     * degrade — it fails outright. `where(active) + orderBy(name)` therefore
+     * returned nothing but an error, which the collector turned into an empty
+     * list, and the template picker told the user "no active templates yet"
+     * while five sat in the database. A handful of templates sorts for free
+     * here and needs no index to maintain.
+     */
     fun observeTemplates(activeOnly: Boolean = false): Flow<List<Template>> {
-        val base = Db.templates().orderBy("name", Query.Direction.ASCENDING)
-        return if (activeOnly) base.whereEqualTo("active", true).asFlow() else base.asFlow()
+        val query = if (activeOnly) {
+            Db.templates().whereEqualTo("active", true)
+        } else {
+            Db.templates()
+        }
+        return query.asFlow<Template>().map { list -> list.sortedBy { it.name.lowercase() } }
     }
 
     fun observeTemplate(id: String): Flow<Template?> = Db.template(id).asFlow()

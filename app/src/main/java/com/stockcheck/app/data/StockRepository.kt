@@ -11,6 +11,7 @@ import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 /** What happened when a barcode was scanned, so the UI can react appropriately. */
@@ -35,17 +36,26 @@ class StockRepository(private val audit: AuditRepository) {
         // restriction lives in the Firestore rules; narrowing the query here
         // stops the client asking for documents it would be denied, which would
         // otherwise fail the entire listener rather than filtering it.
-        val query = if (session.can(Permission.VIEW_ALL_HISTORY)) {
+        return if (session.can(Permission.VIEW_ALL_HISTORY)) {
+            // No filter, so the server can order and limit.
             Db.stockChecks()
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(limit)
+                .asFlow()
         } else {
+            // Filtering by author AND ordering by date needs a composite
+            // index, and Firestore fails the query outright without one
+            // rather than returning unordered results -- which surfaced as
+            // an empty History tab rather than an error. Ordering in memory
+            // instead keeps this working with no index to deploy. The limit
+            // is applied after sorting so it still means "most recent N".
             Db.stockChecks()
                 .whereEqualTo("createdByUid", session.uid)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(limit)
+                .asFlow<StockCheck>()
+                .map { checks ->
+                    checks.sortedByDescending { it.createdAt }.take(limit.toInt())
+                }
         }
-        return query.asFlow()
     }
 
     fun observeStockCheck(id: String): Flow<StockCheck?> = Db.stockCheck(id).asFlow()

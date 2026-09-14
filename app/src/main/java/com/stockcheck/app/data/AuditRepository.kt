@@ -5,6 +5,7 @@ import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.AuditEntry
 import com.stockcheck.app.model.Session
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -72,11 +73,17 @@ class AuditRepository {
     fun observeAll(limit: Long = 300): Flow<List<AuditEntry>> =
         Db.auditLog().orderBy("at", Query.Direction.DESCENDING).limit(limit).asFlow()
 
+    /**
+     * Ordered in memory: combining the equality filter with an order on a
+     * different field would need a composite index, and Firestore fails such
+     * a query outright rather than falling back. One check's trail is small
+     * enough that sorting it here costs nothing.
+     */
     fun observeForStockCheck(stockCheckId: String): Flow<List<AuditEntry>> =
         Db.auditLog()
             .whereEqualTo("stockCheckId", stockCheckId)
-            .orderBy("at", Query.Direction.DESCENDING)
-            .asFlow()
+            .asFlow<AuditEntry>()
+            .map { entries -> entries.sortedByDescending { it.at } }
 }
 
 data class FieldChange(val field: String, val oldValue: String, val newValue: String)

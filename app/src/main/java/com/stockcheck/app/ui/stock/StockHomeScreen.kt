@@ -64,16 +64,25 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
     private val stock = ServiceLocator.stock
     private val templateRepo = ServiceLocator.templates
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
     val openChecks: StateFlow<List<StockCheck>> = stock.observeStockChecks(session)
-        .catch { emit(emptyList()) }
+        .catch { error ->
+            _error.value = "Stock checks could not be loaded: ${error.message}"
+            emit(emptyList())
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val templates: StateFlow<List<Template>> = templateRepo.observeTemplates(activeOnly = true)
-        .catch { emit(emptyList()) }
+        // A failed query is reported, not silently rendered as "none". An
+        // unindexed filter+order combination failed here and the picker told
+        // the user there were no templates while five sat in the database.
+        .catch { error ->
+            _error.value = "Templates could not be loaded: ${error.message}"
+            emit(emptyList())
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
 
     /** Creates a check and hands its id back so the caller can navigate. */
     fun createCheck(template: Template, onCreated: (String) -> Unit) {
