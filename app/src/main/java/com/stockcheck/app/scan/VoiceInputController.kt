@@ -42,11 +42,20 @@ class VoiceInputController(private val context: Context) {
 
     val isAvailable: Boolean get() = SpeechRecognizer.isRecognitionAvailable(context)
 
+    /**
+     * True once an offline attempt has failed, so the retry asks for the
+     * networked recogniser instead.
+     */
+    private var offlineAttemptFailed = false
+    private var lastLanguageTag: String = Locale.getDefault().toLanguageTag()
+
     fun start(languageTag: String = Locale.getDefault().toLanguageTag(), onCommand: (VoiceCommand) -> Unit) {
         if (!isAvailable) {
             _state.value = VoiceState.Failed("No speech recognition service is installed.")
             return
         }
+        offlineAttemptFailed = false
+        lastLanguageTag = languageTag
         onResult = onCommand
         // A recogniser instance is single-use in practice: reusing one after an
         // error leaves it wedged, so each session gets a fresh one.
@@ -82,10 +91,17 @@ class VoiceInputController(private val context: Context) {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            // Offline is preferred so counting survives a warehouse with no
+            // signal, but only as a preference: a device without the language
+            // pack installed fails outright when it is demanded, and most
+            // phones do not have it until the user downloads it explicitly.
+            // The retry below drops this flag.
+            if (!offlineAttemptFailed) {
+                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            }
         }
 
-    private val listener = object : RecognitionListener {
+    private val listener: RecognitionListener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
             _state.value = VoiceState.Listening
         }
@@ -116,6 +132,26 @@ class VoiceInputController(private val context: Context) {
         }
 
         override fun onError(error: Int) {
+            // An offline-only attempt that fails for any reason other than the
+            // user simply not speaking is retried once over the network, since
+            // a missing language pack and a genuine failure are reported with
+            // the same codes.
+            val worthRetryingOnline = !offlineAttemptFailed && error !in setOf(
+                SpeechRecognizer.ERROR_SPEECH_TIMEOUT,
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS,
+            )
+            if (worthRetryingOnline) {
+                offlineAttemptFailed = true
+                val callback = onResult
+                release()
+                recognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
+                    setRecognitionListener(this@VoiceInputController.listener)
+                    startListening(intentFor(lastLanguageTag))
+                }
+                onResult = callback
+                _state.value = VoiceState.Listening
+                return
+            }
             _state.value = VoiceState.Failed(describe(error))
         }
 
@@ -135,7 +171,12 @@ class VoiceInputController(private val context: Context) {
         SpeechRecognizer.ERROR_NO_MATCH -> "Nothing was recognised — try again."
         SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "The recogniser is busy."
         SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech was heard."
-        else -> "Voice input failed."
+        SpeechRecognizer.ERROR_SERVER -> "The speech service rejected the request."
+        // Naming the code matters: the unnamed fallback reported only "Voice
+        // input failed", which says nothing about whether the microphone, the
+        // language pack or the network is at fault.
+        else -> "Voice input failed (error code $error). If this keeps happening, " +
+            "install the offline speech pack for your language in system settings."
     }
 }
 
