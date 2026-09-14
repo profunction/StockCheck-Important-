@@ -24,3 +24,8 @@ keystore.properties
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Firestore rules test harness deps
+rules-test/node_modules/
+rules-test/.firebase/
+*-debug.log

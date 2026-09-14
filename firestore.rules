@@ -57,11 +57,18 @@ service cloud.firestore {
       // ------------------------------------------------------------- users
 
       match /users/{uid} {
-        // Self-registration writes exactly one document: the user's own, with
-        // their own uid, active, and never onto the admin role.
+        // Self-registration writes exactly one document: the user's own,
+        // active, and never onto the admin role.
+        //
+        // There is deliberately no check on a `uid` FIELD in the document
+        // body. UserProfile.uid is annotated @DocumentId, which means the SDK
+        // fills it from the document id when reading and OMITS it when
+        // writing -- so a body check reads as "Property uid is undefined on
+        // object" and denies every registration. The document id IS the uid,
+        // and the `request.auth.uid == uid` line above already pins it to the
+        // caller, so the field check added nothing but a deadlock.
         allow create: if signedIn()
                       && request.auth.uid == uid
-                      && request.resource.data.uid == uid
                       && request.resource.data.active == true
                       && (request.resource.data.roleId != 'admin' || !profileExists());
 
@@ -82,18 +89,14 @@ service cloud.firestore {
 
       match /roles/{roleId} {
         allow read: if active();
-        // Seeding writes all four built-in roles in one atomic batch.
-        // Firestore evaluates each write's rule against the state as it would
-        // be AFTER the earlier writes in the SAME batch already landed, so
-        // this condition -- correct on its own -- only holds for whichever
-        // write in the batch happens to run last: by the time any earlier
-        // write is evaluated, roles/admin doesn't exist yet (true, allowed);
-        // by the time a write AFTER admin's is evaluated, it does (false,
-        // denied). UserRepository.trySeedBuiltInRoles() relies on this and
-        // deliberately writes the admin document last in the batch so every
-        // one of the four sees !exists(roles/admin) as true. Reordering that
-        // batch (or re-adding a write ahead of admin's) will silently break
-        // registration again with a denied batch and no obvious cause.
+        // Seeding writes all four built-in roles in one atomic batch while
+        // the workspace still has no admin role, which is the only moment a
+        // caller without a profile is allowed to create roles at all.
+        //
+        // Every write in a batch is evaluated against the pre-batch state, so
+        // all four see !exists(roles/admin) as true regardless of the order
+        // they appear in the batch -- verified in rules-test/test.mjs, which
+        // asserts both orderings pass.
         allow create: if can('CREATE_ROLE')
                       || (signedIn() && !exists(/databases/$(database)/documents/workspaces/$(ws)/roles/admin));
         allow update: if can('EDIT_ROLE') && roleId != 'admin';
