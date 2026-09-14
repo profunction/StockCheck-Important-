@@ -33,6 +33,8 @@ data class ExportResult(
     val format: ExportFormat,
     val rowCount: Int,
     val editable: Boolean,
+    /** True when the file was wrapped in a password-protected archive. */
+    val encrypted: Boolean = false,
 )
 
 class ExportService(
@@ -124,43 +126,55 @@ class ExportService(
         }
         val file = File(dir, name)
 
+        // The company password if an admin set one. A constant compiled into
+        // a published app is known to everyone, which is why this is
+        // configurable; when it is unset the export is not encrypted at all,
+        // because a fixed password would only look like protection.
+        val password = Db.config().getAs<WorkspaceConfig>()
+            ?.exportPassword
+            ?.takeIf { it.isNotBlank() }
+
         when (options.format) {
             ExportFormat.CSV -> writeCsv(file, columns, rows)
-            ExportFormat.XLSX -> {
-                // The admin's password if they set one, otherwise a constant.
-                // A constant compiled into a published app is known to
-                // everyone, which is why this is configurable at all.
-                val password = Db.config().getAs<WorkspaceConfig>()
-                    ?.exportPassword
-                    ?.takeIf { it.isNotBlank() }
-                    ?: SHEET_GUARD
-                writeXlsx(file, columns, rows, options.editable, password)
-            }
+            ExportFormat.XLSX ->
+                writeXlsx(file, columns, rows, options.editable, password ?: SHEET_GUARD)
+        }
+
+        // Encryption goes on the container, not the file. A CSV has no notion
+        // of a password, and an xlsx's sheet protection is a 16-bit hash free
+        // tools strip in seconds; AES-256 on the archive is the only part of
+        // this that is real.
+        val delivered = if (password != null) {
+            EncryptedBundle.wrap(file, password)
+        } else {
+            file
         }
 
         audit.record(
             session = session,
             entity = "Export",
-            entityId = file.name,
-            entityLabel = file.name,
+            entityId = delivered.name,
+            entityLabel = delivered.name,
             action = AuditAction.EXPORT,
             field = "rows",
             newValue = "${rows.size} rows, ${columns.size} columns, " +
                 "${options.format.name}, ${options.scope.name}" +
-                if (options.editable) ", editable" else ", locked",
+                (if (options.editable) ", editable" else ", locked") +
+                (if (password != null) ", encrypted" else ", not encrypted"),
             stockCheckId = if (scoped.size == 1) scoped.first().id else "",
         )
 
         ExportResult(
-            file = file,
+            file = delivered,
             uri = FileProvider.getUriForFile(
                 appContext,
                 "${appContext.packageName}.fileprovider",
-                file,
+                delivered,
             ),
             format = options.format,
             rowCount = rows.size,
             editable = options.editable,
+            encrypted = password != null,
         )
     }
 
@@ -257,7 +271,7 @@ class ExportService(
     /** Intent that hands the finished file to a mail, chat or files app. */
     fun shareIntent(result: ExportResult): Intent =
         Intent(Intent.ACTION_SEND).apply {
-            type = result.format.mime
+            type = if (result.encrypted) "application/zip" else result.format.mime
             putExtra(Intent.EXTRA_STREAM, result.uri)
             putExtra(Intent.EXTRA_SUBJECT, result.file.name)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

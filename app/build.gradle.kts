@@ -20,7 +20,7 @@ android {
         // identified: "did you actually install the new APK?" came up
         // repeatedly while debugging and was unanswerable from a
         // screenshot.
-        buildConfigField("String", "BUILD_STAMP", "\"2026-09-14 23:44\"")
+        buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 07:40\"")
     }
 
     buildTypes {
@@ -95,6 +95,7 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    implementation(libs.zip4j)
     implementation(libs.coil.compose)
     implementation(libs.androidx.work.runtime.ktx)
 }

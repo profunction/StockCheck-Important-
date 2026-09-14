@@ -86,6 +86,7 @@ fun HistoryScreen(
     val message by viewModel.message.collectAsStateWithLifecycle()
     val exportResult by viewModel.lastExport.collectAsStateWithLifecycle()
     val customColumns by viewModel.customColumns.collectAsStateWithLifecycle()
+    val exportPassword by viewModel.exportPassword.collectAsStateWithLifecycle()
 
     val permissions = session.effectivePermissions
     val context = LocalContext.current
@@ -179,6 +180,7 @@ fun HistoryScreen(
             session = session,
             checks = checks,
             customColumns = customColumns,
+            exportPassword = exportPassword,
             onDismiss = { exporting = false },
             onExport = { options ->
                 exporting = false
@@ -479,6 +481,7 @@ private fun ExportDialog(
     session: Session,
     checks: List<StockCheck>,
     customColumns: List<com.stockcheck.app.export.ExportColumn>,
+    exportPassword: String,
     onDismiss: () -> Unit,
     onExport: (ExportOptions) -> Unit,
 ) {
@@ -556,6 +559,21 @@ private fun ExportDialog(
                 }
 
                 Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(14.dp))
+                NoticeBar(
+                    text = if (exportPassword.isNotBlank()) {
+                        "The file will be delivered as a password-protected ZIP. " +
+                            "Whoever receives it needs the company export password to " +
+                            "open it at all."
+                    } else {
+                        "No export password is set, so this file will not be protected — " +
+                            "anyone it reaches can open it. An admin can set one under " +
+                            "Profile, Company code."
+                    },
+                    tone = if (exportPassword.isNotBlank()) NoticeTone.INFO else NoticeTone.ERROR,
+                )
+                Spacer(Modifier.height(14.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

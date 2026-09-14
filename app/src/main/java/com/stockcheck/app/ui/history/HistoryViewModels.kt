@@ -55,6 +55,12 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
             .catch { emit(emptyList()) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /** Empty when no admin has set one, which means exports go out in the open. */
+    val exportPassword: StateFlow<String> = ServiceLocator.users.observeConfig()
+        .map { it?.exportPassword.orEmpty() }
+        .catch { emit("") }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+
     private val _lastExport = MutableStateFlow<ExportResult?>(null)
     val lastExport: StateFlow<ExportResult?> = _lastExport.asStateFlow()
 
