@@ -85,6 +85,7 @@ fun HistoryScreen(
     val statusFilter by viewModel.statusFilter.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
     val exportResult by viewModel.lastExport.collectAsStateWithLifecycle()
+    val customColumns by viewModel.customColumns.collectAsStateWithLifecycle()
 
     val permissions = session.effectivePermissions
     val context = LocalContext.current
@@ -177,6 +178,7 @@ fun HistoryScreen(
         ExportDialog(
             session = session,
             checkCount = checks.size,
+            customColumns = customColumns,
             onDismiss = { exporting = false },
             onExport = { options ->
                 exporting = false
@@ -476,6 +478,7 @@ private fun ItemLine(item: StockItem, canEdit: Boolean, onEdit: (StockItem) -> U
 private fun ExportDialog(
     session: Session,
     checkCount: Int,
+    customColumns: List<com.stockcheck.app.export.ExportColumn>,
     onDismiss: () -> Unit,
     onExport: (ExportOptions) -> Unit,
 ) {
@@ -492,8 +495,12 @@ private fun ExportDialog(
         mutableStateOf(if (canAll) ExportScope.ALL else ExportScope.OWN)
     }
     var editable by remember { mutableStateOf(false) }
-    var selected by remember {
-        mutableStateOf(com.stockcheck.app.export.ExportColumn.defaultSelection)
+    val allColumns = com.stockcheck.app.export.ExportColumn.standard + customColumns
+    // Everything is selected to begin with. A column left out produces a file
+    // that looks complete and is not, which is a worse failure than a sheet
+    // with more columns than someone wanted.
+    var selected by remember(customColumns) {
+        mutableStateOf(allColumns.map { it.key }.toSet())
     }
 
     AlertDialog(
@@ -537,8 +544,25 @@ private fun ExportDialog(
                 }
 
                 Spacer(Modifier.height(14.dp))
-                Text("Columns", style = MaterialTheme.typography.labelLarge)
-                com.stockcheck.app.export.ExportColumn.standard.forEach { column ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Columns", style = MaterialTheme.typography.labelLarge)
+                    TextButton(
+                        onClick = {
+                            selected = if (selected.size == allColumns.size) {
+                                emptySet()
+                            } else {
+                                allColumns.map { it.key }.toSet()
+                            }
+                        },
+                    ) {
+                        Text(if (selected.size == allColumns.size) "Clear all" else "Select all")
+                    }
+                }
+                allColumns.forEach { column ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

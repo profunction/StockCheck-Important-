@@ -86,11 +86,15 @@ class ExportService(
             items.forEach { rows += ExportRow(check, it) }
         }
 
-        // Columns come from the template of the first check, since a single
-        // sheet cannot meaningfully carry two different templates' fields.
-        val template: Template? = scoped.firstOrNull()
-            ?.let { templates.getTemplate(it.templateId) }
-        val columns = options.columns(template).ifEmpty { ExportColumn.standard.take(6) }
+        // Every template represented in the selection contributes its
+        // columns. Reading only the first check's template quietly dropped
+        // the rest, so a mixed export lost the very fields that distinguish
+        // one kind of count from another.
+        val involved: List<Template> = scoped
+            .map { it.templateId }
+            .distinct()
+            .mapNotNull { templates.getTemplate(it) }
+        val columns = options.columnsFor(involved).ifEmpty { ExportColumn.standard.take(6) }
 
         val dir = File(appContext.cacheDir, "exports").apply { mkdirs() }
         val name = buildString {

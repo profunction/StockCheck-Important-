@@ -66,8 +66,24 @@ data class ExportColumn(
 
         /** Standard columns plus the custom fields of [template]. */
         fun availableFor(template: Template?): List<ExportColumn> =
-            standard + template?.fields.orEmpty()
+            availableForAll(listOfNotNull(template))
+
+        /**
+         * Standard columns plus the custom fields of EVERY template involved.
+         *
+         * One export covers whatever the History filter selected, which can
+         * mix templates. Taking the fields of just the first check dropped
+         * every other template's columns silently — a warehouse count merged
+         * with a quick count lost its SKU, rack and batch with nothing to say
+         * so. The union keeps them; rows from a template that has no such
+         * field simply leave that cell empty, which is the honest rendering.
+         */
+        fun availableForAll(templates: List<Template>): List<ExportColumn> {
+            val custom = templates
+                .flatMap { it.fields }
                 .filter { it.includeInExport }
+                // Two templates can name the same key; one column serves both.
+                .distinctBy { it.key }
                 .map { field ->
                     ExportColumn(
                         key = "field:${field.key}",
@@ -76,6 +92,8 @@ data class ExportColumn(
                         editableWhenGranted = true,
                     )
                 }
+            return standard + custom
+        }
     }
 }
 
@@ -94,6 +112,9 @@ data class ExportOptions(
 ) {
     fun columns(template: Template?): List<ExportColumn> =
         ExportColumn.availableFor(template).filter { it.key in selectedKeys }
+
+    fun columnsFor(templates: List<Template>): List<ExportColumn> =
+        ExportColumn.availableForAll(templates).filter { it.key in selectedKeys }
 }
 
 /** One exported line: an item together with the check it belongs to. */

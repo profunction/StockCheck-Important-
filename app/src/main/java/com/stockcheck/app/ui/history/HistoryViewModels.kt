@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.stockcheck.app.data.ServiceLocator
+import com.stockcheck.app.export.ExportColumn
+import kotlinx.coroutines.flow.map
 import com.stockcheck.app.export.ExportOptions
 import com.stockcheck.app.export.ExportResult
 import com.stockcheck.app.model.AuditEntry
@@ -41,6 +43,17 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
 
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
+
+    /**
+     * The custom columns the visible checks' templates define, so the export
+     * dialog can offer them. Without this the picker only ever showed the
+     * standard columns and a template field could not be selected at all.
+     */
+    val customColumns: StateFlow<List<ExportColumn>> =
+        ServiceLocator.templates.observeTemplates()
+            .map { templates -> ExportColumn.availableForAll(templates) - ExportColumn.standard.toSet() }
+            .catch { emit(emptyList()) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _lastExport = MutableStateFlow<ExportResult?>(null)
     val lastExport: StateFlow<ExportResult?> = _lastExport.asStateFlow()
