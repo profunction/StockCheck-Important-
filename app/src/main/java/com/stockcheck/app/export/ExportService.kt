@@ -8,6 +8,7 @@ import com.stockcheck.app.data.AuditRepository
 import com.stockcheck.app.data.Db
 import com.stockcheck.app.data.TemplateRepository
 import com.stockcheck.app.data.effectivePermissions
+import com.stockcheck.app.data.getAs
 import com.stockcheck.app.data.require
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.Permission
@@ -16,6 +17,7 @@ import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
+import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -103,7 +105,16 @@ class ExportService(
 
         when (options.format) {
             ExportFormat.CSV -> writeCsv(file, columns, rows)
-            ExportFormat.XLSX -> writeXlsx(file, columns, rows, options.editable)
+            ExportFormat.XLSX -> {
+                // The admin's password if they set one, otherwise a constant.
+                // A constant compiled into a published app is known to
+                // everyone, which is why this is configurable at all.
+                val password = Db.config().getAs<WorkspaceConfig>()
+                    ?.exportPassword
+                    ?.takeIf { it.isNotBlank() }
+                    ?: SHEET_GUARD
+                writeXlsx(file, columns, rows, options.editable, password)
+            }
         }
 
         audit.record(
@@ -168,6 +179,7 @@ class ExportService(
         columns: List<ExportColumn>,
         rows: List<ExportRow>,
         editable: Boolean,
+        password: String,
     ) {
         val writer = XlsxWriter(sheetName = "Stock Check")
             .header(columns.map { it.header }, columns.map { it.width })
@@ -191,7 +203,7 @@ class ExportService(
         // Protection is always applied. For an editable export the data columns
         // are individually unlocked, so the reference, date, worker and status
         // columns stay fixed even in a file the recipient may amend.
-        writer.writeTo(file, protectionPassword = SHEET_GUARD)
+        writer.writeTo(file, protectionPassword = password)
     }
 
     // --------------------------------------------------------- cell values
@@ -231,9 +243,12 @@ class ExportService(
 
     private companion object {
         /**
-         * Fixed guard for the sheet-protection flag. This is not a secret and
-         * is not meant to be: it only stops casual edits of locked cells in
-         * Excel. Nothing about the integrity of a record depends on it.
+         * Fallback when no company password is set.
+         *
+         * Published in the repository, so it is not a secret and is not meant
+         * to be — it only stops an accidental edit. Nothing about the
+         * integrity of a record depends on it; the record in the app and its
+         * audit trail are what establish what a count said.
          */
         const val SHEET_GUARD = "stockcheck"
     }

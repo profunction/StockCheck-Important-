@@ -184,8 +184,10 @@ fun ProfileScreen(
                     CompanyCodeDialog(
                         current = config,
                         onDismiss = { editingCode = false },
-                        onSave = { name, code ->
-                            viewModel.saveCompanyCode(name, code) { editingCode = false }
+                        onSave = { name, code, exportPassword ->
+                            viewModel.saveCompanyCode(name, code, exportPassword) {
+                                editingCode = false
+                            }
                         },
                     )
                 }
@@ -383,10 +385,11 @@ private fun ChangePasswordDialog(
 private fun CompanyCodeDialog(
     current: com.stockcheck.app.model.WorkspaceConfig?,
     onDismiss: () -> Unit,
-    onSave: (companyName: String, joinCode: String) -> Unit,
+    onSave: (companyName: String, joinCode: String, exportPassword: String) -> Unit,
 ) {
     var name by remember { mutableStateOf(current?.companyName.orEmpty()) }
     var code by remember { mutableStateOf(current?.joinCode.orEmpty()) }
+    var exportPassword by remember { mutableStateOf(current?.exportPassword.orEmpty()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -411,6 +414,26 @@ private fun CompanyCodeDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                Spacer(Modifier.height(14.dp))
+                OutlinedTextField(
+                    value = exportPassword,
+                    onValueChange = { exportPassword = it },
+                    label = { Text("Excel protection password") },
+                    supportingText = {
+                        Text("Applied to exported spreadsheets. Leave empty for the default.")
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "That password stops an accidental edit, not a determined one — " +
+                        "Excel's sheet protection is trivially removed. The exported file " +
+                        "is a copy; the record that counts is in this app, and the audit " +
+                        "log shows every change made to it.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = "Changing the code does not affect anyone already registered. " +
@@ -422,7 +445,7 @@ private fun CompanyCodeDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name, code) },
+                onClick = { onSave(name, code, exportPassword) },
                 enabled = code.trim().length >= 4,
             ) { Text("Save") }
         },

@@ -20,7 +20,7 @@ android {
         // identified: "did you actually install the new APK?" came up
         // repeatedly while debugging and was unanswerable from a
         // screenshot.
-        buildConfigField("String", "BUILD_STAMP", "\"2026-09-14 17:27\"")
+        buildConfigField("String", "BUILD_STAMP", "\"2026-09-14 17:50\"")
     }
 
     buildTypes {

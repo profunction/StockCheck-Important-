@@ -190,6 +190,17 @@ data class WorkspaceConfig(
     val companyName: String = "",
     /** Stored upper-cased; callers normalise before comparing. */
     val joinCode: String = "",
+    /**
+     * Password applied to exported spreadsheets' sheet protection.
+     *
+     * Set by an admin because the alternative — a constant compiled into the
+     * app — is published in the repository and therefore known to everyone.
+     * Be clear about what this buys: Excel's sheet protection uses a 16-bit
+     * hash that free tools strip in seconds. It stops idle edits, not a
+     * determined person. The record that counts is the one in the app, and
+     * the audit trail behind it.
+     */
+    val exportPassword: String = "",
     val updatedAt: Long = 0L,
     val updatedByUid: String = "",
 ) {

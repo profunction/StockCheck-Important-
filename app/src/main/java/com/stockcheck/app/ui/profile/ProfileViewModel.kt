@@ -123,9 +123,14 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
         }
     }
 
-    fun saveCompanyCode(companyName: String, joinCode: String, onSaved: () -> Unit) {
+    fun saveCompanyCode(
+        companyName: String,
+        joinCode: String,
+        exportPassword: String,
+        onSaved: () -> Unit,
+    ) {
         viewModelScope.launch {
-            runCatching { userRepo.saveConfig(session, companyName, joinCode) }
+            runCatching { userRepo.saveConfig(session, companyName, joinCode, exportPassword) }
                 .onSuccess { onSaved() }
                 .onFailure { _message.value = it.message }
         }

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -227,6 +228,7 @@ fun HistoryDetailScreen(
     session: Session,
     checkId: String,
     onBack: () -> Unit,
+    onContinueCounting: (String) -> Unit,
 ) {
     val viewModel: HistoryDetailViewModel = viewModel(
         key = checkId,
@@ -257,6 +259,17 @@ fun HistoryDetailScreen(
                     }
                 },
                 actions = {
+                    // A completed check is still editable; it has simply left
+                    // the Stock tab, which is the only other way back to the
+                    // scanner. Locked ones stay out until unlocked.
+                    if (canEdit) {
+                        IconButton(onClick = { onContinueCounting(checkId) }) {
+                            Icon(
+                                Icons.Filled.QrCodeScanner,
+                                contentDescription = "Continue counting",
+                            )
+                        }
+                    }
                     if (permissions.has(Permission.DUPLICATE_STOCK)) {
                         IconButton(onClick = viewModel::duplicate) {
                             Icon(Icons.Filled.ContentCopy, contentDescription = "Duplicate")

@@ -298,6 +298,9 @@ private fun MainScaffold(
                     session = session,
                     checkId = entry.arguments?.getString("checkId").orEmpty(),
                     onBack = { navController.popBackStack() },
+                    onContinueCounting = { id ->
+                        navController.navigate(Dest.StockDetail.of(id))
+                    },
                 )
             }
 

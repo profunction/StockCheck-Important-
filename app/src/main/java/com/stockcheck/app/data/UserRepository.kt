@@ -163,7 +163,12 @@ class UserRepository(
     suspend fun isUnclaimed(): Boolean =
         Db.config().getAs<WorkspaceConfig>()?.joinCode.isNullOrEmpty()
 
-    suspend fun saveConfig(session: Session, companyName: String, joinCode: String) {
+    suspend fun saveConfig(
+        session: Session,
+        companyName: String,
+        joinCode: String,
+        exportPassword: String,
+    ) {
         session.require(Permission.CHANGE_PERMISSION)
         val normalised = WorkspaceConfig.normalise(joinCode)
         require(normalised.length >= 4) { "The company code must be at least 4 characters." }
@@ -172,6 +177,7 @@ class UserRepository(
             WorkspaceConfig(
                 companyName = companyName.trim(),
                 joinCode = normalised,
+                exportPassword = exportPassword.trim(),
                 updatedAt = System.currentTimeMillis(),
                 updatedByUid = session.uid,
             ),

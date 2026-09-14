@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
@@ -580,6 +581,19 @@ private fun StatusMenu(
                 text = { Text("Unlock") },
                 onClick = { onStatus(StockStatus.IN_PROGRESS) },
             )
+        }
+        // Completing is easy to do by accident and used to be one-way: the
+        // check vanished from the Stock tab, which is the only route back to
+        // the scanner, with no way to reopen it. Locking is the deliberate
+        // one-way door; completing should not be.
+        if (currentStatus == StockStatus.COMPLETED || currentStatus == StockStatus.REVIEWED) {
+            if (permissions.hasAny(Permission.EDIT_OWN_STOCK, Permission.EDIT_ANY_STOCK)) {
+                DropdownMenuItem(
+                    text = { Text("Reopen for counting") },
+                    leadingIcon = { Icon(Icons.Filled.Undo, contentDescription = null) },
+                    onClick = { onStatus(StockStatus.IN_PROGRESS) },
+                )
+            }
         }
     }
 }
