@@ -73,11 +73,15 @@ import com.stockcheck.app.ui.stock.friendlyDate
 @Composable
 fun ProfileScreen(
     session: Session,
+    busy: Boolean,
+    passwordError: String?,
+    onChangePassword: (current: String, new: String, confirm: String, done: () -> Unit) -> Unit,
     onSignOut: () -> Unit,
     onManageUsers: () -> Unit,
     onEditRole: (String) -> Unit,
     onViewAuditLog: () -> Unit,
 ) {
+    var changingPassword by remember { mutableStateOf(false) }
     val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.factory(session))
     val roles by viewModel.roles.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
@@ -123,6 +127,14 @@ fun ProfileScreen(
                     }
                 }
             }
+
+            ListItem(
+                headlineContent = { Text("Change password") },
+                supportingContent = { Text("You will need your current one") },
+                leadingContent = { Icon(Icons.Filled.Badge, contentDescription = null) },
+                modifier = Modifier.clickable { changingPassword = true },
+            )
+            HorizontalDivider()
 
             // ------------------------------------------------- company code
 
@@ -277,6 +289,94 @@ fun ProfileScreen(
             Spacer(Modifier.height(32.dp))
         }
     }
+
+    if (changingPassword) {
+        ChangePasswordDialog(
+            busy = busy,
+            error = passwordError,
+            onDismiss = { changingPassword = false },
+            onConfirm = { current, next, confirm ->
+                onChangePassword(current, next, confirm) { changingPassword = false }
+            },
+        )
+    }
+}
+
+/**
+ * Changing one's own password.
+ *
+ * The current password is asked for because Firebase requires a recent login
+ * to change one, and because a phone left unlocked on a bench should not be
+ * enough to take over the account.
+ */
+@Composable
+private fun ChangePasswordDialog(
+    busy: Boolean,
+    error: String?,
+    onDismiss: () -> Unit,
+    onConfirm: (current: String, next: String, confirm: String) -> Unit,
+) {
+    var current by remember { mutableStateOf("") }
+    var next by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+
+    val matches = next == confirm
+    val valid = current.isNotBlank() && next.length >= 6 && matches
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Change password") },
+        text = {
+            Column {
+                error?.let {
+                    NoticeBar(text = it, tone = NoticeTone.ERROR)
+                    Spacer(Modifier.height(10.dp))
+                }
+                OutlinedTextField(
+                    value = current,
+                    onValueChange = { current = it },
+                    label = { Text("Current password") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = next,
+                    onValueChange = { next = it },
+                    label = { Text("New password") },
+                    singleLine = true,
+                    supportingText = { Text("At least 6 characters") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = confirm,
+                    onValueChange = { confirm = it },
+                    label = { Text("Confirm new password") },
+                    singleLine = true,
+                    isError = confirm.isNotEmpty() && !matches,
+                    supportingText = {
+                        if (confirm.isNotEmpty() && !matches) Text("The two do not match.")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Nobody, including an administrator, can see this password. " +
+                        "Only the fact that you changed it is recorded.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(current, next, confirm) },
+                enabled = valid && !busy,
+            ) { Text(if (busy) "Saving…" else "Change") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 @Composable
@@ -409,6 +509,12 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
                                         label = { Text(user.roleName) },
                                     )
                                     if (permissions.has(Permission.EDIT_USER)) {
+                                        // Standing in for "show me their
+                                        // password", which is not something
+                                        // any system can answer.
+                                        TextButton(
+                                            onClick = { viewModel.sendPasswordReset(user) },
+                                        ) { Text("Reset") }
                                         Switch(
                                             checked = user.active,
                                             onCheckedChange = { viewModel.setActive(user, it) },

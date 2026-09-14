@@ -1,5 +1,6 @@
 package com.stockcheck.app.data
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Query
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.BuiltInRoles
@@ -105,6 +106,49 @@ class UserRepository(
                 error,
             )
         }
+    }
+
+    /**
+     * Notes in the trail that someone changed their own password.
+     *
+     * Records no value, old or new, on purpose: Firebase keeps only a hash,
+     * and storing the plaintext so an administrator could read it would put
+     * every member of staff's password — reused elsewhere, as passwords are —
+     * into a database. Who and when is the useful part and the safe part.
+     */
+    suspend fun recordPasswordChange(uid: String) {
+        val profile = Db.user(uid).getAs<UserProfile>() ?: return
+        val role = Db.role(profile.roleId).getAs<Role>() ?: Role(id = profile.roleId)
+        audit.record(
+            session = Session(profile, role),
+            entity = "User",
+            entityId = uid,
+            entityLabel = profile.displayName.ifEmpty { profile.email },
+            action = AuditAction.UPDATE,
+            field = "password",
+            newValue = "changed by the account holder",
+        )
+    }
+
+    /**
+     * Emails a reset link to a member of staff who cannot get in.
+     *
+     * This is what stands in for "show me their password": an admin can never
+     * read one, but can always put someone back in control of their account.
+     */
+    suspend fun sendResetFor(session: Session, target: UserProfile) {
+        session.require(Permission.EDIT_USER)
+        require(target.email.isNotBlank()) { "That account has no email address." }
+        FirebaseAuth.getInstance().sendPasswordResetEmail(target.email).await()
+        audit.record(
+            session = session,
+            entity = "User",
+            entityId = target.uid,
+            entityLabel = target.displayName.ifEmpty { target.email },
+            action = AuditAction.UPDATE,
+            field = "password",
+            newValue = "reset link sent",
+        )
     }
 
     // -------------------------------------------------- workspace config

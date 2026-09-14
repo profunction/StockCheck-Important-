@@ -101,6 +101,14 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
         }
     }
 
+    fun sendPasswordReset(target: UserProfile) {
+        viewModelScope.launch {
+            runCatching { userRepo.sendResetFor(session, target) }
+                .onSuccess { _message.value = "A reset link was emailed to ${target.email}." }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
     fun setActive(target: UserProfile, active: Boolean) {
         viewModelScope.launch {
             runCatching { userRepo.setActive(session, target, active) }

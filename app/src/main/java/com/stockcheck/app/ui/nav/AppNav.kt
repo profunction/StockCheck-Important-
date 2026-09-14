@@ -201,6 +201,9 @@ fun StockCheckRoot() {
 
         is AuthState.SignedIn -> MainScaffold(
             session = state.session,
+            busy = busy,
+            formError = error,
+            onChangePassword = sessionViewModel::changePassword,
             onSignOut = sessionViewModel::signOut,
             onSeedTemplates = sessionViewModel::seedTemplatesIfNeeded,
         )
@@ -219,6 +222,14 @@ private fun FullScreenLoader() {
 @Composable
 private fun MainScaffold(
     session: Session,
+    busy: Boolean,
+    formError: String?,
+    onChangePassword: (
+        current: String,
+        new: String,
+        confirm: String,
+        done: () -> Unit,
+    ) -> Unit,
     onSignOut: () -> Unit,
     onSeedTemplates: () -> Unit,
 ) {
@@ -293,6 +304,9 @@ private fun MainScaffold(
             composable(Dest.Profile.route) {
                 ProfileScreen(
                     session = session,
+                    busy = busy,
+                    passwordError = formError,
+                    onChangePassword = onChangePassword,
                     onSignOut = onSignOut,
                     onManageUsers = { navController.navigate(Dest.Users.route) },
                     onEditRole = { roleId -> navController.navigate(Dest.Roles.of(roleId)) },

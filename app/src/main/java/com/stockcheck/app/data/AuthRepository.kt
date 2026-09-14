@@ -1,5 +1,6 @@
 package com.stockcheck.app.data
 
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.stockcheck.app.model.BuiltInRoles
@@ -278,6 +279,34 @@ class AuthRepository(
 
     suspend fun sendPasswordReset(email: String) {
         auth.sendPasswordResetEmail(email.trim()).await()
+    }
+
+    /**
+     * Changes the signed-in user's own password.
+     *
+     * The current password is required and re-checked against Firebase rather
+     * than trusted: `updatePassword` refuses unless the session is recent, and
+     * asking for it also means a phone left unlocked on a bench cannot be used
+     * to take over someone's account.
+     *
+     * Nothing about the password itself is recorded anywhere. Firebase stores
+     * only a hash and there is no way to read one back — by design, and the
+     * reason an administrator cannot be shown what a member of staff chose.
+     * What IS recorded is that a change happened, by whom and when.
+     */
+    suspend fun changeOwnPassword(currentPassword: String, newPassword: String) {
+        val user = auth.currentUser ?: error("You are not signed in.")
+        val email = user.email ?: error("This account has no email address.")
+        require(newPassword.length >= 6) { "The new password must be at least 6 characters." }
+        require(newPassword != currentPassword) { "The new password is the same as the old one." }
+
+        runCatching {
+            user.reauthenticate(EmailAuthProvider.getCredential(email, currentPassword)).await()
+        }.onFailure {
+            throw IllegalStateException("Your current password is not correct.", it)
+        }
+        user.updatePassword(newPassword).await()
+        users.recordPasswordChange(user.uid)
     }
 
     fun signOut() {

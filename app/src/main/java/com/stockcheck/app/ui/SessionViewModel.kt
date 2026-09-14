@@ -77,6 +77,14 @@ class SessionViewModel : ViewModel() {
         auth.completeSetup()
     }
 
+    fun changePassword(current: String, new: String, confirm: String, onDone: () -> Unit) =
+        runForm {
+            require(current.isNotBlank()) { "Enter your current password." }
+            require(new == confirm) { "The two new passwords do not match." }
+            auth.changeOwnPassword(current, new)
+            onDone()
+        }
+
     fun resetPassword(email: String) = runForm {
         require(email.isNotBlank()) { "Enter your email address first." }
         auth.sendPasswordReset(email)
