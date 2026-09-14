@@ -63,7 +63,7 @@ private enum class AuthMode(val label: String, val title: String, val action: St
 fun AuthScreen(
     busy: Boolean,
     error: String?,
-    onSignIn: (email: String, password: String) -> Unit,
+    onSignIn: (email: String, password: String, companyCode: String) -> Unit,
     onCreateCompany: (
         email: String,
         password: String,
@@ -242,19 +242,26 @@ fun AuthScreen(
                 )
             }
 
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = joinCode,
+                onValueChange = { joinCode = it.uppercase().trim(); onClearError() },
+                label = { Text("Company code") },
+                supportingText = {
+                    Text(
+                        if (mode == AuthMode.CREATE) {
+                            "A short identifier for your company, e.g. UPOINT"
+                        } else {
+                            "The code for your company. Ask your administrator."
+                        },
+                    )
+                },
+                singleLine = true,
+                modifier = fieldModifier,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            )
+
             if (mode == AuthMode.CREATE) {
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = joinCode,
-                    onValueChange = { joinCode = it.uppercase().trim(); onClearError() },
-                    label = { Text("Company code") },
-                    supportingText = {
-                        Text("A short identifier for your company, e.g. UPOINT")
-                    },
-                    singleLine = true,
-                    modifier = fieldModifier,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = "Staff do not sign up here. Once your company exists you add " +
@@ -271,7 +278,7 @@ fun AuthScreen(
             Button(
                 onClick = {
                     when (mode) {
-                        AuthMode.SIGN_IN -> onSignIn(email, password)
+                        AuthMode.SIGN_IN -> onSignIn(email, password, joinCode)
                         AuthMode.CREATE ->
                             onCreateCompany(email, password, displayName, companyName, joinCode)
                     }

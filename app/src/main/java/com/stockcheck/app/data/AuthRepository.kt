@@ -8,6 +8,7 @@ import com.stockcheck.app.model.PermissionSet
 import com.stockcheck.app.model.Role
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.UserProfile
+import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -143,15 +144,47 @@ class AuthRepository(
                 )
             }
 
-    suspend fun signIn(email: String, password: String) {
+    /**
+     * Signs in, then checks the company code before letting the session stand.
+     *
+     * The account already knows which company it belongs to, so the code is
+     * not needed to find the data — it is a second thing to know. A stolen
+     * phone with a remembered password does not get in without it, and
+     * changing the code turns everyone out until they are given the new one.
+     *
+     * Be clear about how strong this is: Firebase authenticates on email and
+     * password alone, and security rules cannot see what was typed on a login
+     * form, so this check necessarily runs in the app. It is a door, not a
+     * safe. The password and the rules are the safe. A modified client could
+     * skip this; it could not read another company's data.
+     */
+    suspend fun signIn(email: String, password: String, companyCode: String) {
         auth.signInWithEmailAndPassword(email.trim(), password).await()
         val uid = auth.currentUser?.uid.orEmpty()
+
         // Every path in Db hangs off the workspace, so it must be resolved
         // before anything reads. An account with no company falls through to
         // AuthState.NoWorkspace rather than querying workspaces/"".
         val workspaceId = workspaces.workspaceOf(uid)
-        Db.workspaceId = workspaceId.orEmpty()
-        if (workspaceId != null) users.touchLastSeen(uid)
+        if (workspaceId == null) {
+            Db.workspaceId = ""
+            return
+        }
+        Db.workspaceId = workspaceId
+
+        val expected = Db.config().getAs<WorkspaceConfig>()?.joinCode.orEmpty()
+        val supplied = WorkspaceConfig.normalise(companyCode)
+        // An unconfigured company has no code to match yet; requiring one
+        // would lock its own founder out of the workspace they just made.
+        if (expected.isNotEmpty() && supplied != expected) {
+            auth.signOut()
+            Db.workspaceId = ""
+            throw IllegalStateException(
+                "That company code does not match this account. Check it with " +
+                    "your administrator.",
+            )
+        }
+        users.touchLastSeen(uid)
     }
 
     /**

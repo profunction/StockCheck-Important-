@@ -40,10 +40,11 @@ class SessionViewModel : ViewModel() {
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
-    fun signIn(email: String, password: String) = runForm {
+    fun signIn(email: String, password: String, companyCode: String) = runForm {
         require(email.isNotBlank()) { "Enter your email address." }
         require(password.isNotBlank()) { "Enter your password." }
-        auth.signIn(email, password)
+        require(companyCode.isNotBlank()) { "Enter your company code." }
+        auth.signIn(email, password, companyCode)
     }
 
     fun joinCompany(
