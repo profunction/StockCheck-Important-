@@ -244,7 +244,16 @@ class StockCheckViewModel(
 
     // --------------------------------------------------------------- status
 
-    fun complete() {
+    /**
+     * Marks the count finished and, on success, tells the caller to leave.
+     *
+     * A completed check drops out of the Stock tab, so staying on its counting
+     * screen leaves the operator looking at a record that is no longer in the
+     * list they came from. [onCompleted] does not fire when the template's
+     * photo requirement blocks it — that is a correction to make here, not a
+     * reason to navigate away.
+     */
+    fun complete(onCompleted: () -> Unit = {}) {
         val current = check.value ?: return
         val required = _template.value
         if (required?.photoRequired == true && current.photoCount < required.minPhotos) {
@@ -256,14 +265,17 @@ class StockCheckViewModel(
             )
             return
         }
-        setStatus(StockStatus.COMPLETED)
+        setStatus(StockStatus.COMPLETED, onCompleted)
     }
 
-    fun setStatus(target: StockStatus) {
+    fun setStatus(target: StockStatus, onChanged: () -> Unit = {}) {
         val current = check.value ?: return
         viewModelScope.launch {
             runCatching { stock.updateStatus(session, current, target) }
-                .onSuccess { _toast.value = Toast("Marked ${target.label.lowercase()}") }
+                .onSuccess {
+                    _toast.value = Toast("Marked ${target.label.lowercase()}")
+                    onChanged()
+                }
                 .onFailure { fail(it) }
         }
     }

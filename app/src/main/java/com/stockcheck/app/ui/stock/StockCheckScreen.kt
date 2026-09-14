@@ -5,6 +5,8 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -98,7 +100,7 @@ import com.stockcheck.app.ui.common.TotalTile
  * are pinned above the navigation bar, and the microphone is a large target in
  * the bottom-right corner where a thumb already rests.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun StockCheckScreen(
     session: Session,
@@ -216,7 +218,11 @@ fun StockCheckScreen(
                             session = session,
                             currentStatus = check?.statusEnum,
                             onDismiss = { menuOpen = false },
-                            onComplete = { menuOpen = false; viewModel.complete() },
+                            onComplete = {
+                                menuOpen = false
+                                // Back to the list this check has just left.
+                                viewModel.complete(onCompleted = onBack)
+                            },
                             onStatus = { menuOpen = false; viewModel.setStatus(it) },
                             onManual = { menuOpen = false; manualEntry = true },
                             onPhotos = { menuOpen = false; onOpenPhotos() },
@@ -306,6 +312,7 @@ fun StockCheckScreen(
                             onIncrement = { viewModel.adjust(item, 1) },
                             onDecrement = { viewModel.adjust(item, -1) },
                             onEdit = { editing = item },
+                            onDelete = { viewModel.deleteItem(item) },
                         )
                     }
                 }
@@ -406,6 +413,7 @@ private fun CentredHint(text: String) {
 
 // -------------------------------------------------------------------- rows
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ItemRow(
     item: StockItem,
@@ -415,11 +423,19 @@ private fun ItemRow(
     onIncrement: () -> Unit,
     onDecrement: () -> Unit,
     onEdit: () -> Unit,
+    onDelete: () -> Unit,
 ) {
+    var confirmingDelete by remember(item.id) { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onFocus() },
+            .combinedClickable(
+                onClick = onFocus,
+                // Long-press rather than a swipe: a swipe is too easy to
+                // trigger while scrolling a long count with gloves on.
+                onLongClick = { if (editable) confirmingDelete = true },
+            ),
         colors = CardDefaults.cardColors(
             containerColor = if (focused) {
                 MaterialTheme.colorScheme.primaryContainer
@@ -478,6 +494,30 @@ private fun ItemRow(
                 }
             }
         }
+    }
+
+    if (confirmingDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmingDelete = false },
+            title = { Text("Remove this line?") },
+            text = {
+                Text(
+                    "${item.productName.ifEmpty { item.barcode }} will be removed from " +
+                        "this stock check. The audit log keeps a record of the removal.",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmingDelete = false
+                        onDelete()
+                    },
+                ) { Text("Remove") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingDelete = false }) { Text("Cancel") }
+            },
+        )
     }
 }
 
