@@ -199,6 +199,25 @@ data class WorkspaceConfig(
     }
 }
 
+/**
+ * A claimed company code, stored at `workspaceCodes/{CODE}`.
+ *
+ * The document id IS the code. Nothing here is secret once you can read it —
+ * being able to read it is the secret.
+ */
+data class WorkspaceCode(
+    val workspaceId: String = "",
+    val companyName: String = "",
+    val createdAt: Long = 0L,
+    val createdByUid: String = "",
+)
+
+/** Which company an account belongs to, at `userIndex/{uid}`. */
+data class UserIndex(
+    val workspaceId: String = "",
+    val joinedAt: Long = 0L,
+)
+
 /** A signed-in user together with the resolved permissions of their role. */
 data class Session(
     val profile: UserProfile,

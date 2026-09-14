@@ -16,7 +16,8 @@ object ServiceLocator {
 
     val audit: AuditRepository by lazy { AuditRepository() }
     val users: UserRepository by lazy { UserRepository(audit) }
-    val auth: AuthRepository by lazy { AuthRepository(users = users) }
+    val workspaces: WorkspaceRepository by lazy { WorkspaceRepository() }
+    val auth: AuthRepository by lazy { AuthRepository(users = users, workspaces = workspaces) }
     val stock: StockRepository by lazy { StockRepository(audit) }
     val templates: TemplateRepository by lazy { TemplateRepository(audit) }
     val photos: PhotoRepository by lazy { PhotoRepository(appContext, audit) }

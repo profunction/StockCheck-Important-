@@ -11,6 +11,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ------------------------------------------------ company code registry
+    //
+    // The document id IS the code, so joining a company means reading a
+    // document whose name you already had to be told. `get` is allowed and
+    // `list` is refused, which is the whole security model here: a code
+    // cannot be looked up, only confirmed.
+    match /workspaceCodes/{code} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      // First to claim a code owns it. Never reassigned: repointing a code at
+      // a different company would walk everyone who uses it into a stranger's
+      // data on their next sign-up.
+      allow create: if request.auth != null
+                    && !exists(/databases/$(database)/documents/workspaceCodes/$(code))
+                    && request.resource.data.workspaceId is string
+                    && request.resource.data.workspaceId != ''
+                    && request.resource.data.createdByUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ------------------------------------------------------- user directory
+    //
+    // Which company an account belongs to. Written once at join time and
+    // never changed: an account that could move itself between companies
+    // would carry its role across with it.
+    match /userIndex/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list: if false;
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.workspaceId is string
+                    && request.resource.data.workspaceId != '';
+      allow update, delete: if false;
+    }
+
     match /workspaces/{ws} {
 
       // ------------------------------------------------------------ helpers

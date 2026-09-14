@@ -46,7 +46,7 @@ class SessionViewModel : ViewModel() {
         auth.signIn(email, password)
     }
 
-    fun register(
+    fun joinCompany(
         email: String,
         password: String,
         displayName: String,
@@ -55,7 +55,21 @@ class SessionViewModel : ViewModel() {
         require(email.isNotBlank()) { "Enter an email address." }
         require(password.length >= 6) { "The password must be at least 6 characters." }
         require(joinCode.isNotBlank()) { "Enter the company code your administrator gave you." }
-        auth.register(email, password, displayName, joinCode)
+        auth.joinCompany(email, password, displayName, joinCode)
+    }
+
+    fun createCompany(
+        email: String,
+        password: String,
+        displayName: String,
+        companyName: String,
+        joinCode: String,
+    ) = runForm {
+        require(email.isNotBlank()) { "Enter an email address." }
+        require(password.length >= 6) { "The password must be at least 6 characters." }
+        require(companyName.isNotBlank()) { "Enter your company name." }
+        require(joinCode.trim().length >= 4) { "The company code must be at least 4 characters." }
+        auth.createCompany(email, password, displayName, companyName, joinCode)
     }
 
     /** Repairs an account that signed in but has no profile document. */

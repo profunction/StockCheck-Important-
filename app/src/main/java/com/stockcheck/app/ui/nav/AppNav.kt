@@ -117,10 +117,28 @@ fun StockCheckRoot() {
             busy = busy,
             error = error,
             onSignIn = sessionViewModel::signIn,
-            onRegister = sessionViewModel::register,
+            onJoinCompany = sessionViewModel::joinCompany,
+            onCreateCompany = sessionViewModel::createCompany,
             onResetPassword = sessionViewModel::resetPassword,
             onClearError = sessionViewModel::clearError,
         )
+
+        // Signed in to an account that belongs to no company: either it was
+        // made before companies existed, or its registration died after the
+        // Auth account was created. Signing out returns to the form, where
+        // Join or New company is the way forward.
+        is AuthState.NoWorkspace -> Surface(modifier = Modifier.fillMaxSize()) {
+            EmptyState(
+                icon = Icons.Filled.Person,
+                title = "This account has no company",
+                message = "${state.email} is signed in but is not a member of any " +
+                    "company yet. Sign out, then use Join with your company code, or " +
+                    "New company to set one up.",
+                action = {
+                    Button(onClick = sessionViewModel::signOut) { Text("Sign out") }
+                },
+            )
+        }
 
         // Signed in, but registration never wrote the profile behind the
         // account. This used to fall through to the sign-in screen, which was

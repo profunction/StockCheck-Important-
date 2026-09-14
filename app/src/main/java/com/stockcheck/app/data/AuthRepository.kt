@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
@@ -25,6 +27,16 @@ sealed interface AuthState {
     data class NoProfile(val uid: String, val email: String) : AuthState
     /** Profile exists but an admin has deactivated the account. */
     data class Deactivated(val profile: UserProfile) : AuthState
+
+    /**
+     * Signed in, but the account belongs to no company.
+     *
+     * Happens to an account created before companies existed, or one whose
+     * registration failed after the Auth account was made. Offering to join
+     * or create one from here beats stranding them on a sign-in screen that
+     * accepts their password and then does nothing.
+     */
+    data class NoWorkspace(val uid: String, val email: String) : AuthState
 
     /**
      * Signed in, but resolving the session failed — a denied Firestore
@@ -42,6 +54,7 @@ sealed interface AuthState {
 class AuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val users: UserRepository,
+    private val workspaces: WorkspaceRepository,
 ) {
 
     val currentUid: String? get() = auth.currentUser?.uid
@@ -60,8 +73,31 @@ class AuthRepository(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun authState(): Flow<AuthState> = firebaseUserFlow().flatMapLatest { user ->
-        if (user == null) return@flatMapLatest flowOf(AuthState.SignedOut)
+        if (user == null) {
+            workspaces.clearWorkspace()
+            // Typed explicitly: without it the branch fixes the lambda's type
+            // to Flow<SignedOut> and the workspace branch below cannot emit
+            // any other state into it.
+            return@flatMapLatest flowOf<AuthState>(AuthState.SignedOut)
+        }
 
+        // Which company this account belongs to has to be settled before any
+        // per-company path is touched; Db.workspaceId is what every query
+        // below hangs off.
+        flow<AuthState> {
+            val workspaceId = workspaces.workspaceOf(user.uid)
+            if (workspaceId.isNullOrEmpty()) {
+                Db.workspaceId = ""
+                emit(AuthState.NoWorkspace(user.uid, user.email.orEmpty()))
+                return@flow
+            }
+            Db.workspaceId = workspaceId
+            emitAll(sessionFor(user))
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun sessionFor(user: FirebaseUser): Flow<AuthState> =
         users.observeProfile(user.uid)
             .flatMapLatest { profile ->
                 when {
@@ -105,11 +141,16 @@ class AuthRepository(
                     ),
                 )
             }
-    }
 
     suspend fun signIn(email: String, password: String) {
         auth.signInWithEmailAndPassword(email.trim(), password).await()
-        users.touchLastSeen(auth.currentUser?.uid.orEmpty())
+        val uid = auth.currentUser?.uid.orEmpty()
+        // Every path in Db hangs off the workspace, so it must be resolved
+        // before anything reads. An account with no company falls through to
+        // AuthState.NoWorkspace rather than querying workspaces/"".
+        val workspaceId = workspaces.workspaceOf(uid)
+        Db.workspaceId = workspaceId.orEmpty()
+        if (workspaceId != null) users.touchLastSeen(uid)
     }
 
     /**
@@ -124,37 +165,91 @@ class AuthRepository(
      * that could answer "is this workspace empty" requires one. See the
      * comment on that function for the full reasoning.
      */
-    suspend fun register(
+    /**
+     * Joins an existing company using the code its admin handed out.
+     *
+     * The code is resolved to a company BEFORE the account is created, so an
+     * unknown code costs nothing and leaves nothing behind.
+     */
+    suspend fun joinCompany(
         email: String,
         password: String,
         displayName: String,
         joinCode: String,
     ) {
+        val target = workspaces.resolveCode(joinCode)
+            ?: throw IllegalStateException(
+                "That company code was not recognised. Check it with your " +
+                    "administrator — codes are not case sensitive.",
+            )
+
         val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
         val uid = result.user?.uid ?: error("Registration returned no user")
-        val isFirstUser = users.trySeedBuiltInRoles()
-        val roleId = if (isFirstUser) BuiltInRoles.ADMIN_ID else BuiltInRoles.WORKER_ID
+        Db.workspaceId = target.workspaceId
+
         runCatching {
+            workspaces.linkUserToWorkspace(uid, target.workspaceId)
             users.createProfile(
                 uid = uid,
                 email = email.trim(),
                 displayName = displayName.trim().ifEmpty { email.substringBefore('@') },
-                roleId = roleId,
+                roleId = BuiltInRoles.WORKER_ID,
                 joinCode = joinCode,
             )
         }.onFailure { error ->
-            // The Auth account is already created by this point. Leaving it
-            // behind on a wrong code would block the person from ever
-            // retrying with the right one -- "email already in use" with no
-            // way forward -- so it is removed before the error is reported.
-            runCatching { auth.currentUser?.delete()?.await() }
-            auth.signOut()
+            rollbackAccount()
             throw IllegalStateException(
-                "That company code was not accepted. Check it with your " +
-                    "administrator and try again.",
+                "Could not join ${target.companyName}: ${error.message}",
                 error,
             )
         }
+    }
+
+    /**
+     * Creates a brand-new company and makes this account its admin.
+     *
+     * The code is claimed as part of creation, so whoever gets there first
+     * owns it and a second attempt on the same code is refused.
+     */
+    suspend fun createCompany(
+        email: String,
+        password: String,
+        displayName: String,
+        companyName: String,
+        joinCode: String,
+    ) {
+        val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
+        val uid = result.user?.uid ?: error("Registration returned no user")
+
+        runCatching {
+            workspaces.createWorkspace(uid, companyName, joinCode)
+            users.createProfile(
+                uid = uid,
+                email = email.trim(),
+                displayName = displayName.trim().ifEmpty { email.substringBefore('@') },
+                roleId = BuiltInRoles.ADMIN_ID,
+                joinCode = joinCode,
+            )
+        }.onFailure { error ->
+            rollbackAccount()
+            throw IllegalStateException(
+                error.message ?: "The company could not be created.",
+                error,
+            )
+        }
+    }
+
+    /**
+     * Removes the half-made account after a failed registration.
+     *
+     * Without this the person is left holding an Auth account with nothing
+     * behind it: every retry answers "email already in use" and there is no
+     * way forward short of an admin deleting it in the Firebase console.
+     */
+    private suspend fun rollbackAccount() {
+        runCatching { auth.currentUser?.delete()?.await() }
+        auth.signOut()
+        Db.workspaceId = ""
     }
 
     /**
@@ -185,7 +280,10 @@ class AuthRepository(
         auth.sendPasswordResetEmail(email.trim()).await()
     }
 
-    fun signOut() = auth.signOut()
+    fun signOut() {
+        workspaces.clearWorkspace()
+        auth.signOut()
+    }
 }
 
 /** Convenience for screens: the permissions of the current session, or none. */

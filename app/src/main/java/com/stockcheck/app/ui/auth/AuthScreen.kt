@@ -23,13 +23,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,28 +46,43 @@ import com.stockcheck.app.BuildConfig
 import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
 
+/** Which of the three things the form is currently doing. */
+private enum class AuthMode(val label: String, val title: String, val action: String) {
+    SIGN_IN("Sign in", "Sign in to continue counting", "Sign in"),
+    JOIN("Join", "Join your company with its code", "Join company"),
+    CREATE("New company", "Set up a new company on Stock Check", "Create company"),
+}
+
 /**
- * Sign-in and registration.
+ * Sign-in, joining an existing company, and creating a new one.
  *
- * Registration is open because the first account to register becomes the
- * workspace admin; afterwards every new account lands on Worker with no
- * ability to see anyone else's counts, and an admin promotes from Page 5.
+ * All three live on one screen because which one a person needs depends on
+ * something only they know — whether their employer is already using the app
+ * — and on nothing the app could work out for them.
  */
 @Composable
 fun AuthScreen(
     busy: Boolean,
     error: String?,
     onSignIn: (email: String, password: String) -> Unit,
-    onRegister: (email: String, password: String, displayName: String, joinCode: String) -> Unit,
+    onJoinCompany: (email: String, password: String, name: String, code: String) -> Unit,
+    onCreateCompany: (
+        email: String,
+        password: String,
+        name: String,
+        companyName: String,
+        code: String,
+    ) -> Unit,
     onResetPassword: (email: String) -> Unit,
     onClearError: () -> Unit,
 ) {
-    var registering by remember { mutableStateOf(false) }
+    var mode by remember { mutableStateOf(AuthMode.SIGN_IN) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var displayName by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var companyName by remember { mutableStateOf("") }
     var joinCode by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -86,27 +104,39 @@ fun AuthScreen(
             Text("Stock Check", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(4.dp))
             Text(
-                text = if (registering) {
-                    "Create an account for this workspace"
-                } else {
-                    "Sign in to continue counting"
-                },
+                text = mode.title,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(28.dp))
+
+            Spacer(Modifier.height(20.dp))
+
+            val fieldModifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 420.dp)
+
+            SingleChoiceSegmentedButtonRow(modifier = fieldModifier) {
+                AuthMode.entries.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        selected = mode == option,
+                        onClick = { mode = option; onClearError() },
+                        shape = SegmentedButtonDefaults.itemShape(index, AuthMode.entries.size),
+                        enabled = !busy,
+                    ) {
+                        Text(option.label, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
 
             if (error != null) {
                 NoticeBar(text = error, tone = NoticeTone.ERROR)
                 Spacer(Modifier.height(16.dp))
             }
 
-            val fieldModifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 420.dp)
-
-            if (registering) {
+            if (mode != AuthMode.SIGN_IN) {
                 OutlinedTextField(
                     value = displayName,
                     onValueChange = { displayName = it; onClearError() },
@@ -144,7 +174,7 @@ fun AuthScreen(
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done,
+                    imeAction = ImeAction.Next,
                 ),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -164,21 +194,38 @@ fun AuthScreen(
                 },
             )
 
-            if (registering) {
+            if (mode == AuthMode.CREATE) {
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
+                    value = companyName,
+                    onValueChange = { companyName = it; onClearError() },
+                    label = { Text("Company name") },
+                    singleLine = true,
+                    modifier = fieldModifier,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                )
+            }
+
+            if (mode != AuthMode.SIGN_IN) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    // Upper-cased as it is typed, so what one person reads out
+                    // is exactly what the other types in.
                     value = joinCode,
-                    onValueChange = { joinCode = it.uppercase(); onClearError() },
+                    onValueChange = { joinCode = it.uppercase().trim(); onClearError() },
                     label = { Text("Company code") },
                     supportingText = {
-                        Text("Ask your administrator. It is not the same as your password.")
+                        Text(
+                            if (mode == AuthMode.CREATE) {
+                                "Choose one for your staff to use, e.g. UPOINT"
+                            } else {
+                                "Ask your administrator. Not the same as your password."
+                            },
+                        )
                     },
                     singleLine = true,
                     modifier = fieldModifier,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done,
-                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 )
             }
 
@@ -186,8 +233,12 @@ fun AuthScreen(
 
             Button(
                 onClick = {
-                    if (registering) onRegister(email, password, displayName, joinCode)
-                    else onSignIn(email, password)
+                    when (mode) {
+                        AuthMode.SIGN_IN -> onSignIn(email, password)
+                        AuthMode.JOIN -> onJoinCompany(email, password, displayName, joinCode)
+                        AuthMode.CREATE ->
+                            onCreateCompany(email, password, displayName, companyName, joinCode)
+                    }
                 },
                 enabled = !busy,
                 modifier = fieldModifier.height(50.dp),
@@ -199,29 +250,11 @@ fun AuthScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text(if (registering) "Create account" else "Sign in")
+                    Text(mode.action)
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
-
-            TextButton(
-                onClick = {
-                    registering = !registering
-                    onClearError()
-                },
-                enabled = !busy,
-            ) {
-                Text(
-                    if (registering) {
-                        "I already have an account"
-                    } else {
-                        "Create a new account"
-                    },
-                )
-            }
-
-            if (!registering) {
+            if (mode == AuthMode.SIGN_IN) {
                 TextButton(onClick = { onResetPassword(email) }, enabled = !busy) {
                     Text("Forgot password")
                 }

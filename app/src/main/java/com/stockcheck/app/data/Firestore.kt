@@ -19,14 +19,45 @@ import kotlinx.coroutines.tasks.await
  */
 object Db {
 
-    /** Single-tenant for now; becomes the signed-in user's company id later. */
-    var workspaceId: String = "default"
+    /**
+     * The company whose data this session reads and writes.
+     *
+     * Set once from the signed-in user's entry in [userIndex] before any
+     * screen queries anything, and cleared on sign-out. Every path below
+     * hangs off it, so one assignment switches the whole app between
+     * companies and no query needs to know tenancy exists.
+     */
+    var workspaceId: String = ""
         internal set
+
+    val hasWorkspace: Boolean get() = workspaceId.isNotEmpty()
 
     private val db: FirebaseFirestore get() = FirebaseFirestore.getInstance()
 
-    private fun workspace(): DocumentReference =
-        db.collection("workspaces").document(workspaceId)
+    private fun workspace(): DocumentReference {
+        check(workspaceId.isNotEmpty()) {
+            "No company selected — Db.workspaceId must be set before any query."
+        }
+        return db.collection("workspaces").document(workspaceId)
+    }
+
+    // ------------------------------------------------- cross-company paths
+
+    /**
+     * Company codes, keyed BY the code itself.
+     *
+     * The document id is the code, so joining means reading a document whose
+     * name you already have to know. The rules allow `get` and forbid `list`,
+     * which is what keeps codes unguessable without making them unusable.
+     */
+    fun workspaceCode(code: String): DocumentReference =
+        db.collection("workspaceCodes").document(code)
+
+    /** Which company an account belongs to; each user may read only their own. */
+    fun userIndex(uid: String): DocumentReference =
+        db.collection("userIndex").document(uid)
+
+    fun newWorkspaceId(): String = db.collection("workspaces").document().id
 
     fun users(): CollectionReference = workspace().collection("users")
     fun user(uid: String): DocumentReference = users().document(uid)
