@@ -37,6 +37,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -388,7 +389,7 @@ fun TemplateEditorScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text("Fields", style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = "Barcode, product, quantity and unit are always collected. " +
@@ -440,6 +441,20 @@ fun TemplateEditorScreen(
                         }
                     },
                 )
+            }
+
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = {
+                    viewModel.update { t ->
+                        t.copy(fields = t.fields + TemplateViewModel.blankField(t.fields.size))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Add another field")
             }
 
             Spacer(Modifier.height(24.dp))
