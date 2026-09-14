@@ -151,11 +151,24 @@ class UserRepository(private val audit: AuditRepository) {
      * returns false: the roles now exist, so Firestore evaluates the same
      * `set()` as an update, `roleId != 'admin'` on the admin document is
      * false, and the whole batch is denied atomically.
+     *
+     * The admin document is written LAST, deliberately. Firestore evaluates
+     * each write's rule against the state as it would be after the earlier
+     * writes in the same batch already landed, and the rule's bootstrap
+     * clause is `!exists(roles/admin)`. Writing admin first would make that
+     * condition false for the other three the instant admin lands — even
+     * within the same batch — and since a batch is all-or-nothing, that one
+     * denied write fails the entire commit. Writing it last means every
+     * other document sees admin as not-yet-existing (true), and the create of
+     * admin itself is judged against the state before ITS OWN write, which is
+     * always "does not exist yet" for a create by definition. See the
+     * matching comment on this rule in firestore.rules.
      */
     suspend fun trySeedBuiltInRoles(): Boolean {
         val batch = Db.batch()
         val now = System.currentTimeMillis()
-        BuiltInRoles.seeds.forEach { role ->
+        val orderedLast = BuiltInRoles.seeds.sortedBy { it.id == BuiltInRoles.ADMIN_ID }
+        orderedLast.forEach { role ->
             batch.set(Db.role(role.id), role.copy(createdAt = now))
         }
         return runCatching { batch.commit().await() }.isSuccess

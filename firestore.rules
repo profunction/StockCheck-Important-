@@ -82,7 +82,18 @@ service cloud.firestore {
 
       match /roles/{roleId} {
         allow read: if active();
-        // Seeding is allowed only while the workspace has no roles at all.
+        // Seeding writes all four built-in roles in one atomic batch.
+        // Firestore evaluates each write's rule against the state as it would
+        // be AFTER the earlier writes in the SAME batch already landed, so
+        // this condition -- correct on its own -- only holds for whichever
+        // write in the batch happens to run last: by the time any earlier
+        // write is evaluated, roles/admin doesn't exist yet (true, allowed);
+        // by the time a write AFTER admin's is evaluated, it does (false,
+        // denied). UserRepository.trySeedBuiltInRoles() relies on this and
+        // deliberately writes the admin document last in the batch so every
+        // one of the four sees !exists(roles/admin) as true. Reordering that
+        // batch (or re-adding a write ahead of admin's) will silently break
+        // registration again with a denied batch and no obvious cause.
         allow create: if can('CREATE_ROLE')
                       || (signedIn() && !exists(/databases/$(database)/documents/workspaces/$(ws)/roles/admin));
         allow update: if can('EDIT_ROLE') && roleId != 'admin';
