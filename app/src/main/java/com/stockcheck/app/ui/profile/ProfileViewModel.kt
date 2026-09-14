@@ -13,6 +13,7 @@ import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Role
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.UserProfile
+import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -57,6 +58,10 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
                 .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
         }
 
+    val config: StateFlow<WorkspaceConfig?> = userRepo.observeConfig()
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
@@ -82,6 +87,14 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
     fun deleteUser(target: UserProfile) {
         viewModelScope.launch {
             runCatching { userRepo.deleteProfile(session, target) }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun saveCompanyCode(companyName: String, joinCode: String, onSaved: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { userRepo.saveConfig(session, companyName, joinCode) }
+                .onSuccess { onSaved() }
                 .onFailure { _message.value = it.message }
         }
     }

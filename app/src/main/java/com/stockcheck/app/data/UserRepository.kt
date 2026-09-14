@@ -7,6 +7,7 @@ import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Role
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.UserProfile
+import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
@@ -39,7 +40,51 @@ class UserRepository(private val audit: AuditRepository) {
      * allowed it tells us whether this is the first registration — the same
      * fact the old code tried and failed to determine by reading first.
      */
-    suspend fun createProfile(uid: String, email: String, displayName: String, roleId: String) {
+    // -------------------------------------------------- workspace config
+
+    fun observeConfig(): Flow<WorkspaceConfig?> = Db.config().asFlow()
+
+    /**
+     * True when this workspace has not been configured yet, which is the only
+     * time registration is allowed without a code.
+     */
+    suspend fun isUnclaimed(): Boolean =
+        Db.config().getAs<WorkspaceConfig>()?.joinCode.isNullOrEmpty()
+
+    suspend fun saveConfig(session: Session, companyName: String, joinCode: String) {
+        session.require(Permission.CHANGE_PERMISSION)
+        val normalised = WorkspaceConfig.normalise(joinCode)
+        require(normalised.length >= 4) { "The company code must be at least 4 characters." }
+        val previous = Db.config().getAs<WorkspaceConfig>()
+        Db.config().set(
+            WorkspaceConfig(
+                companyName = companyName.trim(),
+                joinCode = normalised,
+                updatedAt = System.currentTimeMillis(),
+                updatedByUid = session.uid,
+            ),
+        ).awaitAck()
+        audit.record(
+            session = session,
+            entity = "Workspace",
+            entityId = "config",
+            entityLabel = companyName.trim(),
+            action = AuditAction.UPDATE,
+            field = "joinCode",
+            // The code itself is not written to the trail; the trail is
+            // readable by more people than the code should be.
+            oldValue = if (previous?.joinCode.isNullOrEmpty()) "not set" else "set",
+            newValue = "set",
+        )
+    }
+
+    suspend fun createProfile(
+        uid: String,
+        email: String,
+        displayName: String,
+        roleId: String,
+        joinCode: String = "",
+    ) {
         val now = System.currentTimeMillis()
         // No Firestore read here either, for the same reason: the role
         // document cannot be read back before the profile exists. The display
@@ -55,6 +100,7 @@ class UserRepository(private val audit: AuditRepository) {
                 active = true,
                 createdAt = now,
                 lastSeenAt = now,
+                joinCode = WorkspaceConfig.normalise(joinCode),
             )
         ).awaitAck()
     }

@@ -52,6 +52,13 @@ object Db {
 
     fun auditLog(): CollectionReference = workspace().collection("auditLog")
 
+    /**
+     * Workspace settings, including the company code registration is gated
+     * on. The security rules read this document directly, which is how the
+     * code can be verified by someone who is not allowed to read it.
+     */
+    fun config(): DocumentReference = workspace().collection("meta").document("config")
+
     /** Counter document used to hand out human-readable reference numbers. */
     fun counters(): DocumentReference = workspace().collection("meta").document("counters")
 

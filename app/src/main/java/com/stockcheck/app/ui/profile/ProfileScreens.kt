@@ -124,6 +124,62 @@ fun ProfileScreen(
                 }
             }
 
+            // ------------------------------------------------- company code
+
+            if (permissions.has(Permission.CHANGE_PERMISSION)) {
+                val config by viewModel.config.collectAsStateWithLifecycle()
+                var editingCode by remember { mutableStateOf(false) }
+
+                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Company code", style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "New staff must type this to register. Without one set, " +
+                                "anyone who has the app can join this workspace.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column {
+                                Text(
+                                    text = config?.joinCode?.takeIf { it.isNotEmpty() }
+                                        ?: "Not set",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = if (config?.joinCode.isNullOrEmpty()) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        MaterialTheme.colorScheme.primary
+                                    },
+                                )
+                                config?.companyName?.takeIf { it.isNotEmpty() }?.let {
+                                    Text(it, style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                            TextButton(onClick = { editingCode = true }) {
+                                Text(if (config?.joinCode.isNullOrEmpty()) "Set code" else "Change")
+                            }
+                        }
+                    }
+                }
+
+                if (editingCode) {
+                    CompanyCodeDialog(
+                        current = config,
+                        onDismiss = { editingCode = false },
+                        onSave = { name, code ->
+                            viewModel.saveCompanyCode(name, code) { editingCode = false }
+                        },
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+
             // ---------------------------------------------------- admin actions
 
             if (permissions.has(Permission.VIEW_USERS)) {
@@ -221,6 +277,57 @@ fun ProfileScreen(
             Spacer(Modifier.height(32.dp))
         }
     }
+}
+
+@Composable
+private fun CompanyCodeDialog(
+    current: com.stockcheck.app.model.WorkspaceConfig?,
+    onDismiss: () -> Unit,
+    onSave: (companyName: String, joinCode: String) -> Unit,
+) {
+    var name by remember { mutableStateOf(current?.companyName.orEmpty()) }
+    var code by remember { mutableStateOf(current?.joinCode.orEmpty()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Company code") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Company name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    // Upper-cased as it is typed so what the admin reads out
+                    // is exactly what the rules will compare against.
+                    value = code,
+                    onValueChange = { code = it.uppercase().trim() },
+                    label = { Text("Code") },
+                    supportingText = { Text("At least 4 characters, e.g. UPOINT") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Changing the code does not affect anyone already registered. " +
+                        "It only applies to new sign-ups from now on.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(name, code) },
+                enabled = code.trim().length >= 4,
+            ) { Text("Save") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 // ------------------------------------------------------------ user admin

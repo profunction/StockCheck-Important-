@@ -54,6 +54,28 @@ service cloud.firestore {
         return request.resource.data.createdByUid == existing.createdByUid;
       }
 
+      function configPath() {
+        return /databases/$(database)/documents/workspaces/$(ws)/meta/config;
+      }
+
+      /**
+       * Gates self-registration on the company code.
+       *
+       * The code lives in meta/config, which only members may read — so
+       * someone registering cannot look it up, they have to have been told
+       * it. Rules can read it regardless, which is what makes this a real
+       * check rather than a prompt the client could skip.
+       *
+       * Before any config exists the workspace is being set up by its first
+       * user, who has nobody to get a code from; that case is allowed and
+       * closes as soon as the admin sets one.
+       */
+      function joinCodeAccepted() {
+        return !exists(configPath())
+               || get(configPath()).data.joinCode == ''
+               || request.resource.data.get('joinCode', '') == get(configPath()).data.joinCode;
+      }
+
       // ------------------------------------------------------------- users
 
       match /users/{uid} {
@@ -70,7 +92,8 @@ service cloud.firestore {
         allow create: if signedIn()
                       && request.auth.uid == uid
                       && request.resource.data.active == true
-                      && (request.resource.data.roleId != 'admin' || !profileExists());
+                      && (request.resource.data.roleId != 'admin' || !profileExists())
+                      && joinCodeAccepted();
 
         allow read: if isOwner(uid) || can('VIEW_USERS');
 
@@ -184,6 +207,9 @@ service cloud.firestore {
       }
 
       match /meta/{docId} {
+        // Members may read the company name and see the code they must give
+        // out; nobody outside the workspace can, which is what stops the
+        // join code being discovered rather than told.
         allow read: if active();
         allow write: if isAdmin();
       }

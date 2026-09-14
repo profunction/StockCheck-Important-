@@ -167,7 +167,37 @@ data class UserProfile(
     val active: Boolean = true,
     val createdAt: Long = 0L,
     val lastSeenAt: Long = 0L,
+    /**
+     * The company code this account registered with.
+     *
+     * Written by the client and checked by the Firestore rules against
+     * [WorkspaceConfig.joinCode] at creation time — that comparison is what
+     * actually keeps strangers out, since the code itself is unreadable to
+     * anyone without a profile. Kept afterwards as a record of how the
+     * account got in.
+     */
+    val joinCode: String = "",
 )
+
+/**
+ * Workspace-wide settings, held at `meta/config`.
+ *
+ * Readable only by members, writable only by an admin, and deliberately
+ * readable by the security rules themselves — which is how registration can
+ * verify a code that the person registering cannot look up.
+ */
+data class WorkspaceConfig(
+    val companyName: String = "",
+    /** Stored upper-cased; callers normalise before comparing. */
+    val joinCode: String = "",
+    val updatedAt: Long = 0L,
+    val updatedByUid: String = "",
+) {
+    companion object {
+        /** Codes are compared case- and space-insensitively. */
+        fun normalise(raw: String): String = raw.trim().uppercase()
+    }
+}
 
 /** A signed-in user together with the resolved permissions of their role. */
 data class Session(

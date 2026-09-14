@@ -124,17 +124,37 @@ class AuthRepository(
      * that could answer "is this workspace empty" requires one. See the
      * comment on that function for the full reasoning.
      */
-    suspend fun register(email: String, password: String, displayName: String) {
+    suspend fun register(
+        email: String,
+        password: String,
+        displayName: String,
+        joinCode: String,
+    ) {
         val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
         val uid = result.user?.uid ?: error("Registration returned no user")
         val isFirstUser = users.trySeedBuiltInRoles()
         val roleId = if (isFirstUser) BuiltInRoles.ADMIN_ID else BuiltInRoles.WORKER_ID
-        users.createProfile(
-            uid = uid,
-            email = email.trim(),
-            displayName = displayName.trim().ifEmpty { email.substringBefore('@') },
-            roleId = roleId,
-        )
+        runCatching {
+            users.createProfile(
+                uid = uid,
+                email = email.trim(),
+                displayName = displayName.trim().ifEmpty { email.substringBefore('@') },
+                roleId = roleId,
+                joinCode = joinCode,
+            )
+        }.onFailure { error ->
+            // The Auth account is already created by this point. Leaving it
+            // behind on a wrong code would block the person from ever
+            // retrying with the right one -- "email already in use" with no
+            // way forward -- so it is removed before the error is reported.
+            runCatching { auth.currentUser?.delete()?.await() }
+            auth.signOut()
+            throw IllegalStateException(
+                "That company code was not accepted. Check it with your " +
+                    "administrator and try again.",
+                error,
+            )
+        }
     }
 
     /**

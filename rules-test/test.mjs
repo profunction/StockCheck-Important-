@@ -137,11 +137,63 @@ await check(
   })(),
 );
 
-console.log('\n================ RESULTS ================');
+
+// --- 6. Company code gate ------------------------------------------------
+// Added when registration was gated on a join code, to prove the rule admits
+// the right code and refuses a wrong one before it ever reaches a phone.
+const codeUid = "codeuser99";
+const coded = testEnv.authenticatedContext(codeUid).firestore();
+const profileWith = (code) => ({
+  email: "c@d.com", displayName: "Coded", roleId: "worker", roleName: "Worker",
+  active: true, createdAt: 1, lastSeenAt: 1, joinCode: code,
+});
+const withConfig = async () => {
+  await testEnv.clearFirestore();
+  await testEnv.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), `workspaces/${WS}/meta/config`), {
+      companyName: "Upoint", joinCode: "UPOINT", updatedAt: 1, updatedByUid: "x",
+    });
+  });
+};
+
+await withConfig();
+await check(
+  "6a. register with the CORRECT code",
+  setDoc(doc(coded, `workspaces/${WS}/users/${codeUid}`), profileWith("UPOINT")),
+);
+
+await withConfig();
+const wrongAccepted = await check(
+  "6b. register with a WRONG code (must be refused)",
+  setDoc(doc(coded, `workspaces/${WS}/users/${codeUid}`), profileWith("GUESSED")),
+);
+
+await withConfig();
+const missingAccepted = await check(
+  "6c. register with NO code field at all (must be refused)",
+  setDoc(doc(coded, `workspaces/${WS}/users/${codeUid}`), {
+    email: "c@d.com", displayName: "Coded", roleId: "worker", roleName: "Worker",
+    active: true, createdAt: 1, lastSeenAt: 1,
+  }),
+);
+
+await testEnv.clearFirestore();
+const bootstrapped = await check(
+  "6d. register while no code is configured yet (first admin)",
+  setDoc(doc(coded, `workspaces/${WS}/users/${codeUid}`), profileWith("")),
+);
+
+console.log("");
+console.log("================ RESULTS ================");
 for (const [name, verdict, msg] of results) {
   console.log(`${verdict.padEnd(8)} ${name}`);
-  if (msg) console.log(`         → ${msg}`);
+  if (msg) console.log(`         -> ${msg}`);
 }
-console.log('=========================================\n');
+console.log("=========================================");
+
+
+if (wrongAccepted) console.log("*** SECURITY HOLE: a wrong company code was accepted ***");
+if (missingAccepted) console.log("*** SECURITY HOLE: a missing company code was accepted ***");
+if (!bootstrapped) console.log("*** the first admin can no longer bootstrap a workspace ***");
 
 await testEnv.cleanup();

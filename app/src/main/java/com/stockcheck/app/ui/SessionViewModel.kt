@@ -46,10 +46,16 @@ class SessionViewModel : ViewModel() {
         auth.signIn(email, password)
     }
 
-    fun register(email: String, password: String, displayName: String) = runForm {
+    fun register(
+        email: String,
+        password: String,
+        displayName: String,
+        joinCode: String,
+    ) = runForm {
         require(email.isNotBlank()) { "Enter an email address." }
         require(password.length >= 6) { "The password must be at least 6 characters." }
-        auth.register(email, password, displayName)
+        require(joinCode.isNotBlank()) { "Enter the company code your administrator gave you." }
+        auth.register(email, password, displayName, joinCode)
     }
 
     /** Repairs an account that signed in but has no profile document. */

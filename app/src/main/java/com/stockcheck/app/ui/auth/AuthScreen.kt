@@ -55,7 +55,7 @@ fun AuthScreen(
     busy: Boolean,
     error: String?,
     onSignIn: (email: String, password: String) -> Unit,
-    onRegister: (email: String, password: String, displayName: String) -> Unit,
+    onRegister: (email: String, password: String, displayName: String, joinCode: String) -> Unit,
     onResetPassword: (email: String) -> Unit,
     onClearError: () -> Unit,
 ) {
@@ -64,6 +64,7 @@ fun AuthScreen(
     var password by remember { mutableStateOf("") }
     var displayName by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var joinCode by remember { mutableStateOf("") }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -163,11 +164,29 @@ fun AuthScreen(
                 },
             )
 
+            if (registering) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = joinCode,
+                    onValueChange = { joinCode = it.uppercase(); onClearError() },
+                    label = { Text("Company code") },
+                    supportingText = {
+                        Text("Ask your administrator. It is not the same as your password.")
+                    },
+                    singleLine = true,
+                    modifier = fieldModifier,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done,
+                    ),
+                )
+            }
+
             Spacer(Modifier.height(20.dp))
 
             Button(
                 onClick = {
-                    if (registering) onRegister(email, password, displayName)
+                    if (registering) onRegister(email, password, displayName, joinCode)
                     else onSignIn(email, password)
                 },
                 enabled = !busy,
