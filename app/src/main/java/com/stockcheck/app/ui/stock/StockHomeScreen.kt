@@ -44,6 +44,8 @@ import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
+import com.stockcheck.app.ui.common.NoticeBar
+import com.stockcheck.app.ui.common.NoticeTone
 import com.stockcheck.app.ui.common.EmptyState
 import com.stockcheck.app.ui.common.StatusChip
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -111,6 +113,7 @@ fun StockHomeScreen(
     )
     val checks by viewModel.openChecks.collectAsStateWithLifecycle()
     val templates by viewModel.templates.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
 
     // Anything not yet reviewed is still "on the floor" and belongs here; the
@@ -136,19 +139,21 @@ fun StockHomeScreen(
             }
         },
     ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
+        error?.let {
+            NoticeBar(text = it, tone = NoticeTone.ERROR)
+        }
         if (active.isEmpty()) {
             EmptyState(
                 icon = Icons.Filled.QrCodeScanner,
                 title = "No stock check in progress",
                 message = "Start one, pick a template, then scan barcodes and " +
                     "call out the quantities.",
-                modifier = Modifier.padding(padding),
             )
         } else {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
+                    .fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -156,6 +161,7 @@ fun StockHomeScreen(
                     StockCheckCard(check = check, onClick = { onOpenCheck(check.id) })
                 }
             }
+        }
         }
     }
 

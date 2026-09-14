@@ -43,7 +43,7 @@ class TemplateRepository(private val audit: AuditRepository) {
             createdAt = existing?.createdAt ?: now,
             updatedAt = now,
         )
-        Db.template(id).set(saved).await()
+        Db.template(id).set(saved).awaitAck()
 
         if (existing == null) {
             audit.record(
@@ -90,7 +90,7 @@ class TemplateRepository(private val audit: AuditRepository) {
         require(inUse.isEmpty) {
             "This template is used by existing stock checks. Deactivate it instead."
         }
-        Db.template(template.id).delete().await()
+        Db.template(template.id).delete().awaitAck()
         audit.record(
             session = session,
             entity = "Template",
@@ -104,7 +104,7 @@ class TemplateRepository(private val audit: AuditRepository) {
         session.require(Permission.EDIT_TEMPLATE)
         Db.template(template.id).update(
             mapOf("active" to active, "updatedAt" to System.currentTimeMillis()),
-        ).await()
+        ).awaitAck()
         audit.record(
             session = session,
             entity = "Template",
@@ -134,7 +134,7 @@ class TemplateRepository(private val audit: AuditRepository) {
                 ),
             )
         }
-        batch.commit().await()
+        batch.commit().awaitAck()
     }
 }
 

@@ -66,7 +66,7 @@ class StockRepository(private val audit: AuditRepository) {
             updatedAt = now,
             note = note,
         )
-        Db.stockCheck(id).set(check).await()
+        Db.stockCheck(id).set(check).awaitAck()
         audit.record(
             session = session,
             entity = "StockCheck",
@@ -113,7 +113,7 @@ class StockRepository(private val audit: AuditRepository) {
             StockStatus.LOCKED -> updates["lockedByUid"] = session.uid
             else -> updates["lockedByUid"] = null
         }
-        Db.stockCheck(check.id).update(updates).await()
+        Db.stockCheck(check.id).update(updates).awaitAck()
         audit.record(
             session = session,
             entity = "StockCheck",
@@ -139,7 +139,7 @@ class StockRepository(private val audit: AuditRepository) {
         // orphans that still count against the project's storage quota.
         deleteAllIn(Db.items(check.id))
         deleteAllIn(Db.photos(check.id))
-        Db.stockCheck(check.id).delete().await()
+        Db.stockCheck(check.id).delete().awaitAck()
         audit.record(
             session = session,
             entity = "StockCheck",
@@ -155,7 +155,7 @@ class StockRepository(private val audit: AuditRepository) {
         collection.get().await().documents.chunked(400).forEach { chunk ->
             val batch = Db.batch()
             chunk.forEach { batch.delete(it.reference) }
-            batch.commit().await()
+            batch.commit().awaitAck()
         }
     }
 
@@ -184,11 +184,11 @@ class StockRepository(private val audit: AuditRepository) {
                     ),
                 )
             }
-            batch.commit().await()
+            batch.commit().awaitAck()
         }
         Db.stockCheck(newId).update(
             mapOf("itemCount" to items.size, "totalQuantity" to 0),
-        ).await()
+        ).awaitAck()
         return newId
     }
 
@@ -247,7 +247,7 @@ class StockRepository(private val audit: AuditRepository) {
         // Written before the totals are bumped so the line is durable even if
         // the process dies between the two writes; the counters are rebuildable
         // from the items, the items are not rebuildable from the counters.
-        doc.set(item).await()
+        doc.set(item).awaitAck()
         bumpTotals(stockCheckId, itemDelta = 1, qtyDelta = quantity)
         audit.record(
             session = session,
@@ -274,7 +274,7 @@ class StockRepository(private val audit: AuditRepository) {
         if (newQty == item.quantity) return
         Db.item(stockCheckId, item.id).update(
             mapOf("quantity" to newQty, "updatedAt" to System.currentTimeMillis()),
-        ).await()
+        ).awaitAck()
         bumpTotals(stockCheckId, itemDelta = 0, qtyDelta = newQty - item.quantity)
         audit.record(
             session = session,
@@ -321,7 +321,7 @@ class StockRepository(private val audit: AuditRepository) {
 
     suspend fun deleteItem(session: Session, stockCheckId: String, item: StockItem) {
         session.require(Permission.EDIT_OWN_STOCK)
-        Db.item(stockCheckId, item.id).delete().await()
+        Db.item(stockCheckId, item.id).delete().awaitAck()
         bumpTotals(stockCheckId, itemDelta = -1, qtyDelta = -item.quantity)
         audit.record(
             session = session,
@@ -348,6 +348,6 @@ class StockRepository(private val audit: AuditRepository) {
         if (qtyDelta != 0) updates["totalQuantity"] = FieldValue.increment(qtyDelta.toLong())
         // A counter that fails to update is a cosmetic problem, not a data-loss
         // one, so it must never surface as a failure of the scan itself.
-        runCatching { Db.stockCheck(stockCheckId).update(updates).await() }
+        runCatching { Db.stockCheck(stockCheckId).update(updates).awaitAck() }
     }
 }

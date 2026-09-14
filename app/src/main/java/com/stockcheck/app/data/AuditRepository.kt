@@ -42,7 +42,7 @@ class AuditRepository {
         )
         // The trail must never block the user's actual work, so a failure here
         // is swallowed rather than propagated into the calling write.
-        runCatching { Db.auditLog().add(entry).await() }
+        runCatching { Db.auditLog().add(entry).awaitAck() }
     }
 
     /** Records a batch of field-level changes as one entry per changed field. */

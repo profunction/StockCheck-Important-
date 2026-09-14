@@ -5,6 +5,8 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
+import com.google.android.gms.tasks.Task
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -98,3 +100,32 @@ inline fun <reified T : Any> DocumentReference.asFlow(): Flow<T?> = callbackFlow
  */
 suspend inline fun <reified T : Any> DocumentReference.getAs(): T? =
     runCatching { get().await().toObject(T::class.java) }.getOrNull()
+
+/**
+ * How long a write may wait for the server before the caller carries on.
+ *
+ * Firestore has already applied the write to the local cache and fired every
+ * listener by the time it is handed back; the Task completes only when the
+ * SERVER acknowledges. Awaiting that Task therefore blocks forever with no
+ * network — exactly the condition this app's persistent cache exists to
+ * survive — which showed up as buttons that did nothing at all: no error, no
+ * navigation, no spinner, because the coroutine simply never resumed.
+ */
+const val WRITE_ACK_TIMEOUT_MS = 4_000L
+
+/**
+ * Waits for the server to acknowledge a write, but never longer than
+ * [WRITE_ACK_TIMEOUT_MS].
+ *
+ * A timeout is not a failure: the write is durable in the local cache and
+ * queued for sync, and the UI is driven by snapshot listeners that have
+ * already reflected it. Returns true when the server confirmed within the
+ * window, so a caller that genuinely needs confirmation can tell.
+ *
+ * A write the rules reject still fails, just asynchronously — Firestore rolls
+ * it back out of the cache and the listeners correct the UI.
+ */
+suspend fun <T> Task<T>.awaitAck(): Boolean =
+    withTimeoutOrNull(WRITE_ACK_TIMEOUT_MS) {
+        runCatching { await() }.isSuccess
+    } ?: false

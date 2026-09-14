@@ -84,14 +84,14 @@ class PhotoRepository(
             takenByUid = session.uid,
             takenByName = session.profile.displayName,
         )
-        doc.set(record).await()
+        doc.set(record).awaitAck()
         runCatching {
             Db.stockCheck(stockCheckId).update(
                 mapOf(
                     "photoCount" to FieldValue.increment(1),
                     "updatedAt" to System.currentTimeMillis(),
                 ),
-            ).await()
+            ).awaitAck()
         }
         if (CloudPhotos.ENABLED) enqueueUpload(stockCheckId, doc.id)
         audit.record(
@@ -116,11 +116,11 @@ class PhotoRepository(
                     .await()
             }
         }
-        Db.photo(photo.stockCheckId, photo.id).delete().await()
+        Db.photo(photo.stockCheckId, photo.id).delete().awaitAck()
         runCatching {
             Db.stockCheck(photo.stockCheckId).update(
                 "photoCount", FieldValue.increment(-1),
-            ).await()
+            ).awaitAck()
         }
         audit.record(
             session = session,
@@ -134,7 +134,7 @@ class PhotoRepository(
 
     suspend fun updateCaption(session: Session, photo: PhotoRecord, caption: String) {
         session.require(Permission.EDIT_OWN_STOCK)
-        Db.photo(photo.stockCheckId, photo.id).update("caption", caption).await()
+        Db.photo(photo.stockCheckId, photo.id).update("caption", caption).awaitAck()
     }
 
     /**

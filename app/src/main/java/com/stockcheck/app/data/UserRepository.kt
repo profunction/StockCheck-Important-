@@ -56,13 +56,13 @@ class UserRepository(private val audit: AuditRepository) {
                 createdAt = now,
                 lastSeenAt = now,
             )
-        ).await()
+        ).awaitAck()
     }
 
     suspend fun touchLastSeen(uid: String) {
         if (uid.isEmpty()) return
         runCatching {
-            Db.user(uid).update("lastSeenAt", System.currentTimeMillis()).await()
+            Db.user(uid).update("lastSeenAt", System.currentTimeMillis()).awaitAck()
         }
     }
 
@@ -80,7 +80,7 @@ class UserRepository(private val audit: AuditRepository) {
         val role = Db.role(newRoleId).getAs<Role>() ?: error("Role not found: $newRoleId")
         Db.user(target.uid).update(
             mapOf("roleId" to role.id, "roleName" to role.name)
-        ).await()
+        ).awaitAck()
         audit.record(
             session = session,
             entity = "User",
@@ -98,7 +98,7 @@ class UserRepository(private val audit: AuditRepository) {
         if (!active && target.roleId == BuiltInRoles.ADMIN_ID) {
             require(countAdmins() > 1) { "The workspace must keep at least one active admin." }
         }
-        Db.user(target.uid).update("active", active).await()
+        Db.user(target.uid).update("active", active).awaitAck()
         audit.record(
             session = session,
             entity = "User",
@@ -117,7 +117,7 @@ class UserRepository(private val audit: AuditRepository) {
         if (target.roleId == BuiltInRoles.ADMIN_ID) {
             require(countAdmins() > 1) { "The workspace must keep at least one admin." }
         }
-        Db.user(target.uid).delete().await()
+        Db.user(target.uid).delete().awaitAck()
         audit.record(
             session = session,
             entity = "User",
@@ -163,7 +163,7 @@ class UserRepository(private val audit: AuditRepository) {
         BuiltInRoles.seeds.forEach { role ->
             batch.set(Db.role(role.id), role.copy(createdAt = now))
         }
-        return runCatching { batch.commit().await() }.isSuccess
+        return runCatching { batch.commit().awaitAck() }.isSuccess
     }
 
     suspend fun saveRole(session: Session, role: Role) {
@@ -180,7 +180,7 @@ class UserRepository(private val audit: AuditRepository) {
                 createdByUid = existing?.createdByUid ?: session.uid,
                 createdAt = existing?.createdAt ?: System.currentTimeMillis(),
             )
-        ).await()
+        ).awaitAck()
 
         if (existing != null && existing.permissions.toSet() != role.permissions.toSet()) {
             audit.record(
@@ -209,7 +209,7 @@ class UserRepository(private val audit: AuditRepository) {
         require(!role.builtIn) { "Built-in roles cannot be deleted." }
         val inUse = Db.users().whereEqualTo("roleId", role.id).limit(1).get().await()
         require(inUse.isEmpty) { "This role is still assigned to a user." }
-        Db.role(role.id).delete().await()
+        Db.role(role.id).delete().awaitAck()
         audit.record(
             session = session,
             entity = "Role",
