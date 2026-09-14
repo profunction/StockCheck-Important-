@@ -106,10 +106,27 @@ data class ExportOptions(
     val fromMillis: Long? = null,
     val toMillis: Long? = null,
     /**
-     * Produce a file whose data cells can be edited. Only offered to holders of
-     * EDIT_EXPORTED_FILE; otherwise the sheet is protected and fully read-only.
+     * Apply Excel's own sheet protection, with the company password.
+     *
+     * Was always on, which meant the choice did not exist and the only
+     * related control -- "allow editing" -- read backwards. It is a decision
+     * per export: a sheet someone is meant to fill in should not arrive
+     * locked, and one going to a customer should.
+     */
+    val protectSheet: Boolean = true,
+    /**
+     * Within a protected sheet, leave the counted values editable.
+     *
+     * Reference, date, worker and status stay locked regardless. Only offered
+     * to holders of EDIT_EXPORTED_FILE.
      */
     val editable: Boolean = false,
+    /**
+     * Deliver inside an AES-256 archive that cannot be opened without the
+     * password at all — a different thing from sheet protection, which only
+     * governs editing once the file is already open.
+     */
+    val encryptBundle: Boolean = false,
 ) {
     fun columns(template: Template?): List<ExportColumn> =
         ExportColumn.availableFor(template).filter { it.key in selectedKeys }

@@ -136,15 +136,22 @@ class ExportService(
 
         when (options.format) {
             ExportFormat.CSV -> writeCsv(file, columns, rows)
-            ExportFormat.XLSX ->
-                writeXlsx(file, columns, rows, options.editable, password ?: SHEET_GUARD)
+            ExportFormat.XLSX -> writeXlsx(
+                file = file,
+                columns = columns,
+                rows = rows,
+                editable = options.editable,
+                // Null means no protection at all: the sheet opens and edits
+                // like any ordinary spreadsheet.
+                password = if (options.protectSheet) password ?: SHEET_GUARD else null,
+            )
         }
 
         // Encryption goes on the container, not the file. A CSV has no notion
         // of a password, and an xlsx's sheet protection is a 16-bit hash free
         // tools strip in seconds; AES-256 on the archive is the only part of
         // this that is real.
-        val delivered = if (password != null) {
+        val delivered = if (options.encryptBundle && password != null) {
             EncryptedBundle.wrap(file, password)
         } else {
             file
@@ -159,8 +166,9 @@ class ExportService(
             field = "rows",
             newValue = "${rows.size} rows, ${columns.size} columns, " +
                 "${options.format.name}, ${options.scope.name}" +
-                (if (options.editable) ", editable" else ", locked") +
-                (if (password != null) ", encrypted" else ", not encrypted"),
+                (if (options.protectSheet) ", sheet protected" else ", unprotected") +
+                (if (options.editable) ", values editable" else "") +
+                (if (options.encryptBundle && password != null) ", encrypted archive" else ""),
             stockCheckId = if (scoped.size == 1) scoped.first().id else "",
         )
 
@@ -174,7 +182,7 @@ class ExportService(
             format = options.format,
             rowCount = rows.size,
             editable = options.editable,
-            encrypted = password != null,
+            encrypted = options.encryptBundle && password != null,
         )
     }
 
@@ -214,7 +222,7 @@ class ExportService(
         columns: List<ExportColumn>,
         rows: List<ExportRow>,
         editable: Boolean,
-        password: String,
+        password: String?,
     ) {
         val writer = XlsxWriter(sheetName = "Stock Check")
             .header(columns.map { it.header }, columns.map { it.width })

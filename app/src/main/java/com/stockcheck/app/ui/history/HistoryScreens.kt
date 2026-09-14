@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -465,6 +466,43 @@ private fun ItemLine(item: StockItem, canEdit: Boolean, onEdit: (StockItem) -> U
     }
 }
 
+@Composable
+private fun CheckRow(
+    checked: Boolean,
+    enabled: Boolean,
+    title: String,
+    subtitle: String,
+    onToggle: () -> Unit,
+    indent: Boolean = false,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onToggle)
+            .padding(start = if (indent) 24.dp else 0.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = { onToggle() }, enabled = enabled)
+        Spacer(Modifier.width(4.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.outline
+                },
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
 // ----------------------------------------------------------------- export
 
 /**
@@ -498,6 +536,8 @@ private fun ExportDialog(
         mutableStateOf(if (canAll) ExportScope.ALL else ExportScope.OWN)
     }
     var editable by remember { mutableStateOf(false) }
+    var protectSheet by remember { mutableStateOf(true) }
+    var encryptBundle by remember { mutableStateOf(false) }
     val allColumns = com.stockcheck.app.export.ExportColumn.standard + customColumns
     // Everything is selected to begin with. A column left out produces a file
     // that looks complete and is not, which is a worse failure than a sheet
@@ -559,21 +599,6 @@ private fun ExportDialog(
                 }
 
                 Spacer(Modifier.height(14.dp))
-                Spacer(Modifier.height(14.dp))
-                NoticeBar(
-                    text = if (exportPassword.isNotBlank()) {
-                        "The file will be delivered as a password-protected ZIP. " +
-                            "Whoever receives it needs the company export password to " +
-                            "open it at all."
-                    } else {
-                        "No export password is set, so this file will not be protected — " +
-                            "anyone it reaches can open it. An admin can set one under " +
-                            "Profile, Company code."
-                    },
-                    tone = if (exportPassword.isNotBlank()) NoticeTone.INFO else NoticeTone.ERROR,
-                )
-                Spacer(Modifier.height(14.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -611,27 +636,52 @@ private fun ExportDialog(
                     }
                 }
 
-                if (canEditable && format == ExportFormat.XLSX) {
-                    Spacer(Modifier.height(14.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { editable = !editable }
-                            .padding(vertical = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column(modifier = Modifier.width(220.dp)) {
-                            Text("Allow editing")
-                            Text(
-                                text = "Product, quantity, unit and remark stay unlocked. " +
-                                    "Reference, date, worker and status remain fixed.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Text(if (editable) "✓" else "")
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(12.dp))
+                Text("Protection", style = MaterialTheme.typography.labelLarge)
+
+                if (exportPassword.isBlank()) {
+                    Spacer(Modifier.height(8.dp))
+                    NoticeBar(
+                        text = "No password is set for this company, so nothing here can be " +
+                            "protected. An admin sets one under Profile, Company code.",
+                        tone = NoticeTone.ERROR,
+                    )
+                }
+
+                if (format == ExportFormat.XLSX) {
+                    CheckRow(
+                        checked = protectSheet && exportPassword.isNotBlank(),
+                        enabled = exportPassword.isNotBlank(),
+                        title = "Protect the sheet with the password",
+                        subtitle = "Excel asks for the password before anything can be " +
+                            "changed. Stops an accidental edit; a determined person can " +
+                            "strip it.",
+                        onToggle = { protectSheet = !protectSheet },
+                    )
+                    if (protectSheet && canEditable && exportPassword.isNotBlank()) {
+                        CheckRow(
+                            checked = editable,
+                            enabled = true,
+                            title = "…but leave the counted values editable",
+                            subtitle = "Product, quantity, unit and remark stay open. " +
+                                "Reference, date, worker and status stay locked.",
+                            onToggle = { editable = !editable },
+                            indent = true,
+                        )
                     }
                 }
+
+                CheckRow(
+                    checked = encryptBundle && exportPassword.isNotBlank(),
+                    enabled = exportPassword.isNotBlank(),
+                    title = "Send as an encrypted ZIP",
+                    subtitle = "The file cannot be opened at all without the password. " +
+                        "Real AES-256 encryption — this is the strong one, and the only " +
+                        "option that protects a CSV.",
+                    onToggle = { encryptBundle = !encryptBundle },
+                )
             }
         },
         confirmButton = {
@@ -642,7 +692,9 @@ private fun ExportDialog(
                             format = format,
                             scope = scope,
                             selectedKeys = selected,
+                            protectSheet = protectSheet && exportPassword.isNotBlank(),
                             editable = editable,
+                            encryptBundle = encryptBundle && exportPassword.isNotBlank(),
                         ),
                     )
                 },
