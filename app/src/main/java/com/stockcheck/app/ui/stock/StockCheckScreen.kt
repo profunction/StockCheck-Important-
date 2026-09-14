@@ -384,20 +384,13 @@ private fun ScannerPanel(
             }
 
             else -> {
+                // No reticle. The whole frame is analysed, and a box drawn
+                // in the middle said the opposite -- people aim carefully at a
+                // rectangle that means nothing, and miss codes that were
+                // already readable at the edge.
                 BarcodeScannerPreview(
                     modifier = Modifier.fillMaxSize(),
                     onScanned = onScanned,
-                )
-                // A simple reticle: it tells the operator where to aim without
-                // implying the scanner only reads inside the frame, which it
-                // does not — ML Kit analyses the whole image.
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .width(240.dp)
-                        .height(96.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.08f)),
                 )
             }
         }

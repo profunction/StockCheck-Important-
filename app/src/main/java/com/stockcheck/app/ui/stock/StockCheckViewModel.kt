@@ -208,9 +208,25 @@ class StockCheckViewModel(
 
     // ------------------------------------------------------------ item edits
 
+    /**
+     * Adds [delta] to a line, removing it entirely when subtracting reaches
+     * zero.
+     *
+     * A line at zero says nothing a missing line does not, and leaving it
+     * there makes the count read as if the product were found and counted as
+     * none. Subtracting to nothing is how someone says "this is not here", so
+     * it takes the row with it. Re-scanning brings it straight back, and the
+     * removal is in the audit trail either way.
+     */
     fun adjust(item: StockItem, delta: Int) {
         if (isFrozen()) return
         _focusedItemId.value = item.id
+
+        if (delta < 0 && item.quantity + delta <= 0) {
+            deleteItem(item)
+            return
+        }
+
         viewModelScope.launch {
             runCatching {
                 stock.adjustQuantity(session, checkId, item, delta)
@@ -237,6 +253,9 @@ class StockCheckViewModel(
             runCatching { stock.deleteItem(session, checkId, item) }
                 .onSuccess {
                     if (_focusedItemId.value == item.id) _focusedItemId.value = null
+                    _toast.value = Toast(
+                        "Removed ${item.productName.ifEmpty { item.barcode }}",
+                    )
                 }
                 .onFailure { fail(it) }
         }

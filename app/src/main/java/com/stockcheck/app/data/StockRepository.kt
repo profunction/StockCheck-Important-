@@ -207,6 +207,26 @@ class StockRepository(
 
     // ---------------------------------------------------------------- items
 
+    /**
+     * Whether edits to this check's items belong in the audit trail yet.
+     *
+     * While a count is in progress its lines are working notes: a mis-scan
+     * removed three seconds later, a quantity tapped up to the right number.
+     * Recording each of those buries the entries that matter under noise
+     * nobody will read, and makes correcting your own unfinished work feel
+     * like something being held against you.
+     *
+     * Once the count is declared finished, every touch is recorded. That is
+     * the line: changing what you are still counting is not the same act as
+     * changing what you already said you counted.
+     */
+    private suspend fun isAuditable(stockCheckId: String): Boolean {
+        val status = Db.stockCheck(stockCheckId).getAs<StockCheck>()?.statusEnum
+        return status != null &&
+            status != StockStatus.IN_PROGRESS &&
+            status != StockStatus.DRAFT
+    }
+
     fun observeItems(stockCheckId: String): Flow<List<StockItem>> =
         Db.items(stockCheckId).orderBy("createdAt", Query.Direction.ASCENDING).asFlow()
 
@@ -269,7 +289,7 @@ class StockRepository(
         // from the items, the items are not rebuildable from the counters.
         doc.set(item).awaitAck()
         bumpTotals(stockCheckId, itemDelta = 1, qtyDelta = quantity)
-        audit.record(
+        if (isAuditable(stockCheckId)) audit.record(
             session = session,
             entity = "StockItem",
             entityId = doc.id,
@@ -296,7 +316,7 @@ class StockRepository(
             mapOf("quantity" to newQty, "updatedAt" to System.currentTimeMillis()),
         ).awaitAck()
         bumpTotals(stockCheckId, itemDelta = 0, qtyDelta = newQty - item.quantity)
-        audit.record(
+        if (isAuditable(stockCheckId)) audit.record(
             session = session,
             entity = "StockItem",
             entityId = item.id,
@@ -319,8 +339,7 @@ class StockRepository(
         Db.item(stockCheckId, before.id)
             .set(after.copy(id = before.id, updatedAt = System.currentTimeMillis()))
             .await()
-        bumpTotals(stockCheckId, itemDelta = 0, qtyDelta = after.quantity - before.quantity)
-        audit.recordChanges(
+        if (isAuditable(stockCheckId)) audit.recordChanges(
             session = session,
             entity = "StockItem",
             entityId = before.id,
@@ -343,7 +362,9 @@ class StockRepository(
         session.require(Permission.EDIT_OWN_STOCK)
         Db.item(stockCheckId, item.id).delete().awaitAck()
         bumpTotals(stockCheckId, itemDelta = -1, qtyDelta = -item.quantity)
-        audit.record(
+        // A line removed while still counting leaves no trace: it was a
+        // mis-scan being corrected, not a record being altered.
+        if (isAuditable(stockCheckId)) audit.record(
             session = session,
             entity = "StockItem",
             entityId = item.id,
