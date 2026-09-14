@@ -117,7 +117,6 @@ fun StockCheckRoot() {
             busy = busy,
             error = error,
             onSignIn = sessionViewModel::signIn,
-            onJoinCompany = sessionViewModel::joinCompany,
             onCreateCompany = sessionViewModel::createCompany,
             onResetPassword = sessionViewModel::resetPassword,
             onClearError = sessionViewModel::clearError,
@@ -132,8 +131,8 @@ fun StockCheckRoot() {
                 icon = Icons.Filled.Person,
                 title = "This account has no company",
                 message = "${state.email} is signed in but is not a member of any " +
-                    "company yet. Sign out, then use Join with your company code, or " +
-                    "New company to set one up.",
+                    "company yet. Ask an administrator to create your account, or sign " +
+                    "out and set up a new company.",
                 action = {
                     Button(onClick = sessionViewModel::signOut) { Text("Sign out") }
                 },

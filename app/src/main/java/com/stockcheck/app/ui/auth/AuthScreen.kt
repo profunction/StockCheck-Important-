@@ -49,7 +49,6 @@ import com.stockcheck.app.ui.common.NoticeTone
 /** Which of the three things the form is currently doing. */
 private enum class AuthMode(val label: String, val title: String, val action: String) {
     SIGN_IN("Sign in", "Sign in to continue counting", "Sign in"),
-    JOIN("Join", "Join your company with its code", "Join company"),
     CREATE("New company", "Set up a new company on Stock Check", "Create company"),
 }
 
@@ -65,7 +64,6 @@ fun AuthScreen(
     busy: Boolean,
     error: String?,
     onSignIn: (email: String, password: String) -> Unit,
-    onJoinCompany: (email: String, password: String, name: String, code: String) -> Unit,
     onCreateCompany: (
         email: String,
         password: String,
@@ -244,26 +242,27 @@ fun AuthScreen(
                 )
             }
 
-            if (mode != AuthMode.SIGN_IN) {
+            if (mode == AuthMode.CREATE) {
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
-                    // Upper-cased as it is typed, so what one person reads out
-                    // is exactly what the other types in.
                     value = joinCode,
                     onValueChange = { joinCode = it.uppercase().trim(); onClearError() },
                     label = { Text("Company code") },
                     supportingText = {
-                        Text(
-                            if (mode == AuthMode.CREATE) {
-                                "Choose one for your staff to use, e.g. UPOINT"
-                            } else {
-                                "Ask your administrator. Not the same as your password."
-                            },
-                        )
+                        Text("A short identifier for your company, e.g. UPOINT")
                     },
                     singleLine = true,
                     modifier = fieldModifier,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Staff do not sign up here. Once your company exists you add " +
+                        "them from Profile, and give each person their password.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = fieldModifier,
                 )
             }
 
@@ -273,7 +272,6 @@ fun AuthScreen(
                 onClick = {
                     when (mode) {
                         AuthMode.SIGN_IN -> onSignIn(email, password)
-                        AuthMode.JOIN -> onJoinCompany(email, password, displayName, joinCode)
                         AuthMode.CREATE ->
                             onCreateCompany(email, password, displayName, companyName, joinCode)
                     }

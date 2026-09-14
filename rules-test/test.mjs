@@ -183,6 +183,71 @@ const bootstrapped = await check(
   setDoc(doc(coded, `workspaces/${WS}/users/${codeUid}`), profileWith("")),
 );
 
+
+// --- 7. Admin provisioning a colleague -----------------------------------
+// Staff no longer sign themselves up; an admin issues the account. These
+// assert that an admin may write someone else's profile and index entry, and
+// that the same power does not reach into another company.
+const ADMIN = "adminuid01";
+const STAFF = "staffuid02";
+const OTHER_WS = "other_company";
+const adminDb = testEnv.authenticatedContext(ADMIN).firestore();
+
+const seedAdminIn = async (wsId) => {
+  await testEnv.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, `workspaces/${wsId}/roles/admin`), {
+      name: "Admin", permissions: ["CREATE_USER", "CHANGE_PERMISSION"], builtIn: true,
+    });
+    await setDoc(doc(db, `workspaces/${wsId}/roles/worker`), {
+      name: "Worker", permissions: ["CREATE_STOCK_CHECK"], builtIn: true,
+    });
+    await setDoc(doc(db, `workspaces/${wsId}/users/${ADMIN}`), {
+      email: "admin@a.com", displayName: "Admin", roleId: "admin", roleName: "Admin",
+      active: true, createdAt: 1, lastSeenAt: 1,
+    });
+  });
+};
+
+await testEnv.clearFirestore();
+await seedAdminIn(WS);
+
+await check(
+  "7a. admin writes a colleague's profile in their OWN company",
+  setDoc(doc(adminDb, `workspaces/${WS}/users/${STAFF}`), {
+    email: "staff@a.com", displayName: "Staff", roleId: "worker", roleName: "Worker",
+    active: true, createdAt: 1, lastSeenAt: 0,
+  }),
+);
+
+await check(
+  "7b. admin indexes that colleague into their OWN company",
+  setDoc(doc(adminDb, `userIndex/${STAFF}`), { workspaceId: WS, joinedAt: 1 }),
+);
+
+// The same admin must not be able to place anyone into a company they do not
+// administer -- that would be a way into a stranger's data.
+await testEnv.clearFirestore();
+await seedAdminIn(WS);
+await testEnv.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), `workspaces/${OTHER_WS}/users/someoneelse`), {
+    email: "x@y.com", roleId: "admin", roleName: "Admin", active: true,
+    displayName: "Other", createdAt: 1, lastSeenAt: 1,
+  });
+});
+const crossed = await check(
+  "7c. admin indexes someone into ANOTHER company (must be refused)",
+  setDoc(doc(adminDb, `userIndex/${STAFF}`), { workspaceId: OTHER_WS, joinedAt: 1 }),
+);
+
+const crossedProfile = await check(
+  "7d. admin writes a profile INTO another company (must be refused)",
+  setDoc(doc(adminDb, `workspaces/${OTHER_WS}/users/${STAFF}`), {
+    email: "staff@a.com", displayName: "Staff", roleId: "admin", roleName: "Admin",
+    active: true, createdAt: 1, lastSeenAt: 0,
+  }),
+);
+
 console.log("");
 console.log("================ RESULTS ================");
 for (const [name, verdict, msg] of results) {
@@ -195,5 +260,7 @@ console.log("=========================================");
 if (wrongAccepted) console.log("*** SECURITY HOLE: a wrong company code was accepted ***");
 if (missingAccepted) console.log("*** SECURITY HOLE: a missing company code was accepted ***");
 if (!bootstrapped) console.log("*** the first admin can no longer bootstrap a workspace ***");
+if (crossed) console.log("*** SECURITY HOLE: an admin indexed a user into another company ***");
+if (crossedProfile) console.log("*** SECURITY HOLE: an admin wrote into another company ***");
 
 await testEnv.cleanup();

@@ -38,12 +38,24 @@ service cloud.firestore {
     // never changed: an account that could move itself between companies
     // would carry its role across with it.
     match /userIndex/{uid} {
+      // Whether the caller administers the workspace they are pointing this
+      // account at. Checked against that workspace's own membership, so an
+      // admin of company A cannot place accounts into company B.
+      function adminOf(wsId) {
+        return exists(/databases/$(database)/documents/workspaces/$(wsId)/users/$(request.auth.uid))
+               && get(/databases/$(database)/documents/workspaces/$(wsId)/users/$(request.auth.uid)).data.roleId == 'admin';
+      }
+
       allow get: if request.auth != null && request.auth.uid == uid;
       allow list: if false;
+
+      // Either you are indexing yourself while creating a company, or an
+      // admin is issuing an account for a colleague.
       allow create: if request.auth != null
-                    && request.auth.uid == uid
                     && request.resource.data.workspaceId is string
-                    && request.resource.data.workspaceId != '';
+                    && request.resource.data.workspaceId != ''
+                    && (request.auth.uid == uid
+                        || adminOf(request.resource.data.workspaceId));
       allow update, delete: if false;
     }
 
@@ -126,10 +138,19 @@ service cloud.firestore {
         // and the `request.auth.uid == uid` line above already pins it to the
         // caller, so the field check added nothing but a deadlock.
         allow create: if signedIn()
-                      && request.auth.uid == uid
                       && request.resource.data.active == true
-                      && (request.resource.data.roleId != 'admin' || !profileExists())
-                      && joinCodeAccepted();
+                      && (
+                           // Creating a company: you write your own profile,
+                           // and only an unclaimed workspace may hand out the
+                           // admin role that way.
+                           (request.auth.uid == uid
+                            && (request.resource.data.roleId != 'admin' || !profileExists())
+                            && joinCodeAccepted())
+                           // Or an admin is issuing an account for a
+                           // colleague, in which case the code is irrelevant:
+                           // staff never type one.
+                           || can('CREATE_USER')
+                         );
 
         allow read: if isOwner(uid) || can('VIEW_USERS');
 

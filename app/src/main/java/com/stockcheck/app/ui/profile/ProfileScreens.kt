@@ -343,6 +343,9 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
     val permissions = session.effectivePermissions
     var assigning by remember { mutableStateOf<UserProfile?>(null) }
 
+    var adding by remember { mutableStateOf(false) }
+    val lastCreated by viewModel.lastCreated.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -354,13 +357,24 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
                 },
             )
         },
+        floatingActionButton = {
+            if (permissions.has(Permission.CREATE_USER)) {
+                ExtendedFloatingActionButton(
+                    onClick = { adding = true },
+                    icon = { Icon(Icons.Filled.Group, contentDescription = null) },
+                    text = { Text("Add staff") },
+                )
+            }
+        },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             message?.let { NoticeBar(text = it, tone = NoticeTone.ERROR) }
-            NoticeBar(
-                text = "New accounts register themselves and start as Worker. " +
-                    "Promote them here.",
-            )
+            lastCreated?.let {
+                NoticeBar(
+                    text = "Account created for $it. Give them that email and the " +
+                        "password you chose — they sign in with it directly.",
+                )
+            }
             if (users.isEmpty()) {
                 EmptyState(
                     icon = Icons.Filled.Group,
@@ -410,6 +424,16 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
         }
     }
 
+    if (adding) {
+        AddStaffDialog(
+            roles = roles,
+            onDismiss = { adding = false },
+            onCreate = { email, password, name, roleId ->
+                viewModel.addTeamMember(email, password, name, roleId) { adding = false }
+            },
+        )
+    }
+
     assigning?.let { user ->
         AlertDialog(
             onDismissRequest = { assigning = null },
@@ -443,6 +467,103 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
             confirmButton = { TextButton(onClick = { assigning = null }) { Text("Cancel") } },
         )
     }
+}
+
+@Composable
+private fun AddStaffDialog(
+    roles: List<Role>,
+    onDismiss: () -> Unit,
+    onCreate: (email: String, password: String, name: String, roleId: String) -> Unit,
+) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var roleId by remember { mutableStateOf(BuiltInRoles.WORKER_ID) }
+
+    val matches = password == confirm
+    val valid = email.isNotBlank() && password.length >= 6 && matches && roleId.isNotEmpty()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add staff") },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    text = "You choose the password and pass it to them. They can change " +
+                        "it later with Forgot password.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Their name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it.trim() },
+                    label = { Text("Their email") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    singleLine = true,
+                    supportingText = { Text("At least 6 characters") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = confirm,
+                    onValueChange = { confirm = it },
+                    label = { Text("Confirm password") },
+                    singleLine = true,
+                    isError = confirm.isNotEmpty() && !matches,
+                    supportingText = {
+                        if (confirm.isNotEmpty() && !matches) Text("The two do not match.")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(14.dp))
+                Text("Role", style = MaterialTheme.typography.labelLarge)
+                roles.forEach { role ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { roleId = role.id }
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.width(210.dp)) {
+                            Text(role.name)
+                            Text(
+                                text = role.description,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (role.id == roleId) Text("OK")
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onCreate(email, password, name, roleId) },
+                enabled = valid,
+            ) { Text("Create account") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 // ----------------------------------------------------------- role editor

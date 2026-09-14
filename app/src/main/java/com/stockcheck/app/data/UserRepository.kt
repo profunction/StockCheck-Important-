@@ -11,7 +11,11 @@ import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
-class UserRepository(private val audit: AuditRepository) {
+class UserRepository(
+    private val audit: AuditRepository,
+    private val provisioning: UserProvisioning,
+    private val workspaces: WorkspaceRepository,
+) {
 
     // ------------------------------------------------------------- profiles
 
@@ -40,6 +44,69 @@ class UserRepository(private val audit: AuditRepository) {
      * allowed it tells us whether this is the first registration — the same
      * fact the old code tried and failed to determine by reading first.
      */
+    /**
+     * Creates an account for a colleague and puts them straight into this
+     * workspace with the role chosen for them.
+     *
+     * Staff do not sign themselves up; an admin issues the account and hands
+     * over the password. That removes the shared company code as something
+     * that can leak, and means the person's role is decided before they ever
+     * open the app rather than defaulting to Worker and needing a promotion.
+     */
+    suspend fun createTeamMember(
+        session: Session,
+        email: String,
+        password: String,
+        displayName: String,
+        roleId: String,
+    ): String {
+        session.require(Permission.CREATE_USER)
+        require(email.isNotBlank()) { "Enter an email address." }
+        require(password.length >= 6) { "The password must be at least 6 characters." }
+        require(roleId.isNotEmpty()) { "Choose a role." }
+
+        val workspaceId = Db.workspaceId
+        check(workspaceId.isNotEmpty()) { "No company is selected." }
+
+        val uid = provisioning.createAccount(email, password)
+        return try {
+            workspaces.linkUserToWorkspace(uid, workspaceId)
+            val role = Db.role(roleId).getAs<Role>()
+            val now = System.currentTimeMillis()
+            Db.user(uid).set(
+                UserProfile(
+                    uid = uid,
+                    email = email.trim(),
+                    displayName = displayName.trim().ifEmpty { email.substringBefore('@') },
+                    roleId = roleId,
+                    roleName = role?.name ?: roleId,
+                    active = true,
+                    createdAt = now,
+                    lastSeenAt = 0L,
+                ),
+            ).awaitAck()
+            audit.record(
+                session = session,
+                entity = "User",
+                entityId = uid,
+                entityLabel = displayName.trim().ifEmpty { email.trim() },
+                action = AuditAction.CREATE,
+                field = "role",
+                newValue = role?.name ?: roleId,
+            )
+            uid
+        } catch (error: Throwable) {
+            // An Auth account with no profile behind it is worse than none:
+            // its email can never be used again and the person it was for
+            // cannot sign in. Take it back out before reporting the failure.
+            provisioning.deleteLastCreated()
+            throw IllegalStateException(
+                "The account could not be set up: ${error.message}",
+                error,
+            )
+        }
+    }
+
     // -------------------------------------------------- workspace config
 
     fun observeConfig(): Flow<WorkspaceConfig?> = Db.config().asFlow()

@@ -70,6 +70,30 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
 
     // ----------------------------------------------------------------- users
 
+    private val _lastCreated = MutableStateFlow<String?>(null)
+    val lastCreated: StateFlow<String?> = _lastCreated.asStateFlow()
+
+    fun addTeamMember(
+        email: String,
+        password: String,
+        displayName: String,
+        roleId: String,
+        onDone: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            runCatching {
+                userRepo.createTeamMember(session, email, password, displayName, roleId)
+            }.onSuccess {
+                _lastCreated.value = email.trim()
+                onDone()
+            }.onFailure { _message.value = it.message }
+        }
+    }
+
+    fun clearLastCreated() {
+        _lastCreated.value = null
+    }
+
     fun changeRole(target: UserProfile, roleId: String) {
         viewModelScope.launch {
             runCatching { userRepo.changeRole(session, target, roleId) }

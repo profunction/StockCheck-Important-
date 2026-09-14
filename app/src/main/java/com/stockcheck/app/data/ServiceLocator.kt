@@ -15,8 +15,9 @@ object ServiceLocator {
     private lateinit var appContext: Context
 
     val audit: AuditRepository by lazy { AuditRepository() }
-    val users: UserRepository by lazy { UserRepository(audit) }
     val workspaces: WorkspaceRepository by lazy { WorkspaceRepository() }
+    val provisioning: UserProvisioning by lazy { UserProvisioning(appContext) }
+    val users: UserRepository by lazy { UserRepository(audit, provisioning, workspaces) }
     val auth: AuthRepository by lazy { AuthRepository(users = users, workspaces = workspaces) }
     val stock: StockRepository by lazy { StockRepository(audit) }
     val templates: TemplateRepository by lazy { TemplateRepository(audit) }
