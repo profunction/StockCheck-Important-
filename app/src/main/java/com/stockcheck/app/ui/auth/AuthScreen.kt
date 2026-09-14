@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.stockcheck.app.BuildConfig
 import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
 
@@ -206,6 +207,13 @@ fun AuthScreen(
                     Text("Forgot password")
                 }
             }
+
+            Spacer(Modifier.height(24.dp))
+            Text(
+                text = "build ${BuildConfig.BUILD_STAMP}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
+            )
         }
     }
 }

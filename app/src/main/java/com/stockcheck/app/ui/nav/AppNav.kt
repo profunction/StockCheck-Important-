@@ -2,7 +2,9 @@ package com.stockcheck.app.ui.nav
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
@@ -10,6 +12,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -41,6 +45,8 @@ import com.stockcheck.app.model.Session
 import com.stockcheck.app.ui.SessionViewModel
 import com.stockcheck.app.ui.auth.AuthScreen
 import com.stockcheck.app.ui.common.EmptyState
+import com.stockcheck.app.ui.common.NoticeBar
+import com.stockcheck.app.ui.common.NoticeTone
 import com.stockcheck.app.ui.history.HistoryDetailScreen
 import com.stockcheck.app.ui.history.HistoryScreen
 import com.stockcheck.app.ui.photos.PhotosScreen
@@ -107,7 +113,7 @@ fun StockCheckRoot() {
     when (val state = authState) {
         AuthState.Loading -> FullScreenLoader()
 
-        AuthState.SignedOut, is AuthState.NoProfile -> AuthScreen(
+        AuthState.SignedOut -> AuthScreen(
             busy = busy,
             error = error,
             onSignIn = sessionViewModel::signIn,
@@ -115,6 +121,54 @@ fun StockCheckRoot() {
             onResetPassword = sessionViewModel::resetPassword,
             onClearError = sessionViewModel::clearError,
         )
+
+        // Signed in, but registration never wrote the profile behind the
+        // account. This used to fall through to the sign-in screen, which was
+        // indistinguishable from the Sign in button doing nothing at all: the
+        // credentials were accepted, the screen simply reappeared. Say what
+        // happened and offer to finish the job.
+        is AuthState.NoProfile -> Surface(modifier = Modifier.fillMaxSize()) {
+            EmptyState(
+                icon = Icons.Filled.Person,
+                title = "Setup didn't finish",
+                message = "You are signed in as ${state.email}, but this account has no " +
+                    "profile yet — registration created the login and then could not " +
+                    "write to the database. Finish it now to carry on with the same " +
+                    "account.",
+                action = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (error != null) {
+                            NoticeBar(text = error!!, tone = NoticeTone.ERROR)
+                            Spacer(Modifier.height(12.dp))
+                        }
+                        Button(onClick = sessionViewModel::completeSetup, enabled = !busy) {
+                            Text(if (busy) "Finishing…" else "Finish setup")
+                        }
+                        TextButton(onClick = sessionViewModel::signOut, enabled = !busy) {
+                            Text("Sign out")
+                        }
+                    }
+                },
+            )
+        }
+
+        is AuthState.Failed -> Surface(modifier = Modifier.fillMaxSize()) {
+            EmptyState(
+                icon = Icons.Filled.Person,
+                title = "Signed in, but couldn't load your account",
+                message = state.message,
+                action = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button(onClick = sessionViewModel::completeSetup, enabled = !busy) {
+                            Text(if (busy) "Retrying…" else "Retry setup")
+                        }
+                        TextButton(onClick = sessionViewModel::signOut, enabled = !busy) {
+                            Text("Sign out")
+                        }
+                    }
+                },
+            )
+        }
 
         is AuthState.Deactivated -> Surface(modifier = Modifier.fillMaxSize()) {
             EmptyState(

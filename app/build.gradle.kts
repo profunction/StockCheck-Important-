@@ -16,6 +16,11 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         vectorDrawables { useSupportLibrary = true }
+        // Shown on the sign-in screen so a running install can be
+        // identified: "did you actually install the new APK?" came up
+        // repeatedly while debugging and was unanswerable from a
+        // screenshot.
+        buildConfigField("String", "BUILD_STAMP", "\"2026-09-14 11:20\"")
     }
 
     buildTypes {
@@ -49,7 +54,10 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }

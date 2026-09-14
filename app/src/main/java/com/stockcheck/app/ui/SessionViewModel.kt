@@ -26,7 +26,12 @@ class SessionViewModel : ViewModel() {
     private val templates = ServiceLocator.templates
 
     val authState: StateFlow<AuthState> = auth.authState()
-        .catch { emit(AuthState.SignedOut) }
+        // Anything that escapes the repository's own handling is reported, not
+        // turned into SignedOut. Collapsing errors into "signed out" is what
+        // made a failing session look like a sign-in button that did nothing.
+        .catch { error ->
+            emit(AuthState.Failed(error.message ?: error.toString(), auth.currentUid.orEmpty()))
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AuthState.Loading)
 
     private val _formError = MutableStateFlow<String?>(null)
@@ -45,6 +50,11 @@ class SessionViewModel : ViewModel() {
         require(email.isNotBlank()) { "Enter an email address." }
         require(password.length >= 6) { "The password must be at least 6 characters." }
         auth.register(email, password, displayName)
+    }
+
+    /** Repairs an account that signed in but has no profile document. */
+    fun completeSetup() = runForm {
+        auth.completeSetup()
     }
 
     fun resetPassword(email: String) = runForm {

@@ -11,6 +11,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -23,6 +25,17 @@ sealed interface AuthState {
     data class NoProfile(val uid: String, val email: String) : AuthState
     /** Profile exists but an admin has deactivated the account. */
     data class Deactivated(val profile: UserProfile) : AuthState
+
+    /**
+     * Signed in, but resolving the session failed — a denied Firestore
+     * listener, most often.
+     *
+     * This used to collapse into [SignedOut], which put the user back on the
+     * sign-in screen with no message: credentials accepted, same screen
+     * again, indistinguishable from the button doing nothing. Whatever went
+     * wrong is now carried to the UI and shown.
+     */
+    data class Failed(val message: String, val uid: String) : AuthState
     data class SignedIn(val session: Session) : AuthState
 }
 
@@ -49,20 +62,49 @@ class AuthRepository(
     fun authState(): Flow<AuthState> = firebaseUserFlow().flatMapLatest { user ->
         if (user == null) return@flatMapLatest flowOf(AuthState.SignedOut)
 
-        users.observeProfile(user.uid).flatMapLatest { profile ->
-            when {
-                profile == null ->
-                    flowOf(AuthState.NoProfile(user.uid, user.email.orEmpty()))
-                !profile.active ->
-                    flowOf(AuthState.Deactivated(profile))
-                else -> users.observeRole(profile.roleId).let { roleFlow ->
-                    combine(flowOf(profile), roleFlow) { p, role ->
-                        val resolved = role ?: Role(id = p.roleId, name = p.roleName)
-                        AuthState.SignedIn(Session(p, resolved))
-                    }
+        users.observeProfile(user.uid)
+            .flatMapLatest { profile ->
+                when {
+                    profile == null ->
+                        flowOf(AuthState.NoProfile(user.uid, user.email.orEmpty()))
+                    !profile.active ->
+                        flowOf(AuthState.Deactivated(profile))
+                    // Typed as AuthState rather than inferred: the catch below
+                    // emits a different subtype, which a Flow<SignedIn> cannot
+                    // carry.
+                    else -> users.observeRole(profile.roleId)
+                        .map<Role?, AuthState> { role ->
+                            // A missing role document is not fatal: Admin
+                            // resolves its permissions from code regardless,
+                            // and any other role simply has none until an
+                            // admin fixes it. Better a session with nothing
+                            // enabled, which says so on the Profile tab, than
+                            // a dead sign-in button.
+                            val resolved = role ?: Role(id = profile.roleId, name = profile.roleName)
+                            AuthState.SignedIn(Session(profile, resolved))
+                        }
+                        .catch { error ->
+                            emit(
+                                AuthState.Failed(
+                                    "Signed in, but your role could not be read: " +
+                                        (error.message ?: error.toString()),
+                                    user.uid,
+                                ),
+                            )
+                        }
                 }
             }
-        }
+            // Scoped to the profile listener specifically, so a denied read
+            // here reports itself instead of unwinding to the sign-in screen.
+            .catch { error ->
+                emit(
+                    AuthState.Failed(
+                        "Signed in, but your profile could not be read: " +
+                            (error.message ?: error.toString()),
+                        user.uid,
+                    ),
+                )
+            }
     }
 
     suspend fun signIn(email: String, password: String) {
@@ -91,6 +133,30 @@ class AuthRepository(
             uid = uid,
             email = email.trim(),
             displayName = displayName.trim().ifEmpty { email.substringBefore('@') },
+            roleId = roleId,
+        )
+    }
+
+    /**
+     * Builds the missing profile for an account that is already signed in.
+     *
+     * Registration is two steps — create the Firebase Auth account, then write
+     * the Firestore profile — and only the first is atomic with itself. If the
+     * second fails (denied by rules, offline, app killed), the account exists
+     * and signs in perfectly well but has nothing behind it, which surfaces as
+     * [AuthState.NoProfile]. Without a repair path the only escape is deleting
+     * the account from the Firebase console, which is not something an
+     * operator can be expected to do.
+     */
+    suspend fun completeSetup() {
+        val user = auth.currentUser ?: error("You are not signed in.")
+        val isFirstUser = users.trySeedBuiltInRoles()
+        val roleId = if (isFirstUser) BuiltInRoles.ADMIN_ID else BuiltInRoles.WORKER_ID
+        users.createProfile(
+            uid = user.uid,
+            email = user.email.orEmpty(),
+            displayName = user.displayName?.takeIf { it.isNotBlank() }
+                ?: user.email.orEmpty().substringBefore('@'),
             roleId = roleId,
         )
     }

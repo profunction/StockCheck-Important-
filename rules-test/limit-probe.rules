@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deliberately performs 15 document reads, above the documented
+    // 10-per-request limit, to find out whether the emulator enforces it.
+    function burn() {
+      return exists(/databases/$(database)/documents/probe/a1)
+          && exists(/databases/$(database)/documents/probe/a2)
+          && exists(/databases/$(database)/documents/probe/a3)
+          && exists(/databases/$(database)/documents/probe/a4)
+          && exists(/databases/$(database)/documents/probe/a5)
+          && exists(/databases/$(database)/documents/probe/a6)
+          && exists(/databases/$(database)/documents/probe/a7)
+          && exists(/databases/$(database)/documents/probe/a8)
+          && exists(/databases/$(database)/documents/probe/a9)
+          && exists(/databases/$(database)/documents/probe/a10)
+          && exists(/databases/$(database)/documents/probe/a11)
+          && exists(/databases/$(database)/documents/probe/a12)
+          && exists(/databases/$(database)/documents/probe/a13)
+          && exists(/databases/$(database)/documents/probe/a14)
+          && exists(/databases/$(database)/documents/probe/a15);
+    }
+    match /target/{id} {
+      allow create: if request.auth != null && (burn() || true);
+    }
+    match /probe/{id} { allow read, write: if true; }
+  }
+}
