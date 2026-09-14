@@ -82,7 +82,15 @@ fun AuthScreen(
     var displayName by remember { mutableStateOf("") }
     var companyName by remember { mutableStateOf("") }
     var joinCode by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    // A typo in a password nobody can see costs an account that cannot be
+    // signed into and an email address that cannot be reused, so the mismatch
+    // is shown while typing rather than after submitting.
+    val creatingAccount = mode != AuthMode.SIGN_IN
+    val passwordsMatch = !creatingAccount || confirmPassword == password
+    val confirmTouched = confirmPassword.isNotEmpty()
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -194,6 +202,36 @@ fun AuthScreen(
                 },
             )
 
+            if (creatingAccount) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it; onClearError() },
+                    label = { Text("Confirm password") },
+                    singleLine = true,
+                    modifier = fieldModifier,
+                    isError = confirmTouched && !passwordsMatch,
+                    supportingText = {
+                        when {
+                            confirmTouched && !passwordsMatch ->
+                                Text("The two passwords do not match.")
+                            password.isNotEmpty() && password.length < 6 ->
+                                Text("Use at least 6 characters.")
+                            else -> Text("Type the same password again.")
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next,
+                    ),
+                )
+            }
+
             if (mode == AuthMode.CREATE) {
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
@@ -240,7 +278,10 @@ fun AuthScreen(
                             onCreateCompany(email, password, displayName, companyName, joinCode)
                     }
                 },
-                enabled = !busy,
+                // Blocked outright on a mismatch: submitting would create the
+                // account under whichever password was typed first, which is
+                // the one the person does not think they chose.
+                enabled = !busy && passwordsMatch,
                 modifier = fieldModifier.height(50.dp),
             ) {
                 if (busy) {
