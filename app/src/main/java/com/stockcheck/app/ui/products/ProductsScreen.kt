@@ -1,5 +1,13 @@
 package com.stockcheck.app.ui.products
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.stockcheck.app.scan.BarcodeScannerPreview
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -253,13 +261,62 @@ private fun ProductDialog(
     var name by remember { mutableStateOf(existing?.name.orEmpty()) }
     var sku by remember { mutableStateOf(existing?.sku.orEmpty()) }
     var unit by remember { mutableStateOf(existing?.unit ?: "pcs") }
+    var scanning by remember { mutableStateOf(false) }
 
     val valid = barcode.isNotBlank() && name.isNotBlank()
 
+    val context = LocalContext.current
+    var hasCamera by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        hasCamera = granted
+        // Opening the scanner is what the person asked for; the permission
+        // prompt was only in the way, so carry on once it is answered.
+        scanning = granted
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "Add product" else "Edit product") },
+        title = {
+            Text(
+                when {
+                    scanning -> "Scan the barcode"
+                    existing == null -> "Add product"
+                    else -> "Edit product"
+                },
+            )
+        },
         text = {
+            if (scanning) {
+                // The camera replaces the form rather than sitting above it:
+                // a dialog has nowhere near the height for both, and the only
+                // thing wanted here is the one number.
+                Column {
+                    BarcodeScannerPreview(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(260.dp),
+                        onScanned = { code ->
+                            barcode = code.value
+                            scanning = false
+                        },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Point the camera at the product's barcode.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                return@AlertDialog
+            }
+
             Column {
                 OutlinedTextField(
                     value = barcode,
@@ -269,8 +326,30 @@ private fun ProductDialog(
                     // The barcode is the key, so changing it on an existing
                     // product would create a second one rather than rename it.
                     enabled = existing == null,
+                    trailingIcon = {
+                        if (existing == null) {
+                            IconButton(
+                                onClick = {
+                                    if (hasCamera) {
+                                        scanning = true
+                                    } else {
+                                        cameraLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                },
+                            ) {
+                                Icon(
+                                    Icons.Filled.QrCodeScanner,
+                                    contentDescription = "Scan barcode",
+                                )
+                            }
+                        }
+                    },
                     supportingText = {
-                        if (existing != null) Text("The barcode identifies the product and cannot change.")
+                        if (existing != null) {
+                            Text("The barcode identifies the product and cannot change.")
+                        } else {
+                            Text("Type it, or tap the scanner to read it from the product.")
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -302,17 +381,23 @@ private fun ProductDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(barcode, name, sku, unit) }, enabled = valid) {
-                Text("Save")
+            if (!scanning) {
+                TextButton(onClick = { onSave(barcode, name, sku, unit) }, enabled = valid) {
+                    Text("Save")
+                }
             }
         },
         dismissButton = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (existing != null && canDelete) {
-                    TextButton(onClick = onDelete) { Text("Delete") }
-                    Spacer(Modifier.width(4.dp))
+            if (scanning) {
+                TextButton(onClick = { scanning = false }) { Text("Back") }
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (existing != null && canDelete) {
+                        TextButton(onClick = onDelete) { Text("Delete") }
+                        Spacer(Modifier.width(4.dp))
+                    }
+                    TextButton(onClick = onDismiss) { Text("Cancel") }
                 }
-                TextButton(onClick = onDismiss) { Text("Cancel") }
             }
         },
     )
