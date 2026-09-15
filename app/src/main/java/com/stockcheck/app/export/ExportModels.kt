@@ -52,17 +52,30 @@ data class ExportColumn(
         )
         val UNIT = ExportColumn("unit", "Unit", width = 9, editableWhenGranted = true)
         val REMARK = ExportColumn("remark", "Remark", width = 30, editableWhenGranted = true)
+
+        /**
+         * The three columns a stock take exists to produce.
+         *
+         * Counting without them answers "how many are here". The question
+         * anyone ordered a stock take to answer is "how many are missing",
+         * and that is Expected against Counted.
+         */
+        val EXPECTED = ExportColumn("expected", "Expected", width = 11, numeric = true)
+        val VARIANCE = ExportColumn("variance", "Variance", width = 11, numeric = true)
+        val FINDING = ExportColumn("finding", "Finding", width = 14)
         val SOURCE = ExportColumn("source", "Entered by", width = 12)
 
         /** The columns every export offers, before template fields are added. */
         val standard: List<ExportColumn> = listOf(
             REF, DATE, TIME, WORKER, TEMPLATE, STATUS,
-            BARCODE, PRODUCT, SKU, QUANTITY, UNIT, REMARK, SOURCE,
+            BARCODE, PRODUCT, SKU, EXPECTED, QUANTITY, VARIANCE, FINDING,
+            UNIT, REMARK, SOURCE,
         )
 
         /** Ticked by default in the export sheet. */
         val defaultSelection: Set<String> = setOf(
-            REF.key, DATE.key, WORKER.key, BARCODE.key, PRODUCT.key, QUANTITY.key, UNIT.key,
+            REF.key, DATE.key, WORKER.key, BARCODE.key, PRODUCT.key,
+            EXPECTED.key, QUANTITY.key, VARIANCE.key, FINDING.key, UNIT.key,
         )
 
         /** Standard columns plus the custom fields of [template]. */

@@ -32,6 +32,30 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ----------------------------------------------------------- licences
+    //
+    // What a company has paid for. The only collection in this database that
+    // no client may write.
+    //
+    // It cannot live under /workspaces/{ws}/meta, where the rule is
+    // `allow write: if isAdmin()` -- that would let a customer's own admin set
+    // their plan to lifetime and their expiry to 2099, and the whole billing
+    // model would be decoration. Writes happen only through the Admin SDK,
+    // which bypasses these rules by design and runs on the platform's machine
+    // with a service-account key, never on a phone.
+    //
+    // Readable by the company it belongs to, because the app has to show what
+    // the plan is and how long is left. `list` stays shut: the collection is a
+    // directory of every paying customer, their company name and contact.
+    match /licences/{wsId} {
+      allow get: if request.auth != null
+                 && exists(/databases/$(database)/documents/userIndex/$(request.auth.uid))
+                 && get(/databases/$(database)/documents/userIndex/$(request.auth.uid))
+                      .data.workspaceId == wsId;
+      allow list: if false;
+      allow write: if false;
+    }
+
     // ------------------------------------------------------- user directory
     //
     // Which company an account belongs to. Written once at join time and
@@ -118,6 +142,31 @@ service cloud.firestore {
        * user, who has nobody to get a code from; that case is allowed and
        * closes as soon as the admin sets one.
        */
+      function licencePath() {
+        return /databases/$(database)/documents/licences/$(ws);
+      }
+
+      /**
+       * Whether this company may start new work.
+       *
+       * A missing document means permission, not refusal. A company that
+       * registered before licensing existed -- or in the seconds between
+       * creating its workspace and the platform writing its trial -- would
+       * otherwise be locked out of an app it just signed up for, and the
+       * first thing it would ever see is a refusal.
+       *
+       * Expiry stops new counts and new accounts, nothing else. Reading,
+       * finishing an open count and exporting stay available at every status,
+       * because holding data hostage over a lapsed card is how a billing
+       * problem becomes a complaint to the Ministry.
+       */
+      function licenceAllowsNewWork() {
+        return !exists(licencePath())
+               || (get(licencePath()).data.status == 'ACTIVE'
+                   && (get(licencePath()).data.expiresAt == 0
+                       || get(licencePath()).data.expiresAt > request.time.toMillis()));
+      }
+
       function joinCodeAccepted() {
         return !exists(configPath())
                || get(configPath()).data.joinCode == ''
@@ -218,8 +267,12 @@ service cloud.firestore {
         allow read: if can('VIEW_ALL_HISTORY')
                     || (can('VIEW_OWN_HISTORY') && isOwner(existing().createdByUid));
 
+        // A stock check is the unit of work, which makes it the honest
+        // place to put the commercial lever: an expired company keeps every
+        // record it has and cannot start the next count.
         allow create: if can('CREATE_STOCK_CHECK')
-                      && request.resource.data.createdByUid == request.auth.uid;
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && licenceAllowsNewWork();
 
         // A locked record moves only for someone who can unlock it.
         allow update: if keepsAuthor(existing())

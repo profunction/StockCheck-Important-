@@ -16,9 +16,13 @@ local.properties
 *.iml
 .kotlin/
 
-# Signing material must never be committed
+# Signing material must never be committed.
+# The release key itself lives outside this directory entirely; these
+# patterns are the second line of defence, not the first.
 *.jks
 *.keystore
+*.p12
+*.pfx
 keystore.properties
 
 # OS noise
@@ -33,3 +37,8 @@ rules-test/.firebase/
 # A service-account key bypasses every security rule. Never in git.
 rules-test/service-account.json
 service-account*.json
+
+# Platform secrets: a service-account key is root on the database.
+platform/service-account.json
+platform/.env
+platform/node_modules/

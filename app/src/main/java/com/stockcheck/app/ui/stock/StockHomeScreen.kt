@@ -46,6 +46,12 @@ import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
+import com.stockcheck.app.model.Licence
+import com.stockcheck.app.model.Plan
+import com.stockcheck.app.model.LicenceStatus
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
 import com.stockcheck.app.ui.common.EmptyState
@@ -65,6 +71,18 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
 
     private val stock = ServiceLocator.stock
     private val templateRepo = ServiceLocator.templates
+
+    /**
+     * What the company has paid for.
+     *
+     * Only ever used to explain. The refusal itself happens in the security
+     * rules, which is the point -- but a write denied by a rule arrives as
+     * PERMISSION_DENIED, and nobody can tell from that whether their
+     * subscription lapsed or the app is broken.
+     */
+    val licence: StateFlow<Licence?> = ServiceLocator.licences.observeLicence()
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -126,7 +144,15 @@ fun StockHomeScreen(
     val checks by viewModel.openChecks.collectAsStateWithLifecycle()
     val templates by viewModel.templates.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val licence by viewModel.licence.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
+    var blocked by remember { mutableStateOf(false) }
+
+    // A licence that has not been written yet is permission, not refusal --
+    // the same rule the server applies. See licenceAllowsNewWork() in
+    // firestore.rules.
+    val now = System.currentTimeMillis()
+    val mayStart = licence?.allowsNewWork(now) ?: true
 
     // Anything not yet reviewed is still "on the floor" and belongs here; the
     // finished ones live on the History tab.
@@ -151,10 +177,22 @@ fun StockHomeScreen(
                 ) {
                     ExtendedFloatingActionButton(
                         onClick = {
-                            viewModel.seedTemplatesIfNeeded()
-                            picking = true
+                            // Still tappable when expired, and it explains
+                            // rather than doing nothing. A greyed-out button
+                            // is the same dead end as a denied write.
+                            if (!mayStart) {
+                                blocked = true
+                            } else {
+                                viewModel.seedTemplatesIfNeeded()
+                                picking = true
+                            }
                         },
-                        icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                        icon = {
+                            Icon(
+                                imageVector = if (mayStart) Icons.Filled.Add else Icons.Filled.Lock,
+                                contentDescription = null,
+                            )
+                        },
                         text = { Text("New stock check") },
                     )
                 }
@@ -165,6 +203,7 @@ fun StockHomeScreen(
         error?.let {
             NoticeBar(text = it, tone = NoticeTone.ERROR)
         }
+        licence?.let { LicenceBanner(it, now) }
         if (active.isEmpty()) {
             EmptyState(
                 icon = Icons.Filled.QrCodeScanner,
@@ -185,6 +224,13 @@ fun StockHomeScreen(
             }
         }
         }
+    }
+
+    if (blocked) {
+        LicenceBlockedDialog(
+            licence = licence,
+            onDismiss = { blocked = false },
+        )
     }
 
     if (picking) {
@@ -283,3 +329,90 @@ private val dayFormat = SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault(
 
 internal fun friendlyDate(millis: Long): String =
     if (millis <= 0L) "—" else dayFormat.format(Date(millis))
+
+
+// --------------------------------------------------------------- licensing
+
+/**
+ * Says where the company stands, but only when it is worth saying.
+ *
+ * Silent on a healthy subscription. A banner that is always there is read
+ * once and then stops existing, which is exactly the wrong behaviour for the
+ * message that eventually matters.
+ */
+@Composable
+private fun LicenceBanner(licence: Licence, now: Long) {
+    when {
+        licence.statusEnum == LicenceStatus.SUSPENDED -> NoticeBar(
+            text = "This company's access has been suspended. Your records are safe " +
+                "and can still be exported. Contact support to restore it.",
+            tone = NoticeTone.ERROR,
+        )
+
+        licence.isExpiredAt(now) -> NoticeBar(
+            text = "The ${licence.planEnum.label} plan has ended. Everything already " +
+                "counted stays here and exports still work \u2014 new stock checks " +
+                "resume once it is renewed.",
+            tone = NoticeTone.ERROR,
+        )
+
+        licence.planEnum == Plan.TRIAL -> NoticeBar(
+            text = "Trial \u2014 ${licence.daysLeft(now)} days left, " +
+                "${licence.seats} accounts included.",
+            tone = if (licence.isRunningOut(now)) NoticeTone.WARNING else NoticeTone.INFO,
+        )
+
+        licence.isRunningOut(now) -> NoticeBar(
+            text = "The ${licence.planEnum.label} plan renews in " +
+                "${licence.daysLeft(now)} days.",
+            tone = NoticeTone.WARNING,
+        )
+
+        else -> Unit
+    }
+}
+
+/**
+ * Explains a refusal the server would otherwise deliver as PERMISSION_DENIED.
+ *
+ * Deliberately specific about what still works. Someone whose card bounced
+ * needs to know their counts are not gone before they need to know how to
+ * pay, and telling them in that order is the difference between a renewal
+ * and an argument.
+ */
+@Composable
+private fun LicenceBlockedDialog(licence: Licence?, onDismiss: () -> Unit) {
+    val suspended = licence?.statusEnum == LicenceStatus.SUSPENDED
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+        title = { Text(if (suspended) "Access suspended" else "Plan has ended") },
+        text = {
+            Column {
+                Text(
+                    if (suspended) {
+                        "New stock checks are paused while this company's access is " +
+                            "suspended."
+                    } else {
+                        "The ${licence?.planEnum?.label ?: "current"} plan ended, so a " +
+                            "new stock check cannot be started."
+                    },
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Nothing has been deleted. Every count already taken can still be " +
+                        "opened, finished, exported and backed up.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                licence?.contactEmail?.takeIf { it.isNotBlank() }?.let { email ->
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "Renewal notice goes to $email.",
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
+    )
+}

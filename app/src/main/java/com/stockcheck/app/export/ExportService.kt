@@ -268,6 +268,17 @@ class ExportService(
             ExportColumn.PRODUCT.key -> item.productName
             ExportColumn.SKU.key -> item.sku
             ExportColumn.QUANTITY.key -> item.quantity.toString()
+            // Blank rather than zero when nothing was expected: a zero here
+            // would read as "the system said none", which it did not say.
+            ExportColumn.EXPECTED.key -> if (item.onList) item.expected.toString() else ""
+            ExportColumn.VARIANCE.key -> if (item.onList) item.variance.toString() else ""
+            ExportColumn.FINDING.key -> when {
+                item.isUnlisted -> "Not on sheet"
+                !item.onList -> ""
+                item.variance == 0 -> "Match"
+                item.variance < 0 -> "Short ${-item.variance}"
+                else -> "Over ${item.variance}"
+            }
             ExportColumn.UNIT.key -> item.unit
             ExportColumn.REMARK.key -> item.remark
             ExportColumn.SOURCE.key -> item.sourceEnum.name.lowercase()

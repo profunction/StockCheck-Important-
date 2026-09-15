@@ -65,6 +65,17 @@ data class StockItem(
      */
     val sku: String = "",
     val quantity: Int = 0,
+    /**
+     * What the customer's own system says should be here.
+     *
+     * Meaningless unless [onList] is true: zero is a stock level someone
+     * stated, and a line nobody stated anything about is a different thing
+     * entirely. Keeping them apart is what stops an import inventing
+     * shortages for everything it did not mention.
+     */
+    val expected: Int = 0,
+    /** True when this line came from an imported count sheet. */
+    val onList: Boolean = false,
     val unit: String = "pcs",
     val remark: String = "",
     /** Values for the template's custom fields, keyed by [TemplateField.key]. */
@@ -76,6 +87,29 @@ data class StockItem(
 ) {
     @get:Exclude val sourceEnum: ItemSource
         get() = runCatching { ItemSource.valueOf(source) }.getOrDefault(ItemSource.MANUAL)
+
+    /** Counted minus expected: negative is missing stock, positive is surplus. */
+    @get:Exclude val variance: Int get() = if (onList) quantity - expected else 0
+
+    @get:Exclude val hasVariance: Boolean get() = onList && quantity != expected
+
+    /**
+     * Counted, but not on the sheet at all.
+     *
+     * Its own kind of finding: stock nobody's system knows about is as much a
+     * problem as stock that has gone missing, and it does not show up as a
+     * variance because there is nothing to compare against.
+     */
+    @get:Exclude val isUnlisted: Boolean get() = !onList && quantity > 0
+
+    /**
+     * Whether counting this line down to zero should remove it.
+     *
+     * A scanned line at zero says nothing a missing line does not. An expected
+     * line at zero says the opposite: the sheet said ten and the shelf had
+     * none, which is the single most important row in the report.
+     */
+    @get:Exclude val survivesZero: Boolean get() = onList
 }
 
 // -------------------------------------------------------------------- photos

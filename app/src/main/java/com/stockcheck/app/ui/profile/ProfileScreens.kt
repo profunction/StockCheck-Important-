@@ -34,6 +34,9 @@ import androidx.compose.material3.IconButton
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.CloudOff
+import com.stockcheck.app.model.Licence
+import com.stockcheck.app.model.LicenceStatus
+import com.stockcheck.app.model.Plan
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
@@ -66,6 +69,9 @@ import com.stockcheck.app.ui.common.EmptyState
 import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
 import com.stockcheck.app.ui.stock.friendlyDate
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Page 5 — who you are and what that lets you do.
@@ -133,6 +139,9 @@ fun ProfileScreen(
                     }
                 }
             }
+
+            val licence by viewModel.licence.collectAsStateWithLifecycle()
+            licence?.let { PlanCard(it) }
 
             ListItem(
                 headlineContent = { Text("Change password") },
@@ -1035,4 +1044,98 @@ fun AuditLogScreen(session: Session, onBack: () -> Unit) {
             }
         }
     }
+}
+
+/**
+ * What this company is on, and until when.
+ *
+ * Shown to everyone, not only to admins. A worker told "your plan has ended"
+ * by a blocked button should be able to find out what that means without
+ * having to ask the person who pays -- and seeing the expiry date is also the
+ * cheapest way for a company to notice a renewal it meant to cancel.
+ */
+@Composable
+private fun PlanCard(licence: Licence) {
+    val now = System.currentTimeMillis()
+    val dateFormat = remember { SimpleDateFormat("d MMM yyyy", Locale.US) }
+
+    val (tone, headline) = when {
+        licence.statusEnum == LicenceStatus.SUSPENDED ->
+            MaterialTheme.colorScheme.error to "Suspended"
+        licence.isExpiredAt(now) ->
+            MaterialTheme.colorScheme.error to "Ended"
+        licence.isLifetime ->
+            MaterialTheme.colorScheme.tertiary to "Lifetime"
+        licence.isRunningOut(now) ->
+            MaterialTheme.colorScheme.tertiary to "${licence.daysLeft(now)} days left"
+        licence.planEnum == Plan.TRIAL ->
+            MaterialTheme.colorScheme.primary to "${licence.daysLeft(now)} days left"
+        else ->
+            MaterialTheme.colorScheme.primary to "Active"
+    }
+
+    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "${licence.planEnum.label} plan",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(text = headline, style = MaterialTheme.typography.labelLarge, color = tone)
+            }
+
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = buildString {
+                    append(
+                        if (licence.seats >= Int.MAX_VALUE / 2) {
+                            "Unlimited accounts"
+                        } else {
+                            "${licence.seats} accounts"
+                        },
+                    )
+                    if (licence.expiresAt != 0L) {
+                        append("  \u00b7  ")
+                        append(
+                            if (licence.isExpiredAt(now)) "ended " else "until ",
+                        )
+                        append(dateFormat.format(Date(licence.expiresAt)))
+                    }
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            if (licence.isLifetime) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = if (licence.supportUntil == 0L) {
+                        "The app keeps working with no end date."
+                    } else if (licence.supportEndedAt(now)) {
+                        "The app keeps working. Updates and support ended " +
+                            dateFormat.format(Date(licence.supportUntil)) + "."
+                    } else {
+                        "The app keeps working with no end date. Updates and support " +
+                            "included until " + dateFormat.format(Date(licence.supportUntil)) + "."
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            if (licence.isExpiredAt(now) || licence.statusEnum == LicenceStatus.SUSPENDED) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = "New stock checks are paused. Everything already counted stays " +
+                        "here and can still be opened, exported and backed up.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+    Spacer(Modifier.height(12.dp))
 }

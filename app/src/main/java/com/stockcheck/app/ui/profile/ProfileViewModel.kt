@@ -9,6 +9,7 @@ import com.stockcheck.app.data.ServiceLocator
 import com.stockcheck.app.data.can
 import com.stockcheck.app.data.getAs
 import com.stockcheck.app.export.BackupResult
+import com.stockcheck.app.model.Licence
 import com.stockcheck.app.model.AuditEntry
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Role
@@ -29,6 +30,11 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
     private val userRepo = ServiceLocator.users
     private val auditRepo = ServiceLocator.audit
     private val backupService = ServiceLocator.backups
+
+    /** What the company has paid for. Read-only everywhere in the app. */
+    val licence: StateFlow<Licence?> = ServiceLocator.licences.observeLicence()
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val roles: StateFlow<List<Role>> = userRepo.observeRoles()
         .catch { emit(emptyList()) }

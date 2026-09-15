@@ -57,6 +57,16 @@ object Db {
     fun userIndex(uid: String): DocumentReference =
         db.collection("userIndex").document(uid)
 
+    /**
+     * What this company has paid for.
+     *
+     * Top-level rather than under the workspace, because everything under
+     * the workspace is writable by that company's own admin and a licence
+     * the customer can edit is not a licence.
+     */
+    fun licence(): DocumentReference =
+        db.collection("licences").document(workspaceId.ifEmpty { "-" })
+
     fun newWorkspaceId(): String = db.collection("workspaces").document().id
 
     fun users(): CollectionReference = workspace().collection("users")

@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
@@ -78,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.stockcheck.app.data.ImportSummary
 import com.stockcheck.app.data.effectivePermissions
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
@@ -135,6 +137,26 @@ fun StockCheckScreen(
     val scannerActive by viewModel.scannerActive.collectAsStateWithLifecycle()
     // Drives which extra fields the edit dialog offers for a counted line.
     val template by viewModel.template.collectAsStateWithLifecycle()
+
+    val importing by viewModel.importing.collectAsStateWithLifecycle()
+    val importResult by viewModel.importResult.collectAsStateWithLifecycle()
+
+    // Any text type: a file exported from Excel arrives as text/csv on one
+    // phone and application/vnd.ms-excel or octet-stream on the next, and a
+    // picker that hides the file the customer is looking at is a dead end.
+    val sheetPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        val text = runCatching {
+            context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+        }.getOrNull()
+        if (text.isNullOrBlank()) {
+            viewModel.onFileUnreadable()
+        } else {
+            viewModel.importCountSheet(text)
+        }
+    }
 
     val snackbarHost = remember { SnackbarHostState() }
     var manualEntry by remember { mutableStateOf(false) }
@@ -259,6 +281,10 @@ fun StockCheckScreen(
                             onStatus = { menuOpen = false; viewModel.setStatus(it) },
                             onManual = { menuOpen = false; manualEntry = true },
                             onPhotos = { menuOpen = false; onOpenPhotos() },
+                            onImportSheet = {
+                                menuOpen = false
+                                sheetPicker.launch(arrayOf("*/*"))
+                            },
                         )
                     }
                 },
@@ -271,6 +297,8 @@ fun StockCheckScreen(
                 photoCount = check?.photoCount ?: 0,
                 status = check?.statusEnum,
                 unnamedCount = unnamedCount,
+                varianceCount = items.count { it.hasVariance },
+                onList = items.any { it.onList },
             )
         },
         floatingActionButton = {
@@ -303,6 +331,13 @@ fun StockCheckScreen(
                 NoticeBar(
                     text = "This stock check is locked. Ask a supervisor to unlock it " +
                         "before making changes.",
+                    tone = NoticeTone.INFO,
+                )
+            }
+
+            if (importing) {
+                NoticeBar(
+                    text = "Loading the count sheet…",
                     tone = NoticeTone.INFO,
                 )
             }
@@ -405,6 +440,10 @@ fun StockCheckScreen(
                 viewModel.onBarcodeScanned(barcode, ItemSource.MANUAL)
             },
         )
+    }
+
+    importResult?.let { summary ->
+        ImportSummaryDialog(summary) { viewModel.clearImportResult() }
     }
 
     editing?.let { item ->
@@ -541,6 +580,22 @@ private fun ItemRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                 )
+                if (item.onList) {
+                    Text(
+                        text = when {
+                            item.variance == 0 -> "Expected ${item.expected} · matches"
+                            item.variance < 0 -> "Expected ${item.expected} · short ${-item.variance}"
+                            else -> "Expected ${item.expected} · over ${item.variance}"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (item.hasVariance) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
+                        maxLines = 1,
+                    )
+                }
             }
 
             if (editable) {
@@ -607,6 +662,8 @@ private fun TotalsBar(
     photoCount: Int,
     status: StockStatus?,
     unnamedCount: Int = 0,
+    varianceCount: Int = 0,
+    onList: Boolean = false,
 ) {
     Surface(tonalElevation = 3.dp) {
         Column {
@@ -620,14 +677,15 @@ private fun TotalsBar(
             ) {
                 TotalTile("Products", itemCount.toString())
                 TotalTile("Total qty", totalQuantity.toString(), emphasis = true)
-                // How much of this count is still anonymous. A line with no
-                // name is a row of digits nobody can check against a shelf,
-                // and this is the only place that number is visible before
-                // the export shows it as a blank column.
-                if (unnamedCount > 0) {
-                    TotalTile("Unnamed", unnamedCount.toString())
-                } else {
-                    TotalTile("Photos", photoCount.toString())
+                // Once a count sheet is loaded the variance is the number
+                // anyone ordered this count to produce, so it takes the slot.
+                // Before that, how much of the count is still anonymous --
+                // a nameless line is a row of digits nobody can check against
+                // a shelf, and this is where it shows before the export does.
+                when {
+                    onList -> TotalTile("Differences", varianceCount.toString())
+                    unnamedCount > 0 -> TotalTile("Unnamed", unnamedCount.toString())
+                    else -> TotalTile("Photos", photoCount.toString())
                 }
                 TotalTile("Status", status?.label ?: "—")
             }
@@ -668,6 +726,7 @@ private fun StatusMenu(
     onStatus: (StockStatus) -> Unit,
     onManual: () -> Unit,
     onPhotos: () -> Unit,
+    onImportSheet: () -> Unit,
 ) {
     val permissions = session.effectivePermissions
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
@@ -681,6 +740,13 @@ private fun StatusMenu(
             leadingIcon = { Icon(Icons.Filled.PhotoCamera, contentDescription = null) },
             onClick = onPhotos,
         )
+        if (permissions.hasAny(Permission.EDIT_OWN_STOCK, Permission.EDIT_ANY_STOCK)) {
+            DropdownMenuItem(
+                text = { Text("Import count sheet") },
+                leadingIcon = { Icon(Icons.Filled.UploadFile, contentDescription = null) },
+                onClick = onImportSheet,
+            )
+        }
         HorizontalDivider()
         if (permissions.has(Permission.MARK_COMPLETED) && currentStatus != StockStatus.COMPLETED) {
             DropdownMenuItem(
@@ -1055,5 +1121,61 @@ private fun EditItemDialog(
                 TextButton(onClick = onDismiss) { Text("Cancel") }
             }
         },
+    )
+}
+
+
+/**
+ * What the import actually did, before anyone counts anything.
+ *
+ * Reports skipped lines by file line number. An import that says "1,847 of
+ * 2,000 imported" without saying which 153 or why is one nobody can trust
+ * enough to run against real stock -- and the rows it drops are exactly the
+ * ones that would have shown up as missing stock.
+ */
+@Composable
+private fun ImportSummaryDialog(summary: ImportSummary, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Count sheet loaded") },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    "${summary.created} lines added" +
+                        if (summary.updated > 0) {
+                            ", ${summary.updated} matched to lines already counted"
+                        } else {
+                            ""
+                        },
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "Every line starts at zero. Scan the shelf and the difference " +
+                        "against the sheet appears as you go.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (summary.skipped.isNotEmpty()) {
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        "${summary.skipped.size} lines skipped",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    summary.skipped.take(12).forEach { reason ->
+                        Text(reason, style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (summary.skipped.size > 12) {
+                        Text(
+                            "and ${summary.skipped.size - 12} more",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
     )
 }

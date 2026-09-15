@@ -1,0 +1,16 @@
+{
+  "name": "stockcheck-platform",
+  "private": true,
+  "type": "module",
+  "description": "Licence administration and payment webhooks. Never shipped to a device.",
+  "scripts": {
+    "licence": "node licence-cli.mjs",
+    "server": "node server.mjs",
+    "stats": "node ../rules-test/platform-stats.mjs"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.2",
+    "stripe": "^17.5.0"
+  }
+}

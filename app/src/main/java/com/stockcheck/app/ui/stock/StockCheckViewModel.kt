@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.stockcheck.app.data.ImportSummary
 import com.stockcheck.app.data.ScanOutcome
 import com.stockcheck.app.data.ServiceLocator
 import com.stockcheck.app.model.ItemSource
@@ -44,6 +45,7 @@ class StockCheckViewModel(
     private val products = ServiceLocator.products
     private val templates = ServiceLocator.templates
     private val photos = ServiceLocator.photos
+    private val imports = ServiceLocator.imports
 
     val check: StateFlow<StockCheck?> = stock.observeStockCheck(checkId)
         .catch { emit(null) }
@@ -224,7 +226,17 @@ class StockCheckViewModel(
         _focusedItemId.value = item.id
 
         if (delta < 0 && item.quantity + delta <= 0) {
-            deleteItem(item)
+            // A line the count sheet expected stays, at zero. "Expected 10,
+            // found none" is the finding; deleting the row deletes it.
+            if (item.survivesZero) {
+                if (item.quantity == 0) return
+                viewModelScope.launch {
+                    runCatching { stock.adjustQuantity(session, checkId, item, -item.quantity) }
+                        .onFailure { fail(it) }
+                }
+            } else {
+                deleteItem(item)
+            }
             return
         }
 
@@ -329,6 +341,59 @@ class StockCheckViewModel(
                 }
                 .onFailure { fail(it) }
         }
+    }
+
+    // ------------------------------------------------------ count sheet
+
+    private val _importing = MutableStateFlow(false)
+    val importing: StateFlow<Boolean> = _importing.asStateFlow()
+
+    private val _importResult = MutableStateFlow<ImportSummary?>(null)
+    val importResult: StateFlow<ImportSummary?> = _importResult.asStateFlow()
+
+    /**
+     * Loads what the customer's system says should be on the shelf.
+     *
+     * Until this exists a stock check answers "how many are here". The
+     * question anyone orders a stock take to answer is "how many are
+     * missing", and nothing in the app could say.
+     */
+    fun importCountSheet(text: String) {
+        if (isFrozen()) return
+        if (_importing.value) return
+        _importing.value = true
+        viewModelScope.launch {
+            val (rows, problems) = imports.readCountSheet(text)
+            if (rows.isEmpty()) {
+                _importing.value = false
+                _toast.value = Toast(
+                    problems.firstOrNull()
+                        ?: "Nothing in that file had a barcode and an expected quantity.",
+                    isError = true,
+                )
+                return@launch
+            }
+            runCatching { imports.importCountSheet(session, checkId, rows) }
+                .onSuccess { summary ->
+                    _importResult.value = summary.copy(
+                        skipped = summary.skipped + problems,
+                    )
+                }
+                .onFailure { fail(it) }
+            _importing.value = false
+        }
+    }
+
+    /** The picker returned something this app could not read as text. */
+    fun onFileUnreadable() {
+        _toast.value = Toast(
+            "That file could not be read. Export it from Excel as CSV UTF-8 and try again.",
+            isError = true,
+        )
+    }
+
+    fun clearImportResult() {
+        _importResult.value = null
     }
 
     fun clearToast() {

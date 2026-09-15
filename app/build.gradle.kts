@@ -1,9 +1,28 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
 }
+
+// The release signing key, if this machine has it.
+//
+// keystore.properties is gitignored and the key file itself lives outside the
+// project directory, so a clone of this repository cannot sign a release. That
+// is the intended state: the signature IS the app's identity to Android, and a
+// key in version control is a key that leaks.
+//
+// When it is absent the release build falls back to the debug key and says so.
+// The alternative -- failing the build -- would stop anyone from compiling a
+// release to test R8, which is the reason most release builds get made.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val hasReleaseKey = keystoreProperties.getProperty("storeFile")
+    ?.let { file(it).exists() } == true
 
 android {
     namespace = "com.stockcheck.app"
@@ -20,16 +39,32 @@ android {
         // identified: "did you actually install the new APK?" came up
         // repeatedly while debugging and was unanswerable from a
         // screenshot.
-        buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 12:59\"")
+        buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 16:34\"")
     }
 
     signingConfigs {
-        // Signed with the debug key so the release build can actually be
-        // installed and tested. This is NOT a distributable signature: the
-        // debug key is shared by every Android SDK install, and an app
-        // published with it cannot be updated by a differently-signed one
-        // later. A real keystore has to be generated before this goes to
-        // anyone outside the company.
+        // The real one. Everything that ever reaches a customer is signed
+        // with this, and it can never be replaced: Android refuses to install
+        // an update signed by a different key, and Play Store refuses the
+        // upload. Losing the file or the password ends the app's ability to
+        // be updated, for everyone who has it.
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                // Both schemes: v1 for Android 6 and below, v2+ for the
+                // faster verification every modern device uses.
+                enableV1Signing = true
+                enableV2Signing = true
+            }
+        }
+
+        // Fallback for a machine without the key -- a fresh clone, or CI.
+        // Produces an installable APK for testing R8 and nothing more: the
+        // debug key ships with every Android SDK, so an app published with it
+        // can be impersonated by anyone.
         create("internal") {
             storeFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
             storePassword = "android"
@@ -43,7 +78,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("internal")
+            signingConfig = signingConfigs.getByName(if (hasReleaseKey) "release" else "internal")
         }
         debug {
             // No applicationIdSuffix: the Firebase project registers only
@@ -76,6 +111,21 @@ android {
     }
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+    }
+}
+
+// Which key a release build just used is not something to discover after
+// uploading it.
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name.contains("Release") }) {
+        if (hasReleaseKey) {
+            logger.lifecycle("Release signing: real key from keystore.properties")
+        } else {
+            logger.lifecycle(
+                "Release signing: DEBUG KEY -- not distributable. " +
+                    "keystore.properties is missing or points at a file that is not there.",
+            )
+        }
     }
 }
 
