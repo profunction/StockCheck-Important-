@@ -20,7 +20,7 @@ android {
         // identified: "did you actually install the new APK?" came up
         // repeatedly while debugging and was unanswerable from a
         // screenshot.
-        buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 09:58\"")
+        buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 12:59\"")
     }
 
     signingConfigs {
@@ -114,4 +114,6 @@ dependencies {
     implementation(libs.zip4j)
     implementation(libs.coil.compose)
     implementation(libs.androidx.work.runtime.ktx)
+
+    testImplementation(libs.junit)
 }

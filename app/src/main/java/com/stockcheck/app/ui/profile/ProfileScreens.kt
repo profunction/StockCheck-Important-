@@ -31,6 +31,11 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -82,6 +87,7 @@ fun ProfileScreen(
     onViewAuditLog: () -> Unit,
 ) {
     var changingPassword by remember { mutableStateOf(false) }
+    var backingUp by remember { mutableStateOf(false) }
     val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.factory(session))
     val roles by viewModel.roles.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
@@ -215,6 +221,20 @@ fun ProfileScreen(
                 HorizontalDivider()
             }
 
+            // ---------------------------------------------------------- backup
+
+            if (permissions.has(Permission.EXPORT_ALL_DATA)) {
+                ListItem(
+                    headlineContent = { Text("Back up everything") },
+                    supportingContent = {
+                        Text("One file with all records and this phone's photos")
+                    },
+                    leadingContent = { Icon(Icons.Filled.CloudOff, contentDescription = null) },
+                    modifier = Modifier.clickable { backingUp = true },
+                )
+                HorizontalDivider()
+            }
+
             // ----------------------------------------------------------- roles
 
             if (permissions.hasAny(Permission.CREATE_ROLE, Permission.EDIT_ROLE)) {
@@ -302,6 +322,144 @@ fun ProfileScreen(
             },
         )
     }
+
+    if (backingUp) {
+        BackupDialog(
+            viewModel = viewModel,
+            onDismiss = { backingUp = false },
+        )
+    }
+}
+
+/**
+ * Takes the whole company's data off the phone.
+ *
+ * Presented plainly rather than reassuringly: the free Firestore plan has no
+ * automatic backup at all, and photos only ever exist on the phone that took
+ * them. Someone has to do this deliberately and keep the file somewhere else,
+ * so the dialog says that instead of implying the app has it covered.
+ */
+@Composable
+private fun BackupDialog(
+    viewModel: ProfileViewModel,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val busy by viewModel.backupBusy.collectAsStateWithLifecycle()
+    val result by viewModel.backupResult.collectAsStateWithLifecycle()
+    var includePhotos by remember { mutableStateOf(true) }
+    var encrypt by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = { if (!busy) { viewModel.clearBackupResult(); onDismiss() } },
+        title = { Text(if (result == null) "Back up everything" else "Backup ready") },
+        text = {
+            Column {
+                val finished = result
+                if (finished == null) {
+                    Text(
+                        "One zip file containing every stock check, item, product, " +
+                            "template, user, role and audit entry - and the photos " +
+                            "this phone still holds.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = includePhotos, onCheckedChange = { includePhotos = it })
+                        Column(modifier = Modifier.padding(start = 4.dp)) {
+                            Text("Include photos", style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                "Much larger file, but photos exist nowhere else.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = encrypt, onCheckedChange = { encrypt = it })
+                        Column(modifier = Modifier.padding(start = 4.dp)) {
+                            Text(
+                                "Encrypt with the company password",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                "AES-256. Without the password the file cannot be opened " +
+                                    "at all - including by you.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    if (busy) {
+                        Spacer(Modifier.height(12.dp))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        Text(
+                            "Reading everything. This can take a while on a big company.",
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                } else {
+                    Text(
+                        "${finished.stockCheckCount} stock checks, " +
+                            "${finished.itemCount} counted lines, " +
+                            "${finished.photosIncluded} of ${finished.photoCount} photos.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "${finished.sizeBytes / 1024} KB" +
+                            (if (finished.encrypted) " - encrypted" else ""),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (finished.photosIncluded < finished.photoCount) {
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            "${finished.photoCount - finished.photosIncluded} photos were " +
+                                "taken on another phone and are not in this file. Run a " +
+                                "backup from that phone too.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "Send it somewhere off this phone. A backup that stays here is " +
+                            "lost with the phone.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            val finished = result
+            if (finished == null) {
+                TextButton(
+                    enabled = !busy,
+                    onClick = { viewModel.runBackup(includePhotos, encrypt) },
+                ) { Text(if (busy) "Working..." else "Back up") }
+            } else {
+                TextButton(
+                    onClick = {
+                        viewModel.shareBackup()?.let { intent ->
+                            context.startActivity(
+                                Intent.createChooser(intent, "Send backup"),
+                            )
+                        }
+                    },
+                ) { Text("Send") }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                enabled = !busy,
+                onClick = {
+                    viewModel.clearBackupResult()
+                    onDismiss()
+                },
+            ) { Text(if (result == null) "Cancel" else "Done") }
+        },
+    )
 }
 
 /**

@@ -254,9 +254,14 @@ object VoiceCommandParser {
             remaining = remaining.replace(marker, " ", ignoreCase = true)
         }
         if (unit != null) {
-            unitWords.filterValues { it == unit }.keys.forEach { spoken ->
-                remaining = remaining.replace(spoken, " ", ignoreCase = true)
-            }
+            // Longest first, for the same reason findUnit matches that way:
+            // several spoken words share one short form, and removing "box"
+            // before "boxes" leaves "es" glued to the product name.
+            unitWords.filterValues { it == unit }.keys
+                .sortedByDescending { it.length }
+                .forEach { spoken ->
+                    remaining = remaining.replace(spoken, " ", ignoreCase = true)
+                }
         }
         return remaining
             .replace(Regex("\\b(of|the|a|an|is|are|and)\\b", RegexOption.IGNORE_CASE), " ")

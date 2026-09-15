@@ -8,6 +8,7 @@ import com.stockcheck.app.data.Db
 import com.stockcheck.app.data.ServiceLocator
 import com.stockcheck.app.data.can
 import com.stockcheck.app.data.getAs
+import com.stockcheck.app.export.BackupResult
 import com.stockcheck.app.model.AuditEntry
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Role
@@ -27,6 +28,7 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
 
     private val userRepo = ServiceLocator.users
     private val auditRepo = ServiceLocator.audit
+    private val backupService = ServiceLocator.backups
 
     val roles: StateFlow<List<Role>> = userRepo.observeRoles()
         .catch { emit(emptyList()) }
@@ -179,6 +181,51 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
                 .onSuccess { onDeleted() }
                 .onFailure { _message.value = it.message }
         }
+    }
+
+    // ---------------------------------------------------------------- backup
+
+    private val _backupBusy = MutableStateFlow(false)
+    val backupBusy: StateFlow<Boolean> = _backupBusy.asStateFlow()
+
+    private val _backupResult = MutableStateFlow<BackupResult?>(null)
+    val backupResult: StateFlow<BackupResult?> = _backupResult.asStateFlow()
+
+    /**
+     * Reads the whole company into one file.
+     *
+     * Everything else in this app writes to Firestore and trusts it to still
+     * be there. On the free plan nothing backs it up, so this is the only
+     * copy of the data that exists anywhere the company controls.
+     */
+    fun runBackup(includePhotos: Boolean, encrypt: Boolean) {
+        if (_backupBusy.value) return
+        _backupBusy.value = true
+        viewModelScope.launch {
+            val password = if (encrypt) {
+                config.value?.exportPassword?.takeIf { it.isNotBlank() }
+            } else {
+                null
+            }
+            if (encrypt && password == null) {
+                _backupBusy.value = false
+                _message.value =
+                    "No company password is set, so the backup cannot be encrypted. " +
+                        "Set one under Company code first, or back up unencrypted."
+                return@launch
+            }
+            runCatching { backupService.backup(session, includePhotos, password) }
+                .onSuccess { _backupResult.value = it }
+                .onFailure { _message.value = it.message ?: "The backup failed." }
+            _backupBusy.value = false
+        }
+    }
+
+    fun shareBackup(): android.content.Intent? =
+        _backupResult.value?.let { backupService.shareIntent(it) }
+
+    fun clearBackupResult() {
+        _backupResult.value = null
     }
 
     fun clearMessage() {

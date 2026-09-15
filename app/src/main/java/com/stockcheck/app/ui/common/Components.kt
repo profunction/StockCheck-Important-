@@ -182,6 +182,10 @@ fun NoticeBar(
             background = MaterialTheme.colorScheme.secondaryContainer
             foreground = MaterialTheme.colorScheme.onSecondaryContainer
         }
+        NoticeTone.WARNING -> {
+            background = MaterialTheme.colorScheme.tertiaryContainer
+            foreground = MaterialTheme.colorScheme.onTertiaryContainer
+        }
         NoticeTone.ERROR -> {
             background = MaterialTheme.colorScheme.errorContainer
             foreground = MaterialTheme.colorScheme.onErrorContainer
@@ -197,7 +201,12 @@ fun NoticeBar(
     }
 }
 
-enum class NoticeTone { INFO, ERROR }
+/**
+ * WARNING sits between the two on purpose: a standing fact the operator has to
+ * keep in mind is not an error to be fixed, but rendering it as INFO puts it
+ * next to "hearing: twenty five" and it stops being read at all.
+ */
+enum class NoticeTone { INFO, WARNING, ERROR }
 
 /** Standard content padding so every screen lines up with every other. */
 val ScreenPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)

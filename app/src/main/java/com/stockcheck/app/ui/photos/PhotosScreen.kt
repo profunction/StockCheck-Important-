@@ -225,8 +225,16 @@ fun PhotosScreen(session: Session) {
 
             if (!CloudPhotos.ENABLED) {
                 NoticeBar(
-                    text = "Photos are stored on this phone only. They travel out with " +
-                        "the export; they are not visible on other devices.",
+                    // The previous wording claimed photos "travel out with the
+                    // export". They never did -- the export is a spreadsheet of
+                    // counted lines and has never contained an image. Saying so
+                    // was worse than saying nothing: it told someone their
+                    // photos were safe while the only copy sat on one phone.
+                    text = "Photos are stored on this phone only. They are not in the " +
+                        "CSV or Excel export and not visible on other phones. " +
+                        "Profile > Back up everything is the only way to get them off " +
+                        "this device.",
+                    tone = com.stockcheck.app.ui.common.NoticeTone.WARNING,
                 )
             }
             error?.let {

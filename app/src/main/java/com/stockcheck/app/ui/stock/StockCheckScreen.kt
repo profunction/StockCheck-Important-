@@ -83,12 +83,17 @@ import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.mutableStateMapOf
 import com.stockcheck.app.model.FieldType
 import com.stockcheck.app.model.Template
 import com.stockcheck.app.model.TemplateField
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import com.stockcheck.app.model.SignatureInk
 import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.scan.BarcodeScannerPreview
@@ -135,6 +140,25 @@ fun StockCheckScreen(
     var manualEntry by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<StockItem?>(null) }
     var menuOpen by remember { mutableStateOf(false) }
+    var search by remember { mutableStateOf("") }
+
+    // Finding one line in a two-hundred-item count meant scrolling for it,
+    // which on a warehouse floor means scrolling past it. Matching on barcode
+    // and SKU as well as name is deliberate: the operator usually has the
+    // physical label in hand, not the product name in mind.
+    val visibleItems = remember(items, search) {
+        val needle = search.trim().lowercase()
+        if (needle.isEmpty()) {
+            items
+        } else {
+            items.filter { item ->
+                item.productName.lowercase().contains(needle) ||
+                    item.barcode.lowercase().contains(needle) ||
+                    item.sku.lowercase().contains(needle)
+            }
+        }
+    }
+    val unnamedCount = remember(items) { items.count { it.productName.isBlank() } }
 
     val frozen = check?.statusEnum?.isFrozen == true
 
@@ -246,6 +270,7 @@ fun StockCheckScreen(
                 totalQuantity = items.sumOf { it.quantity },
                 photoCount = check?.photoCount ?: 0,
                 status = check?.statusEnum,
+                unnamedCount = unnamedCount,
             )
         },
         floatingActionButton = {
@@ -295,6 +320,33 @@ fun StockCheckScreen(
                 NoticeBar(text = "Hearing: ${hearing.partial}", tone = NoticeTone.INFO)
             }
 
+            // Only once the list is long enough to be worth searching --
+            // below that the search box costs more screen than it saves.
+            if (items.size >= SEARCH_THRESHOLD) {
+                OutlinedTextField(
+                    value = search,
+                    onValueChange = { search = it },
+                    label = { Text("Find in this count") },
+                    singleLine = true,
+                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (search.isNotEmpty()) {
+                            IconButton(onClick = { search = "" }) {
+                                Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                            }
+                        }
+                    },
+                    supportingText = if (search.isNotEmpty()) {
+                        { Text("${visibleItems.size} of ${items.size} lines") }
+                    } else {
+                        null
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                )
+            }
+
             if (items.isEmpty()) {
                 com.stockcheck.app.ui.common.EmptyState(
                     icon = Icons.Filled.Inventory2,
@@ -302,13 +354,19 @@ fun StockCheckScreen(
                     message = "Point the camera at a barcode, or tap the microphone " +
                         "and say the product and quantity.",
                 )
+            } else if (visibleItems.isEmpty()) {
+                com.stockcheck.app.ui.common.EmptyState(
+                    icon = Icons.Filled.Search,
+                    title = "No match",
+                    message = "Nothing in this count matches \"${search.trim()}\".",
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(12.dp, 8.dp, 12.dp, 96.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(items, key = { it.id }) { item ->
+                    items(visibleItems, key = { it.id }) { item ->
                         ItemRow(
                             item = item,
                             focused = item.id == focusedId,
@@ -354,10 +412,11 @@ fun StockCheckScreen(
             item = item,
             template = template,
             roleId = session.role.id,
+            signerName = session.profile.displayName.ifBlank { session.profile.email },
             onDismiss = { editing = null },
-            onSave = { updated ->
+            onSave = { updated, addToCatalogue ->
                 editing = null
-                viewModel.updateItem(item, updated)
+                viewModel.updateItem(item, updated, addToCatalogue)
             },
             onDelete = {
                 editing = null
@@ -366,6 +425,14 @@ fun StockCheckScreen(
         )
     }
 }
+
+/** How long a count has to get before a search box earns its place. */
+private const val SEARCH_THRESHOLD = 8
+
+/** When a signature was made, in the form that reads clearly in an export. */
+private fun signedStamp(): String =
+    java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US)
+        .format(java.util.Date())
 
 // ------------------------------------------------------------------ scanner
 
@@ -539,6 +606,7 @@ private fun TotalsBar(
     totalQuantity: Int,
     photoCount: Int,
     status: StockStatus?,
+    unnamedCount: Int = 0,
 ) {
     Surface(tonalElevation = 3.dp) {
         Column {
@@ -552,7 +620,15 @@ private fun TotalsBar(
             ) {
                 TotalTile("Products", itemCount.toString())
                 TotalTile("Total qty", totalQuantity.toString(), emphasis = true)
-                TotalTile("Photos", photoCount.toString())
+                // How much of this count is still anonymous. A line with no
+                // name is a row of digits nobody can check against a shelf,
+                // and this is the only place that number is visible before
+                // the export shows it as a blank column.
+                if (unnamedCount > 0) {
+                    TotalTile("Unnamed", unnamedCount.toString())
+                } else {
+                    TotalTile("Photos", photoCount.toString())
+                }
                 TotalTile("Status", status?.label ?: "—")
             }
         }
@@ -660,8 +736,11 @@ private fun StatusMenu(
 private fun TemplateFieldInput(
     field: TemplateField,
     value: String,
+    ink: String,
+    signerName: String,
     enabled: Boolean,
     onChange: (String) -> Unit,
+    onInkChange: (String) -> Unit,
 ) {
     val label = field.label + if (field.required) " *" else ""
 
@@ -686,17 +765,32 @@ private fun TemplateFieldInput(
         }
 
         FieldType.SIGNATURE -> {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onChange,
-                label = { Text(label) },
+            Text(label, style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.height(4.dp))
+            com.stockcheck.app.ui.common.SignaturePad(
+                ink = ink,
                 enabled = enabled,
-                singleLine = true,
-                // Not a signature pad. Saying so beats a field that looks like
-                // it captures one and captures a typed name instead.
-                supportingText = { Text("Typed name - this is not a drawn signature.") },
-                modifier = Modifier.fillMaxWidth(),
+                onInkChange = { raw ->
+                    onInkChange(raw)
+                    // The field's own value stays readable text, because that
+                    // is what a CSV cell can carry. The strokes ride alongside
+                    // it and are what actually gets shown back.
+                    onChange(
+                        if (SignatureInk.isSigned(raw)) {
+                            "$signerName - ${signedStamp()}"
+                        } else {
+                            ""
+                        },
+                    )
+                },
             )
+            if (value.isNotEmpty()) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
         else -> {
@@ -821,14 +915,21 @@ private fun EditItemDialog(
     item: StockItem,
     template: Template?,
     roleId: String,
+    signerName: String,
     onDismiss: () -> Unit,
-    onSave: (StockItem) -> Unit,
+    onSave: (StockItem, Boolean) -> Unit,
     onDelete: () -> Unit,
 ) {
     var name by remember(item.id) { mutableStateOf(item.productName) }
+    var sku by remember(item.id) { mutableStateOf(item.sku) }
     var quantity by remember(item.id) { mutableStateOf(item.quantity.toString()) }
     var unit by remember(item.id) { mutableStateOf(item.unit) }
     var remark by remember(item.id) { mutableStateOf(item.remark) }
+    // Naming an unknown product mid-count used to mean remembering the
+    // barcode, finishing the count, opening the Products page and typing it
+    // again from memory. Ticked by default exactly when that is what is
+    // happening: a line that arrived nameless and now has one.
+    var addToCatalogue by remember(item.id) { mutableStateOf(item.productName.isBlank()) }
     val fieldValues = remember(item.id) {
         mutableStateMapOf<String, String>().apply {
             putAll(item.fieldValues)
@@ -846,11 +947,21 @@ private fun EditItemDialog(
         onDismissRequest = onDismiss,
         title = { Text(item.barcode) },
         text = {
-            Column {
+            // The template can add any number of fields below; without this
+            // the dialog simply clips them off the bottom of the screen.
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Product name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = sku,
+                    onValueChange = { sku = it },
+                    label = { Text("SKU") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -883,15 +994,37 @@ private fun EditItemDialog(
 
                 template?.fields?.sortedBy { it.order }?.forEach { field ->
                     Spacer(Modifier.height(10.dp))
+                    val inkKey = SignatureInk.inkKeyFor(field.key)
                     TemplateFieldInput(
                         field = field,
                         value = fieldValues[field.key].orEmpty(),
+                        ink = fieldValues[inkKey].orEmpty(),
+                        signerName = signerName,
                         // A field locked for this role is shown, not hidden:
                         // seeing a value you may not change is useful, not
                         // being able to see it at all is not.
                         enabled = field.isEditableBy(roleId),
                         onChange = { fieldValues[field.key] = it },
+                        onInkChange = { fieldValues[inkKey] = it },
                     )
+                }
+
+                if (name.isNotBlank() && item.barcode.isNotBlank()) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = addToCatalogue,
+                            onCheckedChange = { addToCatalogue = it },
+                        )
+                        Column(modifier = Modifier.padding(start = 4.dp)) {
+                            Text("Remember this product", style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                text = "The next scan of ${item.barcode} names itself.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
             }
         },
@@ -901,11 +1034,13 @@ private fun EditItemDialog(
                     onSave(
                         item.copy(
                             productName = name.trim(),
+                            sku = sku.trim(),
                             quantity = quantity.toIntOrNull() ?: item.quantity,
                             unit = unit.trim().ifEmpty { "pcs" },
                             remark = remark.trim(),
                             fieldValues = fieldValues.filterValues { it.isNotBlank() },
                         ),
+                        addToCatalogue && name.isNotBlank() && item.barcode.isNotBlank(),
                     )
                 },
             ) { Text("Save") }

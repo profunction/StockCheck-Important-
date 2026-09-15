@@ -41,6 +41,7 @@ class StockCheckViewModel(
 ) : ViewModel() {
 
     private val stock = ServiceLocator.stock
+    private val products = ServiceLocator.products
     private val templates = ServiceLocator.templates
     private val photos = ServiceLocator.photos
 
@@ -238,12 +239,43 @@ class StockCheckViewModel(
         adjust(item, quantity - item.quantity)
     }
 
-    fun updateItem(before: StockItem, after: StockItem) {
+    /**
+     * Saves an edited line, optionally teaching the catalogue what it is.
+     *
+     * Naming an unknown product used to be a dead end mid-count: the only
+     * place to do it was the Products page, which meant carrying the barcode
+     * in your head until the count was over. Doing it here, once, is the
+     * difference between a catalogue that grows as people work and one that
+     * never gets filled in.
+     */
+    fun updateItem(before: StockItem, after: StockItem, addToCatalogue: Boolean = false) {
         if (isFrozen()) return
         viewModelScope.launch {
             runCatching {
                 stock.updateItem(session, checkId, before, after)
-            }.onFailure { fail(it) }
+            }.onFailure { fail(it); return@launch }
+
+            if (!addToCatalogue) return@launch
+            if (after.barcode.isBlank() || after.productName.isBlank()) return@launch
+            runCatching {
+                products.save(
+                    session = session,
+                    barcode = after.barcode,
+                    name = after.productName,
+                    sku = after.sku,
+                    unit = after.unit,
+                )
+            }.onSuccess {
+                _toast.value = Toast("Saved ${after.productName} to the product list")
+            }.onFailure {
+                // The count itself is already saved; only the catalogue entry
+                // failed, and saying which one failed matters.
+                _toast.value = Toast(
+                    "Counted, but could not save ${after.productName} to the " +
+                        "product list: ${it.message.orEmpty()}",
+                    isError = true,
+                )
+            }
         }
     }
 

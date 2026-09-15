@@ -26,6 +26,9 @@ object ServiceLocator {
     val exports: com.stockcheck.app.export.ExportService by lazy {
         com.stockcheck.app.export.ExportService(appContext, templates, audit)
     }
+    val backups: com.stockcheck.app.export.BackupService by lazy {
+        com.stockcheck.app.export.BackupService(appContext, audit)
+    }
 
     fun init(context: Context) {
         appContext = context.applicationContext

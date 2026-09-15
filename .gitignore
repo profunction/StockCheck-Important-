@@ -29,3 +29,7 @@ Thumbs.db
 rules-test/node_modules/
 rules-test/.firebase/
 *-debug.log
+
+# A service-account key bypasses every security rule. Never in git.
+rules-test/service-account.json
+service-account*.json

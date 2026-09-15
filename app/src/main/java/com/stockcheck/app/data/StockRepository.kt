@@ -6,6 +6,7 @@ import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
+import com.stockcheck.app.model.SignatureInk
 import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockStatus
@@ -312,8 +313,17 @@ class StockRepository(
         session.require(Permission.EDIT_OWN_STOCK)
         val newQty = (item.quantity + delta).coerceAtLeast(0)
         if (newQty == item.quantity) return
+        // An atomic increment, not the computed total. Two phones counting the
+        // same check each hold their own snapshot of the quantity; writing a
+        // total means the second write silently erases the first one's work,
+        // and the count comes out short with nothing to show why. The increment
+        // also survives being queued offline and replayed later, which is the
+        // normal case in a warehouse.
         Db.item(stockCheckId, item.id).update(
-            mapOf("quantity" to newQty, "updatedAt" to System.currentTimeMillis()),
+            mapOf(
+                "quantity" to FieldValue.increment((newQty - item.quantity).toLong()),
+                "updatedAt" to System.currentTimeMillis(),
+            ),
         ).awaitAck()
         bumpTotals(stockCheckId, itemDelta = 0, qtyDelta = newQty - item.quantity)
         if (isAuditable(stockCheckId)) audit.record(
@@ -338,7 +348,7 @@ class StockRepository(
         session.require(Permission.EDIT_OWN_STOCK)
         Db.item(stockCheckId, before.id)
             .set(after.copy(id = before.id, updatedAt = System.currentTimeMillis()))
-            .await()
+            .awaitAck()
         if (isAuditable(stockCheckId)) audit.recordChanges(
             session = session,
             entity = "StockItem",
@@ -352,7 +362,17 @@ class StockRepository(
                 compare("Unit", before.unit, after.unit)
                 compare("Remark", before.remark, after.remark)
                 after.fieldValues.keys.plus(before.fieldValues.keys).forEach { key ->
-                    compare(key, before.fieldValues[key], after.fieldValues[key])
+                    if (SignatureInk.isInkKey(key)) {
+                        // Thousands of coordinates say nothing a reader can
+                        // use; whether it is now signed is the whole point.
+                        compare(
+                            "Signature",
+                            before.fieldValues[key]?.let { signedLabel(it) },
+                            after.fieldValues[key]?.let { signedLabel(it) },
+                        )
+                    } else {
+                        compare(key, before.fieldValues[key], after.fieldValues[key])
+                    }
                 }
             },
         )
@@ -383,6 +403,10 @@ class StockRepository(
      * and so the arithmetic still resolves correctly when several increments
      * are queued offline and replayed together.
      */
+    /** Reduces a stroke blob to the only thing an audit reader needs. */
+    private fun signedLabel(ink: String): String =
+        if (SignatureInk.isSigned(ink)) "signed" else "not signed"
+
     private suspend fun bumpTotals(stockCheckId: String, itemDelta: Int, qtyDelta: Int) {
         val updates = mutableMapOf<String, Any>("updatedAt" to System.currentTimeMillis())
         if (itemDelta != 0) updates["itemCount"] = FieldValue.increment(itemDelta.toLong())
