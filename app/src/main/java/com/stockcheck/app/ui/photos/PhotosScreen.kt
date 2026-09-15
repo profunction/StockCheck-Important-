@@ -23,6 +23,9 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.PhotoCamera
@@ -69,6 +72,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -94,6 +98,35 @@ class PhotosViewModel(private val session: Session) : ViewModel() {
         }
         .catch { emit(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+
+    /**
+     * The checks whose chips are worth showing.
+     *
+     * The picker is a horizontal row, which stops working long before a
+     * vertical list would: forty counts is forty chips off the side of the
+     * screen with no way to tell how far along you are. Matching the
+     * reference, the template and the worker covers how people actually
+     * remember a count -- "the one Ah Meng did last Tuesday".
+     */
+    val visibleChecks: StateFlow<List<StockCheck>> = combine(checks, _query) { all, text ->
+        val needle = text.trim().lowercase()
+        if (needle.isEmpty()) {
+            all
+        } else {
+            all.filter { check ->
+                check.refNo.lowercase().contains(needle) ||
+                    check.templateName.lowercase().contains(needle) ||
+                    check.createdByName.lowercase().contains(needle)
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun search(value: String) {
+        _query.value = value
+    }
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -178,6 +211,8 @@ fun PhotosScreen(session: Session) {
     val checks by viewModel.checks.collectAsStateWithLifecycle()
     val photos by viewModel.photos.collectAsStateWithLifecycle()
     val selectedId by viewModel.selectedCheckId.collectAsStateWithLifecycle()
+    val visibleChecks by viewModel.visibleChecks.collectAsStateWithLifecycle()
+    val query by viewModel.query.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
 
     var viewing by remember { mutableStateOf<PhotoRecord?>(null) }
@@ -251,8 +286,49 @@ fun PhotosScreen(session: Session) {
                 return@Column
             }
 
+            // Only once the row is long enough to be worth searching. A
+            // horizontal picker degrades faster than a list does, so this sits
+            // lower than the threshold used inside a count.
+            if (checks.size >= SEARCH_THRESHOLD) {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = viewModel::search,
+                    label = { Text("Find a stock check") },
+                    placeholder = { Text("Reference, template or worker") },
+                    singleLine = true,
+                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.search("") }) {
+                                Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                            }
+                        }
+                    },
+                    supportingText = if (query.isNotEmpty()) {
+                        { Text("${visibleChecks.size} of ${checks.size} stock checks") }
+                    } else {
+                        null
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                )
+            }
+
+            // Guarded on the query, not just on emptiness: the flow starts
+            // empty for a frame before it warms up, and without this the page
+            // opens by flashing "No match" at someone who searched for nothing.
+            if (visibleChecks.isEmpty() && query.isNotBlank()) {
+                EmptyState(
+                    icon = Icons.Filled.Search,
+                    title = "No match",
+                    message = "No stock check matches \"${query.trim()}\". " +
+                        "The one you were looking at is still selected below.",
+                )
+            }
+
             CheckSelector(
-                checks = checks,
+                checks = visibleChecks,
                 selectedId = selectedId,
                 onSelect = viewModel::select,
             )
@@ -296,6 +372,11 @@ fun PhotosScreen(session: Session) {
         )
     }
 }
+
+/**
+ * How many stock checks the picker holds before a search box earns its place.
+ */
+private const val SEARCH_THRESHOLD = 6
 
 @Composable
 private fun CheckSelector(
