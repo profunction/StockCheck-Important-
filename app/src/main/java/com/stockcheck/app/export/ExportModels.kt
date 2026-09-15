@@ -80,9 +80,16 @@ data class ExportColumn(
          * field simply leave that cell empty, which is the honest rendering.
          */
         fun availableForAll(templates: List<Template>): List<ExportColumn> {
+            // A template field can share a name with a standard column --
+            // "remark" is the obvious one -- and the export then carried two
+            // columns headed Remark, one of them always empty. Compared by
+            // header because that is what a reader sees; the internal keys
+            // differ ("remark" against "field:remark") and so never collided.
+            val standardHeaders = standard.map { it.header.lowercase() }.toSet()
             val custom = templates
                 .flatMap { it.fields }
                 .filter { it.includeInExport }
+                .filter { it.label.lowercase() !in standardHeaders }
                 // Two templates can name the same key; one column serves both.
                 .distinctBy { it.key }
                 .map { field ->

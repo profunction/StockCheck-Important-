@@ -20,7 +20,22 @@ android {
         // identified: "did you actually install the new APK?" came up
         // repeatedly while debugging and was unanswerable from a
         // screenshot.
-        buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 07:55\"")
+        buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 09:58\"")
+    }
+
+    signingConfigs {
+        // Signed with the debug key so the release build can actually be
+        // installed and tested. This is NOT a distributable signature: the
+        // debug key is shared by every Android SDK install, and an app
+        // published with it cannot be updated by a differently-signed one
+        // later. A real keystore has to be generated before this goes to
+        // anyone outside the company.
+        create("internal") {
+            storeFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
@@ -28,6 +43,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("internal")
         }
         debug {
             // No applicationIdSuffix: the Firebase project registers only

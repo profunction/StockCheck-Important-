@@ -82,6 +82,13 @@ import com.stockcheck.app.data.effectivePermissions
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.mutableStateMapOf
+import com.stockcheck.app.model.FieldType
+import com.stockcheck.app.model.Template
+import com.stockcheck.app.model.TemplateField
 import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.scan.BarcodeScannerPreview
@@ -121,6 +128,8 @@ fun StockCheckScreen(
     val toast by viewModel.toast.collectAsStateWithLifecycle()
     val focusedId by viewModel.focusedItemId.collectAsStateWithLifecycle()
     val scannerActive by viewModel.scannerActive.collectAsStateWithLifecycle()
+    // Drives which extra fields the edit dialog offers for a counted line.
+    val template by viewModel.template.collectAsStateWithLifecycle()
 
     val snackbarHost = remember { SnackbarHostState() }
     var manualEntry by remember { mutableStateOf(false) }
@@ -343,6 +352,8 @@ fun StockCheckScreen(
     editing?.let { item ->
         EditItemDialog(
             item = item,
+            template = template,
+            roleId = session.role.id,
             onDismiss = { editing = null },
             onSave = { updated ->
                 editing = null
@@ -637,6 +648,85 @@ private fun StatusMenu(
     }
 }
 
+/**
+ * Renders one template field according to its declared type.
+ *
+ * A dropdown offers its options rather than asking someone to spell one
+ * correctly, and a number gets the numeric keypad. The type is a promise about
+ * the value; honouring it on the way in is what makes it worth anything on the
+ * way out.
+ */
+@Composable
+private fun TemplateFieldInput(
+    field: TemplateField,
+    value: String,
+    enabled: Boolean,
+    onChange: (String) -> Unit,
+) {
+    val label = field.label + if (field.required) " *" else ""
+
+    when (field.typeEnum) {
+        FieldType.DROPDOWN -> {
+            Text(label, style = MaterialTheme.typography.labelMedium)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                field.options.forEach { option ->
+                    FilterChip(
+                        selected = value == option,
+                        enabled = enabled,
+                        onClick = { onChange(if (value == option) "" else option) },
+                        label = { Text(option) },
+                    )
+                }
+            }
+        }
+
+        FieldType.SIGNATURE -> {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onChange,
+                label = { Text(label) },
+                enabled = enabled,
+                singleLine = true,
+                // Not a signature pad. Saying so beats a field that looks like
+                // it captures one and captures a typed name instead.
+                supportingText = { Text("Typed name - this is not a drawn signature.") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        else -> {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onChange,
+                label = { Text(label) },
+                enabled = enabled,
+                singleLine = true,
+                supportingText = when {
+                    !enabled -> {
+                        { Text("Your role cannot change this field.") }
+                    }
+                    field.typeEnum == FieldType.DATE -> {
+                        { Text("e.g. 2026-12-31") }
+                    }
+                    else -> null
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = when (field.typeEnum) {
+                        FieldType.NUMBER, FieldType.DATE -> KeyboardType.Number
+                        else -> KeyboardType.Text
+                    },
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
 @Composable
 private fun DuplicateBarcodeDialog(
     prompt: DuplicatePrompt,
@@ -719,9 +809,18 @@ private fun ManualEntryDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
     )
 }
 
+/**
+ * Edits one counted line, including whatever fields its template defines.
+ *
+ * Template fields were configurable from the start but had nowhere to be
+ * filled in, so they stayed empty forever and their export columns came out
+ * blank -- half the template feature connected to nothing.
+ */
 @Composable
 private fun EditItemDialog(
     item: StockItem,
+    template: Template?,
+    roleId: String,
     onDismiss: () -> Unit,
     onSave: (StockItem) -> Unit,
     onDelete: () -> Unit,
@@ -730,6 +829,18 @@ private fun EditItemDialog(
     var quantity by remember(item.id) { mutableStateOf(item.quantity.toString()) }
     var unit by remember(item.id) { mutableStateOf(item.unit) }
     var remark by remember(item.id) { mutableStateOf(item.remark) }
+    val fieldValues = remember(item.id) {
+        mutableStateMapOf<String, String>().apply {
+            putAll(item.fieldValues)
+            // An untouched field still shows its default, so a template can
+            // pre-fill the answer that is usually right.
+            template?.fields?.forEach { field ->
+                if (!containsKey(field.key) && field.defaultValue.isNotEmpty()) {
+                    put(field.key, field.defaultValue)
+                }
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -769,6 +880,19 @@ private fun EditItemDialog(
                     label = { Text("Remark") },
                     modifier = Modifier.fillMaxWidth(),
                 )
+
+                template?.fields?.sortedBy { it.order }?.forEach { field ->
+                    Spacer(Modifier.height(10.dp))
+                    TemplateFieldInput(
+                        field = field,
+                        value = fieldValues[field.key].orEmpty(),
+                        // A field locked for this role is shown, not hidden:
+                        // seeing a value you may not change is useful, not
+                        // being able to see it at all is not.
+                        enabled = field.isEditableBy(roleId),
+                        onChange = { fieldValues[field.key] = it },
+                    )
+                }
             }
         },
         confirmButton = {
@@ -780,6 +904,7 @@ private fun EditItemDialog(
                             quantity = quantity.toIntOrNull() ?: item.quantity,
                             unit = unit.trim().ifEmpty { "pcs" },
                             remark = remark.trim(),
+                            fieldValues = fieldValues.filterValues { it.isNotBlank() },
                         ),
                     )
                 },
