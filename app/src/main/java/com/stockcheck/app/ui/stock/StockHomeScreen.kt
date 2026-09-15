@@ -14,6 +14,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedTextField
+import com.stockcheck.app.model.WorkspaceConfig
+import kotlinx.coroutines.flow.map
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +61,7 @@ import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
+import com.stockcheck.app.data.effectivePermissions
 import com.stockcheck.app.model.Licence
 import com.stockcheck.app.model.Plan
 import com.stockcheck.app.model.LicenceStatus
@@ -104,11 +120,49 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /**
+     * The areas this company counts.
+     *
+     * Read from the company config rather than hard-coded, because every
+     * warehouse names its own: A to F here, 1 to 12 there, "Cold room" and
+     * "Loading bay" somewhere else.
+     */
+    val zones: StateFlow<List<String>> = ServiceLocator.users.observeConfig()
+        .map { it?.zones?.filter { zone -> zone.isNotBlank() } ?: WorkspaceConfig.DEFAULT_ZONES }
+        .catch { emit(WorkspaceConfig.DEFAULT_ZONES) }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            WorkspaceConfig.DEFAULT_ZONES,
+        )
+
     /** Creates a check and hands its id back so the caller can navigate. */
-    fun createCheck(template: Template, onCreated: (String) -> Unit) {
+    fun createCheck(template: Template, zone: String = "", onCreated: (String) -> Unit) {
         viewModelScope.launch {
-            runCatching { stock.createStockCheck(session, template) }
+            runCatching { stock.createStockCheck(session, template, zone) }
                 .onSuccess(onCreated)
+                .onFailure { _error.value = it.message }
+        }
+    }
+
+    /**
+     * Ends a count from the list it is sitting in.
+     *
+     * Reaching this through the counting screen's overflow menu was the only
+     * route, which meant opening a count to close it -- and an empty one
+     * started by accident had no route at all: nothing to complete, and the
+     * only thing to look at was a camera nobody wanted.
+     */
+    fun complete(check: StockCheck) {
+        viewModelScope.launch {
+            runCatching { stock.updateStatus(session, check, StockStatus.COMPLETED) }
+                .onFailure { _error.value = it.message }
+        }
+    }
+
+    fun delete(check: StockCheck) {
+        viewModelScope.launch {
+            runCatching { stock.deleteStockCheck(session, check) }
                 .onFailure { _error.value = it.message }
         }
     }
@@ -145,7 +199,12 @@ fun StockHomeScreen(
     val templates by viewModel.templates.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val licence by viewModel.licence.collectAsStateWithLifecycle()
+    val permissions = session.effectivePermissions
     var picking by remember { mutableStateOf(false) }
+    // Held between the two steps: template first, then which part of the
+    // building this count covers.
+    var pickedTemplate by remember { mutableStateOf<Template?>(null) }
+    val zones by viewModel.zones.collectAsStateWithLifecycle()
     var blocked by remember { mutableStateOf(false) }
 
     // A licence that has not been written yet is permission, not refusal --
@@ -219,7 +278,17 @@ fun StockHomeScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(active, key = { it.id }) { check ->
-                    StockCheckCard(check = check, onClick = { onOpenCheck(check.id) })
+                    StockCheckCard(
+                        check = check,
+                        onClick = { onOpenCheck(check.id) },
+                        canComplete = permissions.has(Permission.MARK_COMPLETED),
+                        canDelete = permissions.canDeleteRecordBy(
+                            check.createdByUid,
+                            session.uid,
+                        ),
+                        onComplete = { viewModel.complete(check) },
+                        onDelete = { viewModel.delete(check) },
+                    )
                 }
             }
         }
@@ -239,7 +308,19 @@ fun StockHomeScreen(
             onDismiss = { picking = false },
             onPick = { template ->
                 picking = false
-                viewModel.createCheck(template, onOpenCheck)
+                pickedTemplate = template
+            },
+        )
+    }
+
+    pickedTemplate?.let { template ->
+        ZonePickerDialog(
+            template = template,
+            zones = zones,
+            onDismiss = { pickedTemplate = null },
+            onStart = { zone ->
+                pickedTemplate = null
+                viewModel.createCheck(template, zone, onOpenCheck)
             },
         )
     }
@@ -293,16 +374,63 @@ private fun TemplatePickerDialog(
 }
 
 @Composable
-private fun StockCheckCard(check: StockCheck, onClick: () -> Unit) {
+private fun StockCheckCard(
+    check: StockCheck,
+    onClick: () -> Unit,
+    canComplete: Boolean,
+    canDelete: Boolean,
+    onComplete: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    var confirmingDelete by remember { mutableStateOf(false) }
+
     Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 4.dp, bottom = 16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(check.refNo, style = MaterialTheme.typography.titleMedium)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(check.refNo, style = MaterialTheme.typography.titleMedium)
+                    if (check.zone.isNotBlank()) {
+                        Text(
+                            text = "Area ${check.zone}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
                 StatusChip(check.statusEnum)
+                // Visible rather than a long-press. A hidden gesture is no
+                // route at all for someone who has never been told about it,
+                // and this is the only way to end a count from the list.
+                Box {
+                    IconButton(onClick = { menuOpen = true }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "More")
+                    }
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        if (canComplete) {
+                            DropdownMenuItem(
+                                text = { Text("Mark completed") },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Check, contentDescription = null)
+                                },
+                                onClick = { menuOpen = false; onComplete() },
+                            )
+                        }
+                        if (canDelete) {
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Delete, contentDescription = null)
+                                },
+                                onClick = { menuOpen = false; confirmingDelete = true },
+                            )
+                        }
+                    }
+                }
             }
             Spacer(Modifier.height(6.dp))
             Text(
@@ -322,6 +450,29 @@ private fun StockCheckCard(check: StockCheck, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.outline,
             )
         }
+    }
+
+    if (confirmingDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmingDelete = false },
+            title = { Text("Delete ${check.refNo}?") },
+            text = {
+                Text(
+                    if (check.itemCount == 0) {
+                        "Nothing has been counted in it, so nothing is lost."
+                    } else {
+                        "${check.itemCount} counted lines and ${check.photoCount} photos " +
+                            "go with it. This cannot be undone."
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { confirmingDelete = false; onDelete() }) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingDelete = false }) { Text("Cancel") }
+            },
+        )
     }
 }
 
@@ -414,5 +565,78 @@ private fun LicenceBlockedDialog(licence: Licence?, onDismiss: () -> Unit) {
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
+    )
+}
+
+
+/**
+ * Which part of the building this count covers.
+ *
+ * A warehouse is counted zone by zone, by different people, often on the same
+ * day. Without this every count is called SC-481669 and telling them apart
+ * means opening each one and recognising the products -- and two counts of the
+ * same aisle look identical in the list.
+ *
+ * Skippable on purpose. A shop with one room should not have to answer, and
+ * forcing an answer produces a column full of "A" that means nothing.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ZonePickerDialog(
+    template: Template,
+    zones: List<String>,
+    onDismiss: () -> Unit,
+    onStart: (String) -> Unit,
+) {
+    var selected by remember { mutableStateOf("") }
+    var typed by remember { mutableStateOf("") }
+    val zone = typed.trim().ifEmpty { selected }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Which area?") },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    text = template.name,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    zones.forEach { option ->
+                        FilterChip(
+                            selected = selected == option && typed.isBlank(),
+                            onClick = {
+                                typed = ""
+                                selected = if (selected == option) "" else option
+                            },
+                            label = { Text(option) },
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = typed,
+                    onValueChange = { typed = it },
+                    label = { Text("Or type a new area") },
+                    placeholder = { Text("Cold room, Rack 7, Level 2") },
+                    singleLine = true,
+                    // Anything typed here joins the list, so the next person
+                    // taps it rather than retyping it and inventing
+                    // "Cold Room" beside "cold room".
+                    supportingText = { Text("Saved for next time") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onStart(zone) }) {
+                Text(if (zone.isBlank()) "Start without an area" else "Start $zone")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }

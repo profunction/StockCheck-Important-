@@ -53,8 +53,17 @@ object CsvReader {
      * would be guesswork, and guessing which column is the barcode is how an
      * import silently loads prices as quantities.
      */
-    fun parse(text: String): Parsed {
-        val cells = split(text)
+    fun parse(text: String): Parsed = fromRows(split(text))
+
+    /**
+     * Builds the same result from rows that came from somewhere other than CSV
+     * text -- a real .xlsx, read by [XlsxReader].
+     *
+     * Header matching, blank-row skipping and short-row tolerance are the same
+     * either way, because the file being a spreadsheet rather than text
+     * changes nothing about how forgiving the import has to be.
+     */
+    fun fromRows(cells: List<List<String>>): Parsed {
         val headerRow = cells.firstOrNull { row -> row.any { it.isNotBlank() } }
             ?: return Parsed(emptyList(), emptyList())
         val headers = headerRow.map { it.trim() }

@@ -25,6 +25,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.UploadFile
+import com.stockcheck.app.data.ImportSummary
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,6 +81,50 @@ class ProductsViewModel(private val session: Session) : ViewModel() {
     private val all: StateFlow<List<Product>> = repo.observeProducts()
         .catch { emit(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val imports = ServiceLocator.imports
+
+    private val _importing = MutableStateFlow(false)
+    val importing: StateFlow<Boolean> = _importing.asStateFlow()
+
+    private val _importResult = MutableStateFlow<ImportSummary?>(null)
+    val importResult: StateFlow<ImportSummary?> = _importResult.asStateFlow()
+
+    /**
+     * Loads a product list out of the customer's own spreadsheet.
+     *
+     * Without this the catalogue only fills up one product at a time, through
+     * a dialog, on a phone. Nobody types two thousand SKUs that way, so the
+     * catalogue stays empty and every counted line is a row of digits nobody
+     * can check against a shelf.
+     */
+    fun importProducts(bytes: ByteArray) {
+        if (_importing.value) return
+        _importing.value = true
+        viewModelScope.launch {
+            val (rows, problems) = imports.readProducts(bytes)
+            if (rows.isEmpty()) {
+                _importing.value = false
+                _message.value = problems.firstOrNull()
+                    ?: "Nothing in that file had a barcode."
+                return@launch
+            }
+            runCatching { imports.importProducts(session, rows) }
+                .onSuccess { summary ->
+                    _importResult.value = summary.copy(skipped = summary.skipped + problems)
+                }
+                .onFailure { _message.value = it.message }
+            _importing.value = false
+        }
+    }
+
+    fun onFileUnreadable() {
+        _message.value = "That file could not be opened. Pick a .xlsx or .csv file."
+    }
+
+    fun clearImportResult() {
+        _importResult.value = null
+    }
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -151,6 +199,28 @@ fun ProductsScreen(
     var editing by remember { mutableStateOf<Product?>(null) }
     var adding by remember { mutableStateOf(false) }
 
+    val importing by viewModel.importing.collectAsStateWithLifecycle()
+    val importResult by viewModel.importResult.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // Bytes, not text, and no MIME filter. A real .xlsx is a zip, Android
+    // reports an unfamiliar file as octet-stream, and filtering by type hides
+    // the file the customer is looking at. SheetReader tells xlsx from CSV by
+    // its first four bytes.
+    val filePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        val bytes = runCatching {
+            context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+        }.getOrNull()
+        if (bytes == null || bytes.isEmpty()) {
+            viewModel.onFileUnreadable()
+        } else {
+            viewModel.importProducts(bytes)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -158,6 +228,19 @@ fun ProductsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (canEdit) {
+                        IconButton(
+                            enabled = !importing,
+                            onClick = { filePicker.launch(arrayOf("*/*")) },
+                        ) {
+                            Icon(
+                                Icons.Filled.UploadFile,
+                                contentDescription = "Import from Excel or CSV",
+                            )
+                        }
                     }
                 },
             )
@@ -174,6 +257,9 @@ fun ProductsScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             message?.let { NoticeBar(text = it, tone = NoticeTone.ERROR) }
+            if (importing) {
+                NoticeBar(text = "Reading the file\u2026", tone = NoticeTone.INFO)
+            }
 
             OutlinedTextField(
                 value = query,
@@ -191,7 +277,8 @@ fun ProductsScreen(
                     icon = Icons.Filled.Inventory2,
                     title = if (query.isBlank()) "No products yet" else "Nothing matches",
                     message = if (query.isBlank()) {
-                        "Add the products you count. A scanned barcode then shows its " +
+                        "Add the products you count, or tap the import button above to " +
+                            "load an Excel or CSV list. A scanned barcode then shows its " +
                             "name and SKU straight away instead of a row of digits."
                     } else {
                         "No product matches \"$query\"."
@@ -221,6 +308,10 @@ fun ProductsScreen(
         }
     }
 
+    importResult?.let { summary ->
+        ImportSummaryDialog(summary) { viewModel.clearImportResult() }
+    }
+
     if (adding) {
         ProductDialog(
             existing = null,
@@ -247,6 +338,52 @@ fun ProductsScreen(
             },
         )
     }
+}
+
+/**
+ * What the import actually did.
+ *
+ * Reports skipped rows with their line number. An import that says "1,847 of
+ * 2,000" without saying which 153 or why is one nobody can trust against real
+ * stock -- and the rows it drops are the products that will scan as a row of
+ * digits later.
+ */
+@Composable
+private fun ImportSummaryDialog(summary: ImportSummary, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Product list loaded") },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    buildString {
+                        append("${summary.created} new products")
+                        if (summary.updated > 0) append(", ${summary.updated} updated")
+                    },
+                )
+                if (summary.skipped.isNotEmpty()) {
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        "${summary.skipped.size} rows skipped",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    summary.skipped.take(12).forEach { reason ->
+                        Text(reason, style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (summary.skipped.size > 12) {
+                        Text(
+                            "and ${summary.skipped.size - 12} more",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
+    )
 }
 
 @Composable

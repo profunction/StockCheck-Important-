@@ -72,7 +72,10 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
                         text.isBlank() ||
                             check.refNo.contains(text, ignoreCase = true) ||
                             check.templateName.contains(text, ignoreCase = true) ||
-                            check.createdByName.contains(text, ignoreCase = true)
+                            check.createdByName.contains(text, ignoreCase = true) ||
+                            // The area is often the only thing that tells two
+                            // counts of the same day apart.
+                            check.zone.contains(text, ignoreCase = true)
                         )
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

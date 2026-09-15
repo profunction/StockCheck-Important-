@@ -11,6 +11,7 @@ import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
+import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -64,7 +65,12 @@ class StockRepository(
 
     fun observeStockCheck(id: String): Flow<StockCheck?> = Db.stockCheck(id).asFlow()
 
-    suspend fun createStockCheck(session: Session, template: Template, note: String = ""): String {
+    suspend fun createStockCheck(
+        session: Session,
+        template: Template,
+        zone: String = "",
+        note: String = "",
+    ): String {
         session.require(Permission.CREATE_STOCK_CHECK)
         val id = Db.stockChecks().document().id
         val now = System.currentTimeMillis()
@@ -78,9 +84,15 @@ class StockRepository(
             createdByName = session.profile.displayName,
             createdAt = now,
             updatedAt = now,
+            zone = zone.trim(),
             note = note,
         )
         Db.stockCheck(id).set(check).awaitAck()
+
+        // A zone typed for the first time joins the list, so the next person
+        // taps it instead of retyping it and inventing "Cold Room" beside
+        // "cold room".
+        if (zone.isNotBlank()) rememberZone(session, zone.trim())
         audit.record(
             session = session,
             entity = "StockCheck",
@@ -90,6 +102,22 @@ class StockRepository(
             stockCheckId = id,
         )
         return id
+    }
+
+    /**
+     * Adds a newly used zone to the company's list.
+     *
+     * Best effort on purpose: a worker who may not write the config must still
+     * be able to start a count in a new area. Failing here would block the
+     * count over a convenience.
+     */
+    private suspend fun rememberZone(session: Session, zone: String) {
+        runCatching {
+            val config = Db.config().getAs<WorkspaceConfig>() ?: return
+            val known = config.zones
+            if (known.any { it.equals(zone, ignoreCase = true) }) return
+            Db.config().update("zones", known + zone).awaitAck()
+        }
     }
 
     /**

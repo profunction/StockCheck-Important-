@@ -43,6 +43,8 @@ data class ExportColumn(
         val TIME = ExportColumn("time", "Time", width = 10)
         val WORKER = ExportColumn("worker", "Worker", width = 18)
         val TEMPLATE = ExportColumn("template", "Template", width = 20)
+        /** Which part of the building this count covered. */
+        val ZONE = ExportColumn("zone", "Area", width = 14)
         val STATUS = ExportColumn("status", "Status", width = 13)
         val BARCODE = ExportColumn("barcode", "Barcode", width = 20)
         val PRODUCT = ExportColumn("product", "Product", width = 26, editableWhenGranted = true)
@@ -67,14 +69,14 @@ data class ExportColumn(
 
         /** The columns every export offers, before template fields are added. */
         val standard: List<ExportColumn> = listOf(
-            REF, DATE, TIME, WORKER, TEMPLATE, STATUS,
+            REF, DATE, TIME, WORKER, TEMPLATE, ZONE, STATUS,
             BARCODE, PRODUCT, SKU, EXPECTED, QUANTITY, VARIANCE, FINDING,
             UNIT, REMARK, SOURCE,
         )
 
         /** Ticked by default in the export sheet. */
         val defaultSelection: Set<String> = setOf(
-            REF.key, DATE.key, WORKER.key, BARCODE.key, PRODUCT.key,
+            REF.key, DATE.key, WORKER.key, ZONE.key, BARCODE.key, PRODUCT.key,
             EXPECTED.key, QUANTITY.key, VARIANCE.key, FINDING.key, UNIT.key,
         )
 

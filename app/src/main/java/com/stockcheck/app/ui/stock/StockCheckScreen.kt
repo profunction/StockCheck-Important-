@@ -34,7 +34,9 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.UploadFile
@@ -42,6 +44,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -53,6 +56,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -137,24 +141,28 @@ fun StockCheckScreen(
     val scannerActive by viewModel.scannerActive.collectAsStateWithLifecycle()
     // Drives which extra fields the edit dialog offers for a counted line.
     val template by viewModel.template.collectAsStateWithLifecycle()
+    val pendingScanId by viewModel.pendingScanId.collectAsStateWithLifecycle()
+    val confirmEachScan by viewModel.confirmEachScan.collectAsStateWithLifecycle()
 
     val importing by viewModel.importing.collectAsStateWithLifecycle()
     val importResult by viewModel.importResult.collectAsStateWithLifecycle()
 
-    // Any text type: a file exported from Excel arrives as text/csv on one
-    // phone and application/vnd.ms-excel or octet-stream on the next, and a
-    // picker that hides the file the customer is looking at is a dead end.
+    // Any type, and the bytes rather than the text. A file exported from
+    // Excel arrives as text/csv on one phone and octet-stream on the next, so
+    // filtering by MIME hides the file the customer is looking at; and reading
+    // it as text would rule out a real .xlsx, which is what they actually
+    // have. SheetReader decides what it is by looking at the first four bytes.
     val sheetPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        val text = runCatching {
-            context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+        val bytes = runCatching {
+            context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
         }.getOrNull()
-        if (text.isNullOrBlank()) {
+        if (bytes == null || bytes.isEmpty()) {
             viewModel.onFileUnreadable()
         } else {
-            viewModel.importCountSheet(text)
+            viewModel.importCountSheet(bytes)
         }
     }
 
@@ -235,7 +243,9 @@ fun StockCheckScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(check?.refNo ?: "Stock check")
+                        // Reference plus area: "SC-481997 - C" is how
+                        // someone refers to this count out loud.
+                        Text(check?.label ?: "Stock check")
                         Text(
                             text = check?.templateName.orEmpty(),
                             style = MaterialTheme.typography.labelSmall,
@@ -284,6 +294,11 @@ fun StockCheckScreen(
                             onImportSheet = {
                                 menuOpen = false
                                 sheetPicker.launch(arrayOf("*/*"))
+                            },
+                            confirmEachScan = confirmEachScan,
+                            onToggleConfirm = {
+                                menuOpen = false
+                                viewModel.setConfirmEachScan(!confirmEachScan)
                             },
                         )
                     }
@@ -342,7 +357,29 @@ fun StockCheckScreen(
                 )
             }
 
-            AnimatedVisibility(visible = scannerActive && !frozen) {
+            // The scanned line, resolved fresh each time so the quantity
+            // shown is the one in the database rather than a copy taken at
+            // scan time.
+            val pendingItem = items.firstOrNull { it.id == pendingScanId }
+
+            AnimatedVisibility(visible = pendingItem != null) {
+                pendingItem?.let { item ->
+                    ScanConfirmPanel(
+                        item = item,
+                        onDecrement = { viewModel.adjust(item, -1) },
+                        onIncrement = { viewModel.adjust(item, 1) },
+                        onEdit = { editing = item },
+                        onContinue = viewModel::continueScanning,
+                        onComplete = {
+                            viewModel.continueScanning()
+                            viewModel.complete(onCompleted = onBack)
+                        },
+                        canComplete = permissions.has(Permission.MARK_COMPLETED),
+                    )
+                }
+            }
+
+            AnimatedVisibility(visible = scannerActive && !frozen && pendingItem == null) {
                 ScannerPanel(
                     hasPermission = hasCamera,
                     allowed = permissions.has(Permission.SCAN_BARCODE),
@@ -727,6 +764,8 @@ private fun StatusMenu(
     onManual: () -> Unit,
     onPhotos: () -> Unit,
     onImportSheet: () -> Unit,
+    confirmEachScan: Boolean,
+    onToggleConfirm: () -> Unit,
 ) {
     val permissions = session.effectivePermissions
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
@@ -740,9 +779,31 @@ private fun StatusMenu(
             leadingIcon = { Icon(Icons.Filled.PhotoCamera, contentDescription = null) },
             onClick = onPhotos,
         )
+        DropdownMenuItem(
+            text = {
+                Text(
+                    if (confirmEachScan) {
+                        "Scanning: stop after each code"
+                    } else {
+                        "Scanning: keep reading"
+                    },
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = if (confirmEachScan) {
+                        Icons.Filled.PauseCircle
+                    } else {
+                        Icons.Filled.PlayCircle
+                    },
+                    contentDescription = null,
+                )
+            },
+            onClick = onToggleConfirm,
+        )
         if (permissions.hasAny(Permission.EDIT_OWN_STOCK, Permission.EDIT_ANY_STOCK)) {
             DropdownMenuItem(
-                text = { Text("Import count sheet") },
+                text = { Text("Import count sheet (Excel or CSV)") },
                 leadingIcon = { Icon(Icons.Filled.UploadFile, contentDescription = null) },
                 onClick = onImportSheet,
             )
@@ -1178,4 +1239,118 @@ private fun ImportSummaryDialog(summary: ImportSummary, onDismiss: () -> Unit) {
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
     )
+}
+
+
+/**
+ * Holds the count still after a scan until the operator says carry on.
+ *
+ * Takes the camera's place rather than sitting under it. Leaving the preview
+ * running would keep reading codes behind the panel, which is the problem this
+ * exists to solve -- and the lens has nothing useful to show while the shelf
+ * is not being pointed at.
+ *
+ * Sized for a thumb and a moving warehouse: the two things anyone does next
+ * are carry on and stop, so those are the two buttons.
+ */
+@Composable
+private fun ScanConfirmPanel(
+    item: StockItem,
+    onDecrement: () -> Unit,
+    onIncrement: () -> Unit,
+    onEdit: () -> Unit,
+    onContinue: () -> Unit,
+    onComplete: () -> Unit,
+    canComplete: Boolean,
+) {
+    Surface(
+        tonalElevation = 4.dp,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+            Text(
+                text = "Scanned",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = item.productName.ifEmpty { item.barcode },
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 2,
+            )
+            if (item.productName.isNotEmpty()) {
+                Text(
+                    text = item.barcode + if (item.sku.isNotEmpty()) "  ·  ${item.sku}" else "",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                FilledTonalIconButton(onClick = onDecrement, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Filled.Remove, contentDescription = "Subtract one")
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(onClick = onEdit),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = item.quantity.toString(),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = item.unit + "  ·  tap to edit",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                FilledTonalIconButton(onClick = onIncrement, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add one")
+                }
+            }
+
+            if (item.onList) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = when {
+                        item.variance == 0 -> "Matches the count sheet (${item.expected})"
+                        item.variance < 0 -> "Sheet says ${item.expected} — short ${-item.variance}"
+                        else -> "Sheet says ${item.expected} — over ${item.variance}"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (item.hasVariance) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = onContinue,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
+                ) {
+                    Icon(Icons.Filled.Check, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Scan next")
+                }
+                if (canComplete) {
+                    OutlinedButton(
+                        onClick = onComplete,
+                        modifier = Modifier.height(52.dp),
+                    ) { Text("Finish") }
+                }
+            }
+        }
+    }
 }

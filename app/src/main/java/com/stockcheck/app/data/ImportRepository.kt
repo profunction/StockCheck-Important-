@@ -1,6 +1,7 @@
 package com.stockcheck.app.data
 
 import com.stockcheck.app.export.CsvReader
+import com.stockcheck.app.export.SheetReader
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
@@ -59,8 +60,18 @@ class ImportRepository(
 
     // ------------------------------------------------------------ products
 
-    fun readProducts(text: String): Pair<List<ImportRow>, List<String>> {
-        val parsed = CsvReader.parse(text)
+    /**
+     * Reads a product list out of a spreadsheet.
+     *
+     * Takes bytes, not text, so a real .xlsx works. The alternative -- telling
+     * a customer to save their file as CSV first -- is a step they will forget,
+     * get wrong, or do with an encoding that turns every Chinese name into
+     * question marks.
+     */
+    fun readProducts(bytes: ByteArray): Pair<List<ImportRow>, List<String>> {
+        val parsed = runCatching { SheetReader.read(bytes) }.getOrElse { error ->
+            return emptyList<ImportRow>() to listOf(error.message ?: "That file could not be read.")
+        }
         if (parsed.headers.isEmpty()) {
             return emptyList<ImportRow>() to listOf("The file has no header row.")
         }
@@ -138,8 +149,10 @@ class ImportRepository(
 
     // --------------------------------------------------------- count sheet
 
-    fun readCountSheet(text: String): Pair<List<ImportRow>, List<String>> {
-        val parsed = CsvReader.parse(text)
+    fun readCountSheet(bytes: ByteArray): Pair<List<ImportRow>, List<String>> {
+        val parsed = runCatching { SheetReader.read(bytes) }.getOrElse { error ->
+            return emptyList<ImportRow>() to listOf(error.message ?: "That file could not be read.")
+        }
         if (parsed.headers.isEmpty()) {
             return emptyList<ImportRow>() to listOf("The file has no header row.")
         }

@@ -263,6 +263,7 @@ class ExportService(
             ExportColumn.TIME.key -> timeFormat.format(Date(item.createdAt))
             ExportColumn.WORKER.key -> check.createdByName
             ExportColumn.TEMPLATE.key -> check.templateName
+            ExportColumn.ZONE.key -> check.zone
             ExportColumn.STATUS.key -> StockStatus.parse(check.status).label
             ExportColumn.BARCODE.key -> item.barcode
             ExportColumn.PRODUCT.key -> item.productName

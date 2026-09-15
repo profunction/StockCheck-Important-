@@ -71,6 +71,41 @@ class StockCheckViewModel(
     private val _scannerActive = MutableStateFlow(true)
     val scannerActive: StateFlow<Boolean> = _scannerActive.asStateFlow()
 
+    /**
+     * The line a scan just landed on, while it waits to be acknowledged.
+     *
+     * Held as an id rather than the item itself so the panel shows the live
+     * quantity: the operator adjusts it right there, and a captured copy would
+     * go stale the moment they did.
+     */
+    private val _pendingScanId = MutableStateFlow<String?>(null)
+    val pendingScanId: StateFlow<String?> = _pendingScanId.asStateFlow()
+
+    /**
+     * Stop the camera after each scan until someone says carry on.
+     *
+     * The camera reads the whole frame continuously, which is right when you
+     * are working down a shelf of identical cases and wrong everywhere else:
+     * a warehouse is full of barcodes, the lens catches the next one while the
+     * operator is still looking at the last, and lines appear faster than
+     * anyone can check them. Pausing makes each scan a deliberate act.
+     *
+     * On by default, and switchable, because the continuous behaviour is
+     * genuinely faster once a count is going well.
+     */
+    private val _confirmEachScan = MutableStateFlow(true)
+    val confirmEachScan: StateFlow<Boolean> = _confirmEachScan.asStateFlow()
+
+    fun setConfirmEachScan(on: Boolean) {
+        _confirmEachScan.value = on
+        if (!on) _pendingScanId.value = null
+    }
+
+    /** Acknowledges the last scan and lets the camera read again. */
+    fun continueScanning() {
+        _pendingScanId.value = null
+    }
+
     init {
         viewModelScope.launch {
             check.collect { current ->
@@ -107,7 +142,13 @@ class StockCheckViewModel(
                 when (outcome) {
                     is ScanOutcome.Added -> {
                         _focusedItemId.value = outcome.item.id
-                        _toast.value = Toast("Added ${outcome.item.barcode}")
+                        if (_confirmEachScan.value) {
+                            // No snackbar: the panel below the camera is
+                            // already saying what was added, and louder.
+                            _pendingScanId.value = outcome.item.id
+                        } else {
+                            _toast.value = Toast("Added ${outcome.item.barcode}")
+                        }
                     }
                     is ScanOutcome.AlreadyPresent -> {
                         _focusedItemId.value = outcome.item.id
@@ -122,6 +163,7 @@ class StockCheckViewModel(
         val prompt = _duplicate.value ?: return
         _duplicate.value = null
         adjust(prompt.item, amount)
+        if (_confirmEachScan.value) _pendingScanId.value = prompt.item.id
     }
 
     fun dismissDuplicate() {
@@ -293,6 +335,7 @@ class StockCheckViewModel(
 
     fun deleteItem(item: StockItem) {
         if (isFrozen()) return
+        if (_pendingScanId.value == item.id) _pendingScanId.value = null
         viewModelScope.launch {
             runCatching { stock.deleteItem(session, checkId, item) }
                 .onSuccess {
@@ -358,12 +401,12 @@ class StockCheckViewModel(
      * question anyone orders a stock take to answer is "how many are
      * missing", and nothing in the app could say.
      */
-    fun importCountSheet(text: String) {
+    fun importCountSheet(bytes: ByteArray) {
         if (isFrozen()) return
         if (_importing.value) return
         _importing.value = true
         viewModelScope.launch {
-            val (rows, problems) = imports.readCountSheet(text)
+            val (rows, problems) = imports.readCountSheet(bytes)
             if (rows.isEmpty()) {
                 _importing.value = false
                 _toast.value = Toast(
@@ -387,7 +430,7 @@ class StockCheckViewModel(
     /** The picker returned something this app could not read as text. */
     fun onFileUnreadable() {
         _toast.value = Toast(
-            "That file could not be read. Export it from Excel as CSV UTF-8 and try again.",
+            "That file could not be opened. Pick a .xlsx or .csv file.",
             isError = true,
         )
     }

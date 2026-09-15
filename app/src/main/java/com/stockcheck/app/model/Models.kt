@@ -47,9 +47,25 @@ data class StockCheck(
     val itemCount: Int = 0,
     val totalQuantity: Int = 0,
     val photoCount: Int = 0,
+    /**
+     * Which part of the building this count covers: "A", "Cold room", "Rack 3".
+     *
+     * A warehouse is counted zone by zone, by different people, often on the
+     * same day. Without this every count is called SC-481669 and the only way
+     * to tell which one covered aisle C is to open it and recognise the
+     * products -- and two counts of the same aisle look identical.
+     *
+     * Free text rather than an enum: the company names its own areas, and a
+     * fixed list would be wrong for the first customer who calls them 1 to 12.
+     */
+    val zone: String = "",
     val note: String = "",
 ) {
     @get:Exclude val statusEnum: StockStatus get() = StockStatus.parse(status)
+
+    /** Reference plus zone, which is how a person refers to a count out loud. */
+    @get:Exclude val label: String
+        get() = if (zone.isBlank()) refNo else "$refNo · $zone"
 }
 
 enum class ItemSource { SCAN, VOICE, MANUAL }
@@ -266,10 +282,22 @@ data class WorkspaceConfig(
      * the audit trail behind it.
      */
     val exportPassword: String = "",
+    /**
+     * The areas this company counts, offered when a stock check is started.
+     *
+     * Held per company because every warehouse names its own: A to F, 1 to 12,
+     * "Cold room" and "Loading bay". Anything typed that is not on the list is
+     * still accepted and added, so the list grows into the truth rather than
+     * having to be right up front.
+     */
+    val zones: List<String> = DEFAULT_ZONES,
     val updatedAt: Long = 0L,
     val updatedByUid: String = "",
 ) {
     companion object {
+        /** A starting point, not a rule. Replaced the moment anyone types one. */
+        val DEFAULT_ZONES = listOf("A", "B", "C", "D")
+
         /** Codes are compared case- and space-insensitively. */
         fun normalise(raw: String): String = raw.trim().uppercase()
     }
