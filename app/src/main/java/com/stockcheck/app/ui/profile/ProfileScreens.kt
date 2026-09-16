@@ -54,6 +54,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
+import com.stockcheck.app.R
+import com.stockcheck.app.ui.i18n.AppLanguage
+import com.stockcheck.app.ui.i18n.LocalLanguageSetting
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -309,6 +313,9 @@ fun ProfileScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
+            Spacer(Modifier.height(24.dp))
+            LanguageSection()
+
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = onSignOut,
@@ -493,6 +500,71 @@ private fun BackupDialog(
             ) { Text(if (result == null) "Cancel" else "Done") }
         },
     )
+}
+
+/**
+ * Picking the language the app speaks.
+ *
+ * Each language is named in itself — somebody hunting for their own is not
+ * helped by seeing it written in one they cannot read — and the change lands
+ * on the next frame rather than after a restart, because the person changing
+ * it is usually looking at words they do not understand.
+ *
+ * "Follow phone" is the default and stays first: a phone already set to Malay
+ * should open in Malay without anyone being asked.
+ */
+@Composable
+private fun LanguageSection() {
+    val setting = LocalLanguageSetting.current
+
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Text(
+            text = stringResource(R.string.language),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Spacer(Modifier.height(4.dp))
+
+        LanguageRow(
+            label = stringResource(R.string.language_follow_phone),
+            selected = setting.current == null,
+            onClick = { setting.set(null) },
+        )
+        AppLanguage.entries.forEach { language ->
+            LanguageRow(
+                label = language.label,
+                selected = setting.current == language,
+                onClick = { setting.set(language) },
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.language_follow_phone_note),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun LanguageRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
+        )
+    }
 }
 
 /**

@@ -1,0 +1,38 @@
+<resources>
+    <string name="language">Bahasa</string>
+    <string name="language_follow_phone">Ikut telefon</string>
+    <string name="language_follow_phone_note">Guna bahasa yang ditetapkan pada telefon ini.</string>
+
+    <string name="tab_stock">Stok</string>
+    <string name="tab_photos">Foto</string>
+    <string name="tab_templates">Templat</string>
+    <string name="tab_history">Sejarah</string>
+    <string name="tab_profile">Profil</string>
+
+    <string name="stock_check">Semakan stok</string>
+    <string name="new_stock_check">Semakan stok baharu</string>
+
+    <string name="status_draft">Draf</string>
+    <string name="status_in_progress">Sedang dikira</string>
+    <string name="status_completed">Selesai</string>
+    <string name="status_reviewed">Telah disemak</string>
+    <string name="status_locked">Dikunci</string>
+
+    <string name="which_area">Kawasan mana?</string>
+    <string name="type_new_area">Atau taip kawasan baharu</string>
+    <string name="area_examples">Bilik sejuk, Rak 7, Tingkat 2</string>
+    <string name="area_saved_for_next_time">Disimpan untuk kali seterusnya</string>
+    <string name="area_remove_hint">Tekan x pada kawasan untuk membuangnya dari senarai ini. Kiraan yang sudah dibuat di situ kekal.</string>
+    <string name="area_remove">Buang %1$s</string>
+    <string name="start_without_area">Mula tanpa kawasan</string>
+    <string name="start_area">Mula %1$s</string>
+    <string name="cancel">Batal</string>
+
+    <string name="total_products">Produk</string>
+    <string name="total_quantity">Jumlah kuantiti</string>
+    <string name="total_photos">Foto</string>
+    <string name="total_status">Status</string>
+    <string name="total_differences">Perbezaan</string>
+    <string name="total_review">Semak</string>
+    <string name="total_unnamed">Tiada nama</string>
+</resources>

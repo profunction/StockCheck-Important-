@@ -1,3 +1,46 @@
 <resources>
     <string name="app_name">Stock Check</string>
+
+    <!-- Language picker -->
+    <string name="language">Language</string>
+    <string name="language_follow_phone">Follow phone</string>
+    <string name="language_follow_phone_note">Uses whatever language this phone is set to.</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_stock">Stock</string>
+    <string name="tab_photos">Photos</string>
+    <string name="tab_templates">Templates</string>
+    <string name="tab_history">History</string>
+    <string name="tab_profile">Profile</string>
+
+    <!-- Stock check list -->
+    <string name="stock_check">Stock check</string>
+    <string name="new_stock_check">New stock check</string>
+
+    <!-- Status -->
+    <string name="status_draft">Draft</string>
+    <string name="status_in_progress">In progress</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_reviewed">Reviewed</string>
+    <string name="status_locked">Locked</string>
+
+    <!-- Choosing an area -->
+    <string name="which_area">Which area?</string>
+    <string name="type_new_area">Or type a new area</string>
+    <string name="area_examples">Cold room, Rack 7, Level 2</string>
+    <string name="area_saved_for_next_time">Saved for next time</string>
+    <string name="area_remove_hint">Tap x on an area to take it off this list. Counts already made in it are kept.</string>
+    <string name="area_remove">Remove %1$s</string>
+    <string name="start_without_area">Start without an area</string>
+    <string name="start_area">Start %1$s</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Totals along the foot of a count -->
+    <string name="total_products">Products</string>
+    <string name="total_quantity">Total qty</string>
+    <string name="total_photos">Photos</string>
+    <string name="total_status">Status</string>
+    <string name="total_differences">Differences</string>
+    <string name="total_review">Review</string>
+    <string name="total_unnamed">Unnamed</string>
 </resources>
