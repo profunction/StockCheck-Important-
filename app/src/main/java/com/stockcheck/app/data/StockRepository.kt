@@ -110,6 +110,25 @@ class StockRepository(
     }
 
     /**
+     * Drops an area from the company's list.
+     *
+     * The list is a row of shortcuts, not a record: removing one takes the
+     * button away and leaves every count ever made in that area exactly as it
+     * was. Best effort for the same reason as [rememberZone] -- the rules let
+     * an admin write the config and nobody else, and a worker tapping this
+     * should get nothing rather than an error about permissions.
+     */
+    suspend fun forgetZone(session: Session, zone: String) {
+        session.require(Permission.CREATE_STOCK_CHECK)
+        runCatching {
+            val config = Db.config().getAs<WorkspaceConfig>() ?: return
+            val kept = config.zones.filterNot { it.equals(zone, ignoreCase = true) }
+            if (kept.size == config.zones.size) return
+            Db.config().update("zones", kept).awaitAck()
+        }
+    }
+
+    /**
      * Adds a newly used zone to the company's list.
      *
      * Best effort on purpose: a worker who may not write the config must still

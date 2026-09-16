@@ -1,6 +1,7 @@
 package com.stockcheck.app.ui.stock
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -135,6 +137,14 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
             SharingStarted.WhileSubscribed(5_000),
             WorkspaceConfig.DEFAULT_ZONES,
         )
+
+    /** Takes an area off the shortcut row. Counts made in it are untouched. */
+    fun forgetZone(zone: String) {
+        viewModelScope.launch {
+            runCatching { stock.forgetZone(session, zone) }
+                .onFailure { _error.value = it.message }
+        }
+    }
 
     /** Creates a check and hands its id back so the caller can navigate. */
     fun createCheck(template: Template, zone: String = "", onCreated: (String) -> Unit) {
@@ -322,6 +332,7 @@ fun StockHomeScreen(
                 pickedTemplate = null
                 viewModel.createCheck(template, zone, onOpenCheck)
             },
+            onForgetZone = viewModel::forgetZone,
         )
     }
 }
@@ -587,6 +598,7 @@ private fun ZonePickerDialog(
     zones: List<String>,
     onDismiss: () -> Unit,
     onStart: (String) -> Unit,
+    onForgetZone: (String) -> Unit,
 ) {
     var selected by remember { mutableStateOf("") }
     var typed by remember { mutableStateOf("") }
@@ -604,17 +616,39 @@ private fun ZonePickerDialog(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    zones.forEach { option ->
-                        FilterChip(
-                            selected = selected == option && typed.isBlank(),
-                            onClick = {
-                                typed = ""
-                                selected = if (selected == option) "" else option
-                            },
-                            label = { Text(option) },
-                        )
+                if (zones.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        zones.forEach { option ->
+                            FilterChip(
+                                selected = selected == option && typed.isBlank(),
+                                onClick = {
+                                    typed = ""
+                                    selected = if (selected == option) "" else option
+                                },
+                                label = { Text(option) },
+                                // The list is whatever this company has typed
+                                // before, so it needs a way back out. Anything
+                                // that can be added and never removed fills up
+                                // with a typo nobody can clear.
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = "Remove $option",
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clickable { onForgetZone(option) },
+                                    )
+                                },
+                            )
+                        }
                     }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "Tap x on an area to take it off this list. " +
+                            "Counts already made in it are kept.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
 
                 Spacer(Modifier.height(12.dp))

@@ -348,7 +348,16 @@ data class WorkspaceConfig(
 ) {
     companion object {
         /** A starting point, not a rule. Replaced the moment anyone types one. */
-        val DEFAULT_ZONES = listOf("A", "B", "C", "D")
+        /**
+         * No areas until somebody names one.
+         *
+         * A, B, C, D were a guess at how a building is divided, and a guess
+         * printed as four buttons is worse than an empty row: it fills the
+         * picker with names nobody uses, and the real ones queue up behind
+         * them. Every warehouse names its own -- "Cold room", "Rack 7",
+         * "Level 2" -- and the first one typed is the first one offered.
+         */
+        val DEFAULT_ZONES = emptyList<String>()
 
         /** Codes are compared case- and space-insensitively. */
         fun normalise(raw: String): String = raw.trim().uppercase()
