@@ -172,11 +172,18 @@ fun ExportOptions.narrowedFor(permissions: PermissionSet): ExportOptions {
     } else {
         this.scope
     }
+    // Substituting the other format is only a kindness when the holder may
+    // actually have it. Someone with neither export permission used to be
+    // switched to the format they did not ask for and then refused by name for
+    // that one -- "Export CSV is not allowed" to a person who asked for Excel.
+    // Leaving the request alone lets the refusal name the thing they wanted.
     val format = when {
-        this.format == ExportFormat.XLSX && !permissions.has(Permission.EXPORT_EXCEL) ->
-            ExportFormat.CSV
-        this.format == ExportFormat.CSV && !permissions.has(Permission.EXPORT_CSV) ->
-            ExportFormat.XLSX
+        this.format == ExportFormat.XLSX &&
+            !permissions.has(Permission.EXPORT_EXCEL) &&
+            permissions.has(Permission.EXPORT_CSV) -> ExportFormat.CSV
+        this.format == ExportFormat.CSV &&
+            !permissions.has(Permission.EXPORT_CSV) &&
+            permissions.has(Permission.EXPORT_EXCEL) -> ExportFormat.XLSX
         else -> this.format
     }
     return copy(

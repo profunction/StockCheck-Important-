@@ -341,6 +341,7 @@ class StockRepository(
         session.require(Permission.EDIT_OWN_STOCK)
         val newQty = (item.quantity + delta).coerceAtLeast(0)
         if (newQty == item.quantity) return
+        val applied = newQty - item.quantity
         // An atomic increment, not the computed total. Two phones counting the
         // same check each hold their own snapshot of the quantity; writing a
         // total means the second write silently erases the first one's work,
@@ -349,11 +350,11 @@ class StockRepository(
         // normal case in a warehouse.
         Db.item(stockCheckId, item.id).update(
             mapOf(
-                "quantity" to FieldValue.increment((newQty - item.quantity).toLong()),
+                "quantity" to FieldValue.increment(applied.toLong()),
                 "updatedAt" to System.currentTimeMillis(),
             ),
         ).awaitAck()
-        bumpTotals(stockCheckId, itemDelta = 0, qtyDelta = newQty - item.quantity)
+        bumpTotals(stockCheckId, itemDelta = 0, qtyDelta = applied)
         if (isAuditable(stockCheckId)) audit.record(
             session = session,
             entity = "StockItem",
@@ -361,8 +362,16 @@ class StockRepository(
             entityLabel = item.productName.ifEmpty { item.barcode },
             action = AuditAction.UPDATE,
             field = "quantity",
+            // What was written, not only what this phone expected to see.
+            // The write is an increment against whatever the server holds, so
+            // when two phones edit one line from the same stale snapshot the
+            // totals they each predicted are both wrong -- but the increments
+            // they applied still add up to the number now stored. Recording
+            // the increment is what keeps the trail reconcilable; recording
+            // only the predicted total makes it assert something that never
+            // happened.
             oldValue = item.quantity.toString(),
-            newValue = newQty.toString(),
+            newValue = "$newQty (applied as ${if (applied > 0) "+$applied" else "$applied"})",
             stockCheckId = stockCheckId,
         )
     }

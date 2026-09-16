@@ -43,7 +43,11 @@ enum class Permission(val group: PermissionGroup, val label: String) {
     EXPORT_EXCEL(PermissionGroup.EXPORT, "Export Excel"),
     EXPORT_OWN_DATA(PermissionGroup.EXPORT, "Export own data"),
     EXPORT_ALL_DATA(PermissionGroup.EXPORT, "Export all data"),
-    EDIT_EXPORTED_FILE(PermissionGroup.EXPORT, "Produce editable (unlocked) file"),
+    // Excel only, and the label says so. A CSV has no concept of a locked
+    // cell, so withholding this from someone who holds EXPORT_CSV changes
+    // nothing they can do -- and a permission that reads as though it governs
+    // every export is worse than one that admits its scope.
+    EDIT_EXPORTED_FILE(PermissionGroup.EXPORT, "Produce an unlocked Excel file"),
     PRINT(PermissionGroup.EXPORT, "Print"),
 
     // --- Import ---

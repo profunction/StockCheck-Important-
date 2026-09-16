@@ -169,9 +169,16 @@ class XlsxWriter(
 
         if (protectionPassword != null) {
             append(
+                // Only the attributes Excel itself writes when a sheet is
+                // protected through its own UI. selectLockedCells and
+                // selectUnlockedCells were set here too, and in this schema a
+                // protection attribute set to 1 forbids the action rather than
+                // permitting it -- which would leave a protected export whose
+                // cells cannot even be clicked to read or copy. Omitted, both
+                // default to allowing selection, which is what anyone opening
+                // a locked sheet expects.
                 """<sheetProtection password="${legacyPasswordHash(protectionPassword)}"""" +
-                    """ sheet="1" objects="1" scenarios="1" """ +
-                    """selectLockedCells="1" selectUnlockedCells="1"/>""",
+                    """ sheet="1" objects="1" scenarios="1"/>""",
             )
         }
         append("</worksheet>")

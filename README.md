@@ -132,14 +132,26 @@ A few decisions worth knowing:
   "counting with no signal" and "the app died mid-shift" without any sync code.
 - **Quantities are updated with atomic increments**, so two phones counting the
   same check cannot clobber each other's totals, and queued offline increments
-  still add up correctly when replayed.
+  still add up correctly when replayed. The cost is that setting a line to an
+  absolute number is sent as the difference from whatever that phone last saw:
+  two people setting one line to 10 and to 8 from a shared snapshot of 5 leave
+  13 behind, because both increments applied. That is the deliberate trade for
+  counting without a signal -- a transaction would read the true value first,
+  but transactions do not work offline. The audit entry records the increment
+  that was applied, not just the total the phone predicted, so the trail still
+  reconciles to the stored number.
 - **The audit log is append-only** — the rules deny update and delete to
   everyone, admins included. A trail anyone can rewrite is not a trail.
 - **XLSX is written by hand** (`export/XlsxWriter.kt`). An xlsx is a zip of XML;
   Apache POI would add tens of megabytes and needs desugaring on Android.
-- **Export locking is real.** Cells a role may not change are locked via Excel's
-  own sheet protection, not merely greyed out. It stops casual edits, not a
-  determined person — the audit trail is what establishes what a record said.
+- **Export locking is real, and it is Excel-only.** Cells a role may not change
+  are locked via Excel's own sheet protection, not merely greyed out. It stops
+  casual edits, not a determined person — the audit trail is what establishes
+  what a record said. A CSV has no locked cells, so `EDIT_EXPORTED_FILE` has
+  nothing to bite on there: anyone holding `EXPORT_CSV` can produce an editable
+  file of everything their scope allows. Withhold `EXPORT_CSV` from a role if
+  that matters; the permission is named for the Excel path because that is the
+  only path it governs.
 - **Admin's permissions are resolved in code**, not read from its stored list, so
   an admin cannot accidentally revoke their own ability to administer.
 
