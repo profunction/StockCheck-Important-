@@ -144,11 +144,31 @@ class RefNoAllocator(appContext: Context) {
         fun periodOf(millis: Long): String =
             SimpleDateFormat("yyMM", Locale.US).format(Date(millis))
 
-        /** `RC-260916-007` — the day it was opened, and the month's running number. */
+        /**
+         * `RC-16/09/2026-007` — the day it was opened, and the month's
+         * running number.
+         *
+         * Day first, the way a date is written and said here. The slashes are
+         * what make it read as a date rather than a serial, which is the
+         * whole point of putting one in: somebody looking through a folder is
+         * looking for a day, not for six digits they have to decode.
+         *
+         * Slashes are also path separators, so anything building a filename
+         * out of a reference has to go through [forFilename] first.
+         */
         fun format(millis: Long, seq: Int): String {
-            val day = SimpleDateFormat("yyMMdd", Locale.US).format(Date(millis))
+            val day = SimpleDateFormat("dd/MM/yyyy", Locale.US).format(Date(millis))
             return "RC-$day-" + seq.toString().padStart(3, '0')
         }
+
+        /**
+         * The reference with nothing in it a file system would object to.
+         *
+         * `RC-16/09/2026-007` names three directories and a file on the way to
+         * an export that was meant to be one spreadsheet.
+         */
+        fun forFilename(refNo: String): String =
+            refNo.replace('/', '-').replace('\\', '-')
 
         /**
          * The month part of a reference, for finding last month's records.
@@ -158,8 +178,10 @@ class RefNoAllocator(appContext: Context) {
          * rather than being rewritten into numbers they never had.
          */
         fun periodIn(refNo: String): String? {
-            val match = Regex("""^RC-(\d{4})\d{2}-\d+$""").find(refNo.trim()) ?: return null
-            return match.groupValues[1]
+            val match = Regex("""^RC-\d{2}/(\d{2})/\d{2}(\d{2})-\d+$""")
+                .find(refNo.trim()) ?: return null
+            val (month, year) = match.destructured
+            return year + month
         }
     }
 }

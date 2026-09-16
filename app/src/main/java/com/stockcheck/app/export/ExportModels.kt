@@ -38,7 +38,10 @@ data class ExportColumn(
     val requiresPermission: Permission? = null,
 ) {
     companion object {
-        val REF = ExportColumn("refNo", "Ref No", width = 14)
+        // Wide enough for RC-16/09/2026-007 without Excel clipping it. A
+        // reference the reader has to widen a column to see is a reference
+        // they will mistype.
+        val REF = ExportColumn("refNo", "Ref No", width = 20)
         val DATE = ExportColumn("date", "Date", width = 12)
         val TIME = ExportColumn("time", "Time", width = 10)
         val WORKER = ExportColumn("worker", "Worker", width = 18)

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
+import com.stockcheck.app.data.RefNoAllocator
 import com.stockcheck.app.data.AuditRepository
 import com.stockcheck.app.data.Db
 import com.stockcheck.app.data.TemplateRepository
@@ -118,7 +119,15 @@ class ExportService(
         val dir = File(appContext.cacheDir, "exports").apply { mkdirs() }
         val name = buildString {
             append("stockcheck-")
-            append(if (scoped.size == 1) scoped.first().refNo else "${scoped.size}-checks")
+            // A reference carries slashes because it carries a date, and a
+            // slash in a filename is a directory nobody asked for.
+            append(
+                if (scoped.size == 1) {
+                    RefNoAllocator.forFilename(scoped.first().refNo)
+                } else {
+                    "${scoped.size}-checks"
+                },
+            )
             append('-')
             append(stampFormat.format(Date()))
             append('.')
