@@ -1,0 +1,38 @@
+<resources>
+    <string name="language">语言</string>
+    <string name="language_follow_phone">跟随手机</string>
+    <string name="language_follow_phone_note">用这台手机自己的语言设置。</string>
+
+    <string name="tab_stock">盘点</string>
+    <string name="tab_photos">照片</string>
+    <string name="tab_templates">模板</string>
+    <string name="tab_history">历史</string>
+    <string name="tab_profile">我的</string>
+
+    <string name="stock_check">盘点</string>
+    <string name="new_stock_check">新建盘点</string>
+
+    <string name="status_draft">草稿</string>
+    <string name="status_in_progress">进行中</string>
+    <string name="status_completed">已完成</string>
+    <string name="status_reviewed">已复核</string>
+    <string name="status_locked">已锁定</string>
+
+    <string name="which_area">盘哪个区？</string>
+    <string name="type_new_area">或输入新的区</string>
+    <string name="area_examples">冷库、7 号货架、二楼</string>
+    <string name="area_saved_for_next_time">下次直接选</string>
+    <string name="area_remove_hint">点区名上的 x 可以把它从这行去掉。已经在那个区盘过的单子不受影响。</string>
+    <string name="area_remove">删掉 %1$s</string>
+    <string name="start_without_area">不分区，直接开始</string>
+    <string name="start_area">开始盘 %1$s</string>
+    <string name="cancel">取消</string>
+
+    <string name="total_products">商品数</string>
+    <string name="total_quantity">总数量</string>
+    <string name="total_photos">照片</string>
+    <string name="total_status">状态</string>
+    <string name="total_differences">差异</string>
+    <string name="total_review">待复核</string>
+    <string name="total_unnamed">未命名</string>
+</resources>

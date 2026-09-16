@@ -50,6 +50,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.stockcheck.app.R
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -606,7 +608,7 @@ private fun ZonePickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Which area?") },
+        title = { Text(stringResource(R.string.which_area)) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(
@@ -633,7 +635,7 @@ private fun ZonePickerDialog(
                                 trailingIcon = {
                                     Icon(
                                         imageVector = Icons.Filled.Close,
-                                        contentDescription = "Remove $option",
+                                        contentDescription = stringResource(R.string.area_remove, option),
                                         modifier = Modifier
                                             .size(16.dp)
                                             .clickable { onForgetZone(option) },
@@ -644,8 +646,7 @@ private fun ZonePickerDialog(
                     }
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = "Tap x on an area to take it off this list. " +
-                            "Counts already made in it are kept.",
+                        text = stringResource(R.string.area_remove_hint),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -655,22 +656,30 @@ private fun ZonePickerDialog(
                 OutlinedTextField(
                     value = typed,
                     onValueChange = { typed = it },
-                    label = { Text("Or type a new area") },
-                    placeholder = { Text("Cold room, Rack 7, Level 2") },
+                    label = { Text(stringResource(R.string.type_new_area)) },
+                    placeholder = { Text(stringResource(R.string.area_examples)) },
                     singleLine = true,
                     // Anything typed here joins the list, so the next person
                     // taps it rather than retyping it and inventing
                     // "Cold Room" beside "cold room".
-                    supportingText = { Text("Saved for next time") },
+                    supportingText = { Text(stringResource(R.string.area_saved_for_next_time)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = { onStart(zone) }) {
-                Text(if (zone.isBlank()) "Start without an area" else "Start $zone")
+                Text(
+                    if (zone.isBlank()) {
+                        stringResource(R.string.start_without_area)
+                    } else {
+                        stringResource(R.string.start_area, zone)
+                    },
+                )
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
     )
 }
