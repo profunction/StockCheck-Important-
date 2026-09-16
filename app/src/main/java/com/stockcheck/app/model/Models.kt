@@ -328,7 +328,6 @@ data class Session(
     val role: Role,
 ) {
     val uid: String get() = profile.uid
-    val permissions: PermissionSet get() = role.permissionSet
 }
 
 // ------------------------------------------------------------------ audit log

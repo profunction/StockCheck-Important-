@@ -2,7 +2,9 @@ package com.stockcheck.app.export
 
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.util.zip.ZipInputStream
+import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
@@ -20,6 +22,20 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 object XlsxReader {
 
+    /**
+     * Ceilings, because this runs on a phone.
+     *
+     * A workbook arrives as one ByteArray, is decompressed into another, and
+     * is then parsed into a DOM several times larger again. An app heap is
+     * commonly 128-256MB, so an unbounded read is an out-of-memory crash on a
+     * genuinely large catalogue -- and a zip whose few kilobytes expand to
+     * gigabytes would take the app down on purpose.
+     *
+     * Failing with a sentence someone can act on beats dying silently.
+     */
+    private const val MAX_FILE_BYTES = 24 * 1024 * 1024
+    private const val MAX_UNCOMPRESSED_BYTES = 64L * 1024 * 1024
+
     /** True when these bytes are a zip, which is what an xlsx is. */
     fun looksLikeXlsx(bytes: ByteArray): Boolean =
         bytes.size >= 4 &&
@@ -33,6 +49,11 @@ object XlsxReader {
      *   can read, with a message aimed at whoever has to fix the file.
      */
     fun read(bytes: ByteArray): List<List<String>> {
+        require(bytes.size <= MAX_FILE_BYTES) {
+            "That file is ${bytes.size / (1024 * 1024)}MB, which is too large to " +
+                "import on a phone. Split it into smaller files, or remove the " +
+                "images and charts and save it again."
+        }
         val parts = unzip(bytes)
 
         require(parts.containsKey("xl/workbook.xml")) {
@@ -52,13 +73,49 @@ object XlsxReader {
 
     private fun unzip(bytes: ByteArray): Map<String, ByteArray> {
         val parts = mutableMapOf<String, ByteArray>()
+        var budget = MAX_UNCOMPRESSED_BYTES
         ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
-                if (!entry.isDirectory) parts[entry.name] = zip.readBytes()
+                if (entry.isDirectory || !isNeeded(entry.name)) continue
+                val buffer = ByteArrayOutputStream()
+                val chunk = ByteArray(16 * 1024)
+                while (true) {
+                    val read = zip.read(chunk)
+                    if (read < 0) break
+                    budget -= read
+                    require(budget >= 0) {
+                        "That workbook expands to more than " +
+                            "${MAX_UNCOMPRESSED_BYTES / (1024 * 1024)}MB, which will not " +
+                            "fit in memory on a phone. Split it into smaller files."
+                    }
+                    buffer.write(chunk, 0, read)
+                }
+                parts[entry.name] = buffer.toByteArray()
             }
         }
         return parts
+    }
+
+    /**
+     * Which parts of the zip are worth decompressing.
+     *
+     * A catalogue exported with a logo on every row carries megabytes of
+     * images an import will never look at. Skipping them is both the memory
+     * saving that matters and the reason a large-looking file often imports
+     * fine.
+     */
+    private fun isNeeded(name: String): Boolean {
+        val lower = name.lowercase()
+        if (!lower.startsWith("xl/")) return false
+        if (lower.startsWith("xl/media/") ||
+            lower.startsWith("xl/embeddings/") ||
+            lower.startsWith("xl/theme/") ||
+            lower.contains("printersettings")
+        ) {
+            return false
+        }
+        return lower.endsWith(".xml") || lower.endsWith(".rels")
     }
 
     /**
@@ -97,9 +154,36 @@ object XlsxReader {
         return fallback
     }
 
+    /**
+     * A parser that will not follow the file anywhere it should not go.
+     *
+     * These bytes came from a customer's machine. A DTD with a nested entity
+     * expands to gigabytes from a few hundred bytes of XML, and an external
+     * entity turns a spreadsheet into a request for whatever the phone can
+     * reach. Neither is needed to read a worksheet, so both are refused.
+     *
+     * Each switch is set defensively: a parser that does not recognise one
+     * throws rather than ignoring it, and an unrecognised switch is not a
+     * reason to fail the import.
+     */
+    private fun secureFactory(): DocumentBuilderFactory =
+        DocumentBuilderFactory.newInstance().apply {
+            runCatching { setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true) }
+            runCatching {
+                setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+            }
+            runCatching {
+                setFeature("http://xml.org/sax/features/external-general-entities", false)
+            }
+            runCatching {
+                setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+            }
+            runCatching { isXIncludeAware = false }
+            runCatching { isExpandEntityReferences = false }
+        }
+
     private fun parse(bytes: ByteArray) =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            .parse(ByteArrayInputStream(bytes))
+        secureFactory().newDocumentBuilder().parse(ByteArrayInputStream(bytes))
 
     // ------------------------------------------------------------ strings
 

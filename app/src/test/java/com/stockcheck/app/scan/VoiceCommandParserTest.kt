@@ -139,4 +139,66 @@ class VoiceCommandParserTest {
         assertEquals(25, result.quantity)
         assertEquals("可乐", result.productName)
     }
+
+    // --------------------------------------------- sizes in a product name
+
+    @Test
+    fun `a size in the name is not mistaken for the count`() {
+        val result = count("coke 500ml 12")
+        assertEquals(12, result.quantity)
+        assertEquals("coke 500ml", result.productName)
+    }
+
+    @Test
+    fun `a litre size is not mistaken for the count`() {
+        assertEquals(6, count("pepsi 2l 6").quantity)
+        assertEquals(25, count("可乐 1.5升 25").quantity)
+    }
+
+    @Test
+    fun `a size spoken with a space is still a size`() {
+        assertEquals(12, count("coke 500 ml 12").quantity)
+    }
+
+    @Test
+    fun `the size survives into the product name`() {
+        assertEquals("pepsi 2l", count("pepsi 2l 6").productName)
+    }
+
+    @Test
+    fun `a name whose number is not a size still counts`() {
+        // A4 is part of the name, but nothing marks it as a size, so the rule
+        // that the count comes last is what has to carry this one.
+        assertEquals(25, count("a4 paper 25").quantity)
+    }
+
+    @Test
+    fun `a phrase that is only a size is refused, not guessed`() {
+        val result = parse("pepsi 2l")
+        assertTrue("Expected Unrecognised, got $result", result is VoiceCommand.Unrecognised)
+    }
+
+    @Test
+    fun `weight is a quantity, not a size`() {
+        // This app counts by the kilo, so 5 here is a real count.
+        val result = count("米 五公斤")
+        assertEquals(5, result.quantity)
+        assertEquals("kg", result.unit)
+    }
+
+    // ------------------------------------------------- units inside words
+
+    @Test
+    fun `ge inside a demonstrative is not a unit`() {
+        // 个 is a unit, but 这个 is not "this piece".
+        val result = count("这个可乐 25")
+        assertEquals(25, result.quantity)
+        assertEquals("这个可乐", result.productName)
+    }
+
+    @Test
+    fun `a unit after a number is still a unit`() {
+        assertEquals("ctn", count("可乐 25 箱").unit)
+        assertEquals("ctn", count("可乐 25箱").unit)
+    }
 }

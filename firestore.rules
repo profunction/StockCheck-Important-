@@ -239,11 +239,15 @@ service cloud.firestore {
         // the counting screen, so a worker who could not read it would be back
         // to bare numbers.
         allow read: if active();
-        // Anyone who counts may name what they just scanned. Making this
-        // admin-only would mean an unknown barcode stays unknown until someone
-        // else gets round to it, which is exactly the delay this is meant to
-        // remove.
-        allow create, update: if can('CREATE_STOCK_CHECK') || can('EDIT_TEMPLATE');
+        // Creating is naming a barcode that had no name: the counter who just
+        // scanned it is exactly the right person, so this stays open to them.
+        allow create: if can('CREATE_STOCK_CHECK') || can('EDIT_TEMPLATE');
+        // Overwriting an entry that already exists is the other act -- what a
+        // spreadsheet import does to the whole catalogue at once -- and that
+        // needs the permission granted for it. The rules cannot see that four
+        // hundred writes arrived as one import, but they can see that each one
+        // lands on a product somebody already named.
+        allow update: if can('IMPORT_PRODUCTS') || can('EDIT_TEMPLATE');
         allow delete: if can('EDIT_TEMPLATE');
       }
 

@@ -42,6 +42,24 @@ firebase deploy --only firestore:rules
 This matters. The in-app permission checks keep the UI honest, but they run on
 a device the user controls. The rules are what actually stop a modified client.
 
+### Upgrading an existing workspace
+
+Importing now has its own two permissions, `IMPORT_PRODUCTS` and
+`IMPORT_COUNT_SHEET`, instead of riding on `CREATE_STOCK_CHECK` — which every
+counter holds, and which therefore let any worker replace the whole catalogue
+from a spreadsheet.
+
+Roles seeded before this change do not carry them, so in an existing workspace:
+
+1. **Republish `firestore.rules`.** Overwriting an existing product now needs
+   `IMPORT_PRODUCTS`; creating one a scan just found still does not, so naming
+   an unknown barcode on the counting screen keeps working.
+2. **Tick the two new boxes** on Profile → Roles for whichever roles should
+   import. Admin needs nothing done — its permissions are resolved in code.
+
+Until step 2, only an admin can import. That is the safe direction to fail, but
+it will look like a bug to a supervisor who imported yesterday.
+
 ### Photos and the free tier
 
 Firebase requires a billing-enabled (Blaze) project to use Cloud Storage, even

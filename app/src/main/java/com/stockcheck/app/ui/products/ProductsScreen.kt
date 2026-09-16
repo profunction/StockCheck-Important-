@@ -195,6 +195,10 @@ fun ProductsScreen(
     val canEdit = permissions.has(Permission.CREATE_STOCK_CHECK) ||
         permissions.has(Permission.EDIT_TEMPLATE)
     val canDelete = permissions.has(Permission.EDIT_TEMPLATE)
+    // Naming one product is what canEdit covers. Replacing the catalogue from
+    // a spreadsheet is a different act with its own permission, so the button
+    // that does it is shown on that one and not on the right to type a name.
+    val canImport = permissions.has(Permission.IMPORT_PRODUCTS)
 
     var editing by remember { mutableStateOf<Product?>(null) }
     var adding by remember { mutableStateOf(false) }
@@ -231,7 +235,7 @@ fun ProductsScreen(
                     }
                 },
                 actions = {
-                    if (canEdit) {
+                    if (canImport) {
                         IconButton(
                             enabled = !importing,
                             onClick = { filePicker.launch(arrayOf("*/*")) },

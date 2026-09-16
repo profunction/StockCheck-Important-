@@ -1,5 +1,6 @@
 package com.stockcheck.app.data
 
+import com.google.firebase.firestore.SetOptions
 import com.stockcheck.app.export.CsvReader
 import com.stockcheck.app.export.SheetReader
 import com.stockcheck.app.model.AuditAction
@@ -98,7 +99,7 @@ class ImportRepository(
         session: Session,
         rows: List<ImportRow>,
     ): ImportSummary = withContext(Dispatchers.IO) {
-        session.require(Permission.CREATE_STOCK_CHECK)
+        session.require(Permission.IMPORT_PRODUCTS)
 
         val existing = Db.products().get().await().documents.map { it.id }.toSet()
         val skipped = mutableListOf<String>()
@@ -114,20 +115,40 @@ class ImportRepository(
                     return@forEach
                 }
                 val isNew = row.barcode !in existing
-                batch.set(
-                    Db.product(row.barcode),
-                    Product(
-                        barcode = row.barcode,
-                        name = row.name,
-                        sku = row.sku,
-                        unit = row.unit.ifBlank { "pcs" },
-                        active = true,
-                        createdAt = now,
-                        createdByUid = session.uid,
-                        updatedAt = now,
-                    ),
-                )
-                if (isNew) created++ else updated++
+                if (isNew) {
+                    batch.set(
+                        Db.product(row.barcode),
+                        Product(
+                            barcode = row.barcode,
+                            name = row.name,
+                            sku = row.sku,
+                            unit = row.unit.ifBlank { "pcs" },
+                            active = true,
+                            createdAt = now,
+                            createdByUid = session.uid,
+                            updatedAt = now,
+                        ),
+                    )
+                    created++
+                } else {
+                    // Only the fields the spreadsheet actually carries. Writing
+                    // the whole document again would stamp this import's time
+                    // and this importer's name over the product's real origin,
+                    // and would silently switch a deactivated product back on
+                    // -- an import is not supposed to rewrite history or undo
+                    // an admin's decision.
+                    batch.set(
+                        Db.product(row.barcode),
+                        mapOf(
+                            "name" to row.name,
+                            "sku" to row.sku,
+                            "unit" to row.unit.ifBlank { "pcs" },
+                            "updatedAt" to now,
+                        ),
+                        SetOptions.merge(),
+                    )
+                    updated++
+                }
             }
             batch.commit().awaitAck()
         }
@@ -201,6 +222,7 @@ class ImportRepository(
         rows: List<ImportRow>,
     ): ImportSummary = withContext(Dispatchers.IO) {
         session.require(Permission.EDIT_OWN_STOCK)
+        session.require(Permission.IMPORT_COUNT_SHEET)
 
         val existing = Db.items(stockCheckId).get().await()
             .toObjects(StockItem::class.java)

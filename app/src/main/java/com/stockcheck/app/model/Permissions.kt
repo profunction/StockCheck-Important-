@@ -46,6 +46,14 @@ enum class Permission(val group: PermissionGroup, val label: String) {
     EDIT_EXPORTED_FILE(PermissionGroup.EXPORT, "Produce editable (unlocked) file"),
     PRINT(PermissionGroup.EXPORT, "Print"),
 
+    // --- Import ---
+    // Separate from CREATE_STOCK_CHECK, which every counter holds. Naming one
+    // barcode just scanned is a counter's job; replacing the company's whole
+    // catalogue from a spreadsheet is not the same act and must not ride on
+    // the same permission.
+    IMPORT_PRODUCTS(PermissionGroup.EXPORT, "Import product list"),
+    IMPORT_COUNT_SHEET(PermissionGroup.EXPORT, "Import count sheet"),
+
     // --- User & role administration ---
     VIEW_USERS(PermissionGroup.ADMIN, "View users"),
     CREATE_USER(PermissionGroup.ADMIN, "Create user"),
@@ -66,7 +74,7 @@ enum class PermissionGroup(val label: String) {
     HISTORY("History"),
     WORKFLOW("Status workflow"),
     TEMPLATE("Templates"),
-    EXPORT("Export"),
+    EXPORT("Import & export"),
     ADMIN("Users & roles"),
 }
 

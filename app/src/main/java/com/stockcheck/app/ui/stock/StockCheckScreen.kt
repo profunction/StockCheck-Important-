@@ -801,7 +801,9 @@ private fun StatusMenu(
             },
             onClick = onToggleConfirm,
         )
-        if (permissions.hasAny(Permission.EDIT_OWN_STOCK, Permission.EDIT_ANY_STOCK)) {
+        if (permissions.hasAny(Permission.EDIT_OWN_STOCK, Permission.EDIT_ANY_STOCK) &&
+            permissions.has(Permission.IMPORT_COUNT_SHEET)
+        ) {
             DropdownMenuItem(
                 text = { Text("Import count sheet (Excel or CSV)") },
                 leadingIcon = { Icon(Icons.Filled.UploadFile, contentDescription = null) },

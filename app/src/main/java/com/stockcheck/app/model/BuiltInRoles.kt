@@ -42,6 +42,7 @@ object BuiltInRoles {
         P.EXPORT_ALL_DATA,
         P.PRINT,
         P.VIEW_USERS,
+        P.IMPORT_COUNT_SHEET,
     )
 
     private val managerPermissions: Set<P> = supervisorPermissions + setOf(
@@ -51,6 +52,7 @@ object BuiltInRoles {
         P.CREATE_TEMPLATE,
         P.EDIT_TEMPLATE,
         P.EDIT_EXPORTED_FILE,
+        P.IMPORT_PRODUCTS,
     )
 
     val seeds: List<Role> = listOf(

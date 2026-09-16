@@ -73,6 +73,18 @@ object VoiceCommandParser {
         '四' to 4, '五' to 5, '六' to 6, '七' to 7, '八' to 8, '九' to 9,
     )
 
+    /**
+     * Measures of volume, which describe a product rather than count it.
+     *
+     * None of these appear in [unitWords] -- nothing is counted in millilitres
+     * -- so a number glued to one is unambiguously a pack size.
+     */
+    private val packSizeUnits = listOf(
+        "ml", "millilitre", "milliliter", "cl", "dl",
+        "litre", "liter", "ltr", "l", "cc",
+        "毫升", "升",
+    )
+
     /** A run of digits at least this long is treated as a barcode, not a count. */
     private const val BARCODE_MIN_DIGITS = 8
 
@@ -97,7 +109,7 @@ object VoiceCommandParser {
             )
 
         val unit = findUnit(normalised)
-        val name = extractProductName(normalised, quantity.matchedText, unit)
+        val name = extractProductName(normalised, quantity, unit)
 
         return if (name.isEmpty()) {
             VoiceCommand.QuantityOnly(quantity.value, transcript)
@@ -106,7 +118,12 @@ object VoiceCommandParser {
         }
     }
 
-    private data class Quantity(val value: Int, val matchedText: String)
+    private data class Quantity(
+        val value: Int,
+        val matchedText: String,
+        /** Where in the transcript it was found, when that is known. */
+        val range: IntRange? = null,
+    )
 
     private fun longDigitRun(text: String): String? {
         // Speech recognisers often insert spaces between spoken digit groups,
@@ -121,9 +138,7 @@ object VoiceCommandParser {
         // quantity is 25, not the 3 that happened to come first.
         markerQuantity(text)?.let { return it }
 
-        Regex("\\d{1,7}").find(text)?.let { match ->
-            return Quantity(match.value.toInt(), match.value)
-        }
+        numericQuantity(text)?.let { return it }
 
         chineseNumber(text)?.let { return it }
         englishNumber(text)?.let { return it }
@@ -145,6 +160,49 @@ object VoiceCommandParser {
             englishNumber(tail)?.let { return it }
         }
         return null
+    }
+
+    /**
+     * The spoken count, when it was said as digits.
+     *
+     * A product name carries numbers of its own: "coke 500ml 12" is twelve of
+     * the 500ml bottle, not five hundred of anything, and taking the first run
+     * of digits records the size as the count -- quietly, because 500 looks
+     * like a plausible number on the screen.
+     *
+     * A size is a number welded to a measure of volume, so those are set
+     * aside. Of what is left the LAST is taken: in both languages spoken on
+     * this floor the count trails the name it belongs to ("coke 12", "可乐 25").
+     * When every number in the phrase is a size, nothing is returned and the
+     * operator is asked, which beats inventing a quantity.
+     */
+    private fun numericQuantity(text: String): Quantity? {
+        val match = Regex("""\d{1,7}(?:\.\d+)?""")
+            .findAll(text)
+            .filterNot { isPackSize(text, it) }
+            .lastOrNull()
+            ?: return null
+        val value = match.value.substringBefore('.').toIntOrNull() ?: return null
+        return Quantity(value, match.value, match.range)
+    }
+
+    /**
+     * True when the number at [match] is describing the product rather than
+     * counting it -- the 1.5 of "1.5升", the 500 of "500ml".
+     *
+     * Only measures of volume are treated this way. Weight is deliberately
+     * left out: this app counts by the kilo, so the 5 of "五公斤" is a real
+     * quantity and must stay one.
+     */
+    private fun isPackSize(text: String, match: MatchResult): Boolean {
+        val after = text.substring(match.range.last + 1).trimStart().lowercase()
+        return packSizeUnits.any { unit ->
+            if (!after.startsWith(unit)) return@any false
+            // A bare "l" must not swallow the "l" of "lots": the size word ends
+            // where the token ends.
+            val next = after.getOrNull(unit.length)
+            next == null || !next.isLetter()
+        }
     }
 
     /**
@@ -224,6 +282,23 @@ object VoiceCommandParser {
         return if (sawAny && value > 0) Quantity(value, matched.joinToString(" ")) else null
     }
 
+    /** Digits and Chinese numerals: what a unit of measure follows. */
+    private val numeralChars: Set<Char> =
+        ('0'..'9').toSet() + chineseDigits.keys + setOf('十', '百', '千')
+
+    /**
+     * Whether the character before [at], ignoring spaces, is part of a number.
+     *
+     * 个 is a unit, but it is also half of 这个 and 个别. Requiring a number in
+     * front is what separates "三个" from "这个可乐" -- without it the product
+     * name comes out gnawed, because the unit is stripped out of it later.
+     */
+    private fun precededByNumber(text: String, at: Int): Boolean {
+        var index = at - 1
+        while (index >= 0 && text[index] == ' ') index--
+        return index >= 0 && text[index] in numeralChars
+    }
+
     private fun findUnit(text: String): String? {
         val lower = text.lowercase()
         // Longest first, so 公斤 is not matched as 斤.
@@ -233,7 +308,18 @@ object VoiceCommandParser {
                 if (key.first().code < 128) {
                     Regex("\\b${Regex.escape(key)}\\b").containsMatchIn(lower)
                 } else {
-                    lower.contains(key)
+                    var from = 0
+                    var found = false
+                    while (true) {
+                        val at = lower.indexOf(key, from)
+                        if (at < 0) break
+                        if (precededByNumber(lower, at)) {
+                            found = true
+                            break
+                        }
+                        from = at + 1
+                    }
+                    found
                 }
             }
             ?.let { unitWords[it] }
@@ -245,10 +331,15 @@ object VoiceCommandParser {
      * Returning an empty name is meaningful — it signals a bare quantity that
      * should be applied to the currently selected line.
      */
-    private fun extractProductName(text: String, matchedNumber: String, unit: String?): String {
-        var remaining = text
-        if (matchedNumber.isNotEmpty()) {
-            remaining = remaining.replace(matchedNumber, " ", ignoreCase = true)
+    private fun extractProductName(text: String, quantity: Quantity, unit: String?): String {
+        // Removing every occurrence of the matched digits takes the 2 out of
+        // "Pepsi 2L" as well, so the span that was actually read as the count
+        // is the span that goes -- and the size stays part of the name.
+        var remaining = when {
+            quantity.range != null -> text.removeRange(quantity.range)
+            quantity.matchedText.isNotEmpty() ->
+                text.replaceFirst(quantity.matchedText, " ", ignoreCase = true)
+            else -> text
         }
         quantityMarkers.forEach { marker ->
             remaining = remaining.replace(marker, " ", ignoreCase = true)
