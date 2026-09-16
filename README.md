@@ -76,6 +76,41 @@ including those captured while it was off.
 
 ---
 
+## Before Google Play
+
+`targetSdk` is already 36, which is what Play requires of new submissions from
+31 August 2026.
+
+Account deletion is implemented: **Profile → Delete my account**, confirmed with
+the account password. It removes the Firebase Auth account and the workspace
+profile, and keeps the audit entries — deliberately, and stated in the policy
+rather than left for someone to discover.
+
+Deleting somebody *else's* Auth account would need the Admin SDK, so Cloud
+Functions, so a paid plan. Self-service deletion runs on the client and works on
+the free tier, and is also the form Play actually asks for.
+
+Three things are still outstanding, and none of them are code in this repo:
+
+1. **Host `PRIVACY.md` at a public URL.** GitHub Pages serves it from this
+   repository for nothing. Play needs the link in the Console listing, and the
+   app needs to open it from the sign-in screen — that link cannot be wired
+   until the URL exists.
+2. **Fill in the contact details** at the bottom of `PRIVACY.md`. They are
+   placeholders, and a policy with no contact route fails review.
+3. **Fill in the Data Safety form** to match `PRIVACY.md` section by section:
+   account and email, company information, photos, audio for speech
+   recognition, device information. Under-declaring to make review easier is
+   how an app gets pulled later.
+
+Also note `versionCode` is still 1 and `versionName` 0.1.0.
+
+If the Play Console account is a personal one created after 13 November 2023, a
+closed test with the required number of testers, opted in for a continuous
+period, must finish before production access can be requested. Check the current
+figures in the Console — they have changed more than once — and start the clock
+early, because it is elapsed time that cannot be compressed.
+
 ## Building
 
 Requires JDK 17 and an Android SDK with API 36. `local.properties` points at the

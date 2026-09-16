@@ -211,7 +211,12 @@ service cloud.firestore {
                       || can('EDIT_USER')
                       || can('CHANGE_PERMISSION');
 
-        allow delete: if can('DELETE_USER') && request.auth.uid != uid;
+        // An admin may remove somebody else, and anybody may remove
+        // themselves -- the second is what Google Play requires of any app
+        // that lets people create an account, and it is the only deletion
+        // that works without the Admin SDK and a paid plan behind it.
+        allow delete: if (can('DELETE_USER') && request.auth.uid != uid)
+                      || isOwner(uid);
       }
 
       // ------------------------------------------------------------- roles

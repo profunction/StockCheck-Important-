@@ -1,5 +1,6 @@
 package com.stockcheck.app.data
 
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Query
 import com.stockcheck.app.model.AuditAction
@@ -289,6 +290,70 @@ class UserRepository(
             entityLabel = target.displayName,
             action = AuditAction.DELETE,
         )
+    }
+
+    /**
+     * Deletes the signed-in person's own account, at their own request.
+     *
+     * Google Play requires anyone who can create an account in an app to be
+     * able to delete it from inside that app. Deleting somebody *else's*
+     * Firebase Auth account needs the Admin SDK, which needs Cloud Functions,
+     * which needs a paid plan -- but a person deleting their own works from
+     * the client, which is why this is self-service and not an admin button.
+     *
+     * What goes: the Auth account (the email and password), and the workspace
+     * profile (the display name and role).
+     *
+     * What stays: the audit entries. They are the record of who counted what,
+     * the trail is append-only precisely so nobody can edit it afterwards, and
+     * a stock record that can be rewritten by deleting an account is not a
+     * record. The privacy policy states this retention rather than pretending
+     * it does not happen.
+     *
+     * [password] re-proves it is really them: Firebase refuses to delete an
+     * account whose sign-in is not recent, and a mis-tap should not be able to
+     * destroy an account either.
+     */
+    suspend fun deleteOwnAccount(session: Session, password: String) {
+        require(password.isNotBlank()) { "Enter your password to confirm." }
+        if (session.profile.roleId == BuiltInRoles.ADMIN_ID) {
+            // Otherwise the company is left with data nobody can administer.
+            require(countAdmins() > 1) {
+                "You are the only admin. Make someone else an admin first, or " +
+                    "the workspace would be left with no one who can manage it."
+            }
+        }
+
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser ?: error("You are not signed in.")
+
+        // Proving identity first also fails fast when there is no connection,
+        // which is what stops a half-finished deletion in a dead zone.
+        user.reauthenticate(
+            EmailAuthProvider.getCredential(session.profile.email, password),
+        ).await()
+
+        // Recorded while the profile still exists, because once it is gone the
+        // rules -- correctly -- stop accepting writes from this account.
+        audit.record(
+            session = session,
+            entity = "User",
+            entityId = session.uid,
+            entityLabel = session.profile.displayName,
+            action = AuditAction.DELETE,
+            field = "account",
+            oldValue = "active",
+            newValue = "deleted by the account holder",
+        )
+
+        // await(), not awaitAck(): this one must reach the server. A deletion
+        // queued in an offline cache while the Auth account is already gone
+        // would leave a profile nobody can remove.
+        Db.user(session.uid).delete().await()
+        user.delete().await()
+
+        workspaces.clearWorkspace()
+        auth.signOut()
     }
 
     private suspend fun countAdmins(): Int = runCatching {

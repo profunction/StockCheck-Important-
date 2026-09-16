@@ -94,6 +94,7 @@ fun ProfileScreen(
 ) {
     var changingPassword by remember { mutableStateOf(false) }
     var backingUp by remember { mutableStateOf(false) }
+    var deletingAccount by remember { mutableStateOf(false) }
     val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.factory(session))
     val roles by viewModel.roles.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
@@ -317,8 +318,31 @@ fun ProfileScreen(
                 Spacer(Modifier.width(8.dp))
                 Text("Sign out")
             }
+            Spacer(Modifier.height(8.dp))
+            // Google Play requires an in-app route to close your own account.
+            // Kept plain and below signing out: it is a real door, not one to
+            // decorate or to put where a thumb finds it by accident.
+            TextButton(
+                onClick = { deletingAccount = true },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            ) {
+                Text(
+                    text = "Delete my account",
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             Spacer(Modifier.height(32.dp))
         }
+    }
+
+    if (deletingAccount) {
+        DeleteAccountDialog(
+            busy = viewModel.deletingAccount.collectAsStateWithLifecycle().value,
+            onDismiss = { deletingAccount = false },
+            onConfirm = { password ->
+                viewModel.deleteOwnAccount(password) { deletingAccount = false }
+            },
+        )
     }
 
     if (changingPassword) {
@@ -467,6 +491,74 @@ private fun BackupDialog(
                     onDismiss()
                 },
             ) { Text(if (result == null) "Cancel" else "Done") }
+        },
+    )
+}
+
+/**
+ * Closing your own account, with the two things that stop it being an accident:
+ * the password, and a plain statement of what does and does not disappear.
+ *
+ * The audit entries stay. Saying so here, rather than only in a policy nobody
+ * opens, is the difference between a retention someone agreed to and one they
+ * find out about later.
+ */
+@Composable
+private fun DeleteAccountDialog(
+    busy: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var password by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        title = { Text("Delete my account") },
+        text = {
+            Column {
+                NoticeBar(
+                    text = "This cannot be undone.",
+                    tone = NoticeTone.ERROR,
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = "Your sign-in and your profile are deleted: your email, " +
+                        "your password and your name on this workspace.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "The stock counts you recorded stay, and so do the audit " +
+                        "entries showing what was counted and when. They are the " +
+                        "company's record of its own stock, and the trail cannot be " +
+                        "edited by anyone, which is what makes it worth keeping.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Your password") },
+                    singleLine = true,
+                    enabled = !busy,
+                    supportingText = { Text("Confirms it is really you") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(password) },
+                enabled = !busy && password.isNotBlank(),
+            ) {
+                Text(
+                    text = if (busy) "Deleting…" else "Delete my account",
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !busy) { Text("Keep my account") }
         },
     )
 }

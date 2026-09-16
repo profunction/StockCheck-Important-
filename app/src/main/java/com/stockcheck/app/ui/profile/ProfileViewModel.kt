@@ -160,6 +160,28 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
         _roleDraft.value = _roleDraft.value?.let(transform)
     }
 
+    private val _deletingAccount = MutableStateFlow(false)
+    val deletingAccount: StateFlow<Boolean> = _deletingAccount.asStateFlow()
+
+    /**
+     * Closing your own account.
+     *
+     * Signing out happens inside the repository once the deletion lands, and
+     * the auth listener takes the app back to the sign-in screen from there,
+     * so there is nothing to navigate on success beyond closing the dialog.
+     */
+    fun deleteOwnAccount(password: String, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            _deletingAccount.value = true
+            runCatching { userRepo.deleteOwnAccount(session, password) }
+                .onSuccess { onDeleted() }
+                .onFailure {
+                    _message.value = it.message ?: "The account could not be deleted."
+                }
+            _deletingAccount.value = false
+        }
+    }
+
     fun togglePermission(permission: Permission, on: Boolean) {
         _roleDraft.value = _roleDraft.value?.let { role ->
             val next = if (on) {
