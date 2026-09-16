@@ -340,6 +340,16 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // The reference-number counter is the one thing under meta/ that a
+      // counter has to write: opening a stock check claims a block of numbers
+      // from it, and anyone who may open one must be able to. It holds a
+      // tally per month and nothing else, so nothing is exposed by letting
+      // them.
+      match /meta/counters {
+        allow read: if active();
+        allow write: if can('CREATE_STOCK_CHECK');
+      }
+
       match /meta/{docId} {
         // Members may read the company name and see the code they must give
         // out; nobody outside the workspace can, which is what stops the

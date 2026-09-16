@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Transaction
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.channels.awaitClose
@@ -103,6 +104,17 @@ object Db {
      * code can be verified by someone who is not allowed to read it.
      */
     fun config(): DocumentReference = workspace().collection("meta").document("config")
+
+    /**
+     * Runs [block] as a Firestore transaction.
+     *
+     * Deliberately the one operation in this file that needs the server:
+     * handing out a reference number twice is worse than refusing to hand one
+     * out at all, and a transaction is what makes two phones claiming at the
+     * same moment get different answers.
+     */
+    fun <T> transaction(block: (Transaction) -> T): Task<T> =
+        db.runTransaction { tx -> block(tx) }
 
     /** Counter document used to hand out human-readable reference numbers. */
     fun counters(): DocumentReference = workspace().collection("meta").document("counters")

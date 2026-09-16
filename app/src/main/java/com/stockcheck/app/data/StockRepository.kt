@@ -32,6 +32,7 @@ sealed interface ScanOutcome {
 class StockRepository(
     private val audit: AuditRepository,
     private val products: ProductRepository,
+    private val refNos: RefNoAllocator,
 ) {
 
     // --------------------------------------------------------- stock checks
@@ -76,7 +77,7 @@ class StockRepository(
         val now = System.currentTimeMillis()
         val check = StockCheck(
             id = id,
-            refNo = nextRefNo(),
+            refNo = refNos.next(),
             templateId = template.id,
             templateName = template.name,
             status = StockStatus.IN_PROGRESS.name,
@@ -101,6 +102,10 @@ class StockRepository(
             action = AuditAction.CREATE,
             stockCheckId = id,
         )
+        // Draw more numbers while there is evidently a connection to draw
+        // them over. Waiting until the roll is empty means discovering it is
+        // empty in the one place there is no signal to fill it.
+        refNos.topUpQuietly()
         return id
     }
 
@@ -118,18 +123,6 @@ class StockRepository(
             if (known.any { it.equals(zone, ignoreCase = true) }) return
             Db.config().update("zones", known + zone).awaitAck()
         }
-    }
-
-    /**
-     * Human-readable reference such as `SC-483920`.
-     *
-     * Derived from the device clock rather than a shared server counter so a
-     * stock check started with no connectivity still gets a reference straight
-     * away. It is display-only; [StockCheck.id] remains the real key.
-     */
-    private fun nextRefNo(): String {
-        val seq = (System.currentTimeMillis() / 1000) % 1_000_000
-        return "SC-" + seq.toString().padStart(6, '0')
     }
 
     suspend fun updateStatus(session: Session, check: StockCheck, target: StockStatus) {

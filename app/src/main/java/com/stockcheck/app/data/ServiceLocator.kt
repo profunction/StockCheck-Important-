@@ -22,7 +22,8 @@ object ServiceLocator {
     val products: ProductRepository by lazy { ProductRepository(audit) }
     val licences: LicenceRepository by lazy { LicenceRepository() }
     val imports: ImportRepository by lazy { ImportRepository(products, audit) }
-    val stock: StockRepository by lazy { StockRepository(audit, products) }
+    val refNos: RefNoAllocator by lazy { RefNoAllocator(appContext) }
+    val stock: StockRepository by lazy { StockRepository(audit, products, refNos) }
     val templates: TemplateRepository by lazy { TemplateRepository(audit) }
     val photos: PhotoRepository by lazy { PhotoRepository(appContext, audit) }
     val exports: com.stockcheck.app.export.ExportService by lazy {
