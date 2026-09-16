@@ -2,6 +2,7 @@ package com.stockcheck.app.model
 
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.Exclude
+import kotlin.math.abs
 
 /**
  * Firestore maps documents onto these classes reflectively, which imposes two
@@ -126,6 +127,57 @@ data class StockItem(
      * none, which is the single most important row in the report.
      */
     @get:Exclude val survivesZero: Boolean get() = onList
+
+    /**
+     * The variance as a share of what was expected.
+     *
+     * Null when a percentage would say nothing: a line nobody put on the sheet
+     * has no baseline, and dividing by an expected zero has no answer. The
+     * caller shows the absolute figures in those cases, which are the honest
+     * ones anyway.
+     */
+    @get:Exclude val variancePercent: Double?
+        get() = if (!onList || expected == 0) null else variance.toDouble() * 100 / expected
+
+    /**
+     * Whether this line is worth a second pair of eyes before the count is
+     * signed off.
+     *
+     * The point is a shortlist a supervisor will actually read. Flagging every
+     * line that differs at all produces a list as long as the count, which is
+     * the same as flagging nothing -- so a percentage alone is not enough
+     * either: three expected against four counted is a 33% swing and almost
+     * never interesting, while a hundred expected against ninety is a tenth of
+     * the stock gone and easily is.
+     *
+     * So: nothing where something was expected, or something where nothing
+     * was, is always worth looking at whatever the arithmetic says. Beyond
+     * that a line needs both a baseline big enough for a percentage to mean
+     * something and a swing past [LARGE_VARIANCE_PERCENT].
+     */
+    @get:Exclude val isLargeVariance: Boolean
+        get() = when {
+            !onList -> false
+            // The sheet said none and the shelf had some: stock no system
+            // knows about, which is a finding in its own right.
+            expected == 0 -> quantity > 0
+            // The sheet said some and the shelf had none. Whatever the
+            // numbers, somebody should walk back and look.
+            quantity == 0 -> true
+            expected < SMALL_COUNT_FLOOR -> false
+            else -> abs(variancePercent ?: 0.0) >= LARGE_VARIANCE_PERCENT
+        }
+
+    companion object {
+        /** A swing at or past this share of the expected figure is flagged. */
+        const val LARGE_VARIANCE_PERCENT = 20.0
+
+        /**
+         * Below this expected figure, percentages mislead more than they help
+         * -- one counted against two is a 50% variance and means nothing.
+         */
+        const val SMALL_COUNT_FLOOR = 5
+    }
 }
 
 // -------------------------------------------------------------------- photos

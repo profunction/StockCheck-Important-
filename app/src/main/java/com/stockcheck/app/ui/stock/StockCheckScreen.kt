@@ -313,6 +313,7 @@ fun StockCheckScreen(
                 status = check?.statusEnum,
                 unnamedCount = unnamedCount,
                 varianceCount = items.count { it.hasVariance },
+                reviewCount = items.count { it.isLargeVariance },
                 onList = items.any { it.onList },
             )
         },
@@ -621,14 +622,22 @@ private fun ItemRow(
                     Text(
                         text = when {
                             item.variance == 0 -> "Expected ${item.expected} · matches"
-                            item.variance < 0 -> "Expected ${item.expected} · short ${-item.variance}"
-                            else -> "Expected ${item.expected} · over ${item.variance}"
+                            item.variance < 0 ->
+                                "Expected ${item.expected} · short ${-item.variance}" +
+                                    variancePercentSuffix(item)
+                            else ->
+                                "Expected ${item.expected} · over ${item.variance}" +
+                                    variancePercentSuffix(item)
                         },
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (item.hasVariance) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.primary
+                        // Three states, not two: matching, off by a little, and
+                        // off by enough to stop for. Painting the last two the
+                        // same colour is what makes a supervisor scroll past
+                        // the one that mattered.
+                        color = when {
+                            item.isLargeVariance -> MaterialTheme.colorScheme.error
+                            item.hasVariance -> MaterialTheme.colorScheme.tertiary
+                            else -> MaterialTheme.colorScheme.primary
                         },
                         maxLines = 1,
                     )
@@ -700,6 +709,7 @@ private fun TotalsBar(
     status: StockStatus?,
     unnamedCount: Int = 0,
     varianceCount: Int = 0,
+    reviewCount: Int = 0,
     onList: Boolean = false,
 ) {
     Surface(tonalElevation = 3.dp) {
@@ -720,6 +730,12 @@ private fun TotalsBar(
                 // a nameless line is a row of digits nobody can check against
                 // a shelf, and this is where it shows before the export does.
                 when {
+                    // Lines worth walking back for displace the count of lines
+                    // that merely differ. "Differences 37" is a fact about the
+                    // sheet; "Review 23" is a list of jobs, and there is only
+                    // one slot, so the jobs take it whenever there are any.
+                    reviewCount > 0 ->
+                        TotalTile("Review", reviewCount.toString(), emphasis = true)
                     onList -> TotalTile("Differences", varianceCount.toString())
                     unnamedCount > 0 -> TotalTile("Unnamed", unnamedCount.toString())
                     else -> TotalTile("Photos", photoCount.toString())
@@ -1322,14 +1338,18 @@ private fun ScanConfirmPanel(
                 Text(
                     text = when {
                         item.variance == 0 -> "Matches the count sheet (${item.expected})"
-                        item.variance < 0 -> "Sheet says ${item.expected} — short ${-item.variance}"
-                        else -> "Sheet says ${item.expected} — over ${item.variance}"
+                        item.variance < 0 ->
+                            "Sheet says ${item.expected} — short ${-item.variance}" +
+                                variancePercentSuffix(item)
+                        else ->
+                            "Sheet says ${item.expected} — over ${item.variance}" +
+                                variancePercentSuffix(item)
                     },
                     style = MaterialTheme.typography.labelMedium,
-                    color = if (item.hasVariance) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                    color = when {
+                        item.isLargeVariance -> MaterialTheme.colorScheme.error
+                        item.hasVariance -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
                     },
                 )
             }
@@ -1355,4 +1375,23 @@ private fun ScanConfirmPanel(
             }
         }
     }
+}
+
+
+/**
+ * The variance percentage, but only where it earns its place.
+ *
+ * A percentage next to every line is noise; next to the handful worth walking
+ * back for, it is the thing that makes a supervisor walk back. "short 92" is a
+ * number, "short 92 (-92%)" is a missing pallet.
+ *
+ * Rounded to whole percent: the false precision of 91.8% invites an argument
+ * about the decimal instead of a look at the shelf.
+ */
+private fun variancePercentSuffix(item: StockItem): String {
+    if (!item.isLargeVariance) return ""
+    val percent = item.variancePercent ?: return ""
+    val whole = Math.round(percent).toInt()
+    val sign = if (whole > 0) "+" else ""
+    return " ($sign$whole%)"
 }
