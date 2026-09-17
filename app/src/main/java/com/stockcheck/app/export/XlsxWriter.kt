@@ -14,7 +14,7 @@ import java.util.zip.ZipOutputStream
  * Android at all — not worth it for the handful of parts used here.
  *
  * Only what this app needs is implemented: one sheet, inline strings, numbers,
- * a bold header row, frozen header, column widths, and — the reason this class
+ * a bold header row frozen in place, column widths, and — the reason this class
  * exists rather than a CSV-only export — real per-cell locking backed by
  * Excel's own sheet protection.
  */
@@ -131,6 +131,20 @@ class XlsxWriter(
     private fun sheet(protectionPassword: String?): String = buildString {
         append("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""")
         append("""<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">""")
+
+        // Freeze the header, so scrolling row nine hundred still says which
+        // column is Counted and which is Expected. Before <cols> and
+        // <sheetData> because the schema fixes this order and Excel rejects
+        // the file outright if it is wrong -- no warning, no partial open.
+        //
+        // Nothing to freeze when there is no header row: a pane split above
+        // row one locks an empty strip at the top of the sheet.
+        if (header.isNotEmpty()) {
+            append("<sheetViews><sheetView workbookViewId=\"0\">")
+            append("""<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>""")
+            append("""<selection pane="bottomLeft" activeCell="A2" sqref="A2"/>""")
+            append("</sheetView></sheetViews>")
+        }
 
         if (columnWidths.isNotEmpty()) {
             append("<cols>")

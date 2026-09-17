@@ -169,6 +169,51 @@ class XlsxWriterTest {
 
     // ----------------------------------------------------------- protection
 
+    // ------------------------------------------------------- frozen header
+
+    @Test
+    fun `the header row is frozen`() {
+        val parts = write {
+            header(listOf("Ref No", "Quantity"))
+            row(listOf(text("RC-17/09/2026-001"), number(96.0)))
+        }
+        val sheet = sheetOf(parts)
+
+        val panes = sheet.getElementsByTagName("pane")
+        assertEquals(1, panes.length)
+        val pane = panes.item(0) as org.w3c.dom.Element
+        assertEquals("1", pane.getAttribute("ySplit"))
+        assertEquals("frozen", pane.getAttribute("state"))
+        assertEquals("A2", pane.getAttribute("topLeftCell"))
+    }
+
+    @Test
+    fun `sheetViews comes before cols and sheetData`() {
+        // The schema fixes this order and Excel refuses the whole file when it
+        // is wrong -- no warning, no partial open, just "cannot be opened".
+        // A parser accepts any order, so only the raw text can catch it.
+        val xml = write {
+            header(listOf("Ref No", "Quantity"), widths = listOf(20, 11))
+            row(listOf(text("RC-17/09/2026-001"), number(96.0)))
+        }.getValue("xl/worksheets/sheet1.xml")
+
+        val views = xml.indexOf("<sheetViews>")
+        val cols = xml.indexOf("<cols>")
+        val data = xml.indexOf("<sheetData>")
+        assertTrue("sheetViews missing", views >= 0)
+        assertTrue("sheetViews must precede cols", views < cols)
+        assertTrue("cols must precede sheetData", cols < data)
+    }
+
+    @Test
+    fun `a sheet with no header freezes nothing`() {
+        // A split above row one would lock an empty strip at the top.
+        val parts = write {
+            row(listOf(text("RC-17/09/2026-001"), number(96.0)))
+        }
+        assertEquals(0, sheetOf(parts).getElementsByTagName("pane").length)
+    }
+
     @Test
     fun `no password means no sheet protection`() {
         val parts = write {
