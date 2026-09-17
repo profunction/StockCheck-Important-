@@ -125,3 +125,51 @@ that could start a checkout would have to carry these keys.
 - [ ] Confirm a cancelled subscription sets `EXPIRED`
 - [ ] Back up `service-account.json` somewhere that is not this machine
 - [ ] Decide what happens on a chargeback (`suspend`, not delete)
+
+## Paying
+
+Everything a customer can pay with lives on one page, `GET /buy?company=CODE`,
+which is what the app opens when it refuses to start a count. Keeping it here
+rather than in the app is why the app has no card fields, no payment state and
+nothing extra to get past review — and why adding a gateway is a change to one
+page instead of a release.
+
+What a method can do decides where it appears:
+
+| Method | Recurring | One-off | Through |
+|---|---|---|---|
+| Card | yes | yes | Stripe |
+| Google Pay / Apple Pay | yes | yes | Stripe — a card wearing a different button, nothing to integrate |
+| FPX online banking | **no** | yes | Stripe, or ToyyibPay |
+| GrabPay | **no** | yes | Stripe |
+| ToyyibPay wallets | **no** | yes | ToyyibPay |
+| Bank transfer | — | yes | by hand: slip by email, then `licence-cli.mjs grant` |
+| Google Play | yes | — | in-app, verified at `/play/verify` |
+
+Only a card can be charged again next month. FPX and the wallets settle once
+and never come back, so they are offered against the one-off terms only —
+selling a subscription through one would sell somebody a plan that quietly
+lapses.
+
+**Touch 'n Go eWallet** is not on this list. Stripe does not carry it, and
+whether ToyyibPay settles it is a question for ToyyibPay rather than something
+to assert here. If it turns out they do not, it needs a Malaysian gateway that
+does, and that is one more `/…/create` endpoint and one more webhook beside
+the two already here.
+
+**PayNow** is Singapore and settles in SGD. Every price in `plans.mjs` is in
+MYR, so it needs an SGD price list before it can be offered at all.
+
+### Extra environment
+
+```
+GOOGLE_PLAY_PACKAGE   com.stockcheck.app — for verifying Play purchases
+BANK_NAME             shown on /buy; omit all four to hide the section
+BANK_ACCOUNT
+BANK_HOLDER
+SUPPORT_EMAIL         where a transfer slip is sent
+```
+
+Google Pay, Apple Pay, FPX and GrabPay each also have to be switched on in the
+Stripe dashboard. The code asks for them; the account has to be allowed to
+take them.
