@@ -3,7 +3,6 @@ package com.stockcheck.app.ui.photos
 import androidx.compose.ui.res.stringResource
 import com.stockcheck.app.R
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -147,15 +146,21 @@ class PhotosViewModel(private val session: Session) : ViewModel() {
 
     /** Creates the destination file and returns the URI to hand the camera. */
     /**
-     * There was nowhere to send the camera intent.
+     * The camera could not be started.
      *
-     * Rare — a phone with no camera app at all — but the alternative to
-     * saying so is the app closing itself, which reads as a crash because it
-     * is one.
+     * The message names the exception rather than smoothing it over. Two
+     * guesses at this have already been wrong, and a person reading the
+     * screen can tell us in one round what another round of guessing would
+     * not. It reads as technical because it is: better a sentence nobody
+     * loves than an app that closes itself, which reads as a crash because
+     * it is one.
      */
-    fun onNoCamera(cause: Throwable) {
-        _error.value = cause.message
-            ?: "This phone has no camera app to take the photo with."
+    fun onCaptureFailed(cause: Throwable) {
+        _error.value = buildString {
+            append("Could not open the camera. ")
+            append(cause::class.java.simpleName)
+            cause.message?.let { append(": ").append(it) }
+        }
     }
 
     fun prepareCapture(): Uri? {
@@ -254,12 +259,15 @@ fun PhotosScreen(session: Session) {
     }
 
     fun capture() {
-        val target = viewModel.prepareCapture() ?: return
+        // Everything, not just the launch. Building the file's content URI can
+        // throw as readily as starting the camera can, and it was sitting
+        // outside the guard -- so the one path most likely to fail was the one
+        // path still able to take the app down with it.
         try {
+            val target = viewModel.prepareCapture() ?: return
             captureLauncher.launch(target)
-        } catch (missing: ActivityNotFoundException) {
-            // A phone with no camera app is rare and not a reason to close.
-            viewModel.onNoCamera(missing)
+        } catch (failure: Throwable) {
+            viewModel.onCaptureFailed(failure)
         }
     }
 
