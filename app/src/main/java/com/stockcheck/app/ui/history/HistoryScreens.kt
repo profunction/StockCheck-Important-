@@ -1,5 +1,6 @@
 package com.stockcheck.app.ui.history
 
+import com.stockcheck.app.ui.common.labelRes
 import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -109,7 +110,7 @@ fun HistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("History") },
+                title = { Text(stringResource(R.string.tab_history)) },
                 actions = {
                     if (permissions.has(Permission.VIEW_EXPORT)) {
                         IconButton(onClick = { exporting = true }) {
@@ -126,7 +127,7 @@ fun HistoryScreen(
             OutlinedTextField(
                 value = query,
                 onValueChange = viewModel::setQuery,
-                label = { Text("Search reference, template or worker") },
+                label = { Text(stringResource(R.string.search_history)) },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                 singleLine = true,
                 modifier = Modifier
@@ -142,14 +143,14 @@ fun HistoryScreen(
                     FilterChip(
                         selected = statusFilter == null,
                         onClick = { viewModel.setStatusFilter(null) },
-                        label = { Text("All") },
+                        label = { Text(stringResource(R.string.filter_all)) },
                     )
                 }
                 items(StockStatus.entries.toList()) { status ->
                     FilterChip(
                         selected = statusFilter == status,
                         onClick = { viewModel.setStatusFilter(status) },
-                        label = { Text(status.label) },
+                        label = { Text(stringResource(status.labelRes)) },
                     )
                 }
             }
@@ -320,10 +321,10 @@ fun HistoryDetailScreen(
                         if (check.zone.isNotBlank()) {
                             Text(stringResource(R.string.area_label, check.zone))
                         }
-                        Text("Worker: ${check.createdByName}")
-                        Text("Started: ${friendlyDate(check.createdAt)}")
-                        check.completedAt?.let { Text("Completed: ${friendlyDate(it)}") }
-                        check.reviewedByName?.let { Text("Reviewed by: $it") }
+                        Text(stringResource(R.string.worker_label, check.createdByName))
+                        Text(stringResource(R.string.started_label, friendlyDate(check.createdAt)))
+                        check.completedAt?.let { Text(stringResource(R.string.completed_label, friendlyDate(it))) }
+                        check.reviewedByName?.let { Text(stringResource(R.string.reviewed_by_label, it)) }
                         Spacer(Modifier.height(10.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                             TotalTile("Products", check.itemCount.toString())
@@ -395,10 +396,10 @@ fun HistoryDetailScreen(
                         confirmDelete = false
                         viewModel.delete(onBack)
                     },
-                ) { Text("Delete") }
+                ) { Text(stringResource(R.string.delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) { Text("Cancel") }
+                TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.cancel)) }
             },
         )
     }
@@ -473,7 +474,7 @@ private fun ItemLine(item: StockItem, canEdit: Boolean, onEdit: (StockItem) -> U
                     },
                 ) { Text("Save") }
             },
-            dismissButton = { TextButton(onClick = { editing = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { editing = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }
@@ -714,6 +715,6 @@ private fun ExportDialog(
                     checks.any { scope == ExportScope.ALL || it.createdByUid == session.uid },
             ) { Text("Export") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

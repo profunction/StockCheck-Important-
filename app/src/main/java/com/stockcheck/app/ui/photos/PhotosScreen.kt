@@ -1,5 +1,7 @@
 package com.stockcheck.app.ui.photos
 
+import androidx.compose.ui.res.stringResource
+import com.stockcheck.app.R
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
@@ -280,7 +282,7 @@ fun PhotosScreen(session: Session) {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Photos")
+                        Text(stringResource(R.string.tab_photos))
                         selected?.let {
                             Text(
                                 text = "${it.refNo} · ${it.templateName}",
@@ -303,7 +305,7 @@ fun PhotosScreen(session: Session) {
                         }
                     },
                     icon = { Icon(Icons.Filled.AddAPhoto, contentDescription = null) },
-                    text = { Text("Take photo") },
+                    text = { Text(stringResource(R.string.take_photo)) },
                 )
             }
         },
@@ -345,8 +347,8 @@ fun PhotosScreen(session: Session) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = viewModel::search,
-                    label = { Text("Find a stock check") },
-                    placeholder = { Text("Reference, template or worker") },
+                    label = { Text(stringResource(R.string.find_stock_check)) },
+                    placeholder = { Text(stringResource(R.string.search_hint_ref)) },
                     singleLine = true,
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                     trailingIcon = {
@@ -547,17 +549,17 @@ private fun PhotoDetailDialog(
                 OutlinedTextField(
                     value = caption,
                     onValueChange = { caption = it },
-                    label = { Text("Caption") },
+                    label = { Text(stringResource(R.string.caption)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
-        confirmButton = { TextButton(onClick = { onSaveCaption(caption) }) { Text("Save") } },
+        confirmButton = { TextButton(onClick = { onSaveCaption(caption) }) { Text(stringResource(R.string.save)) } },
         dismissButton = {
             Row {
-                TextButton(onClick = onDelete) { Text("Delete") }
+                TextButton(onClick = onDelete) { Text(stringResource(R.string.delete)) }
                 Spacer(Modifier.width(4.dp))
-                TextButton(onClick = onDismiss) { Text("Close") }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
             }
         },
     )

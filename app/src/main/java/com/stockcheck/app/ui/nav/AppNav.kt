@@ -1,5 +1,8 @@
 package com.stockcheck.app.ui.nav
 
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.stockcheck.app.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -91,18 +94,20 @@ sealed class Dest(val route: String) {
 
 private data class Tab(
     val dest: Dest,
-    val label: String,
+    // A resource, not a word: the label has to change when the language does,
+    // and a String baked into this list at class-load time never can.
+    @StringRes val label: Int,
     val icon: ImageVector,
     /** Null means the tab is always shown. */
     val permission: Permission?,
 )
 
 private val tabs = listOf(
-    Tab(Dest.Stock, "Stock", Icons.Filled.QrCodeScanner, Permission.CREATE_STOCK_CHECK),
-    Tab(Dest.Photos, "Photos", Icons.Filled.PhotoCamera, Permission.TAKE_PHOTO),
-    Tab(Dest.Templates, "Templates", Icons.Filled.Description, Permission.VIEW_TEMPLATE),
-    Tab(Dest.History, "History", Icons.Filled.History, null),
-    Tab(Dest.Profile, "Profile", Icons.Filled.Person, null),
+    Tab(Dest.Stock, R.string.tab_stock, Icons.Filled.QrCodeScanner, Permission.CREATE_STOCK_CHECK),
+    Tab(Dest.Photos, R.string.tab_photos, Icons.Filled.PhotoCamera, Permission.TAKE_PHOTO),
+    Tab(Dest.Templates, R.string.tab_templates, Icons.Filled.Description, Permission.VIEW_TEMPLATE),
+    Tab(Dest.History, R.string.tab_history, Icons.Filled.History, null),
+    Tab(Dest.Profile, R.string.tab_profile, Icons.Filled.Person, null),
 )
 
 @Composable
@@ -367,8 +372,15 @@ private fun AppBottomBar(navController: NavHostController, visibleTabs: List<Tab
                         restoreState = true
                     }
                 },
-                icon = { Icon(tab.icon, contentDescription = tab.label) },
-                label = { Text(tab.label, style = MaterialTheme.typography.labelSmall) },
+                icon = {
+                    Icon(tab.icon, contentDescription = stringResource(tab.label))
+                },
+                label = {
+                    Text(
+                        text = stringResource(tab.label),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                },
             )
         }
     }

@@ -106,7 +106,7 @@ fun ProfileScreen(
     val permissions = session.effectivePermissions
     val granted = Permission.entries.filter { permissions.has(it) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Profile") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_profile)) }) }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -149,7 +149,7 @@ fun ProfileScreen(
             licence?.let { PlanCard(it) }
 
             ListItem(
-                headlineContent = { Text("Change password") },
+                headlineContent = { Text(stringResource(R.string.change_password)) },
                 supportingContent = { Text("You will need your current one") },
                 leadingContent = { Icon(Icons.Filled.Badge, contentDescription = null) },
                 modifier = Modifier.clickable { changingPassword = true },
@@ -218,7 +218,7 @@ fun ProfileScreen(
 
             if (permissions.has(Permission.VIEW_USERS)) {
                 ListItem(
-                    headlineContent = { Text("Users") },
+                    headlineContent = { Text(stringResource(R.string.users)) },
                     supportingContent = { Text("Assign roles, activate and deactivate") },
                     leadingContent = { Icon(Icons.Filled.Group, contentDescription = null) },
                     modifier = Modifier.clickable(onClick = onManageUsers),
@@ -227,7 +227,7 @@ fun ProfileScreen(
             }
             if (permissions.has(Permission.VIEW_AUDIT_LOG)) {
                 ListItem(
-                    headlineContent = { Text("Audit log") },
+                    headlineContent = { Text(stringResource(R.string.audit_log)) },
                     supportingContent = { Text("Every change, who made it and when") },
                     leadingContent = { Icon(Icons.Filled.HistoryEdu, contentDescription = null) },
                     modifier = Modifier.clickable(onClick = onViewAuditLog),
@@ -239,7 +239,7 @@ fun ProfileScreen(
 
             if (permissions.has(Permission.EXPORT_ALL_DATA)) {
                 ListItem(
-                    headlineContent = { Text("Back up everything") },
+                    headlineContent = { Text(stringResource(R.string.back_up_everything)) },
                     supportingContent = {
                         Text("One file with all records and this phone's photos")
                     },
@@ -323,7 +323,7 @@ fun ProfileScreen(
             ) {
                 Icon(Icons.Filled.Logout, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Sign out")
+                Text(stringResource(R.string.sign_out))
             }
             Spacer(Modifier.height(8.dp))
             // Google Play requires an in-app route to close your own account.
@@ -585,7 +585,7 @@ private fun DeleteAccountDialog(
 
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
-        title = { Text("Delete my account") },
+        title = { Text(stringResource(R.string.delete_my_account)) },
         text = {
             Column {
                 NoticeBar(
@@ -610,7 +610,7 @@ private fun DeleteAccountDialog(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Your password") },
+                    label = { Text(stringResource(R.string.your_password)) },
                     singleLine = true,
                     enabled = !busy,
                     supportingText = { Text("Confirms it is really you") },

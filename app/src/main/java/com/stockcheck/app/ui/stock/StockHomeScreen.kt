@@ -232,7 +232,7 @@ fun StockHomeScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Stock check") }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.stock_check)) }) },
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
                 // Above the primary action, because naming products is the
@@ -264,7 +264,7 @@ fun StockHomeScreen(
                                 contentDescription = null,
                             )
                         },
-                        text = { Text("New stock check") },
+                        text = { Text(stringResource(R.string.new_stock_check)) },
                     )
                 }
             }
@@ -347,10 +347,10 @@ private fun TemplatePickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Choose a template") },
+        title = { Text(stringResource(R.string.choose_template)) },
         text = {
             if (templates.isEmpty()) {
-                Text("No active templates yet. Create one on the Templates tab.")
+                Text(stringResource(R.string.no_templates))
             } else {
                 Column {
                     templates.forEach { template ->
@@ -381,7 +381,7 @@ private fun TemplatePickerDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
     )
 }
@@ -409,7 +409,7 @@ private fun StockCheckCard(
                     Text(check.refNo, style = MaterialTheme.typography.titleMedium)
                     if (check.zone.isNotBlank()) {
                         Text(
-                            text = "Area ${check.zone}",
+                            text = stringResource(R.string.area_label, check.zone),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -426,7 +426,7 @@ private fun StockCheckCard(
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         if (canComplete) {
                             DropdownMenuItem(
-                                text = { Text("Mark completed") },
+                                text = { Text(stringResource(R.string.mark_completed)) },
                                 leadingIcon = {
                                     Icon(Icons.Filled.Check, contentDescription = null)
                                 },
@@ -435,7 +435,7 @@ private fun StockCheckCard(
                         }
                         if (canDelete) {
                             DropdownMenuItem(
-                                text = { Text("Delete") },
+                                text = { Text(stringResource(R.string.delete)) },
                                 leadingIcon = {
                                     Icon(Icons.Filled.Delete, contentDescription = null)
                                 },
@@ -468,7 +468,7 @@ private fun StockCheckCard(
     if (confirmingDelete) {
         AlertDialog(
             onDismissRequest = { confirmingDelete = false },
-            title = { Text("Delete ${check.refNo}?") },
+            title = { Text(stringResource(R.string.delete_check_title, check.refNo)) },
             text = {
                 Text(
                     if (check.itemCount == 0) {
@@ -480,10 +480,10 @@ private fun StockCheckCard(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { confirmingDelete = false; onDelete() }) { Text("Delete") }
+                TextButton(onClick = { confirmingDelete = false; onDelete() }) { Text(stringResource(R.string.delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmingDelete = false }) { Text("Cancel") }
+                TextButton(onClick = { confirmingDelete = false }) { Text(stringResource(R.string.cancel)) }
             },
         )
     }
@@ -577,7 +577,7 @@ private fun LicenceBlockedDialog(licence: Licence?, onDismiss: () -> Unit) {
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok)) } },
     )
 }
 

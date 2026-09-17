@@ -1,5 +1,8 @@
 package com.stockcheck.app.ui.common
 
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.stockcheck.app.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,7 +89,7 @@ fun StatusChip(status: StockStatus, modifier: Modifier = Modifier) {
             Spacer(Modifier.width(4.dp))
         }
         Text(
-            text = status.label,
+            text = stringResource(status.labelRes),
             style = MaterialTheme.typography.labelSmall,
             color = color,
         )
@@ -210,3 +213,20 @@ enum class NoticeTone { INFO, WARNING, ERROR }
 
 /** Standard content padding so every screen lines up with every other. */
 val ScreenPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+
+/**
+ * The status in the reader's language.
+ *
+ * The enum keeps an English [StockStatus.label] for anything written to a
+ * file or a log, where a record should not change wording with whoever
+ * happened to export it. Screens use this instead.
+ */
+@get:StringRes
+val StockStatus.labelRes: Int
+    get() = when (this) {
+        StockStatus.DRAFT -> R.string.status_draft
+        StockStatus.IN_PROGRESS -> R.string.status_in_progress
+        StockStatus.COMPLETED -> R.string.status_completed
+        StockStatus.REVIEWED -> R.string.status_reviewed
+        StockStatus.LOCKED -> R.string.status_locked
+    }
