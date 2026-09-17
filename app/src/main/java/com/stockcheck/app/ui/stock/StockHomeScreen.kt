@@ -1,5 +1,10 @@
 package com.stockcheck.app.ui.stock
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import com.stockcheck.app.BuildConfig
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Arrangement
@@ -140,6 +145,12 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
             WorkspaceConfig.DEFAULT_ZONES,
         )
 
+    /** The code a customer quotes when they get in touch about paying. */
+    val joinCode: StateFlow<String> = ServiceLocator.users.observeConfig()
+        .map { it?.joinCode.orEmpty() }
+        .catch { emit("") }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+
     /** Takes an area off the shortcut row. Counts made in it are untouched. */
     fun forgetZone(zone: String) {
         viewModelScope.launch {
@@ -218,12 +229,14 @@ fun StockHomeScreen(
     var pickedTemplate by remember { mutableStateOf<Template?>(null) }
     val zones by viewModel.zones.collectAsStateWithLifecycle()
     var blocked by remember { mutableStateOf(false) }
+    val joinCode by viewModel.joinCode.collectAsStateWithLifecycle()
 
-    // A licence that has not been written yet is permission, not refusal --
+    // A licence that has not been written yet is refusal, not permission --
     // the same rule the server applies. See licenceAllowsNewWork() in
-    // firestore.rules.
+    // firestore.rules. Reading it the other way made the paid tier optional
+    // for every workspace whose licence was never issued.
     val now = System.currentTimeMillis()
-    val mayStart = licence?.allowsNewWork(now) ?: true
+    val mayStart = licence?.allowsNewWork(now) == true
 
     // Anything not yet reviewed is still "on the floor" and belongs here; the
     // finished ones live on the History tab.
@@ -310,6 +323,7 @@ fun StockHomeScreen(
     if (blocked) {
         LicenceBlockedDialog(
             licence = licence,
+            joinCode = joinCode,
             onDismiss = { blocked = false },
         )
     }
@@ -545,21 +559,41 @@ private fun LicenceBanner(licence: Licence, now: Long) {
  * and an argument.
  */
 @Composable
-private fun LicenceBlockedDialog(licence: Licence?, onDismiss: () -> Unit) {
+private fun LicenceBlockedDialog(
+    licence: Licence?,
+    joinCode: String,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    var noBrowser by remember { mutableStateOf(false) }
     val suspended = licence?.statusEnum == LicenceStatus.SUSPENDED
+    // Nothing issued at all reads differently from something that ran out: a
+    // company told its plan "ended" when it never had one is being told it
+    // lost something it never received.
+    val neverIssued = licence == null
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-        title = { Text(if (suspended) "Access suspended" else "Plan has ended") },
+        title = {
+            Text(
+                when {
+                    neverIssued -> stringResource(R.string.paywall_title)
+                    suspended -> "Access suspended"
+                    else -> stringResource(R.string.paywall_trial_over)
+                },
+            )
+        },
         text = {
             Column {
                 Text(
-                    if (suspended) {
-                        "New stock checks are paused while this company's access is " +
-                            "suspended."
-                    } else {
-                        "The ${licence?.planEnum?.label ?: "current"} plan ended, so a " +
-                            "new stock check cannot be started."
+                    when {
+                        neverIssued -> stringResource(R.string.paywall_body)
+                        suspended ->
+                            "New stock checks are paused while this company's access " +
+                                "is suspended."
+                        else ->
+                            "The ${licence?.planEnum?.label ?: "current"} plan ended, " +
+                                "so a new stock check cannot be started."
                     },
                 )
                 Spacer(Modifier.height(12.dp))
@@ -568,6 +602,41 @@ private fun LicenceBlockedDialog(licence: Licence?, onDismiss: () -> Unit) {
                         "opened, finished, exported and backed up.",
                     style = MaterialTheme.typography.bodySmall,
                 )
+
+                if (joinCode.isNotBlank()) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        // The one thing they will be asked for. Putting it on
+                        // the screen that refuses them saves a round trip
+                        // through an admin who has to go and look it up.
+                        text = stringResource(R.string.paywall_quote_code, joinCode),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    text = stringResource(R.string.paywall_plans),
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                Spacer(Modifier.height(4.dp))
+                Plan.entries.filter { it != Plan.TRIAL }.forEach { plan ->
+                    Text(
+                        text = "${plan.label} · " +
+                            stringResource(R.string.paywall_per_month, plan.monthlySen / 100),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                if (noBrowser) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = stringResource(R.string.paywall_no_browser),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 licence?.contactEmail?.takeIf { it.isNotBlank() }?.let { email ->
                     Spacer(Modifier.height(10.dp))
                     Text(
@@ -577,7 +646,31 @@ private fun LicenceBlockedDialog(licence: Licence?, onDismiss: () -> Unit) {
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok)) } },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    // Out to a browser, never a form in here. The app takes no
+                    // card details and holds no payment state, so there is
+                    // nothing about billing on the device to forge -- and the
+                    // licence it results in is written by the platform's
+                    // service account, which the rules are the only reader of.
+                    val url = BuildConfig.BUY_URL +
+                        if (joinCode.isBlank()) "" else "?company=$joinCode"
+                    try {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                        noBrowser = false
+                    } catch (missing: ActivityNotFoundException) {
+                        noBrowser = true
+                    }
+                },
+            ) { Text(stringResource(R.string.paywall_buy)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok)) }
+        },
     )
 }
 

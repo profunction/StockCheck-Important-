@@ -160,11 +160,21 @@ service cloud.firestore {
        * because holding data hostage over a lapsed card is how a billing
        * problem becomes a complaint to the Ministry.
        */
+      // A workspace with no licence cannot start a count.
+      //
+      // This used to read the other way -- no licence document meant no
+      // restriction -- which made the paid tier optional for anybody whose
+      // licence was never written, including every workspace created before
+      // the platform was asked for one. A company gets its trial the same way
+      // it gets everything else: somebody issues it.
+      //
+      // Only the platform's service account can write /licences, so this is
+      // the one commercial rule a modified client cannot argue with.
       function licenceAllowsNewWork() {
-        return !exists(licencePath())
-               || (get(licencePath()).data.status == 'ACTIVE'
-                   && (get(licencePath()).data.expiresAt == 0
-                       || get(licencePath()).data.expiresAt > request.time.toMillis()));
+        return exists(licencePath())
+               && get(licencePath()).data.status == 'ACTIVE'
+               && (get(licencePath()).data.expiresAt == 0
+                   || get(licencePath()).data.expiresAt > request.time.toMillis());
       }
 
       function joinCodeAccepted() {

@@ -69,4 +69,14 @@
     <string name="sign_out">Sign out</string>
     <string name="delete_my_account">Delete my account</string>
     <string name="your_password">Your password</string>
+    <string name="paywall_title">This company needs a licence</string>
+    <string name="paywall_trial_over">The trial has ended</string>
+    <string name="paywall_body">Every count already made is kept, and exporting still works. What needs a licence is starting the next one.</string>
+    <string name="paywall_quote_code">Quote this company code: %1$s</string>
+    <string name="paywall_buy">Go to the payment page</string>
+    <string name="paywall_plans">Plans</string>
+    <string name="paywall_seats">%1$d accounts</string>
+    <string name="paywall_per_month">RM %1$d / month</string>
+    <string name="paywall_per_year">RM %1$d / year</string>
+    <string name="paywall_no_browser">No app on this phone can open that page.</string>
 </resources>

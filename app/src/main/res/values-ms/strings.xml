@@ -61,4 +61,14 @@
     <string name="sign_out">Log keluar</string>
     <string name="delete_my_account">Padam akaun saya</string>
     <string name="your_password">Kata laluan anda</string>
+    <string name="paywall_title">Syarikat ini perlukan lesen</string>
+    <string name="paywall_trial_over">Tempoh percubaan telah tamat</string>
+    <string name="paywall_body">Semua kiraan yang sudah dibuat kekal, dan eksport masih berfungsi. Yang perlukan lesen ialah memulakan kiraan seterusnya.</string>
+    <string name="paywall_quote_code">Berikan kod syarikat ini: %1$s</string>
+    <string name="paywall_buy">Pergi ke halaman pembayaran</string>
+    <string name="paywall_plans">Pelan</string>
+    <string name="paywall_seats">%1$d akaun</string>
+    <string name="paywall_per_month">RM %1$d / bulan</string>
+    <string name="paywall_per_year">RM %1$d / tahun</string>
+    <string name="paywall_no_browser">Tiada aplikasi di telefon ini boleh membuka halaman itu.</string>
 </resources>

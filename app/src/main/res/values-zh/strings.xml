@@ -61,4 +61,14 @@
     <string name="sign_out">退出登录</string>
     <string name="delete_my_account">删除我的账号</string>
     <string name="your_password">你的密码</string>
+    <string name="paywall_title">这家公司需要授权</string>
+    <string name="paywall_trial_over">试用已结束</string>
+    <string name="paywall_body">已经做过的盘点全部保留，导出照常可用。需要授权的只是「开始下一次盘点」。</string>
+    <string name="paywall_quote_code">报上这个公司代码：%1$s</string>
+    <string name="paywall_buy">去付款页面</string>
+    <string name="paywall_plans">套餐</string>
+    <string name="paywall_seats">%1$d 个账号</string>
+    <string name="paywall_per_month">RM %1$d / 月</string>
+    <string name="paywall_per_year">RM %1$d / 年</string>
+    <string name="paywall_no_browser">这台手机上没有 app 能打开那个页面。</string>
 </resources>

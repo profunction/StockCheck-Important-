@@ -40,6 +40,13 @@ android {
         // repeatedly while debugging and was unanswerable from a
         // screenshot.
         buildConfigField("String", "BUILD_STAMP", "\"2026-09-15 22:36\"")
+
+        // Where somebody goes to pay. Outside the app on purpose: the app
+        // takes no card details and holds no payment state, so nothing about
+        // billing can be forged on a device.
+        //
+        // REPLACE with the platform server's public address before release.
+        buildConfigField("String", "BUY_URL", "\"https://example.invalid/buy\"")
     }
 
     signingConfigs {
