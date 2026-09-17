@@ -147,7 +147,12 @@ class BackupService(
         }
 
         val delivered = if (!password.isNullOrBlank()) {
-            EncryptedBundle.wrap(plain, password)
+            // And remove the unencrypted one. Wrapping copies rather than
+            // moves, so asking for a password used to leave the plain zip --
+            // every collection and every photo in the workspace -- sitting in
+            // the cache beside the encrypted copy. A password that protects
+            // one of two identical files protects nothing.
+            EncryptedBundle.wrap(plain, password).also { plain.delete() }
         } else {
             plain
         }
