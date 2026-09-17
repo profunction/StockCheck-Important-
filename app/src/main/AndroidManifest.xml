@@ -18,6 +18,12 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <!-- From Android 11 an app cannot see another app it has not asked
+             about, and a camera it cannot see is an ActivityNotFoundException
+             the moment somebody presses Take photo. -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
     </queries>
 
     <application

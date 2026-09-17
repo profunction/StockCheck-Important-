@@ -1,5 +1,10 @@
 package com.stockcheck.app.ui.photos
 
+import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.pm.PackageManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -139,6 +144,18 @@ class PhotosViewModel(private val session: Session) : ViewModel() {
     }
 
     /** Creates the destination file and returns the URI to hand the camera. */
+    /**
+     * There was nowhere to send the camera intent.
+     *
+     * Rare — a phone with no camera app at all — but the alternative to
+     * saying so is the app closing itself, which reads as a crash because it
+     * is one.
+     */
+    fun onNoCamera(cause: Throwable) {
+        _error.value = cause.message
+            ?: "This phone has no camera app to take the photo with."
+    }
+
     fun prepareCapture(): Uri? {
         val checkId = _selectedCheckId.value ?: return null
         val file = photoRepo.newPhotoFile(checkId)
@@ -216,10 +233,41 @@ fun PhotosScreen(session: Session) {
     val error by viewModel.error.collectAsStateWithLifecycle()
 
     var viewing by remember { mutableStateOf<PhotoRecord?>(null) }
+    val context = LocalContext.current
 
     val captureLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture(),
     ) { success -> viewModel.onCaptured(success) }
+
+    // Declaring CAMERA in the manifest is what makes this necessary: once it
+    // is declared, the system refuses ACTION_IMAGE_CAPTURE outright unless it
+    // has also been granted. Every other screen that opens a camera asks
+    // first; this one went straight to the intent and took the app down with
+    // it for anyone who had not already said yes somewhere else.
+    var hasCamera by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED,
+        )
+    }
+
+    fun capture() {
+        val target = viewModel.prepareCapture() ?: return
+        try {
+            captureLauncher.launch(target)
+        } catch (missing: ActivityNotFoundException) {
+            // A phone with no camera app is rare and not a reason to close.
+            viewModel.onNoCamera(missing)
+        }
+    }
+
+    val cameraPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        hasCamera = granted
+        // Taking the photo is what was asked for; the prompt was in the way.
+        if (granted) capture()
+    }
 
     // Default to the most recent check so the page is useful the moment it opens.
     if (selectedId == null && checks.isNotEmpty()) {
@@ -248,7 +296,11 @@ fun PhotosScreen(session: Session) {
             if (selected != null && !selected.statusEnum.isFrozen) {
                 ExtendedFloatingActionButton(
                     onClick = {
-                        viewModel.prepareCapture()?.let(captureLauncher::launch)
+                        if (hasCamera) {
+                            capture()
+                        } else {
+                            cameraPermission.launch(Manifest.permission.CAMERA)
+                        }
                     },
                     icon = { Icon(Icons.Filled.AddAPhoto, contentDescription = null) },
                     text = { Text("Take photo") },
