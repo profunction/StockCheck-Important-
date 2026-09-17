@@ -20,7 +20,7 @@
 
 import express from 'express';
 import Stripe from 'stripe';
-import { grant, expire, get, findByCode } from './licences.mjs';
+import { grant, expire, get, findByCode, write } from './licences.mjs';
 import { PLANS, TERMS, priceSen, ringgit, CURRENCY } from './plans.mjs';
 
 const {
@@ -30,6 +30,7 @@ const {
   TOYYIBPAY_SECRET_KEY,
   TOYYIBPAY_CATEGORY_CODE,
   PUBLIC_URL = `http://localhost:${PORT}`,
+  GOOGLE_PLAY_PACKAGE,
 } = process.env;
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
@@ -236,6 +237,110 @@ app.post('/checkout', async (req, res) => {
   });
 
   res.json({ url: session.url, amount: ringgit(sen) });
+});
+
+/**
+ * A Google Play purchase, offered by a phone and believed by nobody yet.
+ *
+ * The app posts the token it was handed; this asks Google whether that token
+ * is real, is for this app, and is currently in good standing. Only then does
+ * a licence get written. The phone never touches /licences — that is what
+ * stops a modified client from granting itself a plan, and it is the reason
+ * this endpoint exists at all rather than the app writing the grant itself.
+ *
+ * Acknowledgement is done here too. Google voids an unacknowledged purchase
+ * after three days, which is the right way round: a purchase this server
+ * cannot verify should end in a refund, not in a licence nobody granted.
+ *
+ * Needs a service account with the Android Publisher scope, granted access in
+ * Play Console under Users and permissions. GOOGLE_PLAY_PACKAGE must be the
+ * app's applicationId.
+ */
+app.post('/play/verify', express.json(), async (req, res) => {
+  const { workspaceId, productId, purchaseToken } = req.body ?? {};
+  if (!workspaceId || !productId || !purchaseToken) {
+    return res.status(400).json({ error: 'workspaceId, productId and purchaseToken are required' });
+  }
+  if (!GOOGLE_PLAY_PACKAGE) {
+    return res.status(503).json({ error: 'GOOGLE_PLAY_PACKAGE is not configured' });
+  }
+
+  // starter_monthly -> STARTER, monthly. The app builds these ids the same
+  // way; a product in Play Console named anything else will not resolve, and
+  // failing here is better than granting the wrong plan.
+  const underscore = productId.lastIndexOf('_');
+  const plan = productId.slice(0, underscore).toUpperCase();
+  const term = productId.slice(underscore + 1);
+  if (!PLANS[plan] || plan === 'TRIAL' || !TERMS[term]) {
+    return res.status(400).json({ error: `unrecognised product ${productId}` });
+  }
+
+  let subscription;
+  try {
+    const { google } = await import('googleapis');
+    const auth = new google.auth.GoogleAuth({
+      keyFile: './service-account.json',
+      scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+    });
+    const publisher = google.androidpublisher({ version: 'v3', auth });
+    const response = await publisher.purchases.subscriptions.get({
+      packageName: GOOGLE_PLAY_PACKAGE,
+      subscriptionId: productId,
+      token: purchaseToken,
+    });
+    subscription = response.data;
+  } catch (error) {
+    log('play verify failed', productId, error?.message ?? error);
+    return res.status(502).json({ error: 'Could not verify with Google Play' });
+  }
+
+  // 1 is "payment received". 0 is a free trial Google is running, which is
+  // still a live entitlement. Anything else — pending, on hold, cancelled —
+  // is not somebody who has paid.
+  const paid = subscription.paymentState === 1 || subscription.paymentState === 0;
+  const expiry = Number(subscription.expiryTimeMillis ?? 0);
+  if (!paid || expiry <= Date.now()) {
+    return res.status(409).json({ error: 'That purchase is not currently in good standing' });
+  }
+
+  // Google's own expiry, not a term calculated here. Google is what will
+  // renew or stop renewing it, so anything computed locally would drift the
+  // first time somebody changes plan or their card fails.
+  await write(
+    workspaceId,
+    {
+      plan,
+      status: 'ACTIVE',
+      seats: PLANS[plan].seats,
+      expiresAt: expiry,
+      playPurchaseToken: purchaseToken,
+      playProductId: productId,
+    },
+    `google play ${productId}`,
+  );
+
+  if (!subscription.acknowledgementState) {
+    try {
+      const { google } = await import('googleapis');
+      const auth = new google.auth.GoogleAuth({
+        keyFile: './service-account.json',
+        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+      });
+      await google.androidpublisher({ version: 'v3', auth }).purchases.subscriptions.acknowledge({
+        packageName: GOOGLE_PLAY_PACKAGE,
+        subscriptionId: productId,
+        token: purchaseToken,
+        requestBody: {},
+      });
+    } catch (error) {
+      // The licence is already written, so the customer has what they paid
+      // for. Worth shouting about, not worth failing the request over.
+      log('play acknowledge failed', productId, error?.message ?? error);
+    }
+  }
+
+  log('play granted', workspaceId, plan, term, new Date(expiry).toISOString());
+  res.json({ ok: true, plan, expiresAt: expiry });
 });
 
 app.get('/paid', (_req, res) =>

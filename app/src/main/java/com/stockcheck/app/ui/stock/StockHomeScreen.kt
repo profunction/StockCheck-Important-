@@ -1,5 +1,10 @@
 package com.stockcheck.app.ui.stock
 
+import androidx.compose.runtime.LaunchedEffect
+import com.stockcheck.app.data.Db
+import android.app.Activity
+import androidx.compose.ui.platform.LocalView
+import com.android.billingclient.api.ProductDetails
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -565,7 +570,20 @@ private fun LicenceBlockedDialog(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
+    // From LocalView, not LocalContext: the language provider hands the tree a
+    // configuration context, which is not an Activity, and Play requires one.
+    val activity = LocalView.current.context as? Activity
     var noBrowser by remember { mutableStateOf(false) }
+
+    val billing = ServiceLocator.billing
+    val playAvailable by billing.available.collectAsStateWithLifecycle()
+    val playProducts by billing.products.collectAsStateWithLifecycle()
+    val billingMessage by billing.message.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        billing.workspaceId = Db.workspaceId
+        billing.start()
+    }
+
     val suspended = licence?.statusEnum == LicenceStatus.SUSPENDED
     // Nothing issued at all reads differently from something that ran out: a
     // company told its plan "ended" when it never had one is being told it
@@ -620,12 +638,42 @@ private fun LicenceBlockedDialog(
                     style = MaterialTheme.typography.labelMedium,
                 )
                 Spacer(Modifier.height(4.dp))
-                Plan.entries.filter { it != Plan.TRIAL }.forEach { plan ->
+                if (playAvailable && activity != null) {
+                    // Play knows the real prices, in the buyer's own currency,
+                    // and they are the ones that will be charged. Showing the
+                    // Kotlin price list beside Play's would be two answers to
+                    // one question.
+                    playProducts.forEach { product ->
+                        TextButton(onClick = { billing.buy(activity, product) }) {
+                            Text(
+                                "${product.title} · " +
+                                    (product.subscriptionOfferDetails
+                                        ?.firstOrNull()
+                                        ?.pricingPhases
+                                        ?.pricingPhaseList
+                                        ?.firstOrNull()
+                                        ?.formattedPrice
+                                        .orEmpty()),
+                            )
+                        }
+                    }
+                } else {
+                    Plan.entries.filter { it != Plan.TRIAL }.forEach { plan ->
+                        Text(
+                            text = "${plan.label} · " +
+                                stringResource(R.string.paywall_per_month, plan.monthlySen / 100),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                billingMessage?.let { note ->
+                    Spacer(Modifier.height(10.dp))
                     Text(
-                        text = "${plan.label} · " +
-                            stringResource(R.string.paywall_per_month, plan.monthlySen / 100),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = note,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
 
@@ -647,7 +695,10 @@ private fun LicenceBlockedDialog(
             }
         },
         confirmButton = {
-            TextButton(
+            // Only when Play has nothing to sell this copy — side-loaded, or
+            // products not published. Offering both at once is how an app
+            // gets pulled from the store.
+            if (!playAvailable) TextButton(
                 onClick = {
                     // Out to a browser, never a form in here. The app takes no
                     // card details and holds no payment state, so there is

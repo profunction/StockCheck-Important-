@@ -47,6 +47,13 @@ android {
         //
         // REPLACE with the platform server's public address before release.
         buildConfigField("String", "BUY_URL", "\"https://example.invalid/buy\"")
+
+        // The platform server. A Play purchase is posted here to be verified
+        // against Google before any licence is written -- the phone never
+        // grants itself anything.
+        //
+        // REPLACE before release.
+        buildConfigField("String", "PLATFORM_URL", "\"https://example.invalid\"")
     }
 
     signingConfigs {
@@ -168,6 +175,7 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    implementation(libs.billing.ktx)
     implementation(libs.zip4j)
     implementation(libs.coil.compose)
     implementation(libs.androidx.work.runtime.ktx)
