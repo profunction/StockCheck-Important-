@@ -279,6 +279,16 @@ app.post('/checkout', async (req, res) => {
  * Play Console under Users and permissions. GOOGLE_PLAY_PACKAGE must be the
  * app's applicationId.
  */
+/** The Play Developer API, authorised by the same service account as Firestore. */
+async function playPublisher() {
+  const { google } = await import('googleapis');
+  const auth = new google.auth.GoogleAuth({
+    keyFile: './service-account.json',
+    scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+  });
+  return google.androidpublisher({ version: 'v3', auth });
+}
+
 app.post('/play/verify', express.json(), async (req, res) => {
   const { workspaceId, productId, purchaseToken } = req.body ?? {};
   if (!workspaceId || !productId || !purchaseToken) {
@@ -298,32 +308,48 @@ app.post('/play/verify', express.json(), async (req, res) => {
     return res.status(400).json({ error: `unrecognised product ${productId}` });
   }
 
-  let subscription;
+  // Play sells the recurring terms as subscriptions and lifetime as a
+  // one-time product, and they are different APIs. Asking the wrong one
+  // about a token returns nothing rather than an error, so the plan with the
+  // largest price would fail silently.
+  const oneTime = term === 'lifetime';
+  let purchase;
   try {
-    const { google } = await import('googleapis');
-    const auth = new google.auth.GoogleAuth({
-      keyFile: './service-account.json',
-      scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-    });
-    const publisher = google.androidpublisher({ version: 'v3', auth });
-    const response = await publisher.purchases.subscriptions.get({
-      packageName: GOOGLE_PLAY_PACKAGE,
-      subscriptionId: productId,
-      token: purchaseToken,
-    });
-    subscription = response.data;
+    const publisher = await playPublisher();
+    const response = oneTime
+      ? await publisher.purchases.products.get({
+          packageName: GOOGLE_PLAY_PACKAGE,
+          productId,
+          token: purchaseToken,
+        })
+      : await publisher.purchases.subscriptions.get({
+          packageName: GOOGLE_PLAY_PACKAGE,
+          subscriptionId: productId,
+          token: purchaseToken,
+        });
+    purchase = response.data;
   } catch (error) {
     log('play verify failed', productId, error?.message ?? error);
     return res.status(502).json({ error: 'Could not verify with Google Play' });
   }
 
-  // 1 is "payment received". 0 is a free trial Google is running, which is
-  // still a live entitlement. Anything else — pending, on hold, cancelled —
-  // is not somebody who has paid.
-  const paid = subscription.paymentState === 1 || subscription.paymentState === 0;
-  const expiry = Number(subscription.expiryTimeMillis ?? 0);
-  if (!paid || expiry <= Date.now()) {
-    return res.status(409).json({ error: 'That purchase is not currently in good standing' });
+  let expiry;
+  if (oneTime) {
+    // purchaseState 0 is purchased; 1 cancelled, 2 pending. Zero expiry is
+    // what a lifetime licence is -- see the Licence model.
+    if (purchase.purchaseState !== 0) {
+      return res.status(409).json({ error: 'That purchase is not currently in good standing' });
+    }
+    expiry = 0;
+  } else {
+    // 1 is "payment received". 0 is a free trial Google is running, which is
+    // still a live entitlement. Anything else — pending, on hold, cancelled —
+    // is not somebody who has paid.
+    const paid = purchase.paymentState === 1 || purchase.paymentState === 0;
+    expiry = Number(purchase.expiryTimeMillis ?? 0);
+    if (!paid || expiry <= Date.now()) {
+      return res.status(409).json({ error: 'That purchase is not currently in good standing' });
+    }
   }
 
   // Google's own expiry, not a term calculated here. Google is what will
@@ -342,19 +368,22 @@ app.post('/play/verify', express.json(), async (req, res) => {
     `google play ${productId}`,
   );
 
-  if (!subscription.acknowledgementState) {
+  if (!purchase.acknowledgementState) {
     try {
-      const { google } = await import('googleapis');
-      const auth = new google.auth.GoogleAuth({
-        keyFile: './service-account.json',
-        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-      });
-      await google.androidpublisher({ version: 'v3', auth }).purchases.subscriptions.acknowledge({
-        packageName: GOOGLE_PLAY_PACKAGE,
-        subscriptionId: productId,
-        token: purchaseToken,
-        requestBody: {},
-      });
+      const publisher = await playPublisher();
+      await (oneTime
+        ? publisher.purchases.products.acknowledge({
+            packageName: GOOGLE_PLAY_PACKAGE,
+            productId,
+            token: purchaseToken,
+            requestBody: {},
+          })
+        : publisher.purchases.subscriptions.acknowledge({
+            packageName: GOOGLE_PLAY_PACKAGE,
+            subscriptionId: productId,
+            token: purchaseToken,
+            requestBody: {},
+          }));
     } catch (error) {
       // The licence is already written, so the customer has what they paid
       // for. Worth shouting about, not worth failing the request over.
@@ -362,7 +391,8 @@ app.post('/play/verify', express.json(), async (req, res) => {
     }
   }
 
-  log('play granted', workspaceId, plan, term, new Date(expiry).toISOString());
+  // A lifetime licence stores expiry 0, which as a date reads as 1970.
+  log('play granted', workspaceId, plan, term, expiry ? new Date(expiry).toISOString() : 'no expiry');
   res.json({ ok: true, plan, expiresAt: expiry });
 });
 

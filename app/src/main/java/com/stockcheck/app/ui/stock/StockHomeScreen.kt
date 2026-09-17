@@ -4,7 +4,6 @@ import androidx.compose.runtime.LaunchedEffect
 import com.stockcheck.app.data.Db
 import android.app.Activity
 import androidx.compose.ui.platform.LocalView
-import com.android.billingclient.api.ProductDetails
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -69,6 +68,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.stockcheck.app.data.BillingRepository
 import com.stockcheck.app.data.ServiceLocator
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
@@ -645,16 +645,7 @@ private fun LicenceBlockedDialog(
                     // one question.
                     playProducts.forEach { product ->
                         TextButton(onClick = { billing.buy(activity, product) }) {
-                            Text(
-                                "${product.title} · " +
-                                    (product.subscriptionOfferDetails
-                                        ?.firstOrNull()
-                                        ?.pricingPhases
-                                        ?.pricingPhaseList
-                                        ?.firstOrNull()
-                                        ?.formattedPrice
-                                        .orEmpty()),
-                            )
+                            Text("${product.title} · " + BillingRepository.priceOf(product))
                         }
                     }
                 } else {

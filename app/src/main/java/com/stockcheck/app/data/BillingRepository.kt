@@ -125,52 +125,60 @@ class BillingRepository(appContext: Context) {
     }
 
     private suspend fun loadProducts() {
-        val wanted = productIds().map { id ->
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(id)
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-        }
-        val params = QueryProductDetailsParams.newBuilder().setProductList(wanted).build()
-
-        val details = suspendCancellableCoroutine { continuation ->
-            client.queryProductDetailsAsync(params) { _, list ->
-                continuation.resume(list.orEmpty())
-            }
-        }
+        val details =
+            query(subscriptionIds(), BillingClient.ProductType.SUBS) +
+                query(oneTimeIds(), BillingClient.ProductType.INAPP)
         _products.value = details
         // Empty means Play has nothing to sell this copy of the app: either it
         // was side-loaded, or the products are not published yet.
         _available.value = details.isNotEmpty()
     }
 
-    private suspend fun restoreExisting() {
-        val params = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
-        val owned = suspendCancellableCoroutine { continuation ->
-            client.queryPurchasesAsync(params) { _, list -> continuation.resume(list) }
+    private suspend fun query(ids: List<String>, type: String): List<ProductDetails> {
+        if (ids.isEmpty()) return emptyList()
+        val wanted = ids.map { id ->
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(id)
+                .setProductType(type)
+                .build()
         }
-        owned.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
-            .forEach { redeem(it) }
+        val params = QueryProductDetailsParams.newBuilder().setProductList(wanted).build()
+        return suspendCancellableCoroutine { continuation ->
+            client.queryProductDetailsAsync(params) { _, list ->
+                continuation.resume(list.orEmpty())
+            }
+        }
+    }
+
+    private suspend fun restoreExisting() {
+        listOf(BillingClient.ProductType.SUBS, BillingClient.ProductType.INAPP)
+            .forEach { type ->
+                val params = QueryPurchasesParams.newBuilder().setProductType(type).build()
+                val owned = suspendCancellableCoroutine { continuation ->
+                    client.queryPurchasesAsync(params) { _, list -> continuation.resume(list) }
+                }
+                owned.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+                    .forEach { redeem(it) }
+            }
     }
 
     /** Opens Play's own purchase sheet. Needs a real Activity; Play requires one. */
     fun buy(activity: Activity, details: ProductDetails) {
+        val subscription = details.productType == BillingClient.ProductType.SUBS
         val offer = details.subscriptionOfferDetails?.firstOrNull()?.offerToken
-        if (offer == null) {
+        if (subscription && offer == null) {
             _message.value = "That plan has no offer to buy right now."
             return
         }
+        // A one-time product has no offer to select, and passing one is an
+        // error rather than a no-op.
+        val product = BillingFlowParams.ProductDetailsParams.newBuilder()
+            .setProductDetails(details)
+            .apply { if (subscription && offer != null) setOfferToken(offer) }
+            .build()
+
         val flow = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(
-                listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(details)
-                        .setOfferToken(offer)
-                        .build(),
-                ),
-            )
+            .setProductDetailsParamsList(listOf(product))
             .setObfuscatedAccountId(workspaceId)
             .build()
         client.launchBillingFlow(activity, flow)
@@ -231,10 +239,41 @@ class BillingRepository(appContext: Context) {
          * issued by the platform CLI, and a trial somebody can buy is not a
          * trial.
          */
-        fun productIds(): List<String> =
-            Plan.entries.filter { it != Plan.TRIAL }.flatMap { plan ->
-                val base = plan.name.lowercase()
-                listOf("${base}_monthly", "${base}_yearly")
-            }
+        private fun paidPlans() = Plan.entries.filter { it != Plan.TRIAL }
+
+        /** Monthly and yearly, which Play sells as subscriptions. */
+        fun subscriptionIds(): List<String> = paidPlans().flatMap { plan ->
+            val base = plan.name.lowercase()
+            listOf("${base}_monthly", "${base}_yearly")
+        }
+
+        /**
+         * Lifetime, which Play sells as a one-time product instead.
+         *
+         * Not a detail: a product queried under the wrong type comes back as
+         * nothing at all, so the plan with the largest price simply would not
+         * appear -- no error, no empty state, just a missing row.
+         */
+        fun oneTimeIds(): List<String> =
+            paidPlans().map { "${it.name.lowercase()}_lifetime" }
+
+        fun productIds(): List<String> = subscriptionIds() + oneTimeIds()
+
+        /**
+         * The price to show for a product, whichever kind it is.
+         *
+         * A one-time product has no subscription offers, so reading only
+         * those gives a row reading "Lifetime Starter · " with the price
+         * missing -- the plan is on screen and looks free.
+         */
+        fun priceOf(details: ProductDetails): String =
+            details.subscriptionOfferDetails
+                ?.firstOrNull()
+                ?.pricingPhases
+                ?.pricingPhaseList
+                ?.firstOrNull()
+                ?.formattedPrice
+                ?: details.oneTimePurchaseOfferDetails?.formattedPrice
+                ?: ""
     }
 }
