@@ -12,6 +12,8 @@ class StockCheckApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // First, so that a crash in anything set up below is still recorded.
+        CrashLog.install(this)
         FirebaseApp.initializeApp(this)
 
         // Persistent local cache is what gives the app its offline mode and its

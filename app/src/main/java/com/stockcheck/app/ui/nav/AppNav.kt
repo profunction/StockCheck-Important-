@@ -1,5 +1,16 @@
 package com.stockcheck.app.ui.nav
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import com.stockcheck.app.CrashLog
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import com.stockcheck.app.R
@@ -112,6 +123,7 @@ private val tabs = listOf(
 
 @Composable
 fun StockCheckRoot() {
+    LastCrashDialog()
     val sessionViewModel: SessionViewModel = viewModel()
     val authState by sessionViewModel.authState.collectAsStateWithLifecycle()
     val busy by sessionViewModel.busy.collectAsStateWithLifecycle()
@@ -401,3 +413,56 @@ fun NotPermitted(what: String, modifier: Modifier = Modifier) {
 
 /** Convenience for screens that need to branch on a single permission. */
 fun PermissionSet.gate(permission: Permission): Boolean = has(permission)
+
+/**
+ * Shows the stack trace of the last crash, once, with a button that copies it.
+ *
+ * A crash on somebody else's phone is otherwise only ever reported as "it
+ * closed itself" -- true, and no help in finding where. Reading it back on
+ * the next launch turns each crash into one paste instead of one round of
+ * guessing, which is the difference between fixing it and fixing something
+ * near it.
+ *
+ * Shown above everything, including the sign-in screen: a crash before anyone
+ * signs in is exactly the kind that is hardest to hear about.
+ */
+@Composable
+private fun LastCrashDialog() {
+    val context = LocalContext.current
+    val clipboard = LocalClipboardManager.current
+    var trace by remember { mutableStateOf(CrashLog.last(context)) }
+
+    trace?.let { text ->
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("The app closed unexpectedly") },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        text = "Copy this and send it on — it says where it went wrong.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { clipboard.setText(AnnotatedString(text)) },
+                ) { Text("Copy") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        CrashLog.clear(context)
+                        trace = null
+                    },
+                ) { Text("Dismiss") }
+            },
+        )
+    }
+}
