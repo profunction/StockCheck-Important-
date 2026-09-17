@@ -35,4 +35,5 @@
     <string name="total_differences">Perbezaan</string>
     <string name="total_review">Semak</string>
     <string name="total_unnamed">Tiada nama</string>
+    <string name="area_label">Kawasan: %1$s</string>
 </resources>

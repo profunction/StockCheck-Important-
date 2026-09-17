@@ -43,4 +43,5 @@
     <string name="total_differences">Differences</string>
     <string name="total_review">Review</string>
     <string name="total_unnamed">Unnamed</string>
+    <string name="area_label">Area: %1$s</string>
 </resources>

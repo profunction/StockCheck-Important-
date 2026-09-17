@@ -48,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.stockcheck.app.R
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -205,7 +207,14 @@ private fun HistoryCard(check: StockCheck, onClick: () -> Unit) {
             }
             Spacer(Modifier.height(4.dp))
             Text(
-                text = friendlyDate(check.createdAt),
+                // Which area, beside the date. Searching History by area
+                // already worked; seeing which area a count covers did not,
+                // so the search only helped somebody who already knew.
+                text = if (check.zone.isBlank()) {
+                    friendlyDate(check.createdAt)
+                } else {
+                    "${friendlyDate(check.createdAt)} · ${check.zone}"
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
             )
@@ -308,6 +317,9 @@ fun HistoryDetailScreen(
                             StatusChip(check.statusEnum)
                         }
                         Spacer(Modifier.height(8.dp))
+                        if (check.zone.isNotBlank()) {
+                            Text(stringResource(R.string.area_label, check.zone))
+                        }
                         Text("Worker: ${check.createdByName}")
                         Text("Started: ${friendlyDate(check.createdAt)}")
                         check.completedAt?.let { Text("Completed: ${friendlyDate(it)}") }

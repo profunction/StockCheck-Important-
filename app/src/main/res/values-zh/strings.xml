@@ -35,4 +35,5 @@
     <string name="total_differences">差异</string>
     <string name="total_review">待复核</string>
     <string name="total_unnamed">未命名</string>
+    <string name="area_label">区域：%1$s</string>
 </resources>
