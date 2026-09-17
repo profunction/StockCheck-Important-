@@ -103,7 +103,36 @@ Three things are still outstanding, and none of them are code in this repo:
    recognition, device information. Under-declaring to make review easier is
    how an app gets pulled later.
 
-Also note `versionCode` is still 1 and `versionName` 0.1.0.
+### The products to create in Play Console
+
+Nine, not six. Play sells a recurring term as a **subscription** and a one-off
+as a **one-time product**, and the two are different catalogues. A product
+created under the wrong type is not an error the app can report — the query
+simply returns nothing, and the plan is missing from the purchase sheet with
+no sign that anything went wrong.
+
+The id must match exactly; the app builds these strings from the `Plan` enum
+and the platform parses them back the same way.
+
+| Product id | Type | Price |
+| --- | --- | --- |
+| `starter_monthly` | Subscription | RM 68 |
+| `starter_yearly` | Subscription | RM 688 |
+| `business_monthly` | Subscription | RM 168 |
+| `business_yearly` | Subscription | RM 1,688 |
+| `unlimited_monthly` | Subscription | RM 328 |
+| `unlimited_yearly` | Subscription | RM 3,288 |
+| `starter_lifetime` | One-time product | RM 2,388 |
+| `business_lifetime` | One-time product | RM 5,888 |
+| `unlimited_lifetime` | One-time product | RM 11,888 |
+
+Prices come from `platform/plans.mjs`, which mirrors `Plan` in `Licence.kt`.
+Play holds its own copy and charges what is in the Console, so the two have to
+be entered to agree.
+
+The service account that verifies a purchase needs **Android Publisher** access
+in the Console under Users and permissions, and `GOOGLE_PLAY_PACKAGE` must be
+the app's applicationId, `com.stockcheck.app`.
 
 If the Play Console account is a personal one created after 13 November 2023, a
 closed test with the required number of testers, opted in for a continuous
