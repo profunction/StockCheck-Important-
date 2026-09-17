@@ -211,18 +211,6 @@ class ExportService(
         }
     }
 
-    private fun csvField(raw: String): String {
-        val needsQuoting = raw.any { it == ',' || it == '"' || it == '\n' || it == '\r' }
-        // A leading =, +, - or @ makes Excel treat the cell as a formula, which
-        // turns a scanned barcode or a pasted remark into a spreadsheet
-        // injection vector. Prefixing an apostrophe keeps it literal text.
-        val guarded = if (raw.firstOrNull() in listOf('=', '+', '-', '@')) "'$raw" else raw
-        return if (needsQuoting || guarded !== raw) {
-            '"' + guarded.replace("\"", "\"\"") + '"'
-        } else {
-            guarded
-        }
-    }
 
     // ----------------------------------------------------------------- XLSX
 
@@ -316,5 +304,37 @@ class ExportService(
          * audit trail are what establish what a count said.
          */
         const val SHEET_GUARD = "stockcheck"
+    }
+}
+
+/**
+ * One CSV cell, quoted and guarded.
+ *
+ * Lifted out of the service so it can be tested without a device: the
+ * rules here decide whether a warehouse's numbers add up in Excel, and
+ * one of them was wrong for as long as it could not be checked.
+ */
+internal fun csvField(raw: String): String {
+    val needsQuoting = raw.any { it == ',' || it == '"' || it == '\n' || it == '\r' }
+    // A leading =, +, - or @ makes Excel treat the cell as a formula, which
+    // turns a scanned barcode or a pasted remark into a spreadsheet
+    // injection vector. Prefixing an apostrophe keeps it literal text.
+    //
+    // A plain negative number is not that. Excel reads -32 as minus
+    // thirty-two, not as a formula, and guarding it produced text that
+    // looks like a number and will not add up -- so the Variance column
+    // could not be summed in exactly the case the column exists for,
+    // stock being short. Anything that parses as a number is left alone;
+    // "-32+cmd" still does not, because it does not parse.
+    val looksNumeric = raw.toDoubleOrNull() != null
+    val guarded = if (!looksNumeric && raw.firstOrNull() in listOf('=', '+', '-', '@')) {
+        "'$raw"
+    } else {
+        raw
+    }
+    return if (needsQuoting || guarded !== raw) {
+        '"' + guarded.replace("\"", "\"\"") + '"'
+    } else {
+        guarded
     }
 }
