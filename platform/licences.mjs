@@ -17,16 +17,34 @@ import { PLANS, TERMS, TRIAL_DAYS, LIFETIME_SUPPORT_MONTHS, addMonths, addDays }
 
 const here = dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Two ways in, because there are two places this runs.
+ *
+ * On a laptop it is a key file, which is the only option: nothing local knows
+ * who you are. On Cloud Run the runtime already holds a service-account
+ * identity, and asking an operator to bake a private key into a container
+ * image is asking them to leak it -- the image is copied, pushed and pulled,
+ * and a key inside it cannot be revoked by deleting a file.
+ *
+ * So: an explicit key file if one is there, and the ambient credentials if
+ * not. Neither path is a fallback to something weaker; both are root.
+ */
 export function db() {
   if (getApps().length === 0) {
     const keyPath = process.env.SERVICE_ACCOUNT_PATH || join(here, 'service-account.json');
-    if (!existsSync(keyPath)) {
+    if (existsSync(keyPath)) {
+      initializeApp({ credential: cert(JSON.parse(readFileSync(keyPath, 'utf8'))) });
+    } else if (process.env.GOOGLE_CLOUD_PROJECT || process.env.K_SERVICE) {
+      // Application Default Credentials: what Cloud Run, Cloud Functions and
+      // GCE hand a process without any file on disk.
+      initializeApp();
+    } else {
       throw new Error(
-        `No service-account.json at ${keyPath}\n` +
-          'Firebase console > Project settings > Service accounts > Generate new private key',
+        `No service-account.json at ${keyPath}, and no Google Cloud credentials in the environment.\n` +
+          'On a laptop: Firebase console > Project settings > Service accounts > Generate new private key.\n' +
+          'On Cloud Run: none needed -- deploy with a service account that can write Firestore.',
       );
     }
-    initializeApp({ credential: cert(JSON.parse(readFileSync(keyPath, 'utf8'))) });
   }
   return getFirestore();
 }

@@ -1,0 +1,11 @@
+# A key in the build context can end up in the image, in a layer, or in the
+# build cache of whoever built it. It never goes in.
+service-account*.json
+*.pem
+*.key
+.env
+.env.*
+
+node_modules
+npm-debug.log
+README.md

@@ -18,6 +18,10 @@
 // Then point Stripe at https://your-host/webhook/stripe and ToyyibPay's
 // callback at https://your-host/webhook/toyyibpay.
 
+import { existsSync } from 'node:fs';
+import { timingSafeEqual } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import express from 'express';
 import Stripe from 'stripe';
 import { grant, expire, get, findByCode, write } from './licences.mjs';
@@ -35,10 +39,26 @@ const {
   BANK_ACCOUNT = '',
   BANK_HOLDER = '',
   SUPPORT_EMAIL = '',
+  ADMIN_TOKEN = '',
 } = process.env;
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 const app = express();
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Compares without leaking the answer in how long it took.
+ *
+ * Overkill for one admin route, and it costs a line. A string compare that
+ * returns early is how a token gets guessed a character at a time.
+ */
+function safeEqual(a, b) {
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
+  if (left.length !== right.length) return false;
+  return timingSafeEqual(left, right);
+}
 
 const log = (...args) => console.log(new Date().toISOString(), ...args);
 
@@ -282,10 +302,15 @@ app.post('/checkout', async (req, res) => {
 /** The Play Developer API, authorised by the same service account as Firestore. */
 async function playPublisher() {
   const { google } = await import('googleapis');
-  const auth = new google.auth.GoogleAuth({
-    keyFile: './service-account.json',
-    scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-  });
+  const scopes = ['https://www.googleapis.com/auth/androidpublisher'];
+  // Same two ways in as the database, and for the same reason. A relative
+  // './service-account.json' also resolved against the working directory
+  // rather than this file, so it broke whenever the server was started from
+  // anywhere but platform/.
+  const keyFile = process.env.SERVICE_ACCOUNT_PATH || join(here, 'service-account.json');
+  const auth = existsSync(keyFile)
+    ? new google.auth.GoogleAuth({ keyFile, scopes })
+    : new google.auth.GoogleAuth({ scopes });
   return google.androidpublisher({ version: 'v3', auth });
 }
 
@@ -594,8 +619,21 @@ app.get('/health', async (_req, res) => {
   });
 });
 
-/** Read-only, for checking a customer's claim without opening a terminal. */
+/**
+ * Read-only, for checking a customer's claim without opening a terminal.
+ *
+ * Behind a token because this server answers on a public address and the
+ * lookup key is a join code -- a short, quotable, guessable string. Without
+ * one, anybody could walk the codes and collect every customer's company
+ * name, contact email and what they pay. Unset ADMIN_TOKEN turns the route
+ * off rather than leaving it open, because the failure that matters here is
+ * forgetting to set it.
+ */
 app.get('/licence/:company', async (req, res) => {
+  if (!ADMIN_TOKEN) return res.status(503).json({ error: 'ADMIN_TOKEN is not configured' });
+  const offered = req.get('x-admin-token') ?? '';
+  if (!safeEqual(offered, ADMIN_TOKEN)) return res.status(401).json({ error: 'Unauthorised' });
+
   const workspaceId = await resolveWorkspace(req.params.company);
   const licence = workspaceId ? await get(workspaceId) : null;
   if (!licence) return res.status(404).json({ error: 'No licence' });

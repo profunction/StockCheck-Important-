@@ -173,3 +173,141 @@ SUPPORT_EMAIL         where a transfer slip is sent
 Google Pay, Apple Pay, FPX and GrabPay each also have to be switched on in the
 Stripe dashboard. The code asks for them; the account has to be allowed to
 take them.
+
+---
+
+# Deploying, so Google Play can sell a licence
+
+Play Billing has no manual route. A purchase on a phone is a token, and a
+token is worth nothing until something asks Google whether it is real — so
+there has to be a server, reachable from the internet, holding a credential
+the phone does not have.
+
+This deploys to **Cloud Run**, which is the same Google account as Firebase and
+the same account as Play. That is the only reason to prefer it: one identity
+instead of three, and the service account that verifies a purchase is the one
+the container already runs as.
+
+At the volume this app will see, Cloud Run costs roughly nothing — it bills
+per request and scales to zero between them. It does require a billing account
+on the project, which also moves Firebase from Spark to Blaze. Blaze is also
+per-use, and the same usage that was free on Spark stays free on Blaze.
+
+## Once, before the first deploy
+
+**1. Turn on billing** for the Firebase project, and enable the APIs:
+
+```bash
+gcloud services enable run.googleapis.com \
+                       cloudbuild.googleapis.com \
+                       androidpublisher.googleapis.com
+```
+
+**2. Make a service account for the server**, so it is not using a human's
+identity or the default one:
+
+```bash
+gcloud iam service-accounts create stockcheck-payments \
+  --display-name "StockCheck payments server"
+
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member "serviceAccount:stockcheck-payments@PROJECT_ID.iam.gserviceaccount.com" \
+  --role roles/datastore.user
+```
+
+`datastore.user` is Firestore read and write, which is what writing a licence
+needs. It is not `roles/owner`; the server never needs to change a rule, a
+bucket or another service.
+
+**3. Give that same service account Play access.** In Play Console →
+**Users and permissions** → **Invite new user**, paste
+`stockcheck-payments@PROJECT_ID.iam.gserviceaccount.com`, and grant
+**View financial data** and **Manage orders and subscriptions** for this app.
+
+This is the step with the longest tail: Google can take a few hours to
+propagate it, and until it does, verification returns a 401 that looks exactly
+like a wrong key.
+
+## Deploy
+
+From `platform/`:
+
+```bash
+gcloud run deploy stockcheck-payments \
+  --source . \
+  --region asia-southeast1 \
+  --allow-unauthenticated \
+  --service-account stockcheck-payments@PROJECT_ID.iam.gserviceaccount.com \
+  --set-env-vars GOOGLE_PLAY_PACKAGE=com.stockcheck.app
+```
+
+`asia-southeast1` is Singapore — the closest region to Malaysia.
+
+`--allow-unauthenticated` is right here and worth being clear about: the
+callers are Google Play, Stripe and a customer's browser, none of which can
+hold a Google identity. Every route does its own checking — a Stripe webhook
+verifies its signature, a Play token is verified against Google, and the admin
+lookup wants `ADMIN_TOKEN`. The routes are public; nothing they do is.
+
+It prints a URL. That URL is `PLATFORM_URL`.
+
+## The rest of the environment
+
+```bash
+gcloud run services update stockcheck-payments --region asia-southeast1 \
+  --set-env-vars \
+GOOGLE_PLAY_PACKAGE=com.stockcheck.app,\
+PUBLIC_URL=https://YOUR-RUN-URL,\
+ADMIN_TOKEN=$(openssl rand -hex 24),\
+SUPPORT_EMAIL=you@company.com
+```
+
+Secrets — `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `TOYYIBPAY_SECRET_KEY`
+— belong in Secret Manager rather than in `--set-env-vars`, where they are
+visible to anyone who can describe the service:
+
+```bash
+echo -n "sk_live_..." | gcloud secrets create stripe-secret --data-file=-
+
+gcloud run services update stockcheck-payments --region asia-southeast1 \
+  --set-secrets STRIPE_SECRET_KEY=stripe-secret:latest
+```
+
+None of the Stripe or ToyyibPay variables are needed for Play Billing. Set
+them when you want the web checkout too.
+
+## Check it
+
+```bash
+curl https://YOUR-RUN-URL/health
+```
+
+`{"ok":true,...}` means it started and can reach Firestore. The other flags
+report which payment routes are configured; all false is fine if Play is the
+only one you are using.
+
+## Then point the app at it
+
+In `app/build.gradle.kts`:
+
+```kotlin
+buildConfigField("String", "PLATFORM_URL", "\"https://YOUR-RUN-URL\"")
+buildConfigField("String", "BUY_URL", "\"https://YOUR-RUN-URL/buy\"")
+```
+
+Rebuild, and upload that build to Play. **Play Billing does nothing in a
+side-loaded APK** — the connection succeeds, the product list comes back
+empty, and the app shows the web checkout instead. It has to be installed from
+Play, which means at minimum an internal testing track.
+
+## Why the phone is not trusted
+
+A purchase never grants anything from the device. The phone completes the
+purchase, hands the token to this server, and the server asks Google. Only
+then is a licence written, by the one identity `firestore.rules` allows to
+write `/licences`.
+
+Acknowledgement also happens here, after the grant. Google voids an
+unacknowledged purchase after three days, which is the right way round: a
+purchase that could not be verified should end in the customer's money coming
+back, not in a licence nobody granted.
