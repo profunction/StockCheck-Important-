@@ -51,7 +51,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.LaunchedEffect
 import com.stockcheck.app.data.AuthState
+import com.stockcheck.app.data.Db
+import com.stockcheck.app.data.ServiceLocator
 import com.stockcheck.app.data.effectivePermissions
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.PermissionSet
@@ -255,6 +258,26 @@ private fun MainScaffold(
     val navController = rememberNavController()
     val permissions = session.effectivePermissions
     val visibleTabs = tabs.filter { it.permission == null || permissions.has(it.permission) }
+
+    // Finish paying for anything Play took money for.
+    //
+    // A purchase completes the moment Play's sheet closes, and the licence is
+    // only written once the platform has verified the token with Google. If
+    // that call does not get through -- the server is down, the phone is in a
+    // basement -- the customer has paid and has nothing, and Google refunds an
+    // unacknowledged purchase after three days.
+    //
+    // Play re-offers an unfinished purchase on every connection, so the fix is
+    // to connect on every sign-in rather than only when somebody happens to
+    // open the paywall again. Someone who paid, saw nothing happen and closed
+    // the app is exactly the person who will not go back and press the button
+    // that used to be the only thing that retried.
+    LaunchedEffect(Db.workspaceId) {
+        if (Db.hasWorkspace) {
+            ServiceLocator.billing.workspaceId = Db.workspaceId
+            ServiceLocator.billing.start()
+        }
+    }
 
     Scaffold(
         bottomBar = {
