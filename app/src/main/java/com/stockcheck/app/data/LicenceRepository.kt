@@ -24,11 +24,16 @@ class LicenceRepository {
     /**
      * Streams the licence, or null when none has been written yet.
      *
-     * Null means unprovisioned, not unlicensed, and callers must treat it as
-     * permission — matching `licenceAllowsNewWork()` in firestore.rules. A
-     * read that fails does the same: a listener error is a network or rules
-     * problem, and neither is a reason to tell someone their company has
-     * stopped paying.
+     * Null means no work may be started, matching `licenceAllowsNewWork()` in
+     * firestore.rules, which requires the document to exist. It used to mean
+     * the opposite here, and the two must not drift apart again: if this says
+     * yes while the rules say no, the customer taps a button that appears to
+     * work and gets a denied write they cannot interpret. Every company,
+     * including one on a free trial, has a licence document written for it.
+     *
+     * A read that fails also emits null, which is the safe direction: the
+     * screen offers the paid plans rather than silently allowing work the
+     * server will refuse.
      */
     fun observeLicence(): Flow<Licence?> {
         if (!Db.hasWorkspace) return kotlinx.coroutines.flow.flowOf(null)
