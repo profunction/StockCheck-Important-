@@ -24,6 +24,18 @@
         <intent>
             <action android:name="android.media.action.IMAGE_CAPTURE" />
         </intent>
+        <!-- Same rule, and it had already broken the one button that leads to
+             a payment: without this the browser is invisible, startActivity
+             throws, and the paywall reports "no app on this phone can open
+             that page" on a phone with three browsers on it. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
     </queries>
 
     <application

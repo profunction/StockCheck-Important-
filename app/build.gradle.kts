@@ -54,6 +54,18 @@ android {
         //
         // REPLACE before release.
         buildConfigField("String", "PLATFORM_URL", "\"https://example.invalid\"")
+
+        // How a customer reaches a human to pay.
+        //
+        // The paywall tells them to quote their company code and, until these
+        // are filled in, does not say who to quote it TO. A licence is issued
+        // by hand for every company -- including a trial -- so a customer with
+        // no way to ask is a customer who cannot start and cannot buy.
+        //
+        // WhatsApp is the number in full international form, digits only, no
+        // plus and no spaces: 60123456789. Leave either blank to hide it.
+        buildConfigField("String", "SUPPORT_WHATSAPP", "\"\"")
+        buildConfigField("String", "SUPPORT_EMAIL", "\"\"")
     }
 
     signingConfigs {

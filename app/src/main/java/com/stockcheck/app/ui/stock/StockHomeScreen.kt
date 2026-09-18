@@ -563,6 +563,29 @@ private fun LicenceBanner(licence: Licence, now: Long) {
  * pay, and telling them in that order is the difference between a renewal
  * and an argument.
  */
+/**
+ * Hands a URL to whatever app handles it, and says whether anything did.
+ *
+ * Returns false rather than throwing, because every caller here is a button
+ * on a dialog: the useful response to "nothing on this phone opens that" is a
+ * line of text under the button, not a crash.
+ */
+private fun openLink(context: android.content.Context, url: String): Boolean {
+    // A mail client answers ACTION_SENDTO, not ACTION_VIEW, and the manifest
+    // asks about each one separately -- so the action has to match the scheme
+    // or the app is invisible whichever way round it is.
+    val action =
+        if (url.startsWith("mailto:")) Intent.ACTION_SENDTO else Intent.ACTION_VIEW
+    return try {
+        context.startActivity(
+            Intent(action, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+        true
+    } catch (missing: ActivityNotFoundException) {
+        false
+    }
+}
+
 @Composable
 private fun LicenceBlockedDialog(
     licence: Licence?,
@@ -574,6 +597,13 @@ private fun LicenceBlockedDialog(
     // configuration context, which is not an Activity, and Play requires one.
     val activity = LocalView.current.context as? Activity
     var noBrowser by remember { mutableStateOf(false) }
+    var noEmail by remember { mutableStateOf(false) }
+
+    val whatsApp = BuildConfig.SUPPORT_WHATSAPP
+    val supportEmail = BuildConfig.SUPPORT_EMAIL
+    // A button to a host that does not resolve is worse than no button: it
+    // reads as "we tried to take your money and something broke".
+    val buyPageConfigured = !BuildConfig.BUY_URL.contains("example.invalid")
 
     val billing = ServiceLocator.billing
     val playAvailable by billing.available.collectAsStateWithLifecycle()
@@ -668,10 +698,58 @@ private fun LicenceBlockedDialog(
                     )
                 }
 
+                // Who to quote that code to. Without this the dialog asks
+                // for a code and names nobody -- and since every licence,
+                // trial included, is issued by hand, a customer with no way
+                // to ask is one who can neither start nor pay.
+                if (whatsApp.isNotBlank() || supportEmail.isNotBlank()) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.paywall_contact_prompt),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    if (whatsApp.isNotBlank()) {
+                        TextButton(
+                            onClick = {
+                                val text = Uri.encode(
+                                    context.getString(R.string.paywall_contact_message, joinCode),
+                                )
+                                // wa.me opens the installed app when there is
+                                // one and the website when there is not, so
+                                // this works on a phone without WhatsApp.
+                                openLink(context, "https://wa.me/$whatsApp?text=$text")
+                                    .let { opened -> if (!opened) noBrowser = true }
+                            },
+                        ) { Text(stringResource(R.string.paywall_contact_whatsapp)) }
+                    }
+                    if (supportEmail.isNotBlank()) {
+                        TextButton(
+                            onClick = {
+                                val subject = Uri.encode(
+                                    context.getString(R.string.paywall_contact_subject, joinCode),
+                                )
+                                val body = Uri.encode(
+                                    context.getString(R.string.paywall_contact_message, joinCode),
+                                )
+                                openLink(context, "mailto:$supportEmail?subject=$subject&body=$body")
+                                    .let { opened -> if (!opened) noEmail = true }
+                            },
+                        ) { Text(stringResource(R.string.paywall_contact_email)) }
+                    }
+                }
+
                 if (noBrowser) {
                     Spacer(Modifier.height(10.dp))
                     Text(
                         text = stringResource(R.string.paywall_no_browser),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                if (noEmail) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = stringResource(R.string.paywall_no_email),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error,
                     )
@@ -689,7 +767,7 @@ private fun LicenceBlockedDialog(
             // Only when Play has nothing to sell this copy — side-loaded, or
             // products not published. Offering both at once is how an app
             // gets pulled from the store.
-            if (!playAvailable) TextButton(
+            if (!playAvailable && buyPageConfigured) TextButton(
                 onClick = {
                     // Out to a browser, never a form in here. The app takes no
                     // card details and holds no payment state, so there is
@@ -698,15 +776,7 @@ private fun LicenceBlockedDialog(
                     // service account, which the rules are the only reader of.
                     val url = BuildConfig.BUY_URL +
                         if (joinCode.isBlank()) "" else "?company=$joinCode"
-                    try {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                        )
-                        noBrowser = false
-                    } catch (missing: ActivityNotFoundException) {
-                        noBrowser = true
-                    }
+                    noBrowser = !openLink(context, url)
                 },
             ) { Text(stringResource(R.string.paywall_buy)) }
         },

@@ -71,4 +71,10 @@
     <string name="paywall_per_month">RM %1$d / 月</string>
     <string name="paywall_per_year">RM %1$d / 年</string>
     <string name="paywall_no_browser">这台手机上没有 app 能打开那个页面。</string>
+    <string name="paywall_contact_whatsapp">WhatsApp 联络我们</string>
+    <string name="paywall_contact_email">电邮联络我们</string>
+    <string name="paywall_contact_prompt">申请授权：</string>
+    <string name="paywall_contact_message">你好，我想申请 Stock Check 授权。公司代码：%1$s</string>
+    <string name="paywall_contact_subject">Stock Check 授权 — %1$s</string>
+    <string name="paywall_no_email">这台手机上没有 app 能寄电邮。</string>
 </resources>

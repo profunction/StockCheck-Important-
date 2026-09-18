@@ -79,4 +79,10 @@
     <string name="paywall_per_month">RM %1$d / month</string>
     <string name="paywall_per_year">RM %1$d / year</string>
     <string name="paywall_no_browser">No app on this phone can open that page.</string>
+    <string name="paywall_contact_whatsapp">WhatsApp us</string>
+    <string name="paywall_contact_email">Email us</string>
+    <string name="paywall_contact_prompt">Ask for a licence:</string>
+    <string name="paywall_contact_message">Hello, I would like a Stock Check licence. Company code: %1$s</string>
+    <string name="paywall_contact_subject">Stock Check licence — %1$s</string>
+    <string name="paywall_no_email">No app on this phone can send email.</string>
 </resources>

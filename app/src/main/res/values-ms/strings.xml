@@ -71,4 +71,10 @@
     <string name="paywall_per_month">RM %1$d / bulan</string>
     <string name="paywall_per_year">RM %1$d / tahun</string>
     <string name="paywall_no_browser">Tiada aplikasi di telefon ini boleh membuka halaman itu.</string>
+    <string name="paywall_contact_whatsapp">WhatsApp kami</string>
+    <string name="paywall_contact_email">E-mel kami</string>
+    <string name="paywall_contact_prompt">Mohon lesen:</string>
+    <string name="paywall_contact_message">Salam, saya ingin memohon lesen Stock Check. Kod syarikat: %1$s</string>
+    <string name="paywall_contact_subject">Lesen Stock Check — %1$s</string>
+    <string name="paywall_no_email">Tiada apl pada telefon ini boleh menghantar e-mel.</string>
 </resources>
