@@ -149,16 +149,16 @@ service cloud.firestore {
       /**
        * Whether this company may start new work.
        *
-       * A missing document means permission, not refusal. A company that
-       * registered before licensing existed -- or in the seconds between
-       * creating its workspace and the platform writing its trial -- would
-       * otherwise be locked out of an app it just signed up for, and the
-       * first thing it would ever see is a refusal.
+       * Stops starting a count and nothing else. Reading, finishing an open
+       * count and exporting stay available at every status, because holding
+       * data hostage over a lapsed card is how a billing problem becomes a
+       * complaint to the Ministry.
        *
-       * Expiry stops new counts and new accounts, nothing else. Reading,
-       * finishing an open count and exporting stay available at every status,
-       * because holding data hostage over a lapsed card is how a billing
-       * problem becomes a complaint to the Ministry.
+       * Registration is deliberately NOT gated on this. A company's first
+       * user signs up before any licence has been written for it, so gating
+       * accounts here would mean nobody could ever sign up in the first
+       * place. An earlier version of this comment claimed expiry stopped new
+       * accounts too; it never did, and it must not.
        */
       // A workspace with no licence cannot start a count.
       //
