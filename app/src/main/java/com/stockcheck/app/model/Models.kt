@@ -199,15 +199,15 @@ data class StockItem(
      * it is "nobody said", and a caller showing it as either would be
      * inventing a fact about somebody's stock.
      */
-    @get:Exclude fun daysToExpiry(now: Long): Int? =
+    fun daysToExpiry(now: Long): Int? =
         expiresAt?.let { ExpiryDate.daysUntil(it, now) }
 
     /** Past its date, and still on the shelf being counted. */
-    @get:Exclude fun isExpired(now: Long): Boolean =
+    fun isExpired(now: Long): Boolean =
         daysToExpiry(now)?.let { it < 0 } == true
 
     /** Close enough to its date to be worth acting on while somebody is there. */
-    @get:Exclude fun isExpiringSoon(now: Long): Boolean =
+    fun isExpiringSoon(now: Long): Boolean =
         daysToExpiry(now)?.let { it in 0..ExpiryDate.SOON_DAYS } == true
 
     /**
@@ -326,7 +326,7 @@ data class Product(
         get() = (listOf(barcode) + altBarcodes).filter { it.isNotBlank() }.distinct()
 
     /** True when [code] is any of this product's codes. */
-    @get:Exclude fun answersTo(code: String): Boolean {
+    fun answersTo(code: String): Boolean {
         val key = code.trim()
         return key.isNotEmpty() && allBarcodes.any { it.equals(key, ignoreCase = true) }
     }
