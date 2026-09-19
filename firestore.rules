@@ -121,6 +121,31 @@ service cloud.firestore {
         return active() && request.auth.uid == uid;
       }
 
+      /**
+       * Whether this account may look at a count made at that branch.
+       *
+       * An account with no branches listed sees every one of them: that is
+       * head office, it is the default, and it is what keeps adding branches
+       * to a company that already has history from locking anybody out.
+       *
+       * A count carrying no branch is visible to everyone, because most
+       * customers run one shop and will never set one -- hiding those from a
+       * branch manager would hide the company's entire past from them.
+       *
+       * `get(...)` on a list field that an older profile does not have
+       * returns the default, so an account written before branches existed
+       * reads as head office rather than as nobody.
+       */
+      function myBranches() {
+        return profile().get('branchIds', []);
+      }
+
+      function inMyBranch(record) {
+        return myBranches().size() == 0
+               || record.get('branchId', '') == ''
+               || record.get('branchId', '') in myBranches();
+      }
+
       // Fields the client is never allowed to set or move.
       function keepsAuthor(existing) {
         return request.resource.data.createdByUid == existing.createdByUid;
@@ -289,8 +314,9 @@ service cloud.firestore {
         function existing() { return resource.data; }
         function frozen() { return existing().status == 'LOCKED'; }
 
-        allow read: if can('VIEW_ALL_HISTORY')
-                    || (can('VIEW_OWN_HISTORY') && isOwner(existing().createdByUid));
+        allow read: if inMyBranch(existing())
+                    && (can('VIEW_ALL_HISTORY')
+                        || (can('VIEW_OWN_HISTORY') && isOwner(existing().createdByUid)));
 
         // A stock check is the unit of work, which makes it the honest
         // place to put the commercial lever: an expired company keeps every

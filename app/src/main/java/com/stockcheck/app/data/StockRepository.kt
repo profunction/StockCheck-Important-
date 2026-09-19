@@ -3,6 +3,7 @@ package com.stockcheck.app.data
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
 import com.stockcheck.app.model.AuditAction
+import com.stockcheck.app.model.Branch
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Quantity
@@ -48,7 +49,8 @@ class StockRepository(
             Db.stockChecks()
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(limit)
-                .asFlow()
+                .asFlow<StockCheck>()
+                .map { checks -> checks.filter { session.maySee(it) } }
         } else {
             // Filtering by author AND ordering by date needs a composite
             // index, and Firestore fails the query outright without one
@@ -60,7 +62,9 @@ class StockRepository(
                 .whereEqualTo("createdByUid", session.uid)
                 .asFlow<StockCheck>()
                 .map { checks ->
-                    checks.sortedByDescending { it.createdAt }.take(limit.toInt())
+                    checks.filter { session.maySee(it) }
+                        .sortedByDescending { it.createdAt }
+                        .take(limit.toInt())
                 }
         }
     }
@@ -72,6 +76,7 @@ class StockRepository(
         template: Template,
         zone: String = "",
         note: String = "",
+        branch: Branch? = null,
     ): String {
         session.require(Permission.CREATE_STOCK_CHECK)
         val id = Db.stockChecks().document().id
@@ -87,6 +92,11 @@ class StockRepository(
             createdAt = now,
             updatedAt = now,
             zone = zone.trim(),
+            branchId = branch?.id.orEmpty(),
+            // Copied, not looked up later. A count is a record of what was
+            // true that day, and that includes what the place was called
+            // before somebody renamed it.
+            branchName = branch?.name.orEmpty(),
             note = note,
         )
         Db.stockCheck(id).set(check).awaitAck()

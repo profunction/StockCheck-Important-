@@ -3,6 +3,7 @@ package com.stockcheck.app.data
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Query
+import com.stockcheck.app.model.Branch
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.BuiltInRoles
 import com.stockcheck.app.model.Permission
@@ -174,8 +175,12 @@ class UserRepository(
         val normalised = WorkspaceConfig.normalise(joinCode)
         require(normalised.length >= 4) { "The company code must be at least 4 characters." }
         val previous = Db.config().getAs<WorkspaceConfig>()
+        // set() replaces the whole document, and the fields this screen does
+        // not edit are not on this screen -- so building a fresh config here
+        // erased every zone the company had named, quietly, on each save of
+        // the company name. Branches would have gone the same way.
         Db.config().set(
-            WorkspaceConfig(
+            (previous ?: WorkspaceConfig()).copy(
                 companyName = companyName.trim(),
                 joinCode = normalised,
                 exportPassword = exportPassword.trim(),
@@ -194,6 +199,70 @@ class UserRepository(
             // readable by more people than the code should be.
             oldValue = if (previous?.joinCode.isNullOrEmpty()) "not set" else "set",
             newValue = "set",
+        )
+    }
+
+    /**
+     * Adds a shop or warehouse, or renames one already there.
+     *
+     * The id comes from the name so that two admins adding "Ipoh" on two
+     * phones with no signal produce one branch rather than two that look
+     * alike and count separately. Renaming keeps the id, because a year of
+     * counts point at it.
+     */
+    suspend fun saveBranch(session: Session, name: String, replacingId: String = "") {
+        session.require(Permission.CHANGE_PERMISSION)
+        val clean = name.trim()
+        require(clean.isNotEmpty()) { "A branch needs a name." }
+
+        val config = Db.config().getAs<WorkspaceConfig>() ?: WorkspaceConfig()
+        val id = replacingId.ifEmpty { Branch.idFor(clean) }
+        require(id.isNotEmpty()) { "That name has no letters or digits in it." }
+
+        val others = config.branches.filterNot { it.id == id }
+        require(others.none { it.name.equals(clean, ignoreCase = true) }) {
+            "There is already a branch called $clean."
+        }
+
+        val existing = config.branches.firstOrNull { it.id == id }
+        val updated = others + Branch(id = id, name = clean, active = existing?.active ?: true)
+        Db.config().update("branches", updated.sortedBy { it.name.lowercase() }).awaitAck()
+
+        audit.record(
+            session = session,
+            entity = "Branch",
+            entityId = id,
+            entityLabel = clean,
+            action = if (existing == null) AuditAction.CREATE else AuditAction.UPDATE,
+            field = "name",
+            oldValue = existing?.name.orEmpty(),
+            newValue = clean,
+        )
+    }
+
+    /**
+     * Closes a branch without deleting it.
+     *
+     * A count made there is still a record of what was on those shelves that
+     * day, and a history that cannot name where it happened is one nobody can
+     * audit. It stops being offered; it does not stop having happened.
+     */
+    suspend fun setBranchActive(session: Session, branch: Branch, active: Boolean) {
+        session.require(Permission.CHANGE_PERMISSION)
+        val config = Db.config().getAs<WorkspaceConfig>() ?: return
+        val updated = config.branches.map {
+            if (it.id == branch.id) it.copy(active = active) else it
+        }
+        Db.config().update("branches", updated).awaitAck()
+        audit.record(
+            session = session,
+            entity = "Branch",
+            entityId = branch.id,
+            entityLabel = branch.name,
+            action = AuditAction.STATUS_CHANGE,
+            field = "active",
+            oldValue = (!active).toString(),
+            newValue = active.toString(),
         )
     }
 

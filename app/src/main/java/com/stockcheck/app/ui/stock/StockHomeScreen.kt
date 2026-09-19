@@ -38,6 +38,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
+import com.stockcheck.app.model.Branch
 import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.flow.map
@@ -151,6 +152,24 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
             WorkspaceConfig.DEFAULT_ZONES,
         )
 
+    /**
+     * The branches this account may count at.
+     *
+     * Only the active ones, and only the ones this person is assigned to --
+     * an empty assignment being head office, which sees all of them. A
+     * company that has never set one up gets an empty list and is never
+     * asked which branch, because a shop with one shop should not have to
+     * answer that.
+     */
+    val branches: StateFlow<List<Branch>> = ServiceLocator.users.observeConfig()
+        .map { config ->
+            val all = config?.branches.orEmpty().filter { it.active && it.name.isNotBlank() }
+            val mine = session.profile.branchIds
+            if (mine.isEmpty()) all else all.filter { it.id in mine }
+        }
+        .catch { emit(emptyList()) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     /** The code a customer quotes when they get in touch about paying. */
     val joinCode: StateFlow<String> = ServiceLocator.users.observeConfig()
         .map { it?.joinCode.orEmpty() }
@@ -166,9 +185,14 @@ class StockHomeViewModel(private val session: Session) : ViewModel() {
     }
 
     /** Creates a check and hands its id back so the caller can navigate. */
-    fun createCheck(template: Template, zone: String = "", onCreated: (String) -> Unit) {
+    fun createCheck(
+        template: Template,
+        zone: String = "",
+        branch: Branch? = null,
+        onCreated: (String) -> Unit,
+    ) {
         viewModelScope.launch {
-            runCatching { stock.createStockCheck(session, template, zone) }
+            runCatching { stock.createStockCheck(session, template, zone, branch = branch) }
                 .onSuccess(onCreated)
                 .onFailure { _error.value = it.message }
         }
@@ -230,10 +254,12 @@ fun StockHomeScreen(
     val licence by viewModel.licence.collectAsStateWithLifecycle()
     val permissions = session.effectivePermissions
     var picking by remember { mutableStateOf(false) }
+    var pickedBranch by remember { mutableStateOf<Branch?>(null) }
     // Held between the two steps: template first, then which part of the
     // building this count covers.
     var pickedTemplate by remember { mutableStateOf<Template?>(null) }
     val zones by viewModel.zones.collectAsStateWithLifecycle()
+    val branches by viewModel.branches.collectAsStateWithLifecycle()
     var blocked by remember { mutableStateOf(false) }
     val joinCode by viewModel.joinCode.collectAsStateWithLifecycle()
 
@@ -354,17 +380,34 @@ fun StockHomeScreen(
         )
     }
 
+    // Which branch, then which area. A company with one place skips straight
+    // past this: being asked which shop you are standing in, when there is
+    // only one, is a question that makes an app feel like paperwork.
     pickedTemplate?.let { template ->
-        ZonePickerDialog(
-            template = template,
-            zones = zones,
-            onDismiss = { pickedTemplate = null },
-            onStart = { zone ->
-                pickedTemplate = null
-                viewModel.createCheck(template, zone, onOpenCheck)
-            },
-            onForgetZone = viewModel::forgetZone,
-        )
+        if (branches.isNotEmpty() && pickedBranch == null) {
+            BranchPickerDialog(
+                branches = branches,
+                onDismiss = { pickedTemplate = null },
+                onPick = { pickedBranch = it },
+            )
+        } else {
+            ZonePickerDialog(
+                template = template,
+                zones = zones,
+                branch = pickedBranch,
+                onDismiss = {
+                    pickedTemplate = null
+                    pickedBranch = null
+                },
+                onStart = { zone ->
+                    val branch = pickedBranch
+                    pickedTemplate = null
+                    pickedBranch = null
+                    viewModel.createCheck(template, zone, branch, onOpenCheck)
+                },
+                onForgetZone = viewModel::forgetZone,
+            )
+        }
     }
 }
 
@@ -809,10 +852,46 @@ private fun LicenceBlockedDialog(
  * forcing an answer produces a column full of "A" that means nothing.
  */
 @OptIn(ExperimentalLayoutApi::class)
+/**
+ * Which shop or warehouse this count covers.
+ *
+ * Only shown to a company that has branches. Two counts of "Rack 7" mean
+ * nothing until you know which building's rack 7, and a count filed against
+ * the wrong branch is worse than one filed against none -- it moves stock, on
+ * paper, between two places that each then disagree with their own shelves.
+ */
+@Composable
+private fun BranchPickerDialog(
+    branches: List<Branch>,
+    onDismiss: () -> Unit,
+    onPick: (Branch) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Which branch?") },
+        text = {
+            Column {
+                branches.forEach { branch ->
+                    TextButton(
+                        onClick = { onPick(branch) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(branch.name) }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
+    )
+}
+
 @Composable
 private fun ZonePickerDialog(
     template: Template,
     zones: List<String>,
+    /** Chosen a moment ago, null for a company with one place. */
+    branch: Branch? = null,
     onDismiss: () -> Unit,
     onStart: (String) -> Unit,
     onForgetZone: (String) -> Unit,
@@ -827,7 +906,10 @@ private fun ZonePickerDialog(
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(
-                    text = template.name,
+                    // The branch beside the template, because the answer to
+                    // "which area" is different in each building and the last
+                    // thing a person saw was a list of branches.
+                    text = listOfNotNull(branch?.name, template.name).joinToString(" · "),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

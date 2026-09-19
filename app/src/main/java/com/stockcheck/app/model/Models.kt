@@ -66,6 +66,16 @@ data class StockCheck(
      * fixed list would be wrong for the first customer who calls them 1 to 12.
      */
     val zone: String = "",
+    /**
+     * Which branch this count covers, empty for a company with one place.
+     *
+     * The id rather than the name, because renaming a branch must not orphan
+     * the counts made there. [branchName] beside it is what gets shown, copied
+     * at creation the same way the template's name is -- a count is a record
+     * of what was true that day, including what the place was called.
+     */
+    val branchId: String = "",
+    val branchName: String = "",
     val note: String = "",
 ) {
     @get:Exclude val statusEnum: StockStatus get() = StockStatus.parse(status)
@@ -79,9 +89,16 @@ data class StockCheck(
     @get:Exclude val counted: Long
         get() = totalQuantityMilli ?: Quantity.of(totalQuantity)
 
-    /** Reference plus zone, which is how a person refers to a count out loud. */
+    /**
+     * Reference, branch and zone: how a person refers to a count out loud.
+     *
+     * The branch comes first because it is the bigger question. Two counts of
+     * "Rack 7" mean nothing until you know which building's rack 7.
+     */
     @get:Exclude val label: String
-        get() = if (zone.isBlank()) refNo else "$refNo · $zone"
+        get() = listOf(refNo, branchName, zone)
+            .filter { it.isNotBlank() }
+            .joinToString(" · ")
 }
 
 enum class ItemSource { SCAN, VOICE, MANUAL }
@@ -406,6 +423,15 @@ data class UserProfile(
     val roleId: String = "",
     val roleName: String = "",
     val active: Boolean = true,
+    /**
+     * Which branches this account may see, empty for all of them.
+     *
+     * Empty is head office and is the default, so a company that never sets
+     * up branches is unaffected and nobody is locked out by a field being
+     * added. A branch manager gets their own, and then sees their own shop's
+     * counts rather than every shop's.
+     */
+    val branchIds: List<String> = emptyList(),
     val createdAt: Long = 0L,
     val lastSeenAt: Long = 0L,
     /**
@@ -419,6 +445,34 @@ data class UserProfile(
      */
     val joinCode: String = "",
 )
+
+/**
+ * One shop or warehouse belonging to a company.
+ *
+ * The id is what a count and a person are tied to, and it never changes.
+ * Renaming "Jalan Ipoh" to "Ipoh Road" must not orphan a year of counts, and
+ * it would if the name were the key.
+ *
+ * Kept rather than deleted when a branch closes: a count made there is still
+ * a record of what was on those shelves that day, and a history that cannot
+ * name where it happened is a history nobody can audit.
+ */
+data class Branch(
+    val id: String = "",
+    val name: String = "",
+    /** False once it closes. Its history stays; it stops being offered. */
+    val active: Boolean = true,
+) {
+    companion object {
+        /**
+         * A stable id from a name, so two admins adding "Ipoh" on two phones
+         * with no signal produce one branch rather than two that look alike
+         * and count separately.
+         */
+        fun idFor(name: String): String =
+            name.trim().lowercase().replace(Regex("""[^\p{L}\p{N}]+"""), "-").trim('-')
+    }
+}
 
 /**
  * Workspace-wide settings, held at `meta/config`.
@@ -451,6 +505,24 @@ data class WorkspaceConfig(
      * having to be right up front.
      */
     val zones: List<String> = DEFAULT_ZONES,
+    /**
+     * The shops or warehouses this company runs.
+     *
+     * Held here beside [zones] rather than in a collection of their own: a
+     * company has a handful of these and changes them rarely, the document is
+     * already readable by every member and writable only by an admin, and a
+     * second collection would need its own rules to say the same thing.
+     *
+     * Empty is the normal case and means one place, which is most customers.
+     * A count then carries no branch and nothing in the app mentions them,
+     * because a shop with one shop should not have to answer which one.
+     *
+     * Not to be confused with [zones]. A zone is a part of one building --
+     * "Cold room", "Rack 7" -- and a branch is a different building with its
+     * own stock. Counting aisle C twice in one shop is a mistake; counting
+     * aisle C in two branches is two separate facts.
+     */
+    val branches: List<Branch> = emptyList(),
     val updatedAt: Long = 0L,
     val updatedByUid: String = "",
 ) {
