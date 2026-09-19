@@ -24,6 +24,7 @@ object ServiceLocator {
     val imports: ImportRepository by lazy { ImportRepository(products, audit) }
     val refNos: RefNoAllocator by lazy { RefNoAllocator(appContext) }
     val billing: BillingRepository by lazy { BillingRepository(appContext) }
+    val adminGate: AdminGate by lazy { AdminGate(appContext) }
     val stock: StockRepository by lazy { StockRepository(audit, products, refNos) }
     val templates: TemplateRepository by lazy { TemplateRepository(audit) }
     val photos: PhotoRepository by lazy { PhotoRepository(appContext, audit) }

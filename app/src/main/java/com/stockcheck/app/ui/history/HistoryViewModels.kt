@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.stockcheck.app.data.AdminGate
 import com.stockcheck.app.data.ServiceLocator
 import com.stockcheck.app.export.ExportColumn
 import kotlinx.coroutines.flow.map
@@ -43,6 +44,10 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
 
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
+
+    /** True while a password is being checked or a bulk action is running. */
+    private val _busy = MutableStateFlow(false)
+    val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
     /**
      * The custom columns the visible checks' templates define, so the export
@@ -93,6 +98,73 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
             runCatching { exports.export(session, checks, options) }
                 .onSuccess { _lastExport.value = it }
                 .onFailure { _message.value = it.message }
+        }
+    }
+
+    /**
+     * Exports or deletes the selected counts, once an administrator has
+     * approved it with their password.
+     *
+     * The verification happens first and the work only follows it, so a wrong
+     * password costs nothing: nothing has been deleted and no file has been
+     * written by the time it is refused.
+     *
+     * The approval is recorded in the note on the export, and by the audit
+     * entry each deletion already writes. Who pressed the button and who
+     * allowed it are two different facts and a trail that keeps only one of
+     * them cannot answer what happened.
+     */
+    fun runWithAdmin(
+        action: BulkAction,
+        ids: List<String>,
+        email: String,
+        password: String,
+        onDone: () -> Unit,
+    ) {
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            _busy.value = true
+            try {
+                when (val verdict = ServiceLocator.adminGate.verify(email, password)) {
+                    is AdminGate.Result.Refused -> {
+                        _message.value = verdict.reason
+                        return@launch
+                    }
+                    is AdminGate.Result.Approved -> {
+                        val picked = all.value.filter { it.id in ids }
+                        when (action) {
+                            BulkAction.DELETE -> {
+                                // One at a time rather than a batch: each
+                                // check has its own items and photos to clear
+                                // and its own audit entry to write, and a
+                                // half-finished batch would leave orphans no
+                                // screen can reach.
+                                var failed = 0
+                                picked.forEach { check ->
+                                    runCatching { stock.deleteStockCheck(session, check) }
+                                        .onFailure { failed++ }
+                                }
+                                _message.value = if (failed == 0) {
+                                    "Deleted ${picked.size}, approved by ${verdict.name}."
+                                } else {
+                                    "Deleted ${picked.size - failed}. $failed could not be " +
+                                        "removed — a locked count needs unlocking first."
+                                }
+                            }
+                            BulkAction.EXPORT -> {
+                                runCatching {
+                                    exports.export(session, picked, ExportOptions())
+                                }
+                                    .onSuccess { _lastExport.value = it }
+                                    .onFailure { _message.value = it.message }
+                            }
+                        }
+                        onDone()
+                    }
+                }
+            } finally {
+                _busy.value = false
+            }
         }
     }
 

@@ -1,5 +1,10 @@
 package com.stockcheck.app.ui.history
 
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import com.stockcheck.app.ui.common.labelRes
 import android.content.Intent
 import androidx.compose.foundation.clickable
@@ -97,7 +102,14 @@ fun HistoryScreen(
 
     val permissions = session.effectivePermissions
     val context = LocalContext.current
+    val busy by viewModel.busy.collectAsStateWithLifecycle()
     var exporting by remember { mutableStateOf(false) }
+    var selected by remember { mutableStateOf(emptySet<String>()) }
+    // Selection mode is simply "something is selected". A separate flag would
+    // be a second source of truth for one fact, and the two drift.
+    val selecting = selected.isNotEmpty()
+    // What the admin password is being asked for, null when it is not.
+    var pendingAction by remember { mutableStateOf<BulkAction?>(null) }
 
     // Hand the finished file straight to a share sheet — a file sitting in the
     // cache directory is of no use to anyone on its own.
@@ -112,16 +124,45 @@ fun HistoryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.tab_history)) },
-                actions = {
-                    if (permissions.has(Permission.VIEW_EXPORT)) {
-                        IconButton(onClick = { exporting = true }) {
-                            Icon(Icons.Filled.FileDownload, contentDescription = "Export")
+            if (selecting) {
+                // The bar changes rather than gaining a row, so the count of
+                // what is selected and the things that can be done to it are
+                // in the place attention already is.
+                TopAppBar(
+                    navigationIcon = {
+                        IconButton(onClick = { selected = emptySet() }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Clear selection")
                         }
-                    }
-                },
-            )
+                    },
+                    title = { Text("${selected.size} selected") },
+                    actions = {
+                        IconButton(onClick = { pendingAction = BulkAction.EXPORT }) {
+                            Icon(
+                                Icons.Filled.FileDownload,
+                                contentDescription = "Export selected",
+                            )
+                        }
+                        IconButton(onClick = { pendingAction = BulkAction.DELETE }) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "Delete selected",
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    },
+                )
+            } else {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.tab_history)) },
+                    actions = {
+                        if (permissions.has(Permission.VIEW_EXPORT)) {
+                            IconButton(onClick = { exporting = true }) {
+                                Icon(Icons.Filled.FileDownload, contentDescription = "Export")
+                            }
+                        }
+                    },
+                )
+            }
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -175,11 +216,45 @@ fun HistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     items(checks, key = { it.id }) { check ->
-                        HistoryCard(check = check, onClick = { onOpen(check.id) })
+                        HistoryCard(
+                            check = check,
+                            selected = check.id in selected,
+                            selecting = selecting,
+                            onClick = {
+                                // A tap opens a count normally and toggles it
+                                // while selecting. Opening one mid-selection
+                                // would lose the selection to a mis-tap.
+                                if (selecting) {
+                                    selected = if (check.id in selected) {
+                                        selected - check.id
+                                    } else {
+                                        selected + check.id
+                                    }
+                                } else {
+                                    onOpen(check.id)
+                                }
+                            },
+                            onLongClick = { selected = selected + check.id },
+                        )
                     }
                 }
             }
         }
+    }
+
+    pendingAction?.let { action ->
+        AdminPasswordDialog(
+            action = action,
+            count = selected.size,
+            busy = busy,
+            onDismiss = { pendingAction = null },
+            onConfirm = { email, password ->
+                viewModel.runWithAdmin(action, selected.toList(), email, password) {
+                    pendingAction = null
+                    selected = emptySet()
+                }
+            },
+        )
     }
 
     if (exporting) {
@@ -197,16 +272,139 @@ fun HistoryScreen(
     }
 }
 
+/**
+ * What a bulk action is, so the dialog can say which one it is guarding.
+ */
+enum class BulkAction(val title: String, val verb: String) {
+    EXPORT("Export selected counts", "Export"),
+    DELETE("Delete selected counts", "Delete"),
+}
+
+/**
+ * Asks for an administrator's password before a bulk action.
+ *
+ * The role already decides who may. This answers what a role cannot see:
+ * whether a supervisor is actually standing here, on a phone that is in a
+ * worker's hand all day. Deleting a month of counts and carrying the
+ * company's stock figures out of the building are both things worth a
+ * deliberate second person.
+ *
+ * It names the count and the action, because "are you sure" over an
+ * unstated number is how somebody deletes forty records meaning to delete
+ * four.
+ */
 @Composable
-private fun HistoryCard(check: StockCheck, onClick: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+private fun AdminPasswordDialog(
+    action: BulkAction,
+    count: Int,
+    busy: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (email: String, password: String) -> Unit,
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        title = { Text(action.title) },
+        text = {
+            Column {
+                Text(
+                    text = if (action == BulkAction.DELETE) {
+                        "$count stock check(s) and everything counted in them will be " +
+                            "removed. This cannot be undone."
+                    } else {
+                        "$count stock check(s) will be written to one file."
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "An administrator has to approve this.",
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Administrator email") },
+                    singleLine = true,
+                    enabled = !busy,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    singleLine = true,
+                    enabled = !busy,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(email, password) },
+                enabled = !busy && email.isNotBlank() && password.isNotBlank(),
+            ) {
+                Text(
+                    text = if (busy) "Checking…" else action.verb,
+                    color = if (action == BulkAction.DELETE) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !busy) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun HistoryCard(
+    check: StockCheck,
+    selected: Boolean,
+    selecting: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        colors = if (selected) {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            )
+        } else {
+            CardDefaults.cardColors()
+        },
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(check.refNo, style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Only while selecting. A row of empty boxes on a screen
+                    // nobody is selecting on is a control looking for a job.
+                    if (selecting) {
+                        Checkbox(checked = selected, onCheckedChange = { onClick() })
+                        Spacer(Modifier.width(4.dp))
+                    }
+                    Text(check.refNo, style = MaterialTheme.typography.titleMedium)
+                }
                 StatusChip(check.statusEnum)
             }
             Spacer(Modifier.height(4.dp))
