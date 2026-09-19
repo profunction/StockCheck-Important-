@@ -851,7 +851,6 @@ private fun LicenceBlockedDialog(
  * Skippable on purpose. A shop with one room should not have to answer, and
  * forcing an answer produces a column full of "A" that means nothing.
  */
-@OptIn(ExperimentalLayoutApi::class)
 /**
  * Which shop or warehouse this count covers.
  *
@@ -886,6 +885,7 @@ private fun BranchPickerDialog(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ZonePickerDialog(
     template: Template,
