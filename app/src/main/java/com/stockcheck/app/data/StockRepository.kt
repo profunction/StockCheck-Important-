@@ -300,23 +300,39 @@ class StockRepository(
         val trimmed = barcode.trim()
         require(trimmed.isNotEmpty()) { "Barcode cannot be empty." }
 
+        // Resolved first, because which line this scan belongs to depends on
+        // it. A known barcode also names itself: without that, every counted
+        // line is a row of digits nobody can check against the shelf it came
+        // from.
+        val known = if (productName.isBlank()) products.find(trimmed) else null
+
+        // Any code the product answers to, not only the one just scanned.
+        // A tin and its carton carry different numbers; matching on the
+        // scanned code alone opens a second line for the same product, and
+        // the count then reports one stock item twice under two names with
+        // nothing on screen to say so.
+        //
+        // Firestore caps whereIn, so a product carrying more codes than that
+        // is matched on its first few. Degrading beats the alternative: over
+        // the cap the query fails outright, which would stop the scan rather
+        // than merely make it miss an unusual code.
+        val codes = (known?.allBarcodes ?: listOf(trimmed)).take(IN_QUERY_LIMIT)
         val existing = Db.items(stockCheckId)
-            .whereEqualTo("barcode", trimmed)
+            .whereIn("barcode", codes)
             .limit(1)
             .get().await()
             .toObjects(StockItem::class.java)
             .firstOrNull()
         if (existing != null) return ScanOutcome.AlreadyPresent(existing)
 
-        // A known barcode names itself. Without this every counted line is a
-        // row of digits that cannot be checked against the shelf it came from.
-        val known = if (productName.isBlank()) products.find(trimmed) else null
-
         val now = System.currentTimeMillis()
         val doc = Db.items(stockCheckId).document()
         val item = StockItem(
+            // Filed under the product's own code rather than whichever of its
+            // codes happened to be scanned, so two people scanning the tin and
+            // the carton produce one line and the export reads consistently.
+            barcode = known?.barcode ?: trimmed,
             id = doc.id,
-            barcode = trimmed,
             productName = productName.ifBlank { known?.name.orEmpty() },
             sku = known?.sku.orEmpty(),
             quantityMilli = quantity,
@@ -488,5 +504,16 @@ class StockRepository(
         // A counter that fails to update is a cosmetic problem, not a data-loss
         // one, so it must never surface as a failure of the scan itself.
         runCatching { Db.stockCheck(stockCheckId).update(updates).awaitAck() }
+    }
+
+    private companion object {
+        /**
+         * How many values Firestore accepts in a whereIn.
+         *
+         * Going over it fails the query rather than truncating, which would
+         * stop a scan dead. A product with more codes than this is matched on
+         * its first few instead.
+         */
+        const val IN_QUERY_LIMIT = 10
     }
 }

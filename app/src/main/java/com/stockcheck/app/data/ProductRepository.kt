@@ -6,6 +6,7 @@ import com.stockcheck.app.model.Product
 import com.stockcheck.app.model.Session
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
 
 /**
  * The product catalogue: barcode to name, SKU and default unit.
@@ -38,7 +39,40 @@ class ProductRepository(private val audit: AuditRepository) {
     suspend fun find(barcode: String): Product? {
         val key = barcode.trim()
         if (key.isEmpty()) return null
-        return runCatching { Db.product(key).getAs<Product>() }.getOrNull()
+
+        // The fast path, unchanged: one cached document read, which is what
+        // lets a scan resolve in a basement with no signal.
+        runCatching { Db.product(key).getAs<Product>() }.getOrNull()?.let { return it }
+
+        // Only on a miss. A product can wear several codes -- new packaging, a
+        // second supplier, a carton numbered differently from the tin inside
+        // -- and without this each of them scans as a new unknown product, so
+        // one item on one shelf is counted three times under three names.
+        //
+        // Firestore serves this from the persistent cache while offline for
+        // products the cache has seen. A code that has never been near this
+        // phone still needs a connection, which was true before as well.
+        return runCatching {
+            Db.products()
+                .whereArrayContains("altBarcodes", key)
+                .limit(1)
+                .get().await()
+                .toObjects(Product::class.java)
+                .firstOrNull()
+        }.getOrNull()
+    }
+
+    /**
+     * The product already answering to [code], ignoring the one with id
+     * [exceptId].
+     *
+     * Two products claiming one barcode is a scan with no right answer, and
+     * whichever is found first gets counted. Checked before a save rather
+     * than enforced by a rule, because a rule cannot look across documents.
+     */
+    suspend fun clashingWith(code: String, exceptId: String): Product? {
+        val found = find(code) ?: return null
+        return if (found.barcode.equals(exceptId, ignoreCase = true)) null else found
     }
 
     suspend fun save(
@@ -47,11 +81,30 @@ class ProductRepository(private val audit: AuditRepository) {
         name: String,
         sku: String,
         unit: String,
+        /** Other codes that are this same product. */
+        altBarcodes: List<String> = emptyList(),
     ) {
         session.require(Permission.CREATE_STOCK_CHECK)
         val key = barcode.trim()
         require(key.isNotEmpty()) { "A product needs a barcode." }
         require(name.isNotBlank()) { "A product needs a name." }
+
+        // The document id is already one of this product's codes; repeating it
+        // in the list would make a scan of it take the slow path for nothing.
+        val alts = altBarcodes
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !it.equals(key, ignoreCase = true) }
+            .distinctBy { it.lowercase() }
+
+        // A code pointing at two products is a scan with no right answer, and
+        // whichever is found first is what gets counted.
+        alts.forEach { code ->
+            clashingWith(code, exceptId = key)?.let { owner ->
+                throw IllegalArgumentException(
+                    "$code already belongs to ${owner.name.ifBlank { owner.barcode }}.",
+                )
+            }
+        }
 
         val existing = find(key)
         val now = System.currentTimeMillis()
@@ -60,6 +113,7 @@ class ProductRepository(private val audit: AuditRepository) {
                 barcode = key,
                 name = name.trim(),
                 sku = sku.trim(),
+                altBarcodes = alts,
                 unit = unit.trim().ifEmpty { "pcs" },
                 active = true,
                 createdAt = existing?.createdAt ?: now,
@@ -89,6 +143,11 @@ class ProductRepository(private val audit: AuditRepository) {
                     compare("Name", existing.name, name.trim())
                     compare("SKU", existing.sku, sku.trim())
                     compare("Unit", existing.unit, unit.trim())
+                    compare(
+                        "Other barcodes",
+                        existing.altBarcodes.joinToString(", "),
+                        alts.joinToString(", "),
+                    )
                 },
             )
         }

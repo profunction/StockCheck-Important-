@@ -268,13 +268,38 @@ data class Product(
     @DocumentId val barcode: String = "",
     val name: String = "",
     val sku: String = "",
+    /**
+     * Other codes that are the same product.
+     *
+     * One thing on a shelf can wear several barcodes: the manufacturer
+     * changes the packaging, a second supplier ships the same item under
+     * their own code, a carton carries a different number from the tin
+     * inside it. Without this each of those scans as an unknown product and
+     * the count reports the same stock three times under three names.
+     *
+     * A list beside the id rather than a separate lookup collection, because
+     * the id is what makes a scan a single cached read on a phone with no
+     * signal. That path stays exactly as it was; this is only what happens
+     * when it misses.
+     */
+    val altBarcodes: List<String> = emptyList(),
     /** Pre-fills the unit on a counted line, e.g. ctn for a case. */
     val unit: String = "pcs",
     val active: Boolean = true,
     val createdAt: Long = 0L,
     val createdByUid: String = "",
     val updatedAt: Long = 0L,
-)
+) {
+    /** Every code that reaches this product, the document id included. */
+    @get:Exclude val allBarcodes: List<String>
+        get() = (listOf(barcode) + altBarcodes).filter { it.isNotBlank() }.distinct()
+
+    /** True when [code] is any of this product's codes. */
+    @get:Exclude fun answersTo(code: String): Boolean {
+        val key = code.trim()
+        return key.isNotEmpty() && allBarcodes.any { it.equals(key, ignoreCase = true) }
+    }
+}
 
 // ------------------------------------------------------------------ templates
 

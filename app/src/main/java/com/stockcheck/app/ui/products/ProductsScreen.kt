@@ -34,6 +34,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -139,7 +140,11 @@ class ProductsViewModel(private val session: Session) : ViewModel() {
             products.filter {
                 it.name.contains(text, ignoreCase = true) ||
                     it.sku.contains(text, ignoreCase = true) ||
-                    it.barcode.contains(text)
+                    // Every code, not only the id: somebody searching the
+                    // number printed on the carton in their hand should find
+                    // the product whether or not that is the code it is
+                    // filed under.
+                    it.allBarcodes.any { code -> code.contains(text, ignoreCase = true) }
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -148,9 +153,16 @@ class ProductsViewModel(private val session: Session) : ViewModel() {
         _query.value = value
     }
 
-    fun save(barcode: String, name: String, sku: String, unit: String, onSaved: () -> Unit) {
+    fun save(
+        barcode: String,
+        name: String,
+        sku: String,
+        unit: String,
+        altBarcodes: List<String>,
+        onSaved: () -> Unit,
+    ) {
         viewModelScope.launch {
-            runCatching { repo.save(session, barcode, name, sku, unit) }
+            runCatching { repo.save(session, barcode, name, sku, unit, altBarcodes) }
                 .onSuccess { onSaved() }
                 .onFailure { _message.value = it.message }
         }
@@ -321,8 +333,8 @@ fun ProductsScreen(
             existing = null,
             canDelete = false,
             onDismiss = { adding = false },
-            onSave = { barcode, name, sku, unit ->
-                viewModel.save(barcode, name, sku, unit) { adding = false }
+            onSave = { barcode, name, sku, unit, alts ->
+                viewModel.save(barcode, name, sku, unit, alts) { adding = false }
             },
             onDelete = {},
         )
@@ -333,8 +345,8 @@ fun ProductsScreen(
             existing = product,
             canDelete = canDelete,
             onDismiss = { editing = null },
-            onSave = { barcode, name, sku, unit ->
-                viewModel.save(barcode, name, sku, unit) { editing = null }
+            onSave = { barcode, name, sku, unit, alts ->
+                viewModel.save(barcode, name, sku, unit, alts) { editing = null }
             },
             onDelete = {
                 viewModel.delete(product)
@@ -395,14 +407,24 @@ private fun ProductDialog(
     existing: Product?,
     canDelete: Boolean,
     onDismiss: () -> Unit,
-    onSave: (barcode: String, name: String, sku: String, unit: String) -> Unit,
+    onSave: (
+        barcode: String,
+        name: String,
+        sku: String,
+        unit: String,
+        altBarcodes: List<String>,
+    ) -> Unit,
     onDelete: () -> Unit,
 ) {
     var barcode by remember { mutableStateOf(existing?.barcode.orEmpty()) }
     var name by remember { mutableStateOf(existing?.name.orEmpty()) }
     var sku by remember { mutableStateOf(existing?.sku.orEmpty()) }
     var unit by remember { mutableStateOf(existing?.unit ?: "pcs") }
+    var alts by remember { mutableStateOf(existing?.altBarcodes.orEmpty()) }
     var scanning by remember { mutableStateOf(false) }
+    // Which field the camera is filling. The main barcode cannot change on an
+    // existing product, so on one of those the scanner is only ever adding.
+    var scanningForAlt by remember { mutableStateOf(false) }
 
     val valid = barcode.isNotBlank() && name.isNotBlank()
 
@@ -444,7 +466,19 @@ private fun ProductDialog(
                             .fillMaxWidth()
                             .height(260.dp),
                         onScanned = { code ->
-                            barcode = code.value
+                            if (scanningForAlt) {
+                                // Ignore a re-scan of a code this product
+                                // already answers to: adding it twice would
+                                // send its own scans down the slow path for
+                                // nothing.
+                                val scanned = code.value.trim()
+                                val known = scanned.equals(barcode.trim(), ignoreCase = true) ||
+                                    alts.any { it.equals(scanned, ignoreCase = true) }
+                                if (scanned.isNotEmpty() && !known) alts = alts + scanned
+                                scanningForAlt = false
+                            } else {
+                                barcode = code.value
+                            }
                             scanning = false
                         },
                     )
@@ -519,11 +553,43 @@ private fun ProductDialog(
                     supportingText = { Text("Pre-filled when this product is scanned, e.g. ctn") },
                     modifier = Modifier.fillMaxWidth(),
                 )
+
+                // The same thing on a shelf can wear several codes: new
+                // packaging, a second supplier, a carton numbered differently
+                // from the tin inside it. Without somewhere to put them, each
+                // scans as a new unknown product and one stock item is counted
+                // three times under three names.
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    text = "Other barcodes for this product",
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                alts.forEach { code ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = code,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        IconButton(onClick = { alts = alts - code }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Remove " + code)
+                        }
+                    }
+                }
+                TextButton(
+                    onClick = {
+                        scanningForAlt = true
+                        scanning = true
+                    },
+                ) { Text("Scan another barcode") }
             }
         },
         confirmButton = {
             if (!scanning) {
-                TextButton(onClick = { onSave(barcode, name, sku, unit) }, enabled = valid) {
+                TextButton(
+                    onClick = { onSave(barcode, name, sku, unit, alts) },
+                    enabled = valid,
+                ) {
                     Text("Save")
                 }
             }
