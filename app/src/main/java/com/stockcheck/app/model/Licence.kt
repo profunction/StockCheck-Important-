@@ -13,10 +13,14 @@ import com.google.firebase.firestore.Exclude
  * one document in the database that no client may write at all; only the
  * platform, holding a service-account key, can change it.
  *
- * Absent means unprovisioned, not unlicensed. A company that registered
- * before this existed, or in the seconds before the platform wrote its trial,
- * must not be locked out of its own data — see `licenceAllowsNewWork()` in
- * firestore.rules, which treats a missing document as permission.
+ * Absent means no new work may be started, which is the opposite of what
+ * this said before the paywall: `licenceAllowsNewWork()` in firestore.rules
+ * now requires the document to exist. Every company has one written for it,
+ * a free trial included, so absent means nobody has been sold anything yet
+ * rather than a customer who slipped through.
+ *
+ * Reading, finishing and exporting are untouched by it. What a missing or
+ * expired licence stops is starting the next count.
  */
 data class Licence(
     @DocumentId val workspaceId: String = "",
@@ -84,13 +88,11 @@ data class Licence(
         /** How early the countdown starts showing. */
         const val WARN_DAYS = 14
 
-        /** A company with no licence document yet. */
-        fun unprovisioned(workspaceId: String) = Licence(
-            workspaceId = workspaceId,
-            plan = Plan.TRIAL.name,
-            status = LicenceStatus.ACTIVE.name,
-            seats = Plan.TRIAL.seats,
-        )
+        // There was a `unprovisioned()` here that built an ACTIVE TRIAL with
+        // no expiry. Nothing called it, and anything that did would have had
+        // a licence passing allowsNewWork() forever -- the paywall switched
+        // off by a helper that reads like a default. A company without a
+        // licence has null, and null is not permission.
     }
 }
 

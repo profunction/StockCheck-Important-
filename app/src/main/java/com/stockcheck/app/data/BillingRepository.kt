@@ -208,8 +208,27 @@ class BillingRepository(appContext: Context) {
     }
 
     private suspend fun tellPlatform(purchase: Purchase): Boolean = withContext(Dispatchers.IO) {
+        // The buyer is whoever the purchase says bought it, not whoever
+        // happens to be signed in now.
+        //
+        // An unfinished purchase is re-offered by Play on every connection,
+        // and the connection that finally gets through may be days later on a
+        // phone somebody else has since signed into. Reading the current
+        // workspace there would licence the company standing in front of the
+        // phone with the money the previous one paid -- and leave the company
+        // that paid with nothing. setObfuscatedAccountId stamped the buyer on
+        // the purchase at the moment of sale precisely so this does not have
+        // to be guessed at afterwards.
+        //
+        // The current workspace is the fallback only, for a purchase made by
+        // a build old enough not to have stamped one.
+        val boughtBy = purchase.accountIdentifiers
+            ?.obfuscatedAccountId
+            ?.takeIf { it.isNotBlank() }
+            ?: workspaceId
+
         val body = JSONObject()
-            .put("workspaceId", workspaceId.ifBlank { purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty() })
+            .put("workspaceId", boughtBy)
             .put("productId", purchase.products.firstOrNull().orEmpty())
             .put("purchaseToken", purchase.purchaseToken)
             .put("orderId", purchase.orderId.orEmpty())

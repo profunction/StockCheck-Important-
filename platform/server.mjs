@@ -377,6 +377,25 @@ app.post('/play/verify', express.json(), async (req, res) => {
     }
   }
 
+  // Who Google says bought it beats who the caller says to licence.
+  //
+  // Everything else here exists so that a phone cannot grant itself a
+  // licence, and then the workspace to licence arrived in the request body,
+  // where a phone could put anything. A real token belonging to one company
+  // could have been replayed with another company's id in the JSON, and this
+  // would have licensed the second one. setObfuscatedAccountId stamps the
+  // buyer at the moment of sale and Google hands it back here, so the claim
+  // can simply be checked rather than trusted.
+  //
+  // A purchase with no stamp is one made by a build from before that call
+  // existed; those are let through, because refusing them would strand a
+  // customer who has genuinely paid.
+  const stamped = purchase.obfuscatedExternalAccountId;
+  if (stamped && stamped !== workspaceId) {
+    log('play verify rejected', productId, 'claimed', workspaceId, 'stamped', stamped);
+    return res.status(409).json({ error: 'That purchase belongs to a different company' });
+  }
+
   // Google's own expiry, not a term calculated here. Google is what will
   // renew or stop renewing it, so anything computed locally would drift the
   // first time somebody changes plan or their card fails.
