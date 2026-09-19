@@ -18,6 +18,37 @@ class StockItemVarianceTest {
     private fun line(expected: Int, counted: Int, onList: Boolean = true) =
         StockItem(barcode = "955", quantity = counted, expected = expected, onList = onList)
 
+    // ------------------------------------------------ reading what is stored
+
+    @Test
+    fun `a line written before weighing still reads its number`() {
+        // Every case below builds a line the old way, with whole units and no
+        // quantityMilli -- which is exactly the shape of every row already in
+        // a customer's database. If the fallback broke, those rows would all
+        // read as zero and every historical count would show as total loss.
+        val old = StockItem(barcode = "955", quantity = 24, expected = 30, onList = true)
+        assertEquals(24_000L, old.counted)
+        assertEquals(30_000L, old.expectedCount)
+        assertEquals(-6_000L, old.variance)
+    }
+
+    @Test
+    fun `a line that states thousandths is believed over the whole-unit field`() {
+        // The two disagree on a line converted by an edit: the old field was
+        // left where it was, and only the new one was moved.
+        val weighed = StockItem(
+            barcode = "955",
+            quantity = 24,
+            quantityMilli = 500L,
+            expected = 30,
+            expectedMilli = 1_000L,
+            onList = true,
+        )
+        assertEquals(500L, weighed.counted)
+        assertEquals(1_000L, weighed.expectedCount)
+        assertEquals(-500L, weighed.variance)
+    }
+
     // ------------------------------------------------------------ percentage
 
     @Test

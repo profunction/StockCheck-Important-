@@ -66,6 +66,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.stockcheck.app.data.CloudPhotos
 import com.stockcheck.app.data.ServiceLocator
+import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.PhotoRecord
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
@@ -477,7 +478,7 @@ private fun SummaryLine(check: StockCheck?) {
             Text(friendlyDate(check.createdAt), style = MaterialTheme.typography.labelSmall)
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "${check.itemCount} products · ${check.totalQuantity} total quantity · " +
+                text = "${check.itemCount} products · ${Quantity.format(check.counted)} total quantity · " +
                     "${check.photoCount} photos",
                 style = MaterialTheme.typography.titleMedium,
             )

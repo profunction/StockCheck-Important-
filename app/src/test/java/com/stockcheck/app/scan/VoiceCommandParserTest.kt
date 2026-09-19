@@ -1,5 +1,6 @@
 package com.stockcheck.app.scan
 
+import com.stockcheck.app.model.Quantity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,23 +27,23 @@ class VoiceCommandParserTest {
     @Test
     fun `digits with a product name are read as a count`() {
         val result = count("coca cola 25")
-        assertEquals(25, result.quantity)
+        assertEquals(Quantity.of(25), result.quantity)
         assertEquals("coca cola", result.productName)
     }
 
     @Test
     fun `english number words are read as a count`() {
-        assertEquals(25, count("coca cola twenty five").quantity)
-        assertEquals(30, count("cola thirty").quantity)
-        assertEquals(120, count("cola one hundred and twenty").quantity)
-        assertEquals(1000, count("cola one thousand").quantity)
+        assertEquals(Quantity.of(25), count("coca cola twenty five").quantity)
+        assertEquals(Quantity.of(30), count("cola thirty").quantity)
+        assertEquals(Quantity.of(120), count("cola one hundred and twenty").quantity)
+        assertEquals(Quantity.of(1000), count("cola one thousand").quantity)
     }
 
     @Test
     fun `a word after the number ends it`() {
         // "twenty five boxes of cola" must not let "cola" extend the number.
         val result = count("twenty five boxes of cola")
-        assertEquals(25, result.quantity)
+        assertEquals(Quantity.of(25), result.quantity)
         assertEquals("box", result.unit)
         assertEquals("cola", result.productName)
     }
@@ -58,10 +59,10 @@ class VoiceCommandParserTest {
 
     @Test
     fun `chinese numerals are read as a count`() {
-        assertEquals(25, count("可乐 二十五").quantity)
-        assertEquals(10, count("可乐 十箱").quantity)
-        assertEquals(120, count("可乐 一百二十").quantity)
-        assertEquals(200, count("可乐 两百").quantity)
+        assertEquals(Quantity.of(25), count("可乐 二十五").quantity)
+        assertEquals(Quantity.of(10), count("可乐 十箱").quantity)
+        assertEquals(Quantity.of(120), count("可乐 一百二十").quantity)
+        assertEquals(Quantity.of(200), count("可乐 两百").quantity)
     }
 
     @Test
@@ -82,7 +83,7 @@ class VoiceCommandParserTest {
     @Test
     fun `an explicit quantity marker wins over an earlier number`() {
         // The 3 is the case size; the operator stated 25.
-        assertEquals(25, count("可乐 3 箱 数量 25").quantity)
+        assertEquals(Quantity.of(25), count("可乐 3 箱 数量 25").quantity)
     }
 
     // --------------------------------------------------------- bare numbers
@@ -91,7 +92,7 @@ class VoiceCommandParserTest {
     fun `a bare number applies to the focused line`() {
         val result = parse("25")
         assertTrue("Expected QuantityOnly, got $result", result is VoiceCommand.QuantityOnly)
-        assertEquals(25, (result as VoiceCommand.QuantityOnly).quantity)
+        assertEquals(Quantity.of(25), (result as VoiceCommand.QuantityOnly).quantity)
     }
 
     // ------------------------------------------------------------- barcodes
@@ -136,7 +137,7 @@ class VoiceCommandParserTest {
     @Test
     fun `recogniser punctuation does not break parsing`() {
         val result = count("可乐，数量 25。")
-        assertEquals(25, result.quantity)
+        assertEquals(Quantity.of(25), result.quantity)
         assertEquals("可乐", result.productName)
     }
 
@@ -145,19 +146,19 @@ class VoiceCommandParserTest {
     @Test
     fun `a size in the name is not mistaken for the count`() {
         val result = count("coke 500ml 12")
-        assertEquals(12, result.quantity)
+        assertEquals(Quantity.of(12), result.quantity)
         assertEquals("coke 500ml", result.productName)
     }
 
     @Test
     fun `a litre size is not mistaken for the count`() {
-        assertEquals(6, count("pepsi 2l 6").quantity)
-        assertEquals(25, count("可乐 1.5升 25").quantity)
+        assertEquals(Quantity.of(6), count("pepsi 2l 6").quantity)
+        assertEquals(Quantity.of(25), count("可乐 1.5升 25").quantity)
     }
 
     @Test
     fun `a size spoken with a space is still a size`() {
-        assertEquals(12, count("coke 500 ml 12").quantity)
+        assertEquals(Quantity.of(12), count("coke 500 ml 12").quantity)
     }
 
     @Test
@@ -169,7 +170,7 @@ class VoiceCommandParserTest {
     fun `a name whose number is not a size still counts`() {
         // A4 is part of the name, but nothing marks it as a size, so the rule
         // that the count comes last is what has to carry this one.
-        assertEquals(25, count("a4 paper 25").quantity)
+        assertEquals(Quantity.of(25), count("a4 paper 25").quantity)
     }
 
     @Test
@@ -179,10 +180,19 @@ class VoiceCommandParserTest {
     }
 
     @Test
+    fun `a spoken fraction is kept, not cut off`() {
+        // substringBefore('.') used to run here, so a scale read aloud as
+        // "0.5" became nothing at all and "1.5" became one. Half a kilo of
+        // vegetables is a real line on a real count.
+        assertEquals(500L, count("sawi 0.5").quantity)
+        assertEquals(1_500L, count("sawi 1.5").quantity)
+    }
+
+    @Test
     fun `weight is a quantity, not a size`() {
         // This app counts by the kilo, so 5 here is a real count.
         val result = count("米 五公斤")
-        assertEquals(5, result.quantity)
+        assertEquals(Quantity.of(5), result.quantity)
         assertEquals("kg", result.unit)
     }
 
@@ -192,7 +202,7 @@ class VoiceCommandParserTest {
     fun `ge inside a demonstrative is not a unit`() {
         // 个 is a unit, but 这个 is not "this piece".
         val result = count("这个可乐 25")
-        assertEquals(25, result.quantity)
+        assertEquals(Quantity.of(25), result.quantity)
         assertEquals("这个可乐", result.productName)
     }
 

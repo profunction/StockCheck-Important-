@@ -46,7 +46,13 @@ data class StockCheck(
     val reviewedByName: String? = null,
     val lockedByUid: String? = null,
     val itemCount: Int = 0,
+    /**
+     * Whole units, as totals were held before weighing was possible. Read,
+     * never written — see the same field on [StockItem].
+     */
     val totalQuantity: Int = 0,
+    /** Everything counted on this check, in thousandths. See [Quantity]. */
+    val totalQuantityMilli: Long? = null,
     val photoCount: Int = 0,
     /**
      * Which part of the building this count covers: "A", "Cold room", "Rack 3".
@@ -63,6 +69,15 @@ data class StockCheck(
     val note: String = "",
 ) {
     @get:Exclude val statusEnum: StockStatus get() = StockStatus.parse(status)
+
+    /**
+     * Everything counted on this check, in thousandths.
+     *
+     * Falls back to the whole-unit total for a check totalled before weighing
+     * existed, so an old check and a new one read on the same scale.
+     */
+    @get:Exclude val counted: Long
+        get() = totalQuantityMilli ?: Quantity.of(totalQuantity)
 
     /** Reference plus zone, which is how a person refers to a count out loud. */
     @get:Exclude val label: String
@@ -81,7 +96,29 @@ data class StockItem(
      * afterwards. A stock check is a record of what was true that day.
      */
     val sku: String = "",
+    /**
+     * Whole units, as counts were held before weighing was possible.
+     *
+     * Read, never written. [counted] falls back to it so a line recorded by
+     * an earlier version still shows its number instead of zero.
+     *
+     * Writing it too was the obvious thing and is wrong: an edit is an atomic
+     * increment against whatever the server holds, and rounding does not
+     * survive that. Half a kilo added to half a kilo is one, but the rounded
+     * increments are one plus one, so the mirror would claim two. A field
+     * that is right on creation and drifts on every edit afterwards is worse
+     * than one that is plainly historical.
+     */
     val quantity: Int = 0,
+    /**
+     * What was actually counted, in thousandths of a unit: 500 is half a
+     * kilo, 24_000 is twenty-four tins. See [Quantity].
+     *
+     * Null on a line written before weighing was possible, which is the case
+     * [counted] falls back on. A new line always sets it, so null means old
+     * rather than zero — and on a count sheet those are very different things.
+     */
+    val quantityMilli: Long? = null,
     /**
      * What the customer's own system says should be here.
      *
@@ -91,6 +128,8 @@ data class StockItem(
      * shortages for everything it did not mention.
      */
     val expected: Int = 0,
+    /** [expected] in thousandths, null on a line predating weighing. */
+    val expectedMilli: Long? = null,
     /** True when this line came from an imported count sheet. */
     val onList: Boolean = false,
     val unit: String = "pcs",
@@ -105,10 +144,22 @@ data class StockItem(
     @get:Exclude val sourceEnum: ItemSource
         get() = runCatching { ItemSource.valueOf(source) }.getOrDefault(ItemSource.MANUAL)
 
-    /** Counted minus expected: negative is missing stock, positive is surplus. */
-    @get:Exclude val variance: Int get() = if (onList) quantity - expected else 0
+    /**
+     * What was counted, in thousandths.
+     *
+     * Falls back to the whole-unit field for a line written before weighing
+     * existed. Everything derived below reads this rather than either stored
+     * field, so an old line and a new one compare on the same scale.
+     */
+    @get:Exclude val counted: Long get() = quantityMilli ?: Quantity.of(quantity)
 
-    @get:Exclude val hasVariance: Boolean get() = onList && quantity != expected
+    /** What the sheet said should be here, in thousandths. */
+    @get:Exclude val expectedCount: Long get() = expectedMilli ?: Quantity.of(expected)
+
+    /** Counted minus expected: negative is missing stock, positive is surplus. */
+    @get:Exclude val variance: Long get() = if (onList) counted - expectedCount else 0L
+
+    @get:Exclude val hasVariance: Boolean get() = onList && counted != expectedCount
 
     /**
      * Counted, but not on the sheet at all.
@@ -117,7 +168,7 @@ data class StockItem(
      * problem as stock that has gone missing, and it does not show up as a
      * variance because there is nothing to compare against.
      */
-    @get:Exclude val isUnlisted: Boolean get() = !onList && quantity > 0
+    @get:Exclude val isUnlisted: Boolean get() = !onList && counted > 0L
 
     /**
      * Whether counting this line down to zero should remove it.
@@ -137,7 +188,8 @@ data class StockItem(
      * ones anyway.
      */
     @get:Exclude val variancePercent: Double?
-        get() = if (!onList || expected == 0) null else variance.toDouble() * 100 / expected
+        get() = if (!onList || expectedCount == 0L) null
+        else variance.toDouble() * 100 / expectedCount
 
     /**
      * Whether this line is worth a second pair of eyes before the count is
@@ -160,11 +212,11 @@ data class StockItem(
             !onList -> false
             // The sheet said none and the shelf had some: stock no system
             // knows about, which is a finding in its own right.
-            expected == 0 -> quantity > 0
+            expectedCount == 0L -> counted > 0L
             // The sheet said some and the shelf had none. Whatever the
             // numbers, somebody should walk back and look.
-            quantity == 0 -> true
-            expected < SMALL_COUNT_FLOOR -> false
+            counted == 0L -> true
+            expectedCount < Quantity.of(SMALL_COUNT_FLOOR) -> false
             else -> abs(variancePercent ?: 0.0) >= LARGE_VARIANCE_PERCENT
         }
 

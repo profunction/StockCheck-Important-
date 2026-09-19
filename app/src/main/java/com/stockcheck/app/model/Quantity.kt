@@ -89,6 +89,33 @@ object Quantity {
     fun of(units: Int): Long = units * UNIT
 
     /**
+     * What a quantity field should keep of what was typed.
+     *
+     * Called on every keystroke, so it returns text rather than a number: a
+     * half-typed "1." is not a quantity yet and must still be allowed to sit
+     * in the box. Filtering to digits alone — which is what these fields did
+     * before — makes the decimal point unreachable, and a decimal point
+     * nobody can type is a weighing feature nobody can use.
+     *
+     * A second separator is dropped rather than the input rejected, because
+     * on a phone keyboard it is a slip rather than an intention.
+     */
+    fun filterInput(text: String, maxWhole: Int = 7): String {
+        val whole = StringBuilder()
+        val fraction = StringBuilder()
+        var afterPoint = false
+        text.forEach { ch ->
+            when {
+                ch == '.' || ch == ',' -> if (!afterPoint) afterPoint = true
+                !ch.isDigit() -> Unit
+                afterPoint -> if (fraction.length < PLACES) fraction.append(ch)
+                else -> if (whole.length < maxWhole) whole.append(ch)
+            }
+        }
+        return if (afterPoint) "$whole.$fraction" else whole.toString()
+    }
+
+    /**
      * The nearest whole unit, for the legacy `quantity` field only.
      *
      * Kept in step so that a copy of the app too old to know about

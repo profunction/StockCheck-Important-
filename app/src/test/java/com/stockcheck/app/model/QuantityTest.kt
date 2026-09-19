@@ -101,6 +101,34 @@ class QuantityTest {
     }
 
     @Test
+    fun `keeps what a quantity field should keep`() {
+        assertEquals("24", Quantity.filterInput("24"))
+        assertEquals("0.5", Quantity.filterInput("0.5"))
+        assertEquals(".5", Quantity.filterInput(".5"))
+        assertEquals("", Quantity.filterInput("abc"))
+        assertEquals("12.34", Quantity.filterInput("12a.3b4"))
+    }
+
+    @Test
+    fun `lets a half-typed decimal sit in the box`() {
+        // Called on every keystroke: "1." is not a quantity yet and still has
+        // to be typeable, or the point can never be reached.
+        assertEquals("1.", Quantity.filterInput("1."))
+    }
+
+    @Test
+    fun `drops a second separator rather than the whole input`() {
+        // On a phone keyboard it is a slip, not an intention.
+        assertEquals("1.23", Quantity.filterInput("1.2.3"))
+    }
+
+    @Test
+    fun `stops at three decimals and at the whole-part limit`() {
+        assertEquals("12.345", Quantity.filterInput("12.3456"))
+        assertEquals("9999999", Quantity.filterInput("99999999"))
+    }
+
+    @Test
     fun `of counts whole units`() {
         assertEquals(24_000L, Quantity.of(24))
         assertEquals(0L, Quantity.of(0))

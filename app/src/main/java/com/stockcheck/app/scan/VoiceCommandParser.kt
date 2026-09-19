@@ -11,13 +11,14 @@ sealed interface VoiceCommand {
     /** e.g. "Coca Cola twenty five" or "可乐 数量 25". */
     data class Count(
         val productName: String,
-        val quantity: Int,
+        /** Thousandths of a unit, as every quantity in this app is. */
+        val quantity: Long,
         val unit: String?,
         val transcript: String,
     ) : VoiceCommand
 
     /** A bare number: applies to the line currently selected. */
-    data class QuantityOnly(val quantity: Int, val transcript: String) : VoiceCommand
+    data class QuantityOnly(val quantity: Long, val transcript: String) : VoiceCommand
 
     /** Spoken digits that look like a barcode. */
     data class Barcode(val barcode: String, val transcript: String) : VoiceCommand
@@ -118,8 +119,15 @@ object VoiceCommandParser {
         }
     }
 
-    private data class Quantity(
-        val value: Int,
+    /**
+     * A number found in the transcript, in thousandths of a unit.
+     *
+     * Named for what it is rather than "Quantity", which is also the app's
+     * arithmetic for quantities -- two different things under one name in one
+     * file is how a whole-unit value ends up somewhere expecting thousandths.
+     */
+    private data class Heard(
+        val value: Long,
         val matchedText: String,
         /** Where in the transcript it was found, when that is known. */
         val range: IntRange? = null,
@@ -133,7 +141,7 @@ object VoiceCommandParser {
         return match.value
     }
 
-    private fun findQuantity(text: String): Quantity? {
+    private fun findQuantity(text: String): Heard? {
         // An explicit marker wins: in "可乐 3 箱 数量 25" the operator's stated
         // quantity is 25, not the 3 that happened to come first.
         markerQuantity(text)?.let { return it }
@@ -145,7 +153,7 @@ object VoiceCommandParser {
         return null
     }
 
-    private fun markerQuantity(text: String): Quantity? {
+    private fun markerQuantity(text: String): Heard? {
         val lower = text.lowercase()
         for (marker in quantityMarkers) {
             val at = lower.indexOf(marker)
@@ -154,7 +162,7 @@ object VoiceCommandParser {
             if (tail.isEmpty()) continue
             Regex("^\\D{0,3}(\\d{1,7})").find(tail)?.let { match ->
                 val digits = match.groupValues[1]
-                return Quantity(digits.toInt(), digits)
+                return Heard(com.stockcheck.app.model.Quantity.of(digits.toInt()), digits)
             }
             chineseNumber(tail)?.let { return it }
             englishNumber(tail)?.let { return it }
@@ -176,14 +184,17 @@ object VoiceCommandParser {
      * When every number in the phrase is a size, nothing is returned and the
      * operator is asked, which beats inventing a quantity.
      */
-    private fun numericQuantity(text: String): Quantity? {
+    private fun numericQuantity(text: String): Heard? {
         val match = Regex("""\d{1,7}(?:\.\d+)?""")
             .findAll(text)
             .filterNot { isPackSize(text, it) }
             .lastOrNull()
             ?: return null
-        val value = match.value.substringBefore('.').toIntOrNull() ?: return null
-        return Quantity(value, match.value, match.range)
+        // The fraction used to be cut off here with substringBefore('.'),
+        // which turned a scale reading of 0.5 into nothing at all and 1.5 into
+        // one. Now that a count can hold a fraction, it is kept.
+        val value = com.stockcheck.app.model.Quantity.parse(match.value) ?: return null
+        return Heard(value, match.value, match.range)
     }
 
     /**
@@ -209,7 +220,7 @@ object VoiceCommandParser {
      * Reads Chinese numerals up to 9999, covering the spoken forms that occur
      * in counting: 二十五, 三十, 一百二十, 两百.
      */
-    private fun chineseNumber(text: String): Quantity? {
+    private fun chineseNumber(text: String): Heard? {
         val match = Regex("[零〇一二两兩三四五六七八九十百千]+").find(text) ?: return null
         val token = match.value
         var total = 0
@@ -244,11 +255,12 @@ object VoiceCommandParser {
             }
         }
         val value = total + section + current
-        return if (sawAny && value > 0) Quantity(value, token) else null
+        return if (sawAny && value > 0)
+            Heard(com.stockcheck.app.model.Quantity.of(value), token) else null
     }
 
     /** Reads English number words up to 999, e.g. "twenty five", "a hundred". */
-    private fun englishNumber(text: String): Quantity? {
+    private fun englishNumber(text: String): Heard? {
         val words = text.lowercase().split(' ').filter { it.isNotBlank() }
         var total = 0
         var current = 0
@@ -279,7 +291,8 @@ object VoiceCommandParser {
             }
         }
         val value = total + current
-        return if (sawAny && value > 0) Quantity(value, matched.joinToString(" ")) else null
+        return if (sawAny && value > 0)
+            Heard(com.stockcheck.app.model.Quantity.of(value), matched.joinToString(" ")) else null
     }
 
     /** Digits and Chinese numerals: what a unit of measure follows. */
@@ -331,7 +344,7 @@ object VoiceCommandParser {
      * Returning an empty name is meaningful — it signals a bare quantity that
      * should be applied to the currently selected line.
      */
-    private fun extractProductName(text: String, quantity: Quantity, unit: String?): String {
+    private fun extractProductName(text: String, quantity: Heard, unit: String?): String {
         // Removing every occurrence of the matched digits takes the 2 out of
         // "Pepsi 2L" as well, so the span that was actually read as the count
         // is the span that goes -- and the size stays part of the name.

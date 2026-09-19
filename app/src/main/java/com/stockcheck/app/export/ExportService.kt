@@ -13,6 +13,7 @@ import com.stockcheck.app.data.getAs
 import com.stockcheck.app.data.require
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.Permission
+import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockItem
@@ -265,17 +266,22 @@ class ExportService(
             ExportColumn.BARCODE.key -> item.barcode
             ExportColumn.PRODUCT.key -> item.productName
             ExportColumn.SKU.key -> item.sku
-            ExportColumn.QUANTITY.key -> item.quantity.toString()
+            // Quantity.format, not the raw thousandths: a spreadsheet saying
+            // 24000 where the shelf held 24 tins is not a rounding problem,
+            // it is a report nobody can use.
+            ExportColumn.QUANTITY.key -> Quantity.format(item.counted)
             // Blank rather than zero when nothing was expected: a zero here
             // would read as "the system said none", which it did not say.
-            ExportColumn.EXPECTED.key -> if (item.onList) item.expected.toString() else ""
-            ExportColumn.VARIANCE.key -> if (item.onList) item.variance.toString() else ""
+            ExportColumn.EXPECTED.key ->
+                if (item.onList) Quantity.format(item.expectedCount) else ""
+            ExportColumn.VARIANCE.key ->
+                if (item.onList) Quantity.format(item.variance) else ""
             ExportColumn.FINDING.key -> when {
                 item.isUnlisted -> "Not on sheet"
                 !item.onList -> ""
-                item.variance == 0 -> "Match"
-                item.variance < 0 -> "Short ${-item.variance}"
-                else -> "Over ${item.variance}"
+                item.variance == 0L -> "Match"
+                item.variance < 0L -> "Short " + Quantity.format(-item.variance)
+                else -> "Over " + Quantity.format(item.variance)
             }
             ExportColumn.UNIT.key -> item.unit
             ExportColumn.REMARK.key -> item.remark

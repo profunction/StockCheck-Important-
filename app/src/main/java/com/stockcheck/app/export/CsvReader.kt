@@ -1,5 +1,7 @@
 package com.stockcheck.app.export
 
+import com.stockcheck.app.model.Quantity
+
 /**
  * Reads the CSV people actually have.
  *
@@ -13,6 +15,17 @@ package com.stockcheck.app.export
  * Kept free of Android types so the grammar is testable without a device.
  */
 object CsvReader {
+
+    /**
+     * A comma grouping exactly three digits, which makes it a thousands
+     * separator rather than a decimal point.
+     *
+     * The trailing check is a negative lookahead rather than `\D|$` so the
+     * pattern carries no dollar sign: in a Kotlin raw string that would start
+     * a template. It matches the same thing — "not followed by a digit"
+     * covers both another character and the end of the field.
+     */
+    private val THOUSANDS = Regex("""(?<=\d),(?=\d{3}(?!\d))""")
 
     /** One parsed row, addressable by header name. */
     class Row(private val byHeader: Map<String, String>, val lineNumber: Int) {
@@ -36,6 +49,25 @@ object CsvReader {
             // "1,200" and "1 200" are both a thousand two hundred to a human.
             return raw.replace(",", "").replace(" ", "").trim().toIntOrNull()
                 ?: raw.toDoubleOrNull()?.toInt()
+        }
+
+        /**
+         * A quantity in thousandths, so half a kilo survives the import.
+         *
+         * [int] threw a decimal away through `toInt()`, which read a sheet
+         * saying 0.5 as nothing at all and then reported the whole line as
+         * missing stock.
+         *
+         * The comma has to be disambiguated, because a spreadsheet writes both
+         * meanings with it: "1,200" is a thousand two hundred, "1,5" is one and
+         * a half. It is a thousands separator only where it groups exactly
+         * three digits, which is the only thing a grouping can be, and a
+         * decimal point anywhere else.
+         */
+        fun milli(vararg names: String): Long? {
+            val raw = get(*names)
+            if (raw.isEmpty()) return null
+            return Quantity.parse(raw.replace(" ", "").replace(THOUSANDS, ""))
         }
 
         val isEmpty: Boolean get() = byHeader.values.all { it.isBlank() }

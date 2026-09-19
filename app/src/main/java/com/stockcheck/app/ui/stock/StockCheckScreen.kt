@@ -85,6 +85,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.stockcheck.app.data.ImportSummary
 import com.stockcheck.app.data.effectivePermissions
+import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
@@ -308,7 +309,7 @@ fun StockCheckScreen(
         bottomBar = {
             TotalsBar(
                 itemCount = items.size,
-                totalQuantity = items.sumOf { it.quantity },
+                totalQuantity = items.sumOf { it.counted },
                 photoCount = check?.photoCount ?: 0,
                 status = check?.statusEnum,
                 unnamedCount = unnamedCount,
@@ -621,12 +622,16 @@ private fun ItemRow(
                 if (item.onList) {
                     Text(
                         text = when {
-                            item.variance == 0 -> "Expected ${item.expected} · matches"
-                            item.variance < 0 ->
-                                "Expected ${item.expected} · short ${-item.variance}" +
+                            item.variance == 0L ->
+                                "Expected " + Quantity.format(item.expectedCount) +
+                                    " · matches"
+                            item.variance < 0L ->
+                                "Expected " + Quantity.format(item.expectedCount) +
+                                    " · short " + Quantity.format(-item.variance) +
                                     variancePercentSuffix(item)
                             else ->
-                                "Expected ${item.expected} · over ${item.variance}" +
+                                "Expected " + Quantity.format(item.expectedCount) +
+                                    " · over " + Quantity.format(item.variance) +
                                     variancePercentSuffix(item)
                         },
                         style = MaterialTheme.typography.labelSmall,
@@ -656,7 +661,7 @@ private fun ItemRow(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = item.quantity.toString(),
+                    text = Quantity.format(item.counted),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                 )
@@ -704,7 +709,7 @@ private fun ItemRow(
 @Composable
 private fun TotalsBar(
     itemCount: Int,
-    totalQuantity: Int,
+    totalQuantity: Long,
     photoCount: Int,
     status: StockStatus?,
     unnamedCount: Int = 0,
@@ -723,7 +728,7 @@ private fun TotalsBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TotalTile("Products", itemCount.toString())
-                TotalTile("Total qty", totalQuantity.toString(), emphasis = true)
+                TotalTile("Total qty", Quantity.format(totalQuantity), emphasis = true)
                 // Once a count sheet is loaded the variance is the number
                 // anyone ordered this count to produce, so it takes the slot.
                 // Before that, how much of the count is still anonymous --
@@ -972,8 +977,10 @@ private fun DuplicateBarcodeDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
 ) {
-    var amount by remember(prompt) { mutableStateOf(prompt.suggestedAdd.toString()) }
-    val parsed = amount.toIntOrNull() ?: 0
+    var amount by remember(prompt) {
+        mutableStateOf(Quantity.format(prompt.suggestedAdd))
+    }
+    val parsed = Quantity.parse(amount) ?: 0L
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -986,23 +993,28 @@ private fun DuplicateBarcodeDialog(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Current quantity: ${prompt.item.quantity} ${prompt.item.unit}",
+                    text = "Current quantity: " +
+                        Quantity.formatWith(prompt.item.counted, prompt.item.unit),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.height(14.dp))
                 OutlinedTextField(
                     value = amount,
-                    onValueChange = { amount = it.filter(Char::isDigit).take(6) },
+                    onValueChange = { amount = Quantity.filterInput(it, maxWhole = 6) },
                     label = { Text("Add quantity") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
+                        // Decimal, not Number: most Android keypads leave the
+                        // decimal point off a Number layout entirely, so a
+                        // field that accepts half a kilo would have no way to
+                        // type one.
+                        keyboardType = KeyboardType.Decimal,
                         imeAction = ImeAction.Done,
                     ),
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "New total: ${prompt.item.quantity + parsed}",
+                    text = "New total: " + Quantity.format(prompt.item.counted + parsed),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -1067,7 +1079,7 @@ private fun EditItemDialog(
 ) {
     var name by remember(item.id) { mutableStateOf(item.productName) }
     var sku by remember(item.id) { mutableStateOf(item.sku) }
-    var quantity by remember(item.id) { mutableStateOf(item.quantity.toString()) }
+    var quantity by remember(item.id) { mutableStateOf(Quantity.format(item.counted)) }
     var unit by remember(item.id) { mutableStateOf(item.unit) }
     var remark by remember(item.id) { mutableStateOf(item.remark) }
     // Naming an unknown product mid-count used to mean remembering the
@@ -1114,10 +1126,10 @@ private fun EditItemDialog(
                 Row {
                     OutlinedTextField(
                         value = quantity,
-                        onValueChange = { quantity = it.filter(Char::isDigit).take(7) },
+                        onValueChange = { quantity = Quantity.filterInput(it) },
                         label = { Text("Quantity") },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.weight(1f),
                     )
                     Spacer(Modifier.width(10.dp))
@@ -1180,7 +1192,7 @@ private fun EditItemDialog(
                         item.copy(
                             productName = name.trim(),
                             sku = sku.trim(),
-                            quantity = quantity.toIntOrNull() ?: item.quantity,
+                            quantityMilli = Quantity.parse(quantity) ?: item.counted,
                             unit = unit.trim().ifEmpty { "pcs" },
                             remark = remark.trim(),
                             fieldValues = fieldValues.filterValues { it.isNotBlank() },
@@ -1318,7 +1330,7 @@ private fun ScanConfirmPanel(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = item.quantity.toString(),
+                        text = Quantity.format(item.counted),
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
                     )
@@ -1337,12 +1349,16 @@ private fun ScanConfirmPanel(
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = when {
-                        item.variance == 0 -> "Matches the count sheet (${item.expected})"
-                        item.variance < 0 ->
-                            "Sheet says ${item.expected} — short ${-item.variance}" +
+                        item.variance == 0L ->
+                            "Matches the count sheet (" +
+                                Quantity.format(item.expectedCount) + ")"
+                        item.variance < 0L ->
+                            "Sheet says " + Quantity.format(item.expectedCount) +
+                                " — short " + Quantity.format(-item.variance) +
                                 variancePercentSuffix(item)
                         else ->
-                            "Sheet says ${item.expected} — over ${item.variance}" +
+                            "Sheet says " + Quantity.format(item.expectedCount) +
+                                " — over " + Quantity.format(item.variance) +
                                 variancePercentSuffix(item)
                     },
                     style = MaterialTheme.typography.labelMedium,

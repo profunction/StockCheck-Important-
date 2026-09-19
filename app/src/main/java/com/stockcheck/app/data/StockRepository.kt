@@ -5,6 +5,7 @@ import com.google.firebase.firestore.Query
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
+import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.SignatureInk
 import com.stockcheck.app.model.StockCheck
@@ -232,6 +233,7 @@ class StockRepository(
                     item.copy(
                         id = doc.id,
                         quantity = 0,
+                        quantityMilli = 0L,
                         createdByUid = session.uid,
                         createdAt = System.currentTimeMillis(),
                         updatedAt = System.currentTimeMillis(),
@@ -241,7 +243,7 @@ class StockRepository(
             batch.commit().awaitAck()
         }
         Db.stockCheck(newId).update(
-            mapOf("itemCount" to items.size, "totalQuantity" to 0),
+            mapOf("itemCount" to items.size, "totalQuantityMilli" to 0L),
         ).awaitAck()
         return newId
     }
@@ -283,7 +285,8 @@ class StockRepository(
         stockCheckId: String,
         barcode: String,
         productName: String = "",
-        quantity: Int = 1,
+        /** Thousandths of a unit. See [Quantity]. */
+        quantity: Long = Quantity.UNIT,
         unit: String = "pcs",
         source: ItemSource = ItemSource.SCAN,
     ): ScanOutcome {
@@ -316,7 +319,7 @@ class StockRepository(
             barcode = trimmed,
             productName = productName.ifBlank { known?.name.orEmpty() },
             sku = known?.sku.orEmpty(),
-            quantity = quantity,
+            quantityMilli = quantity,
             // The catalogue's unit only wins when the caller did not state one,
             // so a spoken "25 cartons" is not overridden by the default.
             unit = if (unit == "pcs") known?.unit ?: unit else unit,
@@ -337,7 +340,7 @@ class StockRepository(
             entityLabel = productName.ifEmpty { trimmed },
             action = AuditAction.CREATE,
             field = "quantity",
-            newValue = quantity.toString(),
+            newValue = Quantity.format(quantity),
             stockCheckId = stockCheckId,
         )
         return ScanOutcome.Added(item)
@@ -348,21 +351,30 @@ class StockRepository(
         session: Session,
         stockCheckId: String,
         item: StockItem,
-        delta: Int,
+        /** Thousandths of a unit, positive or negative. See [Quantity]. */
+        delta: Long,
     ) {
         session.require(Permission.EDIT_OWN_STOCK)
-        val newQty = (item.quantity + delta).coerceAtLeast(0)
-        if (newQty == item.quantity) return
-        val applied = newQty - item.quantity
+        val newQty = (item.counted + delta).coerceAtLeast(0L)
+        if (newQty == item.counted) return
+        val applied = newQty - item.counted
         // An atomic increment, not the computed total. Two phones counting the
         // same check each hold their own snapshot of the quantity; writing a
         // total means the second write silently erases the first one's work,
         // and the count comes out short with nothing to show why. The increment
         // also survives being queued offline and replayed later, which is the
         // normal case in a warehouse.
+        // An increment treats a field that is not there as zero, and a line
+        // recorded before weighing has no quantityMilli at all -- so
+        // incrementing one would drop everything counted so far and leave
+        // only this edit. The first edit to such a line writes the total
+        // instead, which converts it; every edit after that increments as
+        // normal because the field now exists.
+        val write: Any =
+            if (item.quantityMilli == null) newQty else FieldValue.increment(applied)
         Db.item(stockCheckId, item.id).update(
             mapOf(
-                "quantity" to FieldValue.increment(applied.toLong()),
+                "quantityMilli" to write,
                 "updatedAt" to System.currentTimeMillis(),
             ),
         ).awaitAck()
@@ -382,8 +394,10 @@ class StockRepository(
             // the increment is what keeps the trail reconcilable; recording
             // only the predicted total makes it assert something that never
             // happened.
-            oldValue = item.quantity.toString(),
-            newValue = "$newQty (applied as ${if (applied > 0) "+$applied" else "$applied"})",
+            oldValue = Quantity.format(item.counted),
+            newValue = Quantity.format(newQty) +
+                " (applied as " +
+                (if (applied > 0) "+" else "") + Quantity.format(applied) + ")",
             stockCheckId = stockCheckId,
         )
     }
@@ -407,7 +421,11 @@ class StockRepository(
             changes = changesOf {
                 compare("Barcode", before.barcode, after.barcode)
                 compare("Product", before.productName, after.productName)
-                compare("Quantity", before.quantity, after.quantity)
+                compare(
+                    "Quantity",
+                    Quantity.format(before.counted),
+                    Quantity.format(after.counted),
+                )
                 compare("Unit", before.unit, after.unit)
                 compare("Remark", before.remark, after.remark)
                 after.fieldValues.keys.plus(before.fieldValues.keys).forEach { key ->
@@ -430,7 +448,7 @@ class StockRepository(
     suspend fun deleteItem(session: Session, stockCheckId: String, item: StockItem) {
         session.require(Permission.EDIT_OWN_STOCK)
         Db.item(stockCheckId, item.id).delete().awaitAck()
-        bumpTotals(stockCheckId, itemDelta = -1, qtyDelta = -item.quantity)
+        bumpTotals(stockCheckId, itemDelta = -1, qtyDelta = -item.counted)
         // A line removed while still counting leaves no trace: it was a
         // mis-scan being corrected, not a record being altered.
         if (isAuditable(stockCheckId)) audit.record(
@@ -439,7 +457,7 @@ class StockRepository(
             entityId = item.id,
             entityLabel = item.productName.ifEmpty { item.barcode },
             action = AuditAction.DELETE,
-            oldValue = item.quantity.toString(),
+            oldValue = Quantity.format(item.counted),
             stockCheckId = stockCheckId,
         )
     }
@@ -456,10 +474,17 @@ class StockRepository(
     private fun signedLabel(ink: String): String =
         if (SignatureInk.isSigned(ink)) "signed" else "not signed"
 
-    private suspend fun bumpTotals(stockCheckId: String, itemDelta: Int, qtyDelta: Int) {
+    /** [qtyDelta] is in thousandths of a unit, as every quantity here is. */
+    private suspend fun bumpTotals(stockCheckId: String, itemDelta: Int, qtyDelta: Long) {
         val updates = mutableMapOf<String, Any>("updatedAt" to System.currentTimeMillis())
         if (itemDelta != 0) updates["itemCount"] = FieldValue.increment(itemDelta.toLong())
-        if (qtyDelta != 0) updates["totalQuantity"] = FieldValue.increment(qtyDelta.toLong())
+        if (qtyDelta != 0L) {
+            // Its own field rather than the old totalQuantity: that one holds
+            // whole units for every check counted so far, and adding
+            // thousandths to it would produce a number a thousand times too
+            // large with nothing to say which scale any given check is on.
+            updates["totalQuantityMilli"] = FieldValue.increment(qtyDelta)
+        }
         // A counter that fails to update is a cosmetic problem, not a data-loss
         // one, so it must never surface as a failure of the scan itself.
         runCatching { Db.stockCheck(stockCheckId).update(updates).awaitAck() }

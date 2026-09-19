@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.stockcheck.app.data.ImportSummary
 import com.stockcheck.app.data.ScanOutcome
 import com.stockcheck.app.data.ServiceLocator
+import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
@@ -30,7 +31,8 @@ import kotlinx.coroutines.launch
  */
 data class DuplicatePrompt(
     val item: StockItem,
-    val suggestedAdd: Int = 1,
+    /** Thousandths of a unit. See [Quantity]. */
+    val suggestedAdd: Long = Quantity.UNIT,
 )
 
 /** A transient message for the snackbar. */
@@ -196,14 +198,14 @@ class StockCheckViewModel(
                             stockCheckId = checkId,
                             before = existing,
                             after = existing.copy(
-                                quantity = command.quantity,
+                                quantityMilli = command.quantity,
                                 unit = command.unit ?: existing.unit,
                             ),
                         )
                         _focusedItemId.value = existing.id
                         _toast.value = Toast(
                             "${existing.productName.ifEmpty { existing.barcode }} " +
-                                "set to ${command.quantity}",
+                                "set to " + Quantity.format(command.quantity),
                         )
                     } else {
                         // A spoken product with no barcode still needs a key, so
@@ -221,7 +223,8 @@ class StockCheckViewModel(
                             is ScanOutcome.Added -> {
                                 _focusedItemId.value = outcome.item.id
                                 _toast.value = Toast(
-                                    "${command.productName} × ${command.quantity}",
+                                    command.productName + " × " +
+                                        Quantity.format(command.quantity),
                                 )
                             }
                             is ScanOutcome.AlreadyPresent ->
@@ -238,7 +241,8 @@ class StockCheckViewModel(
                 val focused = items.value.firstOrNull { it.id == _focusedItemId.value }
                 if (focused == null) {
                     _toast.value = Toast(
-                        "Heard \"${command.quantity}\" — scan or tap an item first.",
+                        "Heard \"" + Quantity.format(command.quantity) +
+                            "\" — scan or tap an item first.",
                         isError = true,
                     )
                 } else {
@@ -263,17 +267,17 @@ class StockCheckViewModel(
      * it takes the row with it. Re-scanning brings it straight back, and the
      * removal is in the audit trail either way.
      */
-    fun adjust(item: StockItem, delta: Int) {
+    fun adjust(item: StockItem, delta: Long) {
         if (isFrozen()) return
         _focusedItemId.value = item.id
 
-        if (delta < 0 && item.quantity + delta <= 0) {
+        if (delta < 0L && item.counted + delta <= 0L) {
             // A line the count sheet expected stays, at zero. "Expected 10,
             // found none" is the finding; deleting the row deletes it.
             if (item.survivesZero) {
-                if (item.quantity == 0) return
+                if (item.counted == 0L) return
                 viewModelScope.launch {
-                    runCatching { stock.adjustQuantity(session, checkId, item, -item.quantity) }
+                    runCatching { stock.adjustQuantity(session, checkId, item, -item.counted) }
                         .onFailure { fail(it) }
                 }
             } else {
@@ -289,8 +293,9 @@ class StockCheckViewModel(
         }
     }
 
-    fun setQuantity(item: StockItem, quantity: Int) {
-        adjust(item, quantity - item.quantity)
+    /** [quantity] is in thousandths of a unit. See [Quantity]. */
+    fun setQuantity(item: StockItem, quantity: Long) {
+        adjust(item, quantity - item.counted)
     }
 
     /**

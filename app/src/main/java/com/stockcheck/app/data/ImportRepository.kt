@@ -19,7 +19,8 @@ data class ImportRow(
     val name: String = "",
     val sku: String = "",
     val unit: String = "",
-    val expected: Int? = null,
+    /** Thousandths of a unit, so a sheet saying 0.5 imports as half. */
+    val expected: Long? = null,
     val lineNumber: Int = 0,
 )
 
@@ -185,7 +186,7 @@ class ImportRepository(
                 problems += "Line ${row.lineNumber}: no barcode"
                 return@forEach
             }
-            val expected = row.int(*CsvReader.EXPECTED)
+            val expected = row.milli(*CsvReader.EXPECTED)
             if (expected == null) {
                 // A missing figure is not zero. Zero is a stock level someone
                 // stated; blank is one nobody did, and treating them alike
@@ -234,7 +235,8 @@ class ImportRepository(
         val skipped = mutableListOf<String>()
         var created = 0
         var updated = 0
-        var addedQuantity = 0
+        // Thousandths, matching every other quantity here.
+        var addedQuantity = 0L
         val now = System.currentTimeMillis()
 
         rows.chunked(batchLimit).forEach { chunk ->
@@ -246,7 +248,7 @@ class ImportRepository(
                     batch.update(
                         Db.item(stockCheckId, current.id),
                         mapOf(
-                            "expected" to (row.expected ?: 0),
+                            "expectedMilli" to (row.expected ?: 0L),
                             "onList" to true,
                             "updatedAt" to now,
                         ),
@@ -261,8 +263,8 @@ class ImportRepository(
                             barcode = row.barcode,
                             productName = row.name.ifBlank { known?.name.orEmpty() },
                             sku = row.sku.ifBlank { known?.sku.orEmpty() },
-                            quantity = 0,
-                            expected = row.expected ?: 0,
+                            quantityMilli = 0L,
+                            expectedMilli = row.expected ?: 0L,
                             onList = true,
                             unit = row.unit.ifBlank { known?.unit ?: "pcs" },
                             source = ItemSource.MANUAL.name,
@@ -284,7 +286,8 @@ class ImportRepository(
             Db.stockCheck(stockCheckId).update(
                 mapOf(
                     "itemCount" to com.google.firebase.firestore.FieldValue.increment(created.toLong()),
-                    "totalQuantity" to com.google.firebase.firestore.FieldValue.increment(addedQuantity.toLong()),
+                    "totalQuantityMilli" to
+                        com.google.firebase.firestore.FieldValue.increment(addedQuantity),
                     "updatedAt" to now,
                 ),
             ).awaitAck()

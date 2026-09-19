@@ -38,6 +38,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
+import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.flow.map
 import androidx.compose.material3.AlertDialog
@@ -481,7 +482,7 @@ private fun StockCheckCard(
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "${check.itemCount} products · ${check.totalQuantity} total · " +
+                text = "${check.itemCount} products · ${Quantity.format(check.counted)} total · " +
                     "${check.photoCount} photos",
                 style = MaterialTheme.typography.bodyMedium,
             )

@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -58,6 +60,7 @@ import com.stockcheck.app.data.effectivePermissions
 import com.stockcheck.app.export.ExportFormat
 import com.stockcheck.app.export.ExportOptions
 import com.stockcheck.app.export.ExportScope
+import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
@@ -222,7 +225,7 @@ private fun HistoryCard(check: StockCheck, onClick: () -> Unit) {
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 TotalTile("Products", check.itemCount.toString())
-                TotalTile("Total qty", check.totalQuantity.toString(), emphasis = true)
+                TotalTile("Total qty", Quantity.format(check.counted), emphasis = true)
                 TotalTile("Photos", check.photoCount.toString())
             }
             Spacer(Modifier.height(6.dp))
@@ -328,7 +331,7 @@ fun HistoryDetailScreen(
                         Spacer(Modifier.height(10.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                             TotalTile("Products", check.itemCount.toString())
-                            TotalTile("Total", check.totalQuantity.toString(), emphasis = true)
+                            TotalTile("Total", Quantity.format(check.counted), emphasis = true)
                             TotalTile("Photos", check.photoCount.toString())
                         }
                     }
@@ -424,14 +427,14 @@ private fun ItemLine(item: StockItem, canEdit: Boolean, onEdit: (StockItem) -> U
             )
         }
         Text(
-            text = "${item.quantity} ${item.unit}",
+            text = Quantity.formatWith(item.counted, item.unit),
             style = MaterialTheme.typography.titleMedium,
         )
     }
     HorizontalDivider()
 
     if (editing) {
-        var quantity by remember { mutableStateOf(item.quantity.toString()) }
+        var quantity by remember { mutableStateOf(Quantity.format(item.counted)) }
         var name by remember { mutableStateOf(item.productName) }
         var remark by remember { mutableStateOf(item.remark) }
         AlertDialog(
@@ -448,9 +451,10 @@ private fun ItemLine(item: StockItem, canEdit: Boolean, onEdit: (StockItem) -> U
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = quantity,
-                        onValueChange = { quantity = it.filter(Char::isDigit) },
+                        onValueChange = { quantity = Quantity.filterInput(it) },
                         label = { Text("Quantity") },
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
@@ -467,7 +471,7 @@ private fun ItemLine(item: StockItem, canEdit: Boolean, onEdit: (StockItem) -> U
                         onEdit(
                             item.copy(
                                 productName = name.trim(),
-                                quantity = quantity.toIntOrNull() ?: item.quantity,
+                                quantityMilli = Quantity.parse(quantity) ?: item.counted,
                                 remark = remark.trim(),
                             ),
                         )
