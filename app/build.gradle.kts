@@ -33,8 +33,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 2
-        versionName =
-            if (providers.gradleProperty("demoMode").orNull == "true") "0.2.0-demo" else "0.2.0"
+        versionName = "0.2.0"
         vectorDrawables { useSupportLibrary = true }
         // Shown on the sign-in screen so a running install can be
         // identified: "did you actually install the new APK?" came up
@@ -67,27 +66,6 @@ android {
         // plus and no spaces: 60123456789. Leave either blank to hide it.
         buildConfigField("String", "SUPPORT_WHATSAPP", "\"\"")
         buildConfigField("String", "SUPPORT_EMAIL", "\"\"")
-
-        // A build for showing the app to somebody, with the licence check off.
-        //
-        // Without it, demonstrating this app is impossible: whoever is being
-        // shown it registers their own company, which has no licence, and the
-        // first thing they are shown is a screen refusing them. There is
-        // nothing to demonstrate behind that screen.
-        //
-        //   ./gradlew assembleDebug -PdemoMode=true
-        //
-        // Off unless asked for, and loudly on when it is -- the app says so
-        // on every screen. A build that quietly ignored the paywall would be
-        // a free version of the product with no way to tell it apart from the
-        // real one, which is worse than having no demo at all.
-        //
-        // It turns off only the app's own check. firestore.rules is the thing
-        // that actually enforces this, and it is not listening to a flag
-        // compiled into a phone -- so once those rules are deployed, a demo
-        // build still needs a licence issued for the company being shown.
-        val demoMode = providers.gradleProperty("demoMode").orNull == "true"
-        buildConfigField("boolean", "DEMO_MODE", demoMode.toString())
     }
 
     signingConfigs {

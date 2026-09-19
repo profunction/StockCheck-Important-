@@ -35,7 +35,6 @@ jobs:
           SLUG="${GITHUB_REF_NAME//\//-}"
           echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
           echo "apk=StockCheck-$SLUG-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
-          echo "demo=StockCheck-DEMO-$SLUG-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
 
       # The APK first. A failing test still leaves something installable, and
       # an APK in hand beats a red tick and nothing to try.
@@ -46,20 +45,6 @@ jobs:
         run: |
           mv app/build/outputs/apk/debug/app-debug.apk \
              "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}"
-
-      # A second APK with the licence check off, for showing the app to
-      # somebody. Without one a demonstration ends on the screen that refuses
-      # the person being shown it: they register their own company, it has no
-      # licence, and there is nothing behind that screen to demonstrate.
-      #
-      # It says DEMO BUILD on the first screen and carries -demo in its
-      # version, because the only thing worse than no demo is a free copy of
-      # the product that cannot be told apart from the paid one.
-      - name: Build the demo APK
-        run: |
-          ./gradlew assembleDebug -PdemoMode=true --stacktrace
-          mv app/build/outputs/apk/debug/app-debug.apk \
-             "app/build/outputs/apk/debug/${{ steps.name.outputs.demo }}"
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4
@@ -89,14 +74,8 @@ jobs:
           rather than replacing one. Enable *Install unknown apps* for your
           browser to install it.
 
-          Two APKs. **StockCheck-...** is the real one, where a company needs a
-          licence before it can start a count. **StockCheck-DEMO-...** has the
-          licence check off for showing the app to somebody, says DEMO BUILD on
-          the first screen, and is not for real stock.
-
           Not for release. Rebuilt on every push to this branch." \
-            "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}" \
-            "app/build/outputs/apk/debug/${{ steps.name.outputs.demo }}"
+            "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}"
 
       # Last, so its failure never costs the APK above.
       - name: Unit tests

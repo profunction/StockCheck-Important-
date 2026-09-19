@@ -236,17 +236,21 @@ fun StockHomeScreen(
     var blocked by remember { mutableStateOf(false) }
     val joinCode by viewModel.joinCode.collectAsStateWithLifecycle()
 
-    // A licence that has not been written yet is refusal, not permission --
-    // the same rule the server applies. See licenceAllowsNewWork() in
-    // firestore.rules. Reading it the other way made the paid tier optional
-    // for every workspace whose licence was never issued.
+    // A company with no licence may work. A company holding one that has run
+    // out or been suspended may not.
+    //
+    // The paywall is deliberately off while there is nobody to sell to. Every
+    // new company -- including each one the app is being shown to -- registers
+    // with no licence, so requiring one made a refusal the first screen a
+    // prospect ever saw, with nothing behind it to look at.
+    //
+    // TURNING IT BACK ON is this line reading `== true`, plus restoring
+    // `exists(licencePath()) &&` in licenceAllowsNewWork() in
+    // firestore.rules. Both together or neither: the app's check alone is one
+    // a modified client can delete, and the rule alone refuses a write the
+    // app has already told somebody would work.
     val now = System.currentTimeMillis()
-    // DEMO_MODE is compiled in only by an explicit -PdemoMode=true, for a
-    // build made to be shown to somebody. It waves through the app's own
-    // check and nothing else: firestore.rules does the enforcing and cannot
-    // see a flag baked into a phone, so a demo against deployed rules still
-    // needs a licence issued for the company being shown.
-    val mayStart = BuildConfig.DEMO_MODE || licence?.allowsNewWork(now) == true
+    val mayStart = licence?.allowsNewWork(now) != false
 
     // Anything not yet reviewed is still "on the floor" and belongs here; the
     // finished ones live on the History tab.
@@ -296,17 +300,6 @@ fun StockHomeScreen(
         Column(modifier = Modifier.padding(padding)) {
         error?.let {
             NoticeBar(text = it, tone = NoticeTone.ERROR)
-        }
-        // Said on the one screen every demo starts from, and said plainly. A
-        // build that ignores the paywall without announcing it is a free copy
-        // of the product that looks exactly like the paid one -- and the
-        // person being shown it has no way to know which they are looking at.
-        if (BuildConfig.DEMO_MODE) {
-            NoticeBar(
-                text = "DEMO BUILD \u2014 licence checks are off. Not for sale " +
-                    "or for real stock. Version ${BuildConfig.VERSION_NAME}.",
-                tone = NoticeTone.WARNING,
-            )
         }
         licence?.let { LicenceBanner(it, now) }
         if (active.isEmpty()) {

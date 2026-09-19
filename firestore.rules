@@ -160,21 +160,27 @@ service cloud.firestore {
        * place. An earlier version of this comment claimed expiry stopped new
        * accounts too; it never did, and it must not.
        */
-      // A workspace with no licence cannot start a count.
+      // A workspace with no licence may start a count. One holding a licence
+      // that has expired or been suspended may not.
       //
-      // This used to read the other way -- no licence document meant no
-      // restriction -- which made the paid tier optional for anybody whose
-      // licence was never written, including every workspace created before
-      // the platform was asked for one. A company gets its trial the same way
-      // it gets everything else: somebody issues it.
+      // The paywall is off while there is nobody to sell to: every company
+      // registers with no licence, so requiring one turned the first screen a
+      // prospect saw into a refusal with nothing behind it.
       //
-      // Only the platform's service account can write /licences, so this is
-      // the one commercial rule a modified client cannot argue with.
+      // TURNING IT BACK ON is restoring `exists(licencePath()) &&` as the
+      // first clause, plus `== true` on the matching line in
+      // StockHomeScreen.kt. Both together or neither -- the app's check alone
+      // is one a modified client can delete, and this one alone refuses a
+      // write the app has already said would work.
+      //
+      // What does not change either way: only the platform's service account
+      // can write /licences, so once this is on it is a rule a modified
+      // client cannot argue with.
       function licenceAllowsNewWork() {
-        return exists(licencePath())
-               && get(licencePath()).data.status == 'ACTIVE'
-               && (get(licencePath()).data.expiresAt == 0
-                   || get(licencePath()).data.expiresAt > request.time.toMillis());
+        return !exists(licencePath())
+               || (get(licencePath()).data.status == 'ACTIVE'
+                   && (get(licencePath()).data.expiresAt == 0
+                       || get(licencePath()).data.expiresAt > request.time.toMillis()));
       }
 
       function joinCodeAccepted() {
