@@ -161,7 +161,8 @@ class StockCheckViewModel(
         }
     }
 
-    fun confirmDuplicateAdd(amount: Int) {
+    /** [amount] is in thousandths of a unit. See [Quantity]. */
+    fun confirmDuplicateAdd(amount: Long) {
         val prompt = _duplicate.value ?: return
         _duplicate.value = null
         adjust(prompt.item, amount)

@@ -975,7 +975,8 @@ private fun TemplateFieldInput(
 private fun DuplicateBarcodeDialog(
     prompt: DuplicatePrompt,
     onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit,
+    /** The amount to add, in thousandths of a unit. See [Quantity]. */
+    onConfirm: (Long) -> Unit,
 ) {
     var amount by remember(prompt) {
         mutableStateOf(Quantity.format(prompt.suggestedAdd))
@@ -1021,7 +1022,7 @@ private fun DuplicateBarcodeDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(parsed) }, enabled = parsed > 0) { Text("Add") }
+            TextButton(onClick = { onConfirm(parsed) }, enabled = parsed > 0L) { Text("Add") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
