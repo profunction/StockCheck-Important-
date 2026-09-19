@@ -195,6 +195,24 @@ per-use, and the same usage that was free on Spark stays free on Blaze.
 
 ## Once, before the first deploy
 
+The quickest way through this is **Cloud Shell** — a terminal in the browser,
+at console.cloud.google.com, with gcloud already installed and already signed
+in. Nothing to download, and no difference between Windows, Mac and Linux.
+
+From `platform/`, or with this repository cloned there:
+
+```bash
+bash setup-gcp.sh YOUR_PROJECT_ID
+```
+
+It checks billing, enables the APIs, creates the service account, grants it
+Firestore access, and prints the address to paste into Play Console along with
+a generated `ADMIN_TOKEN`. It changes nothing that is already correct, so a run
+that stopped halfway can just be repeated.
+
+The rest of this section is what that script does, for when it needs doing by
+hand.
+
 **1. Turn on billing** for the Firebase project, and enable the APIs:
 
 ```bash
