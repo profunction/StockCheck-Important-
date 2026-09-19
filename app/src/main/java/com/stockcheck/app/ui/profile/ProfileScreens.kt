@@ -34,6 +34,7 @@ import androidx.compose.material3.IconButton
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.CloudOff
+import com.stockcheck.app.model.Branch
 import com.stockcheck.app.model.Licence
 import com.stockcheck.app.model.LicenceStatus
 import com.stockcheck.app.model.Plan
@@ -207,6 +208,78 @@ fun ProfileScreen(
                         onSave = { name, code, exportPassword ->
                             viewModel.saveCompanyCode(name, code, exportPassword) {
                                 editingCode = false
+                            }
+                        },
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+
+                // Branches, for a company that runs more than one place.
+                // Deliberately a card that starts empty and says what it is
+                // for: most customers have one shop and should never have to
+                // think about this, and a list of branches nobody set up
+                // would only be a question with no answer.
+                var addingBranch by remember { mutableStateOf(false) }
+                var renaming by remember { mutableStateOf<Branch?>(null) }
+                val branches = config?.branches.orEmpty()
+
+                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Branches", style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = if (branches.isEmpty()) {
+                                "Add one for each shop or warehouse. Leave this empty if " +
+                                    "you count in one place — nobody will be asked which."
+                            } else {
+                                "A count records which branch it covered, and a worker can " +
+                                    "be limited to their own."
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        branches.forEach { branch ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = branch.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                    if (!branch.active) {
+                                        Text(
+                                            text = "Closed — its past counts are still here",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                                TextButton(onClick = { renaming = branch }) { Text("Rename") }
+                                TextButton(
+                                    onClick = {
+                                        viewModel.setBranchActive(branch, !branch.active)
+                                    },
+                                ) { Text(if (branch.active) "Close" else "Reopen") }
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        TextButton(onClick = { addingBranch = true }) { Text("Add a branch") }
+                    }
+                }
+
+                if (addingBranch || renaming != null) {
+                    BranchNameDialog(
+                        existing = renaming,
+                        onDismiss = {
+                            addingBranch = false
+                            renaming = null
+                        },
+                        onSave = { name ->
+                            viewModel.saveBranch(name, renaming?.id.orEmpty()) {
+                                addingBranch = false
+                                renaming = null
                             }
                         },
                     )
@@ -707,6 +780,44 @@ private fun ChangePasswordDialog(
                 onClick = { onConfirm(current, next, confirm) },
                 enabled = valid && !busy,
             ) { Text(if (busy) "Saving…" else "Change") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+/**
+ * Names a shop or warehouse.
+ *
+ * Renaming rather than deleting-and-adding is the whole point of having it:
+ * the id stays, so the counts made there stay attached to it.
+ */
+@Composable
+private fun BranchNameDialog(
+    existing: Branch?,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    var name by remember { mutableStateOf(existing?.name.orEmpty()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (existing == null) "Add a branch" else "Rename branch") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Branch name") },
+                    singleLine = true,
+                    supportingText = { Text("What the people working there call it.") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(name) },
+                enabled = name.isNotBlank(),
+            ) { Text("Save") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )

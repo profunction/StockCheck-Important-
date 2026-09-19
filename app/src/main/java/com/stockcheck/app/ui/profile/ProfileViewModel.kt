@@ -9,6 +9,7 @@ import com.stockcheck.app.data.ServiceLocator
 import com.stockcheck.app.data.can
 import com.stockcheck.app.data.getAs
 import com.stockcheck.app.export.BackupResult
+import com.stockcheck.app.model.Branch
 import com.stockcheck.app.model.Licence
 import com.stockcheck.app.model.AuditEntry
 import com.stockcheck.app.model.Permission
@@ -140,6 +141,25 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
         viewModelScope.launch {
             runCatching { userRepo.saveConfig(session, companyName, joinCode, exportPassword) }
                 .onSuccess { onSaved() }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    /** Adds a branch, or renames the one whose id is [replacingId]. */
+    fun saveBranch(name: String, replacingId: String, onSaved: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { userRepo.saveBranch(session, name, replacingId) }
+                .onSuccess { onSaved() }
+                // The message matters here: the likely failure is a name
+                // another branch already has, and "it did not save" without
+                // saying why is a person retyping the same name.
+                .onFailure { _message.value = it.message }
+        }
+    }
+
+    fun setBranchActive(branch: Branch, active: Boolean) {
+        viewModelScope.launch {
+            runCatching { userRepo.setBranchActive(session, branch, active) }
                 .onFailure { _message.value = it.message }
         }
     }
