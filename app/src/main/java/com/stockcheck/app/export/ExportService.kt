@@ -12,6 +12,7 @@ import com.stockcheck.app.data.effectivePermissions
 import com.stockcheck.app.data.getAs
 import com.stockcheck.app.data.require
 import com.stockcheck.app.model.AuditAction
+import com.stockcheck.app.model.ExpiryDate
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.Session
@@ -252,6 +253,10 @@ class ExportService(
     private fun valueOf(column: ExportColumn, row: ExportRow): String {
         val check = row.check
         val item = row.item
+        // Read once for the whole row rather than per cell, so a file being
+        // written across midnight cannot describe one line as expiring today
+        // and the next as expiring yesterday.
+        val now = System.currentTimeMillis()
         if (column.key.startsWith("field:")) {
             return item.fieldValues[column.key.removePrefix("field:")].orEmpty()
         }
@@ -276,7 +281,15 @@ class ExportService(
                 if (item.onList) Quantity.format(item.expectedCount) else ""
             ExportColumn.VARIANCE.key ->
                 if (item.onList) Quantity.format(item.variance) else ""
+            ExportColumn.EXPIRY.key -> ExpiryDate.format(item.expiresAt)
+            // Expiry first when it applies. A row reading "Match" while the
+            // stock behind it went off last week is a report that answered
+            // the wrong question, and the person reading the spreadsheet is
+            // not going to open every line to find out.
             ExportColumn.FINDING.key -> when {
+                item.isExpired(now) -> "EXPIRED " + ExpiryDate.format(item.expiresAt)
+                item.isExpiringSoon(now) ->
+                    "Expires in " + item.daysToExpiry(now) + "d"
                 item.isUnlisted -> "Not on sheet"
                 !item.onList -> ""
                 item.variance == 0L -> "Match"

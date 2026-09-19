@@ -3,6 +3,7 @@ package com.stockcheck.app.data
 import com.google.firebase.firestore.SetOptions
 import com.stockcheck.app.export.CsvReader
 import com.stockcheck.app.export.SheetReader
+import com.stockcheck.app.model.ExpiryDate
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
@@ -21,6 +22,8 @@ data class ImportRow(
     val unit: String = "",
     /** Thousandths of a unit, so a sheet saying 0.5 imports as half. */
     val expected: Long? = null,
+    /** The date printed on the tin, where the sheet carries one. */
+    val expiresAt: Long? = null,
     val lineNumber: Int = 0,
 )
 
@@ -200,6 +203,10 @@ class ImportRepository(
                 sku = row.get(*CsvReader.SKU),
                 unit = row.get(*CsvReader.UNIT),
                 expected = expected,
+                // Not a problem when absent or unreadable: most sheets carry
+                // no such column, and refusing the line over it would throw
+                // away a count over a field nobody asked for.
+                expiresAt = ExpiryDate.parse(row.get(*CsvReader.EXPIRY)),
                 lineNumber = row.lineNumber,
             )
         }
@@ -265,6 +272,7 @@ class ImportRepository(
                             sku = row.sku.ifBlank { known?.sku.orEmpty() },
                             quantityMilli = 0L,
                             expectedMilli = row.expected ?: 0L,
+                            expiresAt = row.expiresAt,
                             onList = true,
                             unit = row.unit.ifBlank { known?.unit ?: "pcs" },
                             source = ItemSource.MANUAL.name,

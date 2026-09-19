@@ -70,11 +70,20 @@ data class ExportColumn(
         val FINDING = ExportColumn("finding", "Finding", width = 14)
         val SOURCE = ExportColumn("source", "Entered by", width = 12)
 
+        /**
+         * When what was counted goes off.
+         *
+         * Text, not a number: Excel reads a bare dd/MM/yyyy as whatever the
+         * machine's locale says, which turns 03/04 into March on one
+         * computer and April on the next.
+         */
+        val EXPIRY = ExportColumn("expiry", "Expires", width = 12)
+
         /** The columns every export offers, before template fields are added. */
         val standard: List<ExportColumn> = listOf(
             REF, DATE, TIME, WORKER, TEMPLATE, ZONE, STATUS,
             BARCODE, PRODUCT, SKU, EXPECTED, QUANTITY, VARIANCE, FINDING,
-            UNIT, REMARK, SOURCE,
+            EXPIRY, UNIT, REMARK, SOURCE,
         )
 
         /** Ticked by default in the export sheet. */

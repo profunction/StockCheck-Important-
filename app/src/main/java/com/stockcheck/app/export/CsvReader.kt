@@ -191,4 +191,11 @@ object CsvReader {
         "expected", "expected qty", "expected quantity", "system qty", "system quantity",
         "on hand", "onhand", "stock", "qty", "quantity", "应盘", "系统数量",
     )
+
+    /** What a supplier's sheet calls the date printed on the tin. */
+    val EXPIRY = arrayOf(
+        "expiry", "expires", "expiry date", "expiration", "expiration date",
+        "best before", "bestbefore", "bb date", "exp", "exp date", "use by",
+        "有效期", "到期日", "保质期",
+    )
 }

@@ -130,6 +130,19 @@ data class StockItem(
     val expected: Int = 0,
     /** [expected] in thousandths, null on a line predating weighing. */
     val expectedMilli: Long? = null,
+    /**
+     * When what was counted here goes off, at midnight UTC of that day.
+     *
+     * On the counted line, not on the product: a product does not have one
+     * expiry, the batch sitting on the shelf does, and the next delivery of
+     * the same thing has another. Null where nobody recorded one, which is
+     * most lines — dry goods and non-food do not need it, and a date nobody
+     * typed must not read as "expires today".
+     *
+     * A count that balances perfectly while a third of the shelf is out of
+     * date is a count that answered the wrong question.
+     */
+    val expiresAt: Long? = null,
     /** True when this line came from an imported count sheet. */
     val onList: Boolean = false,
     val unit: String = "pcs",
@@ -178,6 +191,24 @@ data class StockItem(
      * none, which is the single most important row in the report.
      */
     @get:Exclude val survivesZero: Boolean get() = onList
+
+    /**
+     * Days until this goes off, or null where no date was recorded.
+     *
+     * Negative once the date has passed. Null is not "fine" and not "today";
+     * it is "nobody said", and a caller showing it as either would be
+     * inventing a fact about somebody's stock.
+     */
+    @get:Exclude fun daysToExpiry(now: Long): Int? =
+        expiresAt?.let { ExpiryDate.daysUntil(it, now) }
+
+    /** Past its date, and still on the shelf being counted. */
+    @get:Exclude fun isExpired(now: Long): Boolean =
+        daysToExpiry(now)?.let { it < 0 } == true
+
+    /** Close enough to its date to be worth acting on while somebody is there. */
+    @get:Exclude fun isExpiringSoon(now: Long): Boolean =
+        daysToExpiry(now)?.let { it in 0..ExpiryDate.SOON_DAYS } == true
 
     /**
      * The variance as a share of what was expected.

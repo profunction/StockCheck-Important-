@@ -85,6 +85,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.stockcheck.app.data.ImportSummary
 import com.stockcheck.app.data.effectivePermissions
+import com.stockcheck.app.model.ExpiryDate
 import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.ItemSource
 import com.stockcheck.app.model.Permission
@@ -575,6 +576,10 @@ private fun ItemRow(
     onDelete: () -> Unit,
 ) {
     var confirmingDelete by remember(item.id) { mutableStateOf(false) }
+    // Read once when the row composes. A count runs for an hour, not a day,
+    // so re-reading per recomposition would only cost work and let two rows
+    // on one screen disagree about what day it is.
+    val now = remember(item.id) { System.currentTimeMillis() }
 
     Card(
         modifier = Modifier
@@ -646,6 +651,30 @@ private fun ItemRow(
                         },
                         maxLines = 1,
                     )
+                }
+
+                // Said on the row, not only in the export. The person who can
+                // pull an out-of-date case off the shelf is the one standing
+                // in front of it with the phone; telling them next week in a
+                // spreadsheet is telling the wrong person at the wrong time.
+                item.daysToExpiry(now)?.let { days ->
+                    if (days < 0 || days <= ExpiryDate.SOON_DAYS) {
+                        Text(
+                            text = if (days < 0) {
+                                "EXPIRED " + ExpiryDate.format(item.expiresAt)
+                            } else {
+                                "Expires in " + days + "d · " +
+                                    ExpiryDate.format(item.expiresAt)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (days < 0) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.tertiary
+                            },
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
 
@@ -1081,6 +1110,7 @@ private fun EditItemDialog(
     var name by remember(item.id) { mutableStateOf(item.productName) }
     var sku by remember(item.id) { mutableStateOf(item.sku) }
     var quantity by remember(item.id) { mutableStateOf(Quantity.format(item.counted)) }
+    var expiry by remember(item.id) { mutableStateOf(ExpiryDate.format(item.expiresAt)) }
     var unit by remember(item.id) { mutableStateOf(item.unit) }
     var remark by remember(item.id) { mutableStateOf(item.remark) }
     // Naming an unknown product mid-count used to mean remembering the
@@ -1144,6 +1174,26 @@ private fun EditItemDialog(
                 }
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(
+                    value = expiry,
+                    onValueChange = { expiry = it.take(10) },
+                    label = { Text("Expires (dd/mm/yyyy)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = expiry.isNotBlank() && ExpiryDate.parse(expiry) == null,
+                    supportingText = {
+                        // A date the app could not read is said so plainly.
+                        // Accepting it quietly and storing nothing is how a
+                        // shelf of expired stock passes a count clean.
+                        if (expiry.isNotBlank() && ExpiryDate.parse(expiry) == null) {
+                            Text("Not a date. Use 03/04/2027.")
+                        } else {
+                            Text("Leave blank for anything that does not expire.")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
                     value = remark,
                     onValueChange = { remark = it },
                     label = { Text("Remark") },
@@ -1194,6 +1244,11 @@ private fun EditItemDialog(
                             productName = name.trim(),
                             sku = sku.trim(),
                             quantityMilli = Quantity.parse(quantity) ?: item.counted,
+                            // Blank clears the date. Keeping the old one when
+                            // somebody empties the box would make a date
+                            // impossible to remove once entered.
+                            expiresAt = if (expiry.isBlank()) null
+                            else ExpiryDate.parse(expiry) ?: item.expiresAt,
                             unit = unit.trim().ifEmpty { "pcs" },
                             remark = remark.trim(),
                             fieldValues = fieldValues.filterValues { it.isNotBlank() },
