@@ -263,21 +263,20 @@ fun StockHomeScreen(
     var blocked by remember { mutableStateOf(false) }
     val joinCode by viewModel.joinCode.collectAsStateWithLifecycle()
 
-    // A company with no licence may work. A company holding one that has run
-    // out or been suspended may not.
+    // A company needs an ACTIVE, unexpired licence to start a count. Every
+    // new company gets a 14-day trial licence issued the moment it registers
+    // (see platform/licences.mjs startTrial), so this is never the reason a
+    // brand-new signup sees a refusal with nothing behind it -- that problem
+    // is solved upstream, by always having something to show them, not by
+    // waving the check through.
     //
-    // The paywall is deliberately off while there is nobody to sell to. Every
-    // new company -- including each one the app is being shown to -- registers
-    // with no licence, so requiring one made a refusal the first screen a
-    // prospect ever saw, with nothing behind it to look at.
-    //
-    // TURNING IT BACK ON is this line reading `== true`, plus restoring
-    // `exists(licencePath()) &&` in licenceAllowsNewWork() in
+    // TURNING THIS OFF is this line reading `!= false`, plus dropping
+    // `exists(licencePath()) &&` from licenceAllowsNewWork() in
     // firestore.rules. Both together or neither: the app's check alone is one
     // a modified client can delete, and the rule alone refuses a write the
     // app has already told somebody would work.
     val now = System.currentTimeMillis()
-    val mayStart = licence?.allowsNewWork(now) != false
+    val mayStart = licence?.allowsNewWork(now) == true
 
     // Anything not yet reviewed is still "on the floor" and belongs here; the
     // finished ones live on the History tab.

@@ -1,23 +1,27 @@
 package com.stockcheck.app.data
 
 import com.stockcheck.app.model.Licence
+import com.stockcheck.app.model.LicenceStatus
+import com.stockcheck.app.model.Plan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
 /**
- * Reads what this company has paid for. There is no write side.
+ * Reads what this company has paid for, and can write exactly one thing.
  *
- * Deliberately so: `/licences/{workspaceId}` is `allow write: if false` for
- * every client, and adding a save method here would only produce a call that
- * fails on the server — an invitation to someone later "fixing" the rule that
- * is stopping it. The platform writes licences through the Admin SDK, from
- * `platform/licence.mjs` or the Stripe webhook.
+ * `/licences/{workspaceId}` is `allow write: if false` for every client, with
+ * one carved-out exception mirrored here: a brand-new company issuing itself
+ * the 14-day trial every company gets, in [startTrial]. Anything past that —
+ * upgrading, extending, renewing — goes through the Admin SDK on the
+ * platform's own machine, from `platform/licence-cli.mjs` or the Stripe
+ * webhook, and adding a method here for any of those would only produce a
+ * call that fails on the server.
  *
- * What the app does with this is show it and stay out of the way. The rules
- * are what actually stop an expired company starting a new count; this exists
- * so that refusal is something the customer saw coming rather than a denied
- * write they cannot interpret.
+ * What the app does otherwise is show the licence and stay out of the way.
+ * The rules are what actually stop an expired company starting a new count;
+ * this exists so that refusal is something the customer saw coming rather
+ * than a denied write they cannot interpret.
  */
 class LicenceRepository {
 
@@ -44,4 +48,46 @@ class LicenceRepository {
 
     suspend fun current(): Licence? =
         if (Db.hasWorkspace) Db.licence().getAs<Licence>() else null
+
+    /**
+     * Issues the one licence a client may ever write: a 14-day trial, for a
+     * company that was just created.
+     *
+     * Called with an explicit [workspaceId] rather than through [Db.licence],
+     * because this runs during registration, before `Db.workspaceId` is set
+     * for the session — see the ordering note on
+     * [AuthRepository.createCompany].
+     *
+     * The shape is pinned to what `licenceAllowsNewWork()` in
+     * firestore.rules will actually accept for this write: plan TRIAL,
+     * status ACTIVE, 5 seats, an expiry 14 days out. Sending anything else
+     * is refused server-side, so there is nothing to gain by changing these
+     * values here — the rule, not this function, is what a modified client
+     * would have to get past.
+     *
+     * Best-effort by design: a failure here must not fail registration
+     * itself. A company with no trial yet meets the paywall on its first
+     * count instead of never having been able to sign up at all, and that
+     * is the failure worth choosing between the two.
+     */
+    suspend fun startTrial(workspaceId: String) {
+        val now = System.currentTimeMillis()
+        Db.licenceFor(workspaceId).set(
+            Licence(
+                workspaceId = workspaceId,
+                plan = Plan.TRIAL.name,
+                status = LicenceStatus.ACTIVE.name,
+                seats = Plan.TRIAL.seats,
+                startedAt = now,
+                expiresAt = now + TRIAL_MILLIS,
+                note = "self-service trial",
+                updatedAt = now,
+            ),
+        ).awaitAck()
+    }
+
+    private companion object {
+        /** 14 days, matching TRIAL_DAYS in platform/plans.mjs. */
+        const val TRIAL_MILLIS = 14L * 24 * 60 * 60 * 1000
+    }
 }

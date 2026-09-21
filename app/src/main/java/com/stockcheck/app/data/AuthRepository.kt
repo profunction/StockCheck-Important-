@@ -57,6 +57,7 @@ class AuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val users: UserRepository,
     private val workspaces: WorkspaceRepository,
+    private val licences: LicenceRepository,
 ) {
 
     val currentUid: String? get() = auth.currentUser?.uid
@@ -265,6 +266,16 @@ class AuthRepository(
                 roleId = BuiltInRoles.ADMIN_ID,
                 joinCode = joinCode,
             )
+            // After the profile, not before: the rule this write has to pass
+            // checks that this account already administers this workspace.
+            //
+            // Its own runCatching, deliberately not joined to the one around
+            // it. A company that cannot self-issue a trial this moment still
+            // exists and can sign in -- it meets the paywall on its first
+            // count instead of never having had an account at all, and
+            // rolling back a whole registration over this would be the
+            // worse failure of the two.
+            runCatching { licences.startTrial(workspaceId) }
             // Last, on purpose: this is what the session is waiting on, so
             // everything it needs must already be in place.
             workspaces.linkUserToWorkspace(uid, workspaceId)

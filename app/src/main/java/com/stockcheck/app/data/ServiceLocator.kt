@@ -18,9 +18,11 @@ object ServiceLocator {
     val workspaces: WorkspaceRepository by lazy { WorkspaceRepository() }
     val provisioning: UserProvisioning by lazy { UserProvisioning(appContext) }
     val users: UserRepository by lazy { UserRepository(audit, provisioning, workspaces) }
-    val auth: AuthRepository by lazy { AuthRepository(users = users, workspaces = workspaces) }
-    val products: ProductRepository by lazy { ProductRepository(audit) }
     val licences: LicenceRepository by lazy { LicenceRepository() }
+    val auth: AuthRepository by lazy {
+        AuthRepository(users = users, workspaces = workspaces, licences = licences)
+    }
+    val products: ProductRepository by lazy { ProductRepository(audit) }
     val imports: ImportRepository by lazy { ImportRepository(products, audit) }
     val refNos: RefNoAllocator by lazy { RefNoAllocator(appContext) }
     val billing: BillingRepository by lazy { BillingRepository(appContext) }

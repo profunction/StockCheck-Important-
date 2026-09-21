@@ -32,17 +32,31 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Whether the caller administers workspace [wsId].
+    //
+    // Firestore rules functions are scoped to the match block that declares
+    // them, and /licences sits outside /workspaces/{ws}/ -- this is a top-
+    // level collection keyed by a workspace id rather than nested under one.
+    // match /userIndex/{uid} below needs the identical check and declares its
+    // own copy for the same reason; two copies of one boolean cost less than
+    // reaching across match blocks that were not designed to share.
+    function isAdminOf(wsId) {
+      return exists(/databases/$(database)/documents/workspaces/$(wsId)/users/$(request.auth.uid))
+             && get(/databases/$(database)/documents/workspaces/$(wsId)/users/$(request.auth.uid)).data.roleId == 'admin'
+             && get(/databases/$(database)/documents/workspaces/$(wsId)/users/$(request.auth.uid)).data.active == true;
+    }
+
     // ----------------------------------------------------------- licences
     //
-    // What a company has paid for. The only collection in this database that
-    // no client may write.
+    // What a company has paid for. Almost the only collection in this
+    // database that no client may write.
     //
     // It cannot live under /workspaces/{ws}/meta, where the rule is
     // `allow write: if isAdmin()` -- that would let a customer's own admin set
     // their plan to lifetime and their expiry to 2099, and the whole billing
-    // model would be decoration. Writes happen only through the Admin SDK,
-    // which bypasses these rules by design and runs on the platform's machine
-    // with a service-account key, never on a phone.
+    // model would be decoration. Every change past the one below happens
+    // through the Admin SDK, which bypasses these rules by design and runs on
+    // the platform's machine with a service-account key, never on a phone.
     //
     // Readable by the company it belongs to, because the app has to show what
     // the plan is and how long is left. `list` stays shut: the collection is a
@@ -53,7 +67,40 @@ service cloud.firestore {
                  && get(/databases/$(database)/documents/userIndex/$(request.auth.uid))
                       .data.workspaceId == wsId;
       allow list: if false;
-      allow write: if false;
+
+      /**
+       * The one exception: a brand-new company issuing itself the 14-day
+       * trial every company gets.
+       *
+       * Requiring a licence to start a count only works if starting a
+       * company does not begin with a refusal -- and the platform's own
+       * startTrial() is a command someone has to remember to run by hand.
+       * Without this, every signup sits locked out until whoever runs the
+       * business notices and issues one, which for a prospect trying the
+       * app unattended is never.
+       *
+       * `create` is what makes this safe to leave open: Firestore evaluates
+       * a write as create only while the document does not yet exist, so
+       * this can fire at most once per workspace no matter how many times a
+       * modified client tries it, and `allow update, delete: if false` below
+       * means it can never be reached again afterwards -- there is no path
+       * from here to renewing, upgrading or extending anything.
+       *
+       * The shape is pinned to exactly what a trial is. A modified client
+       * can still call this, but only to write TRIAL/ACTIVE/5 seats/a expiry
+       * within the next 15 days (14 plus a day for clock drift) -- the same
+       * terms startTrial() would have granted by hand, not a plan anyone
+       * would rather buy.
+       */
+      allow create: if request.auth != null
+                    && isAdminOf(wsId)
+                    && request.resource.data.plan == 'TRIAL'
+                    && request.resource.data.status == 'ACTIVE'
+                    && request.resource.data.seats == 5
+                    && request.resource.data.expiresAt > request.time.toMillis()
+                    && request.resource.data.expiresAt
+                         <= request.time.toMillis() + 15 * 24 * 60 * 60 * 1000;
+      allow update, delete: if false;
     }
 
     // ------------------------------------------------------- user directory

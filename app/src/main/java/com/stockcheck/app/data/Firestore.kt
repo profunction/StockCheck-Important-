@@ -68,6 +68,15 @@ object Db {
     fun licence(): DocumentReference =
         db.collection("licences").document(workspaceId.ifEmpty { "-" })
 
+    /**
+     * A licence by an explicit id, for the one moment [licence] cannot be
+     * used: issuing a brand-new company its trial, mid-registration, before
+     * [workspaceId] has been set for this session. See
+     * [AuthRepository.createCompany].
+     */
+    fun licenceFor(workspaceId: String): DocumentReference =
+        db.collection("licences").document(workspaceId)
+
     fun newWorkspaceId(): String = db.collection("workspaces").document().id
 
     fun users(): CollectionReference = workspace().collection("users")
