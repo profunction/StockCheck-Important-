@@ -10,6 +10,12 @@
 // Amounts are in sen. Nothing here is ever a floating-point number: RM 16.80
 // as 16.8 is a value neither Stripe nor a bank statement agrees with.
 
+// Launch pricing: roughly 30% below the original list price, to get the
+// first customers in rather than to be what this app charges forever.
+// Raising it later is changing these six numbers and their six mirrors in
+// Licence.kt -- nothing else has to move, because everything downstream
+// (the export, the paywall, Play's own product prices once entered in the
+// Console) reads the plan, not a price baked in anywhere else.
 export const PLANS = {
   TRIAL: {
     label: 'Trial',
@@ -21,16 +27,16 @@ export const PLANS = {
   STARTER: {
     label: 'Starter',
     seats: 5,
-    monthlySen: 6_800,
-    yearlySen: 68_800,
-    lifetimeSen: 238_800,
+    monthlySen: 4_800,
+    yearlySen: 48_000,
+    lifetimeSen: 168_000,
   },
   BUSINESS: {
     label: 'Business',
     seats: 20,
-    monthlySen: 16_800,
-    yearlySen: 168_800,
-    lifetimeSen: 588_800,
+    monthlySen: 11_800,
+    yearlySen: 118_000,
+    lifetimeSen: 418_000,
   },
   UNLIMITED: {
     label: 'Unlimited',
@@ -38,9 +44,9 @@ export const PLANS = {
     // half of Int.MAX_VALUE as "no limit" rather than trusting an exact
     // sentinel to survive a round trip through JSON and back.
     seats: 2_000_000_000,
-    monthlySen: 32_800,
-    yearlySen: 328_800,
-    lifetimeSen: 1_188_800,
+    monthlySen: 22_800,
+    yearlySen: 228_000,
+    lifetimeSen: 798_000,
   },
 };
 

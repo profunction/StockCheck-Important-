@@ -112,15 +112,22 @@ enum class Plan(
     val yearlySen: Int,
     val lifetimeSen: Int,
 ) {
+    // Launch pricing: roughly 30% below the original list price, to get the
+    // first customers in rather than to be what this app charges forever.
+    // Raising it later is changing these six numbers and the matching six in
+    // platform/plans.mjs -- nothing else has to move, because everything
+    // downstream (the export, the paywall, Play's own product prices once
+    // they are entered in the Console) reads the plan, not a price baked in
+    // anywhere else.
     TRIAL("Trial", seats = 5, monthlySen = 0, yearlySen = 0, lifetimeSen = 0),
-    STARTER("Starter", seats = 5, monthlySen = 6_800, yearlySen = 68_800, lifetimeSen = 238_800),
-    BUSINESS("Business", seats = 20, monthlySen = 16_800, yearlySen = 168_800, lifetimeSen = 588_800),
+    STARTER("Starter", seats = 5, monthlySen = 4_800, yearlySen = 48_000, lifetimeSen = 168_000),
+    BUSINESS("Business", seats = 20, monthlySen = 11_800, yearlySen = 118_000, lifetimeSen = 418_000),
     UNLIMITED(
         "Unlimited",
         seats = Int.MAX_VALUE,
-        monthlySen = 32_800,
-        yearlySen = 328_800,
-        lifetimeSen = 1_188_800,
+        monthlySen = 22_800,
+        yearlySen = 228_000,
+        lifetimeSen = 798_000,
     );
 
     val seatsLabel: String get() = if (seats == Int.MAX_VALUE) "Unlimited" else "$seats accounts"
