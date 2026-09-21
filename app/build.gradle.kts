@@ -46,14 +46,12 @@ android {
         // billing can be forged on a device.
         //
         // REPLACE with the platform server's public address before release.
-        buildConfigField("String", "BUY_URL", "\"https://example.invalid/buy\"")
+        buildConfigField("String", "BUY_URL", "\"https://stockcheck-payments-52988097941.asia-southeast1.run.app/buy\"")
 
         // The platform server. A Play purchase is posted here to be verified
         // against Google before any licence is written -- the phone never
         // grants itself anything.
-        //
-        // REPLACE before release.
-        buildConfigField("String", "PLATFORM_URL", "\"https://example.invalid\"")
+        buildConfigField("String", "PLATFORM_URL", "\"https://stockcheck-payments-52988097941.asia-southeast1.run.app\"")
 
         // How a customer reaches a human to pay.
         //
