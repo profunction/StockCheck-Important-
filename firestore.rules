@@ -232,27 +232,30 @@ service cloud.firestore {
        * place. An earlier version of this comment claimed expiry stopped new
        * accounts too; it never did, and it must not.
        */
-      // A workspace with no licence may start a count. One holding a licence
-      // that has expired or been suspended may not.
+      // A workspace with no licence may not start a count. One holding a
+      // licence that is ACTIVE and unexpired may.
       //
-      // The paywall is off while there is nobody to sell to: every company
-      // registers with no licence, so requiring one turned the first screen a
-      // prospect saw into a refusal with nothing behind it.
+      // Every company gets a licence written for it -- a free trial
+      // included -- the moment it registers: AuthRepository.createCompany
+      // calls LicenceRepository.startTrial right after the new admin's own
+      // profile is written, and the create-only exception below on
+      // /licences/{wsId} is what lets that self-service write through. So
+      // absent means nobody has been sold anything yet, not a customer who
+      // slipped past the paywall.
       //
-      // TURNING IT BACK ON is restoring `exists(licencePath()) &&` as the
-      // first clause, plus `== true` on the matching line in
-      // StockHomeScreen.kt. Both together or neither -- the app's check alone
-      // is one a modified client can delete, and this one alone refuses a
-      // write the app has already said would work.
+      // This and the matching `== true` on StockHomeScreen.kt's `mayStart`
+      // move together -- the app's check alone is one a modified client can
+      // delete, and this one alone refuses a write the app has already said
+      // would work.
       //
-      // What does not change either way: only the platform's service account
-      // can write /licences, so once this is on it is a rule a modified
-      // client cannot argue with.
+      // Only the platform's service account can write /licences (past the
+      // one exception below), so this is a rule a modified client cannot
+      // argue with.
       function licenceAllowsNewWork() {
-        return !exists(licencePath())
-               || (get(licencePath()).data.status == 'ACTIVE'
-                   && (get(licencePath()).data.expiresAt == 0
-                       || get(licencePath()).data.expiresAt > request.time.toMillis()));
+        return exists(licencePath())
+               && get(licencePath()).data.status == 'ACTIVE'
+               && (get(licencePath()).data.expiresAt == 0
+                   || get(licencePath()).data.expiresAt > request.time.toMillis());
       }
 
       function joinCodeAccepted() {

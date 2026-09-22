@@ -219,12 +219,15 @@ class UserRepository(
         val id = replacingId.ifEmpty { Branch.idFor(clean) }
         require(id.isNotEmpty()) { "That name has no letters or digits in it." }
 
-        val others = config.branches.filterNot { it.id == id }
-        require(others.none { it.name.equals(clean, ignoreCase = true) }) {
+        // Only the branch actually being renamed is excluded here. Adding a
+        // new branch must never quietly fold into an existing one just
+        // because a different-looking name slugifies to the same id.
+        val others = config.branches.filterNot { replacingId.isNotEmpty() && it.id == replacingId }
+        require(others.none { it.name.equals(clean, ignoreCase = true) || it.id == id }) {
             "There is already a branch called $clean."
         }
 
-        val existing = config.branches.firstOrNull { it.id == id }
+        val existing = if (replacingId.isNotEmpty()) config.branches.firstOrNull { it.id == replacingId } else null
         val updated = others + Branch(id = id, name = clean, active = existing?.active ?: true)
         Db.config().update("branches", updated.sortedBy { it.name.lowercase() }).awaitAck()
 

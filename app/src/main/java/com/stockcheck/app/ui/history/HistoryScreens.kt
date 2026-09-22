@@ -128,6 +128,14 @@ fun HistoryScreen(
                 // The bar changes rather than gaining a row, so the count of
                 // what is selected and the things that can be done to it are
                 // in the place attention already is.
+                // Gated the same way the individual actions below are: an icon
+                // a role cannot use is not a shortcut, it is a password prompt
+                // that was always going to end in a refusal.
+                val selectedChecks = checks.filter { it.id in selected }
+                val canExportSelection = permissions.has(Permission.VIEW_EXPORT)
+                val canDeleteSelection = selectedChecks.all {
+                    permissions.canDeleteRecordBy(it.createdByUid, session.uid)
+                }
                 TopAppBar(
                     navigationIcon = {
                         IconButton(onClick = { selected = emptySet() }) {
@@ -136,18 +144,22 @@ fun HistoryScreen(
                     },
                     title = { Text("${selected.size} selected") },
                     actions = {
-                        IconButton(onClick = { pendingAction = BulkAction.EXPORT }) {
-                            Icon(
-                                Icons.Filled.FileDownload,
-                                contentDescription = "Export selected",
-                            )
+                        if (canExportSelection) {
+                            IconButton(onClick = { pendingAction = BulkAction.EXPORT }) {
+                                Icon(
+                                    Icons.Filled.FileDownload,
+                                    contentDescription = "Export selected",
+                                )
+                            }
                         }
-                        IconButton(onClick = { pendingAction = BulkAction.DELETE }) {
-                            Icon(
-                                Icons.Filled.Delete,
-                                contentDescription = "Delete selected",
-                                tint = MaterialTheme.colorScheme.error,
-                            )
+                        if (canDeleteSelection) {
+                            IconButton(onClick = { pendingAction = BulkAction.DELETE }) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = "Delete selected",
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                            }
                         }
                     },
                 )

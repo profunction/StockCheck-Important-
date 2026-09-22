@@ -11,6 +11,7 @@ import com.stockcheck.app.export.ExportColumn
 import kotlinx.coroutines.flow.map
 import com.stockcheck.app.export.ExportOptions
 import com.stockcheck.app.export.ExportResult
+import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.AuditEntry
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
@@ -31,6 +32,7 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
 
     private val stock = ServiceLocator.stock
     private val exports = ServiceLocator.exports
+    private val audit = ServiceLocator.audit
 
     private val all: StateFlow<List<StockCheck>> = stock.observeStockChecks(session, limit = 300)
         .catch { emit(emptyList()) }
@@ -109,10 +111,11 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
      * password costs nothing: nothing has been deleted and no file has been
      * written by the time it is refused.
      *
-     * The approval is recorded in the note on the export, and by the audit
-     * entry each deletion already writes. Who pressed the button and who
-     * allowed it are two different facts and a trail that keeps only one of
-     * them cannot answer what happened.
+     * The approving admin's name is written as its own audit entry (an
+     * export's own entry only records what was exported, not who let it
+     * through), and by the audit entry each deletion already writes. Who
+     * pressed the button and who allowed it are two different facts and a
+     * trail that keeps only one of them cannot answer what happened.
      */
     fun runWithAdmin(
         action: BulkAction,
@@ -155,7 +158,19 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
                                 runCatching {
                                     exports.export(session, picked, ExportOptions())
                                 }
-                                    .onSuccess { _lastExport.value = it }
+                                    .onSuccess { result ->
+                                        _lastExport.value = result
+                                        audit.record(
+                                            session = session,
+                                            entity = "Export",
+                                            entityId = result.file.name,
+                                            entityLabel = result.file.name,
+                                            action = AuditAction.EXPORT,
+                                            field = "approvedBy",
+                                            newValue = verdict.name,
+                                        )
+                                        _message.value = "Exported ${picked.size}, approved by ${verdict.name}."
+                                    }
                                     .onFailure { _message.value = it.message }
                             }
                         }
