@@ -44,7 +44,7 @@ command takes either.
 ```
 node licence-cli.mjs list                              every company, soonest expiry first
 node licence-cli.mjs show    UPOINT
-node licence-cli.mjs trial   UPOINT --days 14 --email boss@company.com
+node licence-cli.mjs trial   UPOINT --days 3 --email boss@company.com
 node licence-cli.mjs grant   UPOINT BUSINESS yearly
 node licence-cli.mjs grant   UPOINT BUSINESS lifetime
 node licence-cli.mjs extend  UPOINT 30

@@ -3,7 +3,7 @@
 //
 //   node licence-cli.mjs list
 //   node licence-cli.mjs show    UPOINT
-//   node licence-cli.mjs trial   UPOINT --days 14 --email boss@company.com
+//   node licence-cli.mjs trial   UPOINT --days 3 --email boss@company.com
 //   node licence-cli.mjs grant   UPOINT BUSINESS yearly
 //   node licence-cli.mjs grant   UPOINT BUSINESS lifetime
 //   node licence-cli.mjs extend  UPOINT 30
@@ -18,7 +18,7 @@
 import {
   list, get, grant, extend, suspend, resume, startTrial, findByCode, seatsUsed,
 } from './licences.mjs';
-import { PLANS, TERMS, priceSen, ringgit } from './plans.mjs';
+import { PLANS, TERMS, TRIAL_DAYS, priceSen, ringgit } from './plans.mjs';
 
 const [, , command, target, ...rest] = process.argv;
 
@@ -101,7 +101,7 @@ switch (command) {
     const licence = await startTrial(workspaceId, {
       companyName: flag('name', companyName),
       contactEmail: flag('email', ''),
-      days: Number(flag('days', 14)),
+      days: Number(flag('days', TRIAL_DAYS)),
     });
     console.log(`\nTrial started for ${workspaceId}`);
     print(licence);
@@ -177,7 +177,7 @@ StockCheck licences
 
   list                            every company, soonest expiry first
   show    <code>                  one company in full
-  trial   <code> [--days 14] [--email you@co.com] [--name "ACME Sdn Bhd"]
+  trial   <code> [--days ${TRIAL_DAYS}] [--email you@co.com] [--name "ACME Sdn Bhd"]
   grant   <code> <PLAN> <TERM>    PLAN: ${Object.keys(PLANS).join(' ')}
                                   TERM: ${Object.keys(TERMS).join(' ')}
   extend  <code> <days>           add time, keep the plan

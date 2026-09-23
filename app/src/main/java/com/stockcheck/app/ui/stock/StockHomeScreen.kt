@@ -264,7 +264,7 @@ fun StockHomeScreen(
     val joinCode by viewModel.joinCode.collectAsStateWithLifecycle()
 
     // A company needs an ACTIVE, unexpired licence to start a count. Every
-    // new company gets a 14-day trial licence issued the moment it registers
+    // new company gets a 3-day trial licence issued the moment it registers
     // (see platform/licences.mjs startTrial), so this is never the reason a
     // brand-new signup sees a refusal with nothing behind it -- that problem
     // is solved upstream, by always having something to show them, not by

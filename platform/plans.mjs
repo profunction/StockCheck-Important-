@@ -57,7 +57,7 @@ export const TERMS = {
 };
 
 /** How long a new company gets before anyone has to decide anything. */
-export const TRIAL_DAYS = 14;
+export const TRIAL_DAYS = 3;
 
 /**
  * Updates and support included with a lifetime purchase.
