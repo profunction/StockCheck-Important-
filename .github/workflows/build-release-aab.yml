@@ -32,18 +32,29 @@ jobs:
       - name: Restore the release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD_RAW: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS_RAW: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD_RAW: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
             echo "::error::RELEASE_KEYSTORE_BASE64 secret is not set."
             exit 1
           fi
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
-          cat > keystore.properties <<EOF
+          # A secret pasted by hand into GitHub's web UI easily carries along
+          # a trailing space or newline from the copy. That one extra
+          # character makes a password wrong in a way that fails deep inside
+          # a signing tool with a cryptic error, so it is stripped here
+          # rather than trusted.
+          echo "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 -d > "$RUNNER_TEMP/release.jks"
+          STORE_PASSWORD="$(printf '%s' "$STORE_PASSWORD_RAW" | xargs)"
+          KEY_ALIAS="$(printf '%s' "$KEY_ALIAS_RAW" | xargs)"
+          KEY_PASSWORD="$(printf '%s' "$KEY_PASSWORD_RAW" | xargs)"
+          cat > keystore.properties <<PROPS
           storeFile=$RUNNER_TEMP/release.jks
-          storePassword=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.RELEASE_KEY_ALIAS }}
-          keyPassword=${{ secrets.RELEASE_KEY_PASSWORD }}
-          EOF
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          PROPS
 
       - name: Work out a name for this build
         id: name
