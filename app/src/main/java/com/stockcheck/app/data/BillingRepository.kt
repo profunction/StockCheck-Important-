@@ -144,8 +144,13 @@ class BillingRepository(appContext: Context) {
         }
         val params = QueryProductDetailsParams.newBuilder().setProductList(wanted).build()
         return suspendCancellableCoroutine { continuation ->
-            client.queryProductDetailsAsync(params) { _, list ->
-                continuation.resume(list.orEmpty())
+            // Billing Library 8 replaced the raw nullable list this callback used
+            // to hand back with a QueryProductDetailsResult, which also names
+            // what did NOT come back -- not needed here, since a missing product
+            // just means that plan silently does not appear, which callers
+            // already treat as the graceful-degradation case.
+            client.queryProductDetailsAsync(params) { _, result ->
+                continuation.resume(result.productDetailsList)
             }
         }
     }
