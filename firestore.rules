@@ -69,7 +69,7 @@ service cloud.firestore {
       allow list: if false;
 
       /**
-       * The one exception: a brand-new company issuing itself the 3-day
+       * The one exception: a brand-new company issuing itself the 14-day
        * trial every company gets.
        *
        * Requiring a licence to start a count only works if starting a
@@ -88,7 +88,7 @@ service cloud.firestore {
        *
        * The shape is pinned to exactly what a trial is. A modified client
        * can still call this, but only to write TRIAL/ACTIVE/5 seats/a expiry
-       * within the next 4 days (3 plus a day for clock drift) -- the same
+       * within the next 15 days (14 plus a day for clock drift) -- the same
        * terms startTrial() would have granted by hand, not a plan anyone
        * would rather buy.
        */
@@ -99,7 +99,7 @@ service cloud.firestore {
                     && request.resource.data.seats == 5
                     && request.resource.data.expiresAt > request.time.toMillis()
                     && request.resource.data.expiresAt
-                         <= request.time.toMillis() + 4 * 24 * 60 * 60 * 1000;
+                         <= request.time.toMillis() + 15 * 24 * 60 * 60 * 1000;
       allow update, delete: if false;
     }
 

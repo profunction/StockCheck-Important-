@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.map
  *
  * `/licences/{workspaceId}` is `allow write: if false` for every client, with
  * one carved-out exception mirrored here: a brand-new company issuing itself
- * the 3-day trial every company gets, in [startTrial]. Anything past that —
+ * the 14-day trial every company gets, in [startTrial]. Anything past that —
  * upgrading, extending, renewing — goes through the Admin SDK on the
  * platform's own machine, from `platform/licence-cli.mjs` or the Stripe
  * webhook, and adding a method here for any of those would only produce a
@@ -50,7 +50,7 @@ class LicenceRepository {
         if (Db.hasWorkspace) Db.licence().getAs<Licence>() else null
 
     /**
-     * Issues the one licence a client may ever write: a 3-day trial, for a
+     * Issues the one licence a client may ever write: a 14-day trial, for a
      * company that was just created.
      *
      * Called with an explicit [workspaceId] rather than through [Db.licence],
@@ -60,7 +60,7 @@ class LicenceRepository {
      *
      * The shape is pinned to what `licenceAllowsNewWork()` in
      * firestore.rules will actually accept for this write: plan TRIAL,
-     * status ACTIVE, 5 seats, an expiry 3 days out. Sending anything else
+     * status ACTIVE, 5 seats, an expiry 14 days out. Sending anything else
      * is refused server-side, so there is nothing to gain by changing these
      * values here — the rule, not this function, is what a modified client
      * would have to get past.
@@ -87,7 +87,7 @@ class LicenceRepository {
     }
 
     private companion object {
-        /** 3 days, matching TRIAL_DAYS in platform/plans.mjs. */
-        const val TRIAL_MILLIS = 3L * 24 * 60 * 60 * 1000
+        /** 14 days, matching TRIAL_DAYS in platform/plans.mjs. */
+        const val TRIAL_MILLIS = 14L * 24 * 60 * 60 * 1000
     }
 }
