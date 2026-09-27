@@ -32,8 +32,8 @@ android {
         applicationId = "com.stockcheck.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2.1"
+        versionCode = 4
+        versionName = "0.2.2"
         vectorDrawables { useSupportLibrary = true }
         // Shown on the sign-in screen so a running install can be
         // identified: "did you actually install the new APK?" came up
