@@ -369,8 +369,8 @@ fun StockCheckScreen(
                 pendingItem?.let { item ->
                     ScanConfirmPanel(
                         item = item,
-                        onDecrement = { viewModel.adjust(item, -1) },
-                        onIncrement = { viewModel.adjust(item, 1) },
+                        onDecrement = { viewModel.adjust(item, -Quantity.UNIT) },
+                        onIncrement = { viewModel.adjust(item, Quantity.UNIT) },
                         onEdit = { editing = item },
                         onContinue = viewModel::continueScanning,
                         onComplete = {
@@ -451,8 +451,8 @@ fun StockCheckScreen(
                                     session.uid,
                                 ),
                             onFocus = { viewModel.focus(item.id) },
-                            onIncrement = { viewModel.adjust(item, 1) },
-                            onDecrement = { viewModel.adjust(item, -1) },
+                            onIncrement = { viewModel.adjust(item, Quantity.UNIT) },
+                            onDecrement = { viewModel.adjust(item, -Quantity.UNIT) },
                             onEdit = { editing = item },
                             onDelete = { viewModel.deleteItem(item) },
                         )
