@@ -85,4 +85,21 @@
     <string name="paywall_contact_message">Hello, I would like a Stock Check licence. Company code: %1$s</string>
     <string name="paywall_contact_subject">Stock Check licence — %1$s</string>
     <string name="paywall_no_email">No app on this phone can send email.</string>
+
+    <!-- First-run tour -->
+    <string name="onboarding_how_to_use">How to use this app</string>
+    <string name="onboarding_how_to_use_sub">A short tour of scanning, fixing mistakes and finishing a count</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_done">Get started</string>
+    <string name="onboarding_step1_title">Welcome to Stock Check</string>
+    <string name="onboarding_step1_body">Tap "New stock check", pick a template and area, and you\'re ready to scan.</string>
+    <string name="onboarding_step2_title">Scan a barcode</string>
+    <string name="onboarding_step2_body">Point the camera at a barcode. The first scan adds the item. Scanning the same barcode again asks how much to add, so nothing gets counted twice by accident.</string>
+    <string name="onboarding_step3_title">Scanned the wrong thing?</string>
+    <string name="onboarding_step3_body">Tap the item and use + or − to adjust it, or tap in to edit it directly. Taking it down to zero removes the line.</string>
+    <string name="onboarding_step4_title">Or just say it</string>
+    <string name="onboarding_step4_body">Tap the microphone and say the product and how many — "five eggs" — instead of typing.</string>
+    <string name="onboarding_step5_title">Finish, and find it again</string>
+    <string name="onboarding_step5_body">Tap "Mark completed" when you\'re done. Every count stays in History, where it can be exported to Excel or CSV.</string>
 </resources>

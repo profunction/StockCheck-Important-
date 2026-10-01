@@ -66,6 +66,8 @@ import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
 import com.stockcheck.app.ui.history.HistoryDetailScreen
 import com.stockcheck.app.ui.history.HistoryScreen
+import com.stockcheck.app.ui.onboarding.OnboardingSeen
+import com.stockcheck.app.ui.onboarding.OnboardingTour
 import com.stockcheck.app.ui.photos.PhotosScreen
 import com.stockcheck.app.ui.products.ProductsScreen
 import com.stockcheck.app.ui.profile.AuditLogScreen
@@ -104,6 +106,8 @@ sealed class Dest(val route: String) {
     }
 
     data object AuditLog : Dest("profile/audit")
+
+    data object Onboarding : Dest("onboarding")
 }
 
 private data class Tab(
@@ -258,6 +262,19 @@ private fun MainScaffold(
     val navController = rememberNavController()
     val permissions = session.effectivePermissions
     val visibleTabs = tabs.filter { it.permission == null || permissions.has(it.permission) }
+    val context = LocalContext.current
+
+    // Decided once per sign-in, not re-checked on every recomposition: the
+    // tour marks itself seen the moment it is dismissed, and re-evaluating
+    // this after that would try to change a NavHost's start destination
+    // after it has already been created, which does nothing.
+    val startDestination = remember(session.profile.uid) {
+        if (OnboardingSeen.wasSeen(context, session.profile.uid)) {
+            visibleTabs.first().dest.route
+        } else {
+            Dest.Onboarding.route
+        }
+    }
 
     // Finish paying for anything Play took money for.
     //
@@ -279,18 +296,35 @@ private fun MainScaffold(
         }
     }
 
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
     Scaffold(
         bottomBar = {
-            AppBottomBar(navController = navController, visibleTabs = visibleTabs)
+            // Full screen while the tour is up -- a bottom bar underneath it
+            // invites tapping straight past a step rather than reading it.
+            if (currentRoute != Dest.Onboarding.route) {
+                AppBottomBar(navController = navController, visibleTabs = visibleTabs)
+            }
         },
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = visibleTabs.first().dest.route,
+            startDestination = startDestination,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
+            composable(Dest.Onboarding.route) {
+                OnboardingTour(
+                    onDone = {
+                        OnboardingSeen.markSeen(context, session.profile.uid)
+                        navController.navigate(visibleTabs.first().dest.route) {
+                            popUpTo(Dest.Onboarding.route) { inclusive = true }
+                        }
+                    },
+                )
+            }
+
             composable(Dest.Stock.route) {
                 StockHomeScreen(
                     session = session,
@@ -361,6 +395,7 @@ private fun MainScaffold(
                     onManageUsers = { navController.navigate(Dest.Users.route) },
                     onEditRole = { roleId -> navController.navigate(Dest.Roles.of(roleId)) },
                     onViewAuditLog = { navController.navigate(Dest.AuditLog.route) },
+                    onOpenOnboarding = { navController.navigate(Dest.Onboarding.route) },
                 )
             }
             composable(Dest.Users.route) {

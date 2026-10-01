@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.AlertDialog
@@ -96,6 +97,7 @@ fun ProfileScreen(
     onManageUsers: () -> Unit,
     onEditRole: (String) -> Unit,
     onViewAuditLog: () -> Unit,
+    onOpenOnboarding: () -> Unit,
 ) {
     var changingPassword by remember { mutableStateOf(false) }
     var backingUp by remember { mutableStateOf(false) }
@@ -148,6 +150,14 @@ fun ProfileScreen(
 
             val licence by viewModel.licence.collectAsStateWithLifecycle()
             licence?.let { PlanCard(it) }
+
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.onboarding_how_to_use)) },
+                supportingContent = { Text(stringResource(R.string.onboarding_how_to_use_sub)) },
+                leadingContent = { Icon(Icons.Filled.Help, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenOnboarding),
+            )
+            HorizontalDivider()
 
             ListItem(
                 headlineContent = { Text(stringResource(R.string.change_password)) },

@@ -77,4 +77,20 @@
     <string name="paywall_contact_message">你好，我想申请 Stock Check 授权。公司代码：%1$s</string>
     <string name="paywall_contact_subject">Stock Check 授权 — %1$s</string>
     <string name="paywall_no_email">这台手机上没有 app 能寄电邮。</string>
+
+    <string name="onboarding_how_to_use">怎么使用这个 App</string>
+    <string name="onboarding_how_to_use_sub">教你扫描、改错、完成盘点的简单流程</string>
+    <string name="onboarding_skip">跳过</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_done">开始使用</string>
+    <string name="onboarding_step1_title">欢迎使用 Stock Check</string>
+    <string name="onboarding_step1_body">点「新建盘点」，选模板和区域，就可以开始扫码了。</string>
+    <string name="onboarding_step2_title">扫描条码</string>
+    <string name="onboarding_step2_body">把镜头对准条码。第一次扫会自动加这个商品；再扫同一个条码，它会问你要加多少，不会自己重复加，不怕扫两次。</string>
+    <string name="onboarding_step3_title">扫错了怎么办</string>
+    <string name="onboarding_step3_body">点那个商品，用上面的 + / − 调整数量，或者点进去直接改。减到 0 会把这一行拿掉。</string>
+    <string name="onboarding_step4_title">也可以用说的</string>
+    <string name="onboarding_step4_body">按麦克风，说出商品和数量，比如「五个鸡蛋」，不用打字。</string>
+    <string name="onboarding_step5_title">完成后去哪里找</string>
+    <string name="onboarding_step5_body">盘完按「完成」。所有记录都在「历史」里，可以导出 Excel 或 CSV。</string>
 </resources>

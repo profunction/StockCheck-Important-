@@ -77,4 +77,20 @@
     <string name="paywall_contact_message">Salam, saya ingin memohon lesen Stock Check. Kod syarikat: %1$s</string>
     <string name="paywall_contact_subject">Lesen Stock Check — %1$s</string>
     <string name="paywall_no_email">Tiada apl pada telefon ini boleh menghantar e-mel.</string>
+
+    <string name="onboarding_how_to_use">Cara guna aplikasi ini</string>
+    <string name="onboarding_how_to_use_sub">Tunjuk ajar ringkas: imbas, betulkan kesilapan, dan selesaikan semakan</string>
+    <string name="onboarding_skip">Langkau</string>
+    <string name="onboarding_next">Seterusnya</string>
+    <string name="onboarding_done">Mula</string>
+    <string name="onboarding_step1_title">Selamat datang ke Stock Check</string>
+    <string name="onboarding_step1_body">Tekan "Semakan stok baharu", pilih templat dan kawasan, kemudian anda boleh mula mengimbas.</string>
+    <string name="onboarding_step2_title">Imbas kod bar</string>
+    <string name="onboarding_step2_body">Halakan kamera ke kod bar. Imbasan pertama menambah barang itu. Imbas kod bar yang sama sekali lagi, ia akan tanya berapa banyak nak tambah — jadi tiada yang dikira dua kali secara tidak sengaja.</string>
+    <string name="onboarding_step3_title">Terimbas barang yang salah?</string>
+    <string name="onboarding_step3_body">Tekan barang itu dan guna + atau − untuk laraskan kuantiti, atau tekan untuk edit terus. Kurangkan ke 0 akan buang baris itu.</string>
+    <string name="onboarding_step4_title">Atau cakap sahaja</string>
+    <string name="onboarding_step4_body">Tekan mikrofon dan sebut nama produk serta kuantitinya — contohnya "lima biji telur" — tanpa perlu menaip.</string>
+    <string name="onboarding_step5_title">Selesai? Cari semula di sini</string>
+    <string name="onboarding_step5_body">Tekan "Mark completed" bila sudah siap. Setiap semakan kekal dalam "Sejarah", dan boleh dieksport ke Excel atau CSV.</string>
 </resources>
