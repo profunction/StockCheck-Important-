@@ -379,8 +379,12 @@ class StockRepository(
         item: StockItem,
         /** Thousandths of a unit, positive or negative. See [Quantity]. */
         delta: Long,
+        /** Who created the stock check this line belongs to. See [updateItem]. */
+        checkCreatedByUid: String,
     ) {
-        session.require(Permission.EDIT_OWN_STOCK)
+        require(session.effectivePermissions.canEditRecordBy(checkCreatedByUid, session.uid)) {
+            "You are not allowed to edit this stock check."
+        }
         val newQty = (item.counted + delta).coerceAtLeast(0L)
         if (newQty == item.counted) return
         val applied = newQty - item.counted
@@ -433,8 +437,19 @@ class StockRepository(
         stockCheckId: String,
         before: StockItem,
         after: StockItem,
+        /**
+         * Who created the stock check this line belongs to, not who scanned
+         * this particular line -- editing is granted per check, the same way
+         * the screen that offers the edit button decides whether to show it.
+         * A blanket [Permission.EDIT_OWN_STOCK] check here would refuse a
+         * supervisor who has [Permission.EDIT_ANY_STOCK] but, reasonably,
+         * never ticked "edit own" because they do not count stock themselves.
+         */
+        checkCreatedByUid: String,
     ) {
-        session.require(Permission.EDIT_OWN_STOCK)
+        require(session.effectivePermissions.canEditRecordBy(checkCreatedByUid, session.uid)) {
+            "You are not allowed to edit this stock check."
+        }
         Db.item(stockCheckId, before.id)
             .set(after.copy(id = before.id, updatedAt = System.currentTimeMillis()))
             .awaitAck()
@@ -471,8 +486,16 @@ class StockRepository(
         )
     }
 
-    suspend fun deleteItem(session: Session, stockCheckId: String, item: StockItem) {
-        session.require(Permission.EDIT_OWN_STOCK)
+    suspend fun deleteItem(
+        session: Session,
+        stockCheckId: String,
+        item: StockItem,
+        /** Who created the stock check this line belongs to. See [updateItem]. */
+        checkCreatedByUid: String,
+    ) {
+        require(session.effectivePermissions.canEditRecordBy(checkCreatedByUid, session.uid)) {
+            "You are not allowed to edit this stock check."
+        }
         Db.item(stockCheckId, item.id).delete().awaitAck()
         bumpTotals(stockCheckId, itemDelta = -1, qtyDelta = -item.counted)
         // A line removed while still counting leaves no trace: it was a

@@ -202,6 +202,7 @@ class StockCheckViewModel(
                                 quantityMilli = command.quantity,
                                 unit = command.unit ?: existing.unit,
                             ),
+                            checkCreatedByUid = check.value?.createdByUid.orEmpty(),
                         )
                         _focusedItemId.value = existing.id
                         _toast.value = Toast(
@@ -278,8 +279,15 @@ class StockCheckViewModel(
             if (item.survivesZero) {
                 if (item.counted == 0L) return
                 viewModelScope.launch {
-                    runCatching { stock.adjustQuantity(session, checkId, item, -item.counted) }
-                        .onFailure { fail(it) }
+                    runCatching {
+                        stock.adjustQuantity(
+                            session,
+                            checkId,
+                            item,
+                            -item.counted,
+                            check.value?.createdByUid.orEmpty(),
+                        )
+                    }.onFailure { fail(it) }
                 }
             } else {
                 deleteItem(item)
@@ -289,7 +297,7 @@ class StockCheckViewModel(
 
         viewModelScope.launch {
             runCatching {
-                stock.adjustQuantity(session, checkId, item, delta)
+                stock.adjustQuantity(session, checkId, item, delta, check.value?.createdByUid.orEmpty())
             }.onFailure { fail(it) }
         }
     }
@@ -312,7 +320,7 @@ class StockCheckViewModel(
         if (isFrozen()) return
         viewModelScope.launch {
             runCatching {
-                stock.updateItem(session, checkId, before, after)
+                stock.updateItem(session, checkId, before, after, check.value?.createdByUid.orEmpty())
             }.onFailure { fail(it); return@launch }
 
             if (!addToCatalogue) return@launch
@@ -343,7 +351,9 @@ class StockCheckViewModel(
         if (isFrozen()) return
         if (_pendingScanId.value == item.id) _pendingScanId.value = null
         viewModelScope.launch {
-            runCatching { stock.deleteItem(session, checkId, item) }
+            runCatching {
+                stock.deleteItem(session, checkId, item, check.value?.createdByUid.orEmpty())
+            }
                 .onSuccess {
                     if (_focusedItemId.value == item.id) _focusedItemId.value = null
                     _toast.value = Toast(

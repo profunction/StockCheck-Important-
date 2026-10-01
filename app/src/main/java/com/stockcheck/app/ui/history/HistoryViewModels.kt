@@ -232,8 +232,9 @@ class HistoryDetailViewModel(
 
     fun edit(before: StockItem, after: StockItem) {
         viewModelScope.launch {
-            runCatching { stock.updateItem(session, checkId, before, after) }
-                .onFailure { _message.value = it.message }
+            runCatching {
+                stock.updateItem(session, checkId, before, after, check.value?.createdByUid.orEmpty())
+            }.onFailure { _message.value = it.message }
         }
     }
 
