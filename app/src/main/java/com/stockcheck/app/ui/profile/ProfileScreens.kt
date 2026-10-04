@@ -917,6 +917,11 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
 
     val permissions = session.effectivePermissions
     var assigning by remember { mutableStateOf<UserProfile?>(null) }
+    var assigningBranches by remember { mutableStateOf<UserProfile?>(null) }
+    val config by viewModel.config.collectAsStateWithLifecycle()
+    // Nothing about branches is shown to a company that has none, which is
+    // most of them.
+    val branches = config?.branches.orEmpty()
 
     var adding by remember { mutableStateOf(false) }
     val lastCreated by viewModel.lastCreated.collectAsStateWithLifecycle()
@@ -971,6 +976,32 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.outline,
                                     )
+                                    if (branches.isNotEmpty()) {
+                                        val isAdmin = user.roleId == BuiltInRoles.ADMIN_ID
+                                        val canAssign = !isAdmin &&
+                                            permissions.has(Permission.CHANGE_PERMISSION)
+                                        val where = if (isAdmin || user.branchIds.isEmpty()) {
+                                            stringResource(R.string.branch_access_all)
+                                        } else {
+                                            user.branchIds.joinToString(", ") { id ->
+                                                branches.firstOrNull { it.id == id }?.name ?: id
+                                            }
+                                        }
+                                        Text(
+                                            text = stringResource(R.string.branch_access_label, where),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = if (canAssign) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            },
+                                            modifier = Modifier
+                                                .clickable(enabled = canAssign) {
+                                                    assigningBranches = user
+                                                }
+                                                .padding(vertical = 6.dp),
+                                        )
+                                    }
                                 }
                             },
                             trailingContent = {
@@ -1015,6 +1046,18 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
         )
     }
 
+    assigningBranches?.let { user ->
+        BranchAccessDialog(
+            user = user,
+            branches = branches,
+            onDismiss = { assigningBranches = null },
+            onSave = { ids ->
+                assigningBranches = null
+                viewModel.setBranches(user, ids)
+            },
+        )
+    }
+
     assigning?.let { user ->
         AlertDialog(
             onDismissRequest = { assigning = null },
@@ -1048,6 +1091,78 @@ fun UserAdminScreen(session: Session, onBack: () -> Unit) {
             confirmButton = { TextButton(onClick = { assigning = null }) { Text("Cancel") } },
         )
     }
+}
+
+/**
+ * Which branches one person works at.
+ *
+ * Nothing ticked is head office -- every branch -- rather than "none", because
+ * an account that can see no branch at all is an account nobody meant to make.
+ * Closed branches are still listed: somebody may need to keep reading what was
+ * counted there.
+ */
+@Composable
+private fun BranchAccessDialog(
+    user: UserProfile,
+    branches: List<Branch>,
+    onDismiss: () -> Unit,
+    onSave: (List<String>) -> Unit,
+) {
+    var picked by remember(user.uid) { mutableStateOf(user.branchIds.toSet()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(R.string.branch_access_title, user.displayName.ifEmpty { user.email }))
+        },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    text = stringResource(R.string.branch_access_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(8.dp))
+                branches.forEach { branch ->
+                    val toggle = {
+                        picked = if (branch.id in picked) picked - branch.id else picked + branch.id
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable(onClick = toggle),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = branch.id in picked, onCheckedChange = { toggle() })
+                        Text(
+                            if (branch.active) {
+                                branch.name
+                            } else {
+                                stringResource(R.string.branch_closed, branch.name)
+                            },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = if (picked.isEmpty()) {
+                        stringResource(R.string.branch_access_now_all)
+                    } else {
+                        stringResource(
+                            R.string.branch_access_now_some,
+                            branches.filter { it.id in picked }.joinToString(", ") { it.name },
+                        )
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(picked.toList()) }) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
+    )
 }
 
 @Composable

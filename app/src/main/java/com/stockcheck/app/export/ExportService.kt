@@ -18,6 +18,7 @@ import com.stockcheck.app.model.Quantity
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
 import com.stockcheck.app.model.StockItem
+import com.stockcheck.app.model.StockComparison
 import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
 import com.stockcheck.app.model.WorkspaceConfig
@@ -194,6 +195,112 @@ class ExportService(
             rowCount = rows.size,
             editable = options.editable,
             encrypted = options.encryptBundle && password != null,
+        )
+    }
+
+    /**
+     * Writes a comparison report: one row per product, both quantities and
+     * the change between them.
+     *
+     * Held to the same rules as exporting the counts themselves. A report
+     * built from colleagues' counts is their data in another shape, so it
+     * takes EXPORT_ALL_DATA exactly as exporting those counts would.
+     *
+     * [headers] are already in the reader's language and name the two
+     * periods: product, barcode, unit, earlier, later, change, note.
+     */
+    suspend fun exportComparison(
+        session: Session,
+        involved: List<StockCheck>,
+        fileLabel: String,
+        headers: List<String>,
+        rows: List<StockComparison.Row>,
+        noteFor: (StockComparison.Row) -> String,
+        format: ExportFormat,
+    ): ExportResult = withContext(Dispatchers.IO) {
+        session.require(Permission.VIEW_EXPORT)
+        session.require(
+            if (format == ExportFormat.XLSX) Permission.EXPORT_EXCEL else Permission.EXPORT_CSV,
+        )
+        session.require(
+            if (involved.any { it.createdByUid != session.uid }) Permission.EXPORT_ALL_DATA
+            else Permission.EXPORT_OWN_DATA,
+        )
+        require(headers.size == 7) { "A report has seven columns." }
+        require(rows.isNotEmpty()) { "Nothing to export: these counts have no products in them." }
+
+        val number = { milli: Long? -> milli?.let { Quantity.format(it) }.orEmpty() }
+        val lines: List<List<String>> = rows.map { row ->
+            listOf(
+                row.label,
+                row.barcode,
+                row.unit,
+                number(row.before),
+                number(row.after),
+                number(row.change),
+                noteFor(row),
+            )
+        }
+
+        val dir = File(appContext.cacheDir, "exports").apply { mkdirs() }
+        val safeLabel = fileLabel.replace(Regex("""[^\p{L}\p{N}]+"""), "-").trim('-')
+        val file = File(
+            dir,
+            "stockcheck-report-$safeLabel-${stampFormat.format(Date())}.${format.extension}",
+        )
+
+        when (format) {
+            ExportFormat.CSV -> file.outputStream().bufferedWriter(Charsets.UTF_8).use { writer ->
+                writer.write("﻿")
+                writer.write(headers.joinToString(",") { csvField(it) })
+                writer.write("\r\n")
+                lines.forEach { cells ->
+                    writer.write(cells.joinToString(",") { csvField(it) })
+                    writer.write("\r\n")
+                }
+            }
+            ExportFormat.XLSX -> {
+                val numeric = setOf(3, 4, 5)
+                val writer = XlsxWriter(sheetName = "Report")
+                    .header(headers, listOf(32, 18, 8, 14, 14, 12, 16))
+                lines.forEach { cells ->
+                    writer.row(
+                        cells.mapIndexed { index, text ->
+                            val cell = when {
+                                text.isEmpty() -> XlsxWriter.Cell.Blank
+                                index in numeric -> text.toDoubleOrNull()
+                                    ?.let { XlsxWriter.Cell.Number(it) }
+                                    ?: XlsxWriter.Cell.Text(text)
+                                else -> XlsxWriter.Cell.Text(text)
+                            }
+                            XlsxWriter.Styled(cell)
+                        },
+                    )
+                }
+                val password = Db.config().getAs<WorkspaceConfig>()
+                    ?.exportPassword
+                    ?.takeIf { it.isNotBlank() }
+                writer.writeTo(file, protectionPassword = password ?: SHEET_GUARD)
+            }
+        }
+
+        audit.record(
+            session = session,
+            entity = "Export",
+            entityId = file.name,
+            entityLabel = file.name,
+            action = AuditAction.EXPORT,
+            field = "report",
+            newValue = "comparison $fileLabel, ${rows.size} products from " +
+                "${involved.size} counts, ${format.name}",
+        )
+
+        ExportResult(
+            file = file,
+            uri = FileProvider.getUriForFile(appContext, "${appContext.packageName}.fileprovider", file),
+            format = format,
+            rowCount = rows.size,
+            editable = false,
         )
     }
 

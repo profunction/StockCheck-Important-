@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileDownload
@@ -90,6 +91,7 @@ import com.stockcheck.app.ui.stock.friendlyDate
 fun HistoryScreen(
     session: Session,
     onOpen: (String) -> Unit,
+    onOpenReports: () -> Unit,
 ) {
     val viewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.factory(session))
     val checks by viewModel.filtered.collectAsStateWithLifecycle()
@@ -99,6 +101,8 @@ fun HistoryScreen(
     val exportResult by viewModel.lastExport.collectAsStateWithLifecycle()
     val customColumns by viewModel.customColumns.collectAsStateWithLifecycle()
     val exportPassword by viewModel.exportPassword.collectAsStateWithLifecycle()
+    val branches by viewModel.branches.collectAsStateWithLifecycle()
+    val branchFilter by viewModel.branchFilter.collectAsStateWithLifecycle()
 
     val permissions = session.effectivePermissions
     val context = LocalContext.current
@@ -167,6 +171,12 @@ fun HistoryScreen(
                 TopAppBar(
                     title = { Text(stringResource(R.string.tab_history)) },
                     actions = {
+                        IconButton(onClick = onOpenReports) {
+                            Icon(
+                                Icons.Filled.BarChart,
+                                contentDescription = stringResource(R.string.reports_title),
+                            )
+                        }
                         if (permissions.has(Permission.VIEW_EXPORT)) {
                             IconButton(onClick = { exporting = true }) {
                                 Icon(Icons.Filled.FileDownload, contentDescription = "Export")
@@ -208,6 +218,30 @@ fun HistoryScreen(
                         onClick = { viewModel.setStatusFilter(status) },
                         label = { Text(stringResource(status.labelRes)) },
                     )
+                }
+            }
+
+            // Head office's view across every shop. Shown only when there is
+            // more than one branch this account can see.
+            if (branches.size > 1) {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    item {
+                        FilterChip(
+                            selected = branchFilter == null,
+                            onClick = { viewModel.setBranchFilter(null) },
+                            label = { Text(stringResource(R.string.branch_access_all)) },
+                        )
+                    }
+                    items(branches, key = { it.id }) { branch ->
+                        FilterChip(
+                            selected = branchFilter == branch.id,
+                            onClick = { viewModel.setBranchFilter(branch.id) },
+                            label = { Text(branch.name) },
+                        )
+                    }
                 }
             }
 
@@ -424,11 +458,9 @@ private fun HistoryCard(
                 // Which area, beside the date. Searching History by area
                 // already worked; seeing which area a count covers did not,
                 // so the search only helped somebody who already knew.
-                text = if (check.zone.isBlank()) {
-                    friendlyDate(check.createdAt)
-                } else {
-                    "${friendlyDate(check.createdAt)} · ${check.zone}"
-                },
+                text = listOf(friendlyDate(check.createdAt), check.branchName, check.zone)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · "),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
             )

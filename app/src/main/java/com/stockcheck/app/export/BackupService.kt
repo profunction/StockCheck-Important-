@@ -8,6 +8,7 @@ import com.google.firebase.firestore.Query
 import com.stockcheck.app.data.AuditRepository
 import com.stockcheck.app.data.Db
 import com.stockcheck.app.data.require
+import com.stockcheck.app.data.stockCheckQueries
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
@@ -93,7 +94,12 @@ class BackupService(
         val photoPaths = mutableListOf<String>()
         val checks = JSONArray()
 
-        val checkDocs = Db.stockChecks().get().await().documents
+        // The same queries History runs. An unfiltered read of the collection
+        // is refused outright for a branch account, so a branch manager's
+        // backup failed instead of covering their branches.
+        val checkDocs = session.stockCheckQueries()
+            .flatMap { it.get().await().documents }
+            .distinctBy { it.id }
         for (doc in checkDocs) {
             val check = JSONObject()
             check.put("id", doc.id)

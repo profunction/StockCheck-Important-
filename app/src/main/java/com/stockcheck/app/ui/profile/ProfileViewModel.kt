@@ -110,6 +110,13 @@ class ProfileViewModel(private val session: Session) : ViewModel() {
         }
     }
 
+    fun setBranches(target: UserProfile, branchIds: List<String>) {
+        viewModelScope.launch {
+            runCatching { userRepo.setBranches(session, target, branchIds) }
+                .onFailure { _message.value = it.message }
+        }
+    }
+
     fun sendPasswordReset(target: UserProfile) {
         viewModelScope.launch {
             runCatching { userRepo.sendResetFor(session, target) }

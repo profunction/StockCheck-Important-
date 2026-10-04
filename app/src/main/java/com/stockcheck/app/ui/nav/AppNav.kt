@@ -74,6 +74,7 @@ import com.stockcheck.app.ui.profile.AuditLogScreen
 import com.stockcheck.app.ui.profile.ProfileScreen
 import com.stockcheck.app.ui.profile.RoleEditorScreen
 import com.stockcheck.app.ui.profile.UserAdminScreen
+import com.stockcheck.app.ui.reports.ReportsScreen
 import com.stockcheck.app.ui.stock.StockCheckScreen
 import com.stockcheck.app.ui.stock.StockHomeScreen
 import com.stockcheck.app.ui.template.TemplateEditorScreen
@@ -108,6 +109,10 @@ sealed class Dest(val route: String) {
     data object AuditLog : Dest("profile/audit")
 
     data object Onboarding : Dest("onboarding")
+
+    // Not "history/reports": that would also match history/{checkId}. The
+    // "history" prefix still keeps the History tab lit while it is open.
+    data object Reports : Dest("historyreports")
 }
 
 private data class Tab(
@@ -372,7 +377,11 @@ private fun MainScaffold(
                 HistoryScreen(
                     session = session,
                     onOpen = { checkId -> navController.navigate(Dest.HistoryDetail.of(checkId)) },
+                    onOpenReports = { navController.navigate(Dest.Reports.route) },
                 )
+            }
+            composable(Dest.Reports.route) {
+                ReportsScreen(session = session, onBack = { navController.popBackStack() })
             }
             composable(Dest.HistoryDetail.route) { entry ->
                 HistoryDetailScreen(

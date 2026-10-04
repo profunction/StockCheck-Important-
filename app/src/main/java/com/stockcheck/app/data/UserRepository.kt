@@ -315,9 +315,13 @@ class UserRepository(
             require(countAdmins() > 1) { "The workspace must keep at least one admin." }
         }
         val role = Db.role(newRoleId).getAs<Role>() ?: error("Role not found: $newRoleId")
-        Db.user(target.uid).update(
-            mapOf("roleId" to role.id, "roleName" to role.name)
-        ).awaitAck()
+        val updates = mutableMapOf<String, Any>("roleId" to role.id, "roleName" to role.name)
+        // An admin runs the whole company. Left with the branches they had as
+        // a branch manager, they would administer every shop and be unable
+        // to see most of them -- and the branch picker is not offered for an
+        // admin, so nobody could take the restriction off again.
+        if (role.id == BuiltInRoles.ADMIN_ID) updates["branchIds"] = emptyList<String>()
+        Db.user(target.uid).update(updates).awaitAck()
         audit.record(
             session = session,
             entity = "User",
@@ -327,6 +331,37 @@ class UserRepository(
             field = "role",
             oldValue = target.roleName,
             newValue = role.name,
+        )
+    }
+
+    /**
+     * Which branches [target] works at. Empty means head office: every branch.
+     *
+     * An access change, so it takes the same permission as changing a role,
+     * and the trail records it the same way. The rules stop anyone setting
+     * their own.
+     */
+    suspend fun setBranches(session: Session, target: UserProfile, branchIds: List<String>) {
+        session.require(Permission.CHANGE_PERMISSION)
+        require(target.roleId != BuiltInRoles.ADMIN_ID) { "An admin always sees every branch." }
+        val clean = branchIds.filter { it.isNotBlank() }.distinct().sorted()
+        if (clean == target.branchIds.sorted()) return
+
+        Db.user(target.uid).update("branchIds", clean).awaitAck()
+
+        val names = Db.config().getAs<WorkspaceConfig>()?.branches.orEmpty()
+            .associate { it.id to it.name }
+        fun describe(ids: List<String>) =
+            if (ids.isEmpty()) "All branches" else ids.joinToString(", ") { names[it] ?: it }
+        audit.record(
+            session = session,
+            entity = "User",
+            entityId = target.uid,
+            entityLabel = target.displayName.ifEmpty { target.email },
+            action = AuditAction.PERMISSION_CHANGE,
+            field = "branches",
+            oldValue = describe(target.branchIds),
+            newValue = describe(clean),
         )
     }
 

@@ -15,6 +15,7 @@ import com.stockcheck.app.model.StockStatus
 import com.stockcheck.app.model.Template
 import com.stockcheck.app.model.WorkspaceConfig
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
@@ -39,33 +40,30 @@ class StockRepository(
 
     // --------------------------------------------------------- stock checks
 
+    /**
+     * The stock checks this account may see, newest first.
+     *
+     * Which queries that takes depends on the account -- see
+     * [stockCheckQueries]. Only head office's can be ordered and limited by
+     * the server; the rest are filtered by author or branch, and ordering
+     * those by date too needs a composite index, without which Firestore
+     * fails the query outright (an empty History tab, not an error). So
+     * ordering is done here, and the limit after it, so it still means "the
+     * most recent N".
+     */
     fun observeStockChecks(session: Session, limit: Long = 200): Flow<List<StockCheck>> {
-        // A user without VIEW_ALL_HISTORY may only see their own rows. The same
-        // restriction lives in the Firestore rules; narrowing the query here
-        // stops the client asking for documents it would be denied, which would
-        // otherwise fail the entire listener rather than filtering it.
-        return if (session.can(Permission.VIEW_ALL_HISTORY)) {
-            // No filter, so the server can order and limit.
-            Db.stockChecks()
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(limit)
-                .asFlow<StockCheck>()
-                .map { checks -> checks.filter { session.maySee(it) } }
+        val flows = session.stockCheckQueries(limit).map { it.asFlow<StockCheck>() }
+        val merged: Flow<List<StockCheck>> = if (flows.size == 1) {
+            flows.single()
         } else {
-            // Filtering by author AND ordering by date needs a composite
-            // index, and Firestore fails the query outright without one
-            // rather than returning unordered results -- which surfaced as
-            // an empty History tab rather than an error. Ordering in memory
-            // instead keeps this working with no index to deploy. The limit
-            // is applied after sorting so it still means "most recent N".
-            Db.stockChecks()
-                .whereEqualTo("createdByUid", session.uid)
-                .asFlow<StockCheck>()
-                .map { checks ->
-                    checks.filter { session.maySee(it) }
-                        .sortedByDescending { it.createdAt }
-                        .take(limit.toInt())
-                }
+            // A branch account's own count can sit under one of its branches
+            // and so come back from two queries.
+            combine(flows) { lists -> lists.flatMap { it }.distinctBy { it.id } }
+        }
+        return merged.map { checks ->
+            checks.filter { session.maySee(it) }
+                .sortedByDescending { it.createdAt }
+                .take(limit.toInt())
         }
     }
 
@@ -282,6 +280,10 @@ class StockRepository(
 
     fun observeItems(stockCheckId: String): Flow<List<StockItem>> =
         Db.items(stockCheckId).orderBy("createdAt", Query.Direction.ASCENDING).asFlow()
+
+    /** Every line of one count, read once rather than watched. */
+    suspend fun fetchItems(stockCheckId: String): List<StockItem> =
+        Db.items(stockCheckId).get().await().toObjects(StockItem::class.java)
 
     /**
      * Handles a scanned, spoken or typed barcode.

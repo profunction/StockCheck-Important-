@@ -102,4 +102,46 @@
     <string name="onboarding_step4_body">Tap the microphone and say the product and how many — "five eggs" — instead of typing.</string>
     <string name="onboarding_step5_title">Finish, and find it again</string>
     <string name="onboarding_step5_body">Tap "Mark completed" when you\'re done. Every count stays in History, where it can be exported to Excel or CSV.</string>
+    <!-- Branch access -->
+    <string name="branch_access_label">Branches: %1$s</string>
+    <string name="branch_access_all">All branches</string>
+    <string name="branch_access_title">Branches for %1$s</string>
+    <string name="branch_access_hint">Tick the branches this person works at. They will only see and count those. Tick none for head office, which sees every branch.</string>
+    <string name="branch_closed">%1$s (closed)</string>
+    <string name="branch_access_now_all">Head office: sees every branch</string>
+    <string name="branch_access_now_some">Sees only: %1$s</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Reports</string>
+    <string name="reports_mode_months">Month vs month</string>
+    <string name="reports_mode_counts">Two counts</string>
+    <string name="reports_earlier">Earlier</string>
+    <string name="reports_later">Later</string>
+    <string name="reports_prev_month">Previous month</string>
+    <string name="reports_next_month">Next month</string>
+    <string name="reports_pick_count">Choose a count</string>
+    <string name="reports_not_chosen">Not chosen — tap to choose</string>
+    <string name="reports_total_before">Earlier total</string>
+    <string name="reports_total_after">Later total</string>
+    <string name="reports_total_change">Change</string>
+    <string name="reports_summary">%1$d up · %2$d down · %3$d same · %4$d new · %5$d not counted</string>
+    <string name="reports_built_from">From %1$d counts and %2$d counts</string>
+    <string name="reports_changes_only">Changes only</string>
+    <string name="reports_new">New</string>
+    <string name="reports_not_counted">Not counted</string>
+    <string name="reports_no_change">No change</string>
+    <string name="reports_nothing_title">Nothing to compare yet</string>
+    <string name="reports_nothing_months">No completed count in %1$s or %2$s. Only completed counts are compared — mark a count completed to include it.</string>
+    <string name="reports_nothing_counts">Choose two counts to compare.</string>
+    <string name="reports_one_side_empty">%1$s has no completed count, so every product shows as new or not counted.</string>
+    <string name="reports_how_it_works">For each area, the latest count of each product in the month is used, and areas are added together. A product the later counts did not include shows as not counted, not as zero.</string>
+    <string name="reports_trend_title">Last 6 months</string>
+    <string name="reports_trend_hint">Tap a product to see the last 6 months.</string>
+    <string name="reports_export">Export report</string>
+    <string name="reports_export_title">Export this comparison</string>
+    <string name="reports_col_product">Product</string>
+    <string name="reports_col_barcode">Barcode</string>
+    <string name="reports_col_unit">Unit</string>
+    <string name="reports_col_change">Change</string>
+    <string name="reports_col_note">Note</string>
 </resources>

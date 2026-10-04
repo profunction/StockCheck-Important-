@@ -13,6 +13,7 @@ import com.stockcheck.app.export.ExportOptions
 import com.stockcheck.app.export.ExportResult
 import com.stockcheck.app.model.AuditAction
 import com.stockcheck.app.model.AuditEntry
+import com.stockcheck.app.model.Branch
 import com.stockcheck.app.model.Permission
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.model.StockCheck
@@ -71,15 +72,31 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
     private val _lastExport = MutableStateFlow<ExportResult?>(null)
     val lastExport: StateFlow<ExportResult?> = _lastExport.asStateFlow()
 
+    /** The company's branches, narrowed to the ones this account works at. */
+    val branches: StateFlow<List<Branch>> = ServiceLocator.users.observeConfig()
+        .map { config ->
+            val all = config?.branches.orEmpty()
+            val mine = session.profile.branchIds
+            if (mine.isEmpty()) all else all.filter { it.id in mine }
+        }
+        .catch { emit(emptyList()) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Null is every branch. */
+    private val _branchFilter = MutableStateFlow<String?>(null)
+    val branchFilter: StateFlow<String?> = _branchFilter.asStateFlow()
+
     val filtered: StateFlow<List<StockCheck>> =
-        combine(all, _query, _statusFilter) { checks, text, status ->
+        combine(all, _query, _statusFilter, _branchFilter) { checks, text, status, branch ->
             checks.filter { check ->
                 (status == null || check.statusEnum == status) &&
+                    (branch == null || check.branchId == branch) &&
                     (
                         text.isBlank() ||
                             check.refNo.contains(text, ignoreCase = true) ||
                             check.templateName.contains(text, ignoreCase = true) ||
                             check.createdByName.contains(text, ignoreCase = true) ||
+                            check.branchName.contains(text, ignoreCase = true) ||
                             // The area is often the only thing that tells two
                             // counts of the same day apart.
                             check.zone.contains(text, ignoreCase = true)
@@ -89,6 +106,10 @@ class HistoryViewModel(private val session: Session) : ViewModel() {
 
     fun setQuery(value: String) {
         _query.value = value
+    }
+
+    fun setBranchFilter(branchId: String?) {
+        _branchFilter.value = branchId
     }
 
     fun setStatusFilter(status: StockStatus?) {

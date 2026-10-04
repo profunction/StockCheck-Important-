@@ -93,4 +93,44 @@
     <string name="onboarding_step4_body">按麦克风，说出商品和数量，比如「五个鸡蛋」，不用打字。</string>
     <string name="onboarding_step5_title">完成后去哪里找</string>
     <string name="onboarding_step5_body">盘完按「完成」。所有记录都在「历史」里，可以导出 Excel 或 CSV。</string>
+    <string name="branch_access_label">分店：%1$s</string>
+    <string name="branch_access_all">所有分店</string>
+    <string name="branch_access_title">%1$s 负责的分店</string>
+    <string name="branch_access_hint">勾选这个人负责的分店，他只会看到和盘点这些分店。全部不勾 = 总部，可以看所有分店。</string>
+    <string name="branch_closed">%1$s（已关闭）</string>
+    <string name="branch_access_now_all">总部：可以看所有分店</string>
+    <string name="branch_access_now_some">只能看：%1$s</string>
+
+    <string name="reports_title">报表</string>
+    <string name="reports_mode_months">月份对比</string>
+    <string name="reports_mode_counts">两次盘点对比</string>
+    <string name="reports_earlier">之前</string>
+    <string name="reports_later">之后</string>
+    <string name="reports_prev_month">上个月</string>
+    <string name="reports_next_month">下个月</string>
+    <string name="reports_pick_count">选择一次盘点</string>
+    <string name="reports_not_chosen">未选择，点这里选择</string>
+    <string name="reports_total_before">之前总数</string>
+    <string name="reports_total_after">之后总数</string>
+    <string name="reports_total_change">变化</string>
+    <string name="reports_summary">增加 %1$d · 减少 %2$d · 没变 %3$d · 新增 %4$d · 未盘点 %5$d</string>
+    <string name="reports_built_from">根据 %1$d 次和 %2$d 次盘点</string>
+    <string name="reports_changes_only">只看有变化的</string>
+    <string name="reports_new">新增</string>
+    <string name="reports_not_counted">未盘点</string>
+    <string name="reports_no_change">没变</string>
+    <string name="reports_nothing_title">还没有可以对比的资料</string>
+    <string name="reports_nothing_months">%1$s 和 %2$s 都没有已完成的盘点。只有「已完成」的盘点会拿来对比，把盘点标记为完成就会算进去。</string>
+    <string name="reports_nothing_counts">选两次盘点来对比。</string>
+    <string name="reports_one_side_empty">%1$s 没有已完成的盘点，所以每样商品都会显示为新增或未盘点。</string>
+    <string name="reports_how_it_works">每个区域取当月每样商品最后一次盘点的数量，再把各区域加起来。之后的盘点没有盘到的商品，会显示「未盘点」，不会当作 0。</string>
+    <string name="reports_trend_title">最近 6 个月</string>
+    <string name="reports_trend_hint">点商品可以看最近 6 个月的变化。</string>
+    <string name="reports_export">导出报表</string>
+    <string name="reports_export_title">导出这份对比</string>
+    <string name="reports_col_product">商品</string>
+    <string name="reports_col_barcode">条码</string>
+    <string name="reports_col_unit">单位</string>
+    <string name="reports_col_change">变化</string>
+    <string name="reports_col_note">备注</string>
 </resources>
