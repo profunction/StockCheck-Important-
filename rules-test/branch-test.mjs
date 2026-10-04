@@ -90,6 +90,8 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, ws('stockChecks/c_none')), check('hq', '', 30));
   // Created before counts carried a branch: no branchId field.
   await setDoc(doc(db, ws('stockChecks/c_legacy')), check('hq', undefined, 40));
+  // A worker's own count from before counts carried a branch.
+  await setDoc(doc(db, ws('stockChecks/c_legacy_own')), check('ipohWorker', undefined, 45));
   // A branch account's own count filed under another branch.
   await setDoc(doc(db, ws('stockChecks/c_kl_by_ipohSup')), check('ipohSup', 'kl', 50));
 
@@ -129,7 +131,7 @@ const expect = async (name, shouldPass, run, expectIds) => {
 // Head office (no branches, VIEW_ALL_HISTORY): ordered + limited, unfiltered.
 await expect('HQ: unscoped orderBy(createdAt).limit', true,
   () => getDocs(query(checks(as('hq')), orderBy('createdAt', 'desc'), limit(200))),
-  'c_ipoh,c_kl,c_kl_by_ipohSup,c_legacy,c_none');
+  'c_ipoh,c_kl,c_kl_by_ipohSup,c_legacy,c_legacy_own,c_none');
 
 // NEGATIVE CONTROL. If this is allowed, the emulator is not proving queries
 // against the rules and nothing else in this file means anything.
@@ -147,9 +149,10 @@ await expect('branch supervisor: own counts (createdByUid == me)', true,
 await expect('branch supervisor: whereIn a branch not theirs is refused', false,
   () => getDocs(query(checks(as('ipohSup')), where('branchId', 'in', ['kl']))));
 
+// Including one with no branchId field: your own are always yours.
 await expect('branch worker: own counts (createdByUid == me)', true,
   () => getDocs(query(checks(as('ipohWorker')), where('createdByUid', '==', 'ipohWorker'))),
-  'c_ipoh');
+  'c_ipoh,c_legacy_own');
 
 await expect('pre-branch worker profile: own counts', true,
   () => getDocs(query(checks(as('oldWorker')), where('createdByUid', '==', 'oldWorker'))),
@@ -160,8 +163,14 @@ await expect('branch supervisor: get another branch\'s count', false,
   () => getDoc(doc(as('ipohSup'), ws('stockChecks/c_kl'))));
 await expect('branch supervisor: get own count filed elsewhere', true,
   () => getDoc(doc(as('ipohSup'), ws('stockChecks/c_kl_by_ipohSup'))));
-await expect('branch supervisor: get a count with no branch field', true,
+// Refused on purpose: allowing a missing field is exactly what let an
+// unfiltered query through (see inMyBranch in firestore.rules).
+await expect('branch supervisor: get someone else\'s count with no branch field', false,
   () => getDoc(doc(as('ipohSup'), ws('stockChecks/c_legacy'))));
+await expect('HQ: get a count with no branch field', true,
+  () => getDoc(doc(as('hq'), ws('stockChecks/c_legacy'))));
+await expect('branch worker: get own count with no branch field', true,
+  () => getDoc(doc(as('ipohWorker'), ws('stockChecks/c_legacy_own'))));
 await expect('HQ: get any branch\'s count', true,
   () => getDoc(doc(as('hq'), ws('stockChecks/c_ipoh'))));
 

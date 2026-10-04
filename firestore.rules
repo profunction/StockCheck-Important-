@@ -187,10 +187,21 @@ service cloud.firestore {
         return profile().get('branchIds', []);
       }
 
+      // `record.branchId`, not `record.get('branchId', '')`. A query that
+      // does not constrain branchId leaves it unknown, and get()'s default
+      // let the rule be satisfied anyway -- so a branch account's unfiltered
+      // query was allowed and returned every branch's counts. Reading the
+      // field directly is an error when it is unknown, which refuses that
+      // query unless the account owns everything it could match.
+      // rules-test/branch-test.mjs has the case.
+      //
+      // The cost: a count saved before counts carried a branch has no
+      // branchId field, so a branch account cannot open one it did not
+      // make. Head office still can.
       function inMyBranch(record) {
         return myBranches().size() == 0
-               || record.get('branchId', '') == ''
-               || record.get('branchId', '') in myBranches();
+               || record.branchId == ''
+               || record.branchId in myBranches();
       }
 
       // Fields the client is never allowed to set or move.
