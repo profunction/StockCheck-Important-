@@ -1,0 +1,36 @@
+name: Firestore rules tests
+
+# Runs firestore.rules in the Firestore emulator against the queries the app
+# actually sends. Deploys nothing: the live rules only change when someone
+# runs `firebase deploy --only firestore:rules` by hand.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'firestore.rules'
+      - 'rules-test/**'
+      - '.github/workflows/rules-test.yml'
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rules-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The Firestore emulator is a Java program.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci || npm install
+
+      - name: Branch scoping
+        run: npx firebase emulators:exec --project demo-stockcheck --only firestore "node branch-test.mjs"

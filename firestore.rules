@@ -295,10 +295,14 @@ service cloud.firestore {
         allow read: if isOwner(uid) || can('VIEW_USERS');
 
         // A user may refresh their own lastSeenAt but may not promote
-        // themselves: role and active are reserved for user administrators.
+        // themselves: role, active and branches are reserved for user
+        // administrators. A branch manager who could empty their own
+        // branchIds would be head office the moment they thought of it.
         allow update: if (isOwner(uid)
                           && request.resource.data.roleId == resource.data.roleId
-                          && request.resource.data.active == resource.data.active)
+                          && request.resource.data.active == resource.data.active
+                          && request.resource.data.get('branchIds', [])
+                               == resource.data.get('branchIds', []))
                       || can('EDIT_USER')
                       || can('CHANGE_PERMISSION');
 
@@ -364,15 +368,24 @@ service cloud.firestore {
         function existing() { return resource.data; }
         function frozen() { return existing().status == 'LOCKED'; }
 
-        allow read: if inMyBranch(existing())
+        // Your own counts are yours to see whichever branch they were filed
+        // under. Beyond being the obvious answer, it is what lets a worker's
+        // "my counts" query (createdByUid == me) be proven safe on its own,
+        // with no branch filter that would need a composite index.
+        allow read: if (inMyBranch(existing()) || isOwner(existing().createdByUid))
                     && (can('VIEW_ALL_HISTORY')
                         || (can('VIEW_OWN_HISTORY') && isOwner(existing().createdByUid)));
 
         // A stock check is the unit of work, which makes it the honest
         // place to put the commercial lever: an expired company keeps every
         // record it has and cannot start the next count.
+        //
+        // Filed only under a branch the counter belongs to. Otherwise a
+        // branch account could start a count in another shop that it then
+        // could not open in History -- and that shop could.
         allow create: if can('CREATE_STOCK_CHECK')
                       && request.resource.data.createdByUid == request.auth.uid
+                      && inMyBranch(request.resource.data)
                       && licenceAllowsNewWork();
 
         // A locked record moves only for someone who can unlock it.
@@ -393,9 +406,13 @@ service cloud.firestore {
         function parentFrozen() { return parentCheck().status == 'LOCKED'; }
         function parentOwner() { return parentCheck().createdByUid; }
 
+        // The same test as reading the check itself. Without the branch half,
+        // another shop's count was hidden from the list but its lines were
+        // still readable to anyone who had its id.
         function mayReadParent() {
-          return can('VIEW_ALL_HISTORY')
-                 || (can('VIEW_OWN_HISTORY') && isOwner(parentOwner()));
+          return (inMyBranch(parentCheck()) || isOwner(parentOwner()))
+                 && (can('VIEW_ALL_HISTORY')
+                     || (can('VIEW_OWN_HISTORY') && isOwner(parentOwner())));
         }
 
         function mayWriteParent() {
