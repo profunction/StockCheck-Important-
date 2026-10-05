@@ -360,7 +360,7 @@ private fun roleLabel(role: Role): Int = when (role) {
     Role.BARCODE -> R.string.role_barcode
     Role.SKU -> R.string.role_sku
     Role.NAME -> R.string.role_name
-    Role.QUANTITY -> R.string.role_quantity
+    Role.QUANTITY, Role.EXPECTED -> R.string.role_quantity
     Role.DATE -> R.string.role_date
     Role.UNIT -> R.string.role_unit
     Role.EXPIRY -> R.string.role_expiry

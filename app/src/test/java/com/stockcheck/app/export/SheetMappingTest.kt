@@ -84,6 +84,17 @@ class SheetMappingTest {
     }
 
     @Test
+    fun `a count sheet's expected figure is not taken from its counted column`() {
+        val roles = listOf(Role.BARCODE, Role.NAME, Role.QUANTITY, Role.EXPECTED)
+        val columns = SheetMapping.guess(listOf("Barcode", "Item", "Counted", "Expected"), emptyList(), roles).columns
+        assertEquals(2, columns[Role.QUANTITY])
+        assertEquals(3, columns[Role.EXPECTED])
+
+        val onHand = SheetMapping.guess(listOf("Item code", "Description", "Qty on hand"), emptyList(), listOf(Role.EXPECTED))
+        assertEquals(2, onHand.columns[Role.EXPECTED])
+    }
+
+    @Test
     fun `each column is given at most one role`() {
         val columns = guess(listOf("Qty"))
         assertEquals(1, columns.size)

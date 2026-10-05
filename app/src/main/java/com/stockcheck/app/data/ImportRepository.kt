@@ -1,7 +1,8 @@
 package com.stockcheck.app.data
 
 import com.google.firebase.firestore.SetOptions
-import com.stockcheck.app.export.CsvReader
+import com.stockcheck.app.export.SheetMapping
+import com.stockcheck.app.export.SheetMapping.Role
 import com.stockcheck.app.export.SheetReader
 import com.stockcheck.app.model.ExpiryDate
 import com.stockcheck.app.model.AuditAction
@@ -74,26 +75,26 @@ class ImportRepository(
      * question marks.
      */
     fun readProducts(bytes: ByteArray): Pair<List<ImportRow>, List<String>> {
-        val parsed = runCatching { SheetReader.read(bytes) }.getOrElse { error ->
-            return emptyList<ImportRow>() to listOf(error.message ?: "That file could not be read.")
-        }
-        if (parsed.headers.isEmpty()) {
-            return emptyList<ImportRow>() to listOf("The file has no header row.")
-        }
+        val sheet = runCatching { mapSheet(bytes, listOf(Role.BARCODE, Role.SKU, Role.NAME, Role.UNIT)) }
+            .getOrElse { return emptyList<ImportRow>() to listOf(it.message ?: "That file could not be read.") }
+        val codeColumn = sheet.barcodeColumn()
+            ?: return emptyList<ImportRow>() to listOf(sheet.missing("barcode"))
         val rows = mutableListOf<ImportRow>()
         val problems = mutableListOf<String>()
-        parsed.rows.forEach { row ->
-            val barcode = row.get(*CsvReader.BARCODE)
+        sheet.rows.forEachIndexed { index, row ->
+            if (row.all { it.isBlank() }) return@forEachIndexed
+            val lineNumber = sheet.firstLine + index
+            val barcode = row.cell(codeColumn)
             if (barcode.isEmpty()) {
-                problems += "Line ${row.lineNumber}: no barcode"
-                return@forEach
+                problems += "Line $lineNumber: no barcode"
+                return@forEachIndexed
             }
             rows += ImportRow(
                 barcode = barcode,
-                name = row.get(*CsvReader.NAME),
-                sku = row.get(*CsvReader.SKU),
-                unit = row.get(*CsvReader.UNIT),
-                lineNumber = row.lineNumber,
+                name = row.cell(sheet.columns[Role.NAME]),
+                sku = row.cell(sheet.columns[Role.SKU]),
+                unit = row.cell(sheet.columns[Role.UNIT]),
+                lineNumber = lineNumber,
             )
         }
         return rows to problems
@@ -175,43 +176,91 @@ class ImportRepository(
     // --------------------------------------------------------- count sheet
 
     fun readCountSheet(bytes: ByteArray): Pair<List<ImportRow>, List<String>> {
-        val parsed = runCatching { SheetReader.read(bytes) }.getOrElse { error ->
-            return emptyList<ImportRow>() to listOf(error.message ?: "That file could not be read.")
-        }
-        if (parsed.headers.isEmpty()) {
-            return emptyList<ImportRow>() to listOf("The file has no header row.")
-        }
+        val sheet = runCatching {
+            mapSheet(bytes, listOf(Role.BARCODE, Role.SKU, Role.NAME, Role.UNIT, Role.EXPECTED, Role.EXPIRY))
+        }.getOrElse { return emptyList<ImportRow>() to listOf(it.message ?: "That file could not be read.") }
+        val codeColumn = sheet.barcodeColumn()
+            ?: return emptyList<ImportRow>() to listOf(sheet.missing("barcode"))
+        val expectedColumn = sheet.columns[Role.EXPECTED]
+            ?: return emptyList<ImportRow>() to listOf(sheet.missing("expected quantity"))
         val rows = mutableListOf<ImportRow>()
         val problems = mutableListOf<String>()
-        parsed.rows.forEach { row ->
-            val barcode = row.get(*CsvReader.BARCODE)
+        sheet.rows.forEachIndexed { index, row ->
+            if (row.all { it.isBlank() }) return@forEachIndexed
+            val lineNumber = sheet.firstLine + index
+            val barcode = row.cell(codeColumn)
             if (barcode.isEmpty()) {
-                problems += "Line ${row.lineNumber}: no barcode"
-                return@forEach
+                problems += "Line $lineNumber: no barcode"
+                return@forEachIndexed
             }
-            val expected = row.milli(*CsvReader.EXPECTED)
+            val expected = SheetMapping.parseQuantity(row.cell(expectedColumn))
             if (expected == null) {
                 // A missing figure is not zero. Zero is a stock level someone
                 // stated; blank is one nobody did, and treating them alike
                 // invents a shortage that never existed.
-                problems += "Line ${row.lineNumber}: $barcode has no expected quantity"
-                return@forEach
+                problems += "Line $lineNumber: $barcode has no expected quantity"
+                return@forEachIndexed
             }
             rows += ImportRow(
                 barcode = barcode,
-                name = row.get(*CsvReader.NAME),
-                sku = row.get(*CsvReader.SKU),
-                unit = row.get(*CsvReader.UNIT),
+                name = row.cell(sheet.columns[Role.NAME]),
+                sku = row.cell(sheet.columns[Role.SKU]),
+                unit = row.cell(sheet.columns[Role.UNIT]),
                 expected = expected,
                 // Not a problem when absent or unreadable: most sheets carry
                 // no such column, and refusing the line over it would throw
                 // away a count over a field nobody asked for.
-                expiresAt = ExpiryDate.parse(row.get(*CsvReader.EXPIRY)),
-                lineNumber = row.lineNumber,
+                expiresAt = ExpiryDate.parse(row.cell(sheet.columns[Role.EXPIRY])),
+                lineNumber = lineNumber,
             )
         }
         return rows to problems
     }
+
+    /** A file once its header is found and its columns are guessed. */
+    private class MappedSheet(
+        val headers: List<String>,
+        val rows: List<List<String>>,
+        val columns: Map<Role, Int>,
+        /** The line number of the first row under the header. */
+        val firstLine: Int,
+    ) {
+        /**
+         * The barcode column, or the item-code column when the file has no
+         * barcode one -- which is how these imports read an "Item code"
+         * column before columns were guessed, and a catalogue keyed by the
+         * shop's own codes still works for searching and import.
+         */
+        fun barcodeColumn(): Int? = columns[Role.BARCODE] ?: columns[Role.SKU]
+
+        /** Says what is missing and what the file does have, so it can be fixed. */
+        fun missing(what: String): String =
+            "No $what column was found. The columns in this file are: " +
+                headers.filter { it.isNotBlank() }.joinToString(", ").ifEmpty { "(none)" }
+    }
+
+    /**
+     * Same detection as the sales import: the header may sit under a report
+     * title, columns are recognised by English, Chinese or Malay names, and a
+     * column of barcodes is found by its values when its name says nothing.
+     */
+    private fun mapSheet(bytes: ByteArray, wanted: List<Role>): MappedSheet {
+        val cells = SheetReader.readCells(bytes)
+        val headerIndex = SheetMapping.findHeader(cells)
+            ?: throw IllegalArgumentException("The file has no header row.")
+        val headers = cells[headerIndex].map { it.trim() }
+        val rows = cells.drop(headerIndex + 1)
+        return MappedSheet(
+            headers = headers,
+            rows = rows,
+            columns = SheetMapping.guess(headers, rows.take(30), wanted).columns,
+            // 1-based, and the first data row is the line after the header.
+            firstLine = headerIndex + 2,
+        )
+    }
+
+    private fun List<String>.cell(index: Int?): String =
+        index?.let { getOrNull(it) }?.trim().orEmpty()
 
     /**
      * Seeds a stock check with what the system says should be there.

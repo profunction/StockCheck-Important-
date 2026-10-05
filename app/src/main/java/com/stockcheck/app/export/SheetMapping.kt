@@ -27,8 +27,10 @@ object SheetMapping {
         SKU,
         NAME,
         UNIT,
-        /** How many: sold, received, or expected on a count sheet. */
+        /** How many: sold, received, counted. */
         QUANTITY,
+        /** What the customer's own system says should be there, on a count sheet. */
+        EXPECTED,
         DATE,
         EXPIRY,
     }
@@ -51,9 +53,13 @@ object SheetMapping {
         Role.UNIT to listOf("unit", "uom", "units", "单位", "unitukuran"),
         Role.QUANTITY to listOf(
             "qty", "quantity", "qtysold", "quantitysold", "soldqty", "itemssold", "sold", "salesqty",
-            "qtyreceived", "received", "receivedqty", "count", "counted", "expected", "expectedqty",
-            "systemqty", "systemquantity", "onhand", "instock", "stock", "balance", "数量", "销量",
-            "销售数量", "进货数量", "库存", "应盘", "系统数量", "kuantiti", "kuantitijualan", "bilangan",
+            "qtyreceived", "received", "receivedqty", "count", "counted", "数量", "销量",
+            "销售数量", "进货数量", "实盘", "kuantiti", "kuantitijualan", "bilangan",
+        ),
+        Role.EXPECTED to listOf(
+            "expected", "expectedqty", "expectedquantity", "systemqty", "systemquantity", "onhand",
+            "qtyonhand", "instock", "stock", "stockqty", "balance", "qty", "quantity", "应盘",
+            "系统数量", "库存", "账面数量", "数量", "kuantiti", "bakistok", "stokdijangka",
         ),
         Role.DATE to listOf(
             "date", "datetime", "day", "time", "receiptdate", "salesdate", "transactiondate",
@@ -142,7 +148,8 @@ object SheetMapping {
         if (key.isEmpty()) return 0
         val saysQuantity = key.contains("qty") || key.contains("quantity") ||
             key.contains("数量") || key.contains("kuantiti")
-        if (role == Role.QUANTITY && !saysQuantity && NOT_QUANTITY.any { key.contains(it) }) return 0
+        val isAmount = role == Role.QUANTITY || role == Role.EXPECTED
+        if (isAmount && !saysQuantity && NOT_QUANTITY.any { key.contains(it) }) return 0
         // "Unit price" and "Unit cost" are money, not a unit.
         if (role == Role.UNIT && NOT_QUANTITY.any { key.contains(it) }) return 0
         val words = WORDS.getValue(role)
@@ -159,7 +166,7 @@ object SheetMapping {
         fun share(test: (String) -> Boolean) = filled.count(test).toDouble() / filled.size
         return when (role) {
             Role.BARCODE -> share { it.matches(Regex("""\d{8,14}""")) } >= 0.8
-            Role.QUANTITY -> share { parseQuantity(it) != null && it.length <= 9 } >= 0.9
+            Role.QUANTITY, Role.EXPECTED -> share { parseQuantity(it) != null && it.length <= 9 } >= 0.9
             Role.DATE -> share { parseDate(it) != null } >= 0.8
             else -> false
         }
