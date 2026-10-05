@@ -358,8 +358,45 @@ service cloud.firestore {
         // needs the permission granted for it. The rules cannot see that four
         // hundred writes arrived as one import, but they can see that each one
         // lands on a product somebody already named.
-        allow update: if can('IMPORT_PRODUCTS') || can('EDIT_TEMPLATE');
+        allow update: if can('IMPORT_PRODUCTS') || can('EDIT_TEMPLATE')
+                      // Whoever keeps the stock may say when it is low, and
+                      // nothing else: not rename it, not deactivate it.
+                      || (can('RECORD_STOCK_MOVEMENTS')
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                               .hasOnly(['reorderLevelMilli', 'updatedAt']));
         allow delete: if can('EDIT_TEMPLATE');
+      }
+
+      // ---------------------------------------------------- stock movements
+      //
+      // Goods in and out between counts. Branch-scoped like counts: head
+      // office reads them all, a branch account queries
+      // whereIn(branchId, its branches + "").
+      match /movements/{movementId} {
+        function wellFormed(data) {
+          return data.type in ['RECEIVE', 'SALE', 'REFUND', 'WRITE_OFF']
+                 && data.quantityMilli is int
+                 && data.quantityMilli >= 0
+                 && data.barcode is string
+                 && data.barcode != ''
+                 && inMyBranch(data);
+        }
+
+        allow read: if active() && inMyBranch(resource.data);
+        // Update as well as create: an import writes the same id again to
+        // replace what it wrote before, which is what stops a re-import from
+        // counting a day's sales twice.
+        allow create, update: if can('RECORD_STOCK_MOVEMENTS') && wellFormed(request.resource.data);
+        allow delete: if can('RECORD_STOCK_MOVEMENTS') && inMyBranch(resource.data);
+      }
+
+      // -------------------------------------------------- POS connections
+      //
+      // Holds the customer's own access token for their till system, so it
+      // is readable only by someone who administers the company -- the same
+      // person who generated that token in the till's back office.
+      match /integrations/{name} {
+        allow read, write: if can('CHANGE_PERMISSION');
       }
 
       // --------------------------------------------------------- templates

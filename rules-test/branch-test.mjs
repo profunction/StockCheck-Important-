@@ -20,6 +20,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -61,6 +62,11 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
       permissions: ['VIEW_OWN_HISTORY', 'CREATE_STOCK_CHECK', 'SCAN_BARCODE', 'EDIT_OWN_STOCK'],
       builtIn: true,
     },
+    keeper: {
+      name: 'Stock keeper',
+      permissions: ['VIEW_ALL_HISTORY', 'CREATE_STOCK_CHECK', 'RECORD_STOCK_MOVEMENTS'],
+      builtIn: false,
+    },
   };
   for (const [id, data] of Object.entries(roles)) {
     await setDoc(doc(db, ws(`roles/${id}`)), data);
@@ -94,6 +100,16 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, ws('stockChecks/c_legacy_own')), check('ipohWorker', undefined, 45));
   // A branch account's own count filed under another branch.
   await setDoc(doc(db, ws('stockChecks/c_kl_by_ipohSup')), check('ipohSup', 'kl', 50));
+
+  await setDoc(doc(db, ws('users/hqKeeper')), user('keeper', []));
+  await setDoc(doc(db, ws('users/ipohKeeper')), user('keeper', ['ipoh']));
+  await setDoc(doc(db, ws('products/rice')), { name: 'Rice', sku: '', unit: 'pcs', active: true });
+  const movement = (branchId) => ({
+    barcode: 'rice', type: 'SALE', quantityMilli: 2000, branchId, at: 5, source: 'FILE',
+  });
+  await setDoc(doc(db, ws('movements/m_ipoh')), movement('ipoh'));
+  await setDoc(doc(db, ws('movements/m_kl')), movement('kl'));
+  await setDoc(doc(db, ws('integrations/loyverse')), { token: 'secret' });
 
   await setDoc(doc(db, ws('stockChecks/c_ipoh/items/i1')), { barcode: '1', quantityMilli: 1000 });
   await setDoc(doc(db, ws('stockChecks/c_kl/items/i1')), { barcode: '1', quantityMilli: 2000 });
@@ -205,6 +221,56 @@ await expect('worker: add a branch to self', false,
   () => updateDoc(doc(as('ipohWorker'), ws('users/ipohWorker')), { branchIds: ['ipoh', 'kl'] }));
 await expect('admin: assign a worker to branches', true,
   () => updateDoc(doc(as('admin1'), ws('users/ipohWorker')), { branchIds: ['ipoh', 'kl'] }));
+
+// Stock movements ------------------------------------------------------------
+const movements = (db) => collection(db, ws('movements'));
+const goods = (branchId, extra = {}) => ({
+  barcode: 'rice', type: 'RECEIVE', quantityMilli: 24000, branchId, at: 9, source: 'MANUAL', ...extra,
+});
+
+await expect('HQ keeper: all movements, unscoped', true,
+  () => getDocs(query(movements(as('hqKeeper')))), 'm_ipoh,m_kl');
+await expect('branch keeper: movements whereIn own branch', true,
+  () => getDocs(query(movements(as('ipohKeeper')), where('branchId', 'in', ['ipoh', '']))), 'm_ipoh');
+await expect('branch keeper: unscoped movements query is refused', false,
+  () => getDocs(query(movements(as('ipohKeeper')))));
+await expect('branch worker: may read own branch movements', true,
+  () => getDocs(query(movements(as('ipohWorker')), where('branchId', 'in', ['ipoh', '']))), 'm_ipoh');
+
+await expect('HQ keeper: record goods received', true,
+  () => setDoc(doc(as('hqKeeper'), ws('movements/new1')), goods('kl')));
+await expect('HQ keeper: re-import writes the same id again', true,
+  () => setDoc(doc(as('hqKeeper'), ws('movements/new1')), goods('kl', { quantityMilli: 12000 })));
+await expect('HQ keeper: negative quantity refused', false,
+  () => setDoc(doc(as('hqKeeper'), ws('movements/bad1')), goods('kl', { quantityMilli: -1 })));
+await expect('HQ keeper: unknown movement type refused', false,
+  () => setDoc(doc(as('hqKeeper'), ws('movements/bad2')), goods('kl', { type: 'GIFT' })));
+await expect('HQ keeper: movement with no product refused', false,
+  () => setDoc(doc(as('hqKeeper'), ws('movements/bad3')), goods('kl', { barcode: '' })));
+await expect('branch keeper: record for own branch', true,
+  () => setDoc(doc(as('ipohKeeper'), ws('movements/new2')), goods('ipoh')));
+await expect('branch keeper: record for another branch refused', false,
+  () => setDoc(doc(as('ipohKeeper'), ws('movements/new3')), goods('kl')));
+await expect('worker: cannot record movements', false,
+  () => setDoc(doc(as('ipohWorker'), ws('movements/new4')), goods('ipoh')));
+await expect('HQ keeper: delete a movement', true,
+  () => deleteDoc(doc(as('hqKeeper'), ws('movements/new1'))));
+
+// Reorder level, and nothing else ---------------------------------------------
+await expect('keeper: set a reorder level', true,
+  () => updateDoc(doc(as('hqKeeper'), ws('products/rice')), { reorderLevelMilli: 10000, updatedAt: 1 }));
+await expect('keeper: rename a product refused', false,
+  () => updateDoc(doc(as('hqKeeper'), ws('products/rice')), { name: 'Cheap rice' }));
+await expect('worker: set a reorder level refused', false,
+  () => updateDoc(doc(as('ipohWorker'), ws('products/rice')), { reorderLevelMilli: 1 }));
+
+// POS connection token -------------------------------------------------------
+await expect('admin: read the POS token', true,
+  () => getDoc(doc(as('admin1'), ws('integrations/loyverse'))));
+await expect('admin: save the POS token', true,
+  () => setDoc(doc(as('admin1'), ws('integrations/loyverse')), { token: 'new' }));
+await expect('keeper: read the POS token refused', false,
+  () => getDoc(doc(as('hqKeeper'), ws('integrations/loyverse'))));
 
 // ------------------------------------------------------------------ report
 const width = Math.max(...results.map((r) => r.name.length));
