@@ -64,7 +64,11 @@ import com.stockcheck.app.ui.auth.AuthScreen
 import com.stockcheck.app.ui.common.EmptyState
 import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
+import com.stockcheck.app.export.MovementFile
 import com.stockcheck.app.ui.history.HistoryDetailScreen
+import com.stockcheck.app.ui.inventory.ImportMovementsScreen
+import com.stockcheck.app.ui.inventory.PosConnectScreen
+import com.stockcheck.app.ui.inventory.StockLevelsScreen
 import com.stockcheck.app.ui.history.HistoryScreen
 import com.stockcheck.app.ui.onboarding.OnboardingSeen
 import com.stockcheck.app.ui.onboarding.OnboardingTour
@@ -88,6 +92,14 @@ sealed class Dest(val route: String) {
     }
 
     data object Products : Dest("products")
+
+    // "stock..." so the Stock tab stays lit; no slash after "stock", so none
+    // of these can be mistaken for stock/{checkId}.
+    data object StockLevels : Dest("stocklevels")
+    data object ImportMovements : Dest("stocklevels/import/{kind}") {
+        fun of(kind: MovementFile.Kind) = "stocklevels/import/${kind.name}"
+    }
+    data object PosConnect : Dest("stocklevels/pos")
     data object Photos : Dest("photos")
     data object Templates : Dest("templates")
     data object TemplateEditor : Dest("templates/edit/{templateId}") {
@@ -337,6 +349,32 @@ private fun MainScaffold(
                         navController.navigate(Dest.StockDetail.of(checkId))
                     },
                     onOpenProducts = { navController.navigate(Dest.Products.route) },
+                    onOpenStockLevels = { navController.navigate(Dest.StockLevels.route) },
+                )
+            }
+            composable(Dest.StockLevels.route) {
+                StockLevelsScreen(
+                    session = session,
+                    onBack = { navController.popBackStack() },
+                    onImport = { kind -> navController.navigate(Dest.ImportMovements.of(kind)) },
+                    onConnectPos = { navController.navigate(Dest.PosConnect.route) },
+                )
+            }
+            composable(Dest.ImportMovements.route) { entry ->
+                val kind = MovementFile.Kind.entries.firstOrNull {
+                    it.name == entry.arguments?.getString("kind")
+                } ?: MovementFile.Kind.SALES
+                ImportMovementsScreen(
+                    session = session,
+                    kind = kind,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(Dest.PosConnect.route) {
+                PosConnectScreen(
+                    session = session,
+                    onBack = { navController.popBackStack() },
+                    onImport = { kind -> navController.navigate(Dest.ImportMovements.of(kind)) },
                 )
             }
             composable(Dest.StockDetail.route) { entry ->

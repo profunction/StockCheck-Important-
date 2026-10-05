@@ -19,6 +19,10 @@ enum class Permission(val group: PermissionGroup, val label: String) {
     DELETE_OWN_STOCK(PermissionGroup.STOCK, "Delete own stock check"),
     DELETE_ANY_STOCK(PermissionGroup.STOCK, "Delete anyone's stock check"),
     DUPLICATE_STOCK(PermissionGroup.STOCK, "Duplicate stock check"),
+    // Goods in and out between counts: deliveries, sales imported from the
+    // till, write-offs. Its own permission because it moves the figure the
+    // next count is judged against, which a counter must not be able to nudge.
+    RECORD_STOCK_MOVEMENTS(PermissionGroup.STOCK, "Record goods in/out and import sales"),
 
     // --- History visibility ---
     VIEW_OWN_HISTORY(PermissionGroup.HISTORY, "View own history"),

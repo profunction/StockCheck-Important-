@@ -333,6 +333,12 @@ data class Product(
     val altBarcodes: List<String> = emptyList(),
     /** Pre-fills the unit on a counted line, e.g. ctn for a case. */
     val unit: String = "pcs",
+    /**
+     * At or below this, the stock levels screen says to reorder. Thousandths,
+     * like every quantity. Null where nobody set one -- no product is low
+     * until someone says what low is.
+     */
+    val reorderLevelMilli: Long? = null,
     val active: Boolean = true,
     val createdAt: Long = 0L,
     val createdByUid: String = "",
@@ -347,6 +353,68 @@ data class Product(
         val key = code.trim()
         return key.isNotEmpty() && allBarcodes.any { it.equals(key, ignoreCase = true) }
     }
+}
+
+// ----------------------------------------------------------- stock movements
+
+/** Which way something moved stock between counts, and why. */
+enum class MovementType(val sign: Int) {
+    /** Delivered by a supplier. */
+    RECEIVE(+1),
+    /** Sold. */
+    SALE(-1),
+    /** Brought back by a customer. */
+    REFUND(+1),
+    /** Off the shelf for any other reason: damaged, expired, used in-house. */
+    WRITE_OFF(-1);
+
+    companion object {
+        fun parse(raw: String?): MovementType? = entries.firstOrNull { it.name == raw }
+    }
+}
+
+/** Where a movement was recorded. */
+enum class MovementSource { MANUAL, FILE, LOYVERSE }
+
+/**
+ * Stock that came in or went out between two counts, at
+ * `workspaces/{ws}/movements/{id}`.
+ *
+ * A count says what was on the shelf at one moment; these say what happened
+ * to it after. Together they give what should be there now -- and, the next
+ * time someone counts, how much went missing that nothing explains.
+ *
+ * Imported movements have ids derived from where they came from (a receipt
+ * line, a product on a day of a file), so importing the same thing twice
+ * replaces it rather than counting it twice.
+ */
+data class StockMovement(
+    @DocumentId val id: String = "",
+    /** The product's key, as [StockComparison.productKey] makes it. */
+    val barcode: String = "",
+    val productName: String = "",
+    val branchId: String = "",
+    val type: String = MovementType.RECEIVE.name,
+    /** Thousandths, always positive; [type] says which way. */
+    val quantityMilli: Long = 0L,
+    /**
+     * When it happened. A file that gives only a date is placed at midday:
+     * a count is usually taken before opening or after closing, and midday
+     * lands that day's sales on the right side of either.
+     */
+    val at: Long = 0L,
+    val source: String = MovementSource.MANUAL.name,
+    /** What it came from: a receipt number, a file name. */
+    val reference: String = "",
+    val note: String = "",
+    val createdByUid: String = "",
+    val createdByName: String = "",
+    val createdAt: Long = 0L,
+) {
+    @get:Exclude val typeEnum: MovementType? get() = MovementType.parse(type)
+
+    /** Positive in, negative out; zero for a type this build does not know. */
+    @get:Exclude val signed: Long get() = (typeEnum?.sign ?: 0) * quantityMilli
 }
 
 // ------------------------------------------------------------------ templates

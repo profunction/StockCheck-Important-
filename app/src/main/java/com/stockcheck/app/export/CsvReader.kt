@@ -124,7 +124,7 @@ object CsvReader {
      * quotes — a product description with a line break in it would otherwise
      * shift every following column by one.
      */
-    fun split(text: String): List<List<String>> {
+    fun split(text: String, delimiter: Char = ','): List<List<String>> {
         // Excel writes a BOM so it can recognise its own UTF-8 later. Left in,
         // it becomes part of the first header name and that column is never
         // found again.
@@ -154,7 +154,7 @@ object CsvReader {
                     index++
                 }
                 ch == '"' -> inQuotes = !inQuotes
-                !inQuotes && ch == ',' -> endCell()
+                !inQuotes && ch == delimiter -> endCell()
                 !inQuotes && (ch == '\n' || ch == '\r') -> {
                     // CRLF is one ending, not two empty rows.
                     if (ch == '\r' && body.getOrNull(index + 1) == '\n') index++

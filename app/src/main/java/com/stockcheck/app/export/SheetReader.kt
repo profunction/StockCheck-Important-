@@ -40,6 +40,28 @@ object SheetReader {
         return CsvReader.parse(decode(bytes))
     }
 
+    /**
+     * Every row as raw cells, header included, for imports that map columns
+     * by position -- a till export can carry two columns with the same name,
+     * which a by-name lookup would silently collapse into one. Semicolon-
+     * separated files are read too, which is what Excel writes on a phone or
+     * PC set to a comma-decimal region.
+     */
+    fun readCells(bytes: ByteArray): List<List<String>> {
+        if (bytes.isEmpty()) throw IllegalArgumentException("That file is empty.")
+        if (XlsxReader.looksLikeXlsx(bytes)) return XlsxReader.read(bytes)
+        if (isLegacyXls(bytes)) {
+            throw IllegalArgumentException(
+                "That is an old .xls file. Open it in Excel and use Save As to " +
+                    "make an .xlsx or a .csv, then import that.",
+            )
+        }
+        val text = decode(bytes)
+        val firstLine = text.lineSequence().firstOrNull { it.isNotBlank() }.orEmpty()
+        val delimiter = if (firstLine.count { it == ';' } > firstLine.count { it == ',' }) ';' else ','
+        return CsvReader.split(text, delimiter)
+    }
+
     private fun isLegacyXls(bytes: ByteArray): Boolean {
         val signature = byteArrayOf(
             0xD0.toByte(), 0xCF.toByte(), 0x11, 0xE0.toByte(),

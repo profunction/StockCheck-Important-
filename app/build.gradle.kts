@@ -32,8 +32,8 @@ android {
         applicationId = "com.stockcheck.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.4.0"
+        versionCode = 9
+        versionName = "0.5.0"
         vectorDrawables { useSupportLibrary = true }
         // Shown on the sign-in screen so a running install can be
         // identified: "did you actually install the new APK?" came up
@@ -191,4 +191,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
+    // Android's own org.json is a stub in local unit tests; this is the real
+    // one, so the till-system parsers can be tested off a device.
+    testImplementation("org.json:json:20240303")
 }

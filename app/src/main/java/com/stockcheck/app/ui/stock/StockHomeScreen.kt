@@ -244,6 +244,7 @@ fun StockHomeScreen(
     session: Session,
     onOpenCheck: (String) -> Unit,
     onOpenProducts: () -> Unit,
+    onOpenStockLevels: () -> Unit,
 ) {
     val viewModel: StockHomeViewModel = viewModel(
         factory = StockHomeViewModel.factory(session),
@@ -285,7 +286,18 @@ fun StockHomeScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.stock_check)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.stock_check)) },
+                actions = {
+                    // Words rather than an icon: "what do I have left" is the
+                    // question, and no picture says it as plainly.
+                    TextButton(onClick = onOpenStockLevels) {
+                        Text(stringResource(R.string.stock_levels_title))
+                    }
+                },
+            )
+        },
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
                 // Above the primary action, because naming products is the

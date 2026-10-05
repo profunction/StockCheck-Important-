@@ -30,6 +30,10 @@ object ServiceLocator {
     val stock: StockRepository by lazy { StockRepository(audit, products, refNos) }
     val templates: TemplateRepository by lazy { TemplateRepository(audit) }
     val photos: PhotoRepository by lazy { PhotoRepository(appContext, audit) }
+    val movements: MovementRepository by lazy { MovementRepository(audit) }
+    val loyverse: com.stockcheck.app.pos.LoyverseSync by lazy {
+        com.stockcheck.app.pos.LoyverseSync(audit)
+    }
     val exports: com.stockcheck.app.export.ExportService by lazy {
         com.stockcheck.app.export.ExportService(appContext, templates, audit)
     }

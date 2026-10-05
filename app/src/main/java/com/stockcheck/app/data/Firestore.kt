@@ -107,6 +107,14 @@ object Db {
 
     fun auditLog(): CollectionReference = workspace().collection("auditLog")
 
+    /** Goods in and out between counts. See [com.stockcheck.app.model.StockMovement]. */
+    fun movements(): CollectionReference = workspace().collection("movements")
+    fun movement(id: String): DocumentReference = movements().document(id)
+
+    /** A connection to a till system, holding its access token. Admin-only. */
+    fun integration(name: String): DocumentReference =
+        workspace().collection("integrations").document(name)
+
     /**
      * Workspace settings, including the company code registration is gated
      * on. The security rules read this document directly, which is how the
