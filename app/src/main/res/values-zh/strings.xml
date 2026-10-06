@@ -4,6 +4,7 @@
     <string name="language_follow_phone_note">用这台手机自己的语言设置。</string>
 
     <string name="tab_stock">盘点</string>
+    <string name="tab_levels">库存</string>
     <string name="tab_photos">照片</string>
     <string name="tab_templates">模板</string>
     <string name="tab_history">历史</string>

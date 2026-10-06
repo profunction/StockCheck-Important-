@@ -8,6 +8,7 @@
 
     <!-- Bottom navigation -->
     <string name="tab_stock">Stock</string>
+    <string name="tab_levels">On hand</string>
     <string name="tab_photos">Photos</string>
     <string name="tab_templates">Templates</string>
     <string name="tab_history">History</string>

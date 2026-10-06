@@ -21,7 +21,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.MoreVert
@@ -80,7 +79,6 @@ import com.stockcheck.app.ui.stock.friendlyDate
 @Composable
 fun StockLevelsScreen(
     session: Session,
-    onBack: () -> Unit,
     onImport: (MovementFile.Kind) -> Unit,
     onConnectPos: () -> Unit,
 ) {
@@ -117,9 +115,6 @@ fun StockLevelsScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.stock_levels_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = null) }
-                },
                 actions = {
                     if (viewModel.canRecord) {
                         IconButton(onClick = { recording = true }) {

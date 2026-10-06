@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -139,6 +140,7 @@ private data class Tab(
 
 private val tabs = listOf(
     Tab(Dest.Stock, R.string.tab_stock, Icons.Filled.QrCodeScanner, Permission.CREATE_STOCK_CHECK),
+    Tab(Dest.StockLevels, R.string.tab_levels, Icons.Filled.Inventory2, null),
     Tab(Dest.Photos, R.string.tab_photos, Icons.Filled.PhotoCamera, Permission.TAKE_PHOTO),
     Tab(Dest.Templates, R.string.tab_templates, Icons.Filled.Description, Permission.VIEW_TEMPLATE),
     Tab(Dest.History, R.string.tab_history, Icons.Filled.History, null),
@@ -349,13 +351,11 @@ private fun MainScaffold(
                         navController.navigate(Dest.StockDetail.of(checkId))
                     },
                     onOpenProducts = { navController.navigate(Dest.Products.route) },
-                    onOpenStockLevels = { navController.navigate(Dest.StockLevels.route) },
                 )
             }
             composable(Dest.StockLevels.route) {
                 StockLevelsScreen(
                     session = session,
-                    onBack = { navController.popBackStack() },
                     onImport = { kind -> navController.navigate(Dest.ImportMovements.of(kind)) },
                     onConnectPos = { navController.navigate(Dest.PosConnect.route) },
                 )
@@ -467,13 +467,18 @@ private fun AppBottomBar(navController: NavHostController, visibleTabs: List<Tab
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
+    // A detail screen keeps its parent tab highlighted, so opening a stock
+    // check from the Stock tab does not clear the selection. The longest
+    // matching route wins: "stocklevels" starts with "stock" too, and only
+    // one tab may light up.
+    val selectedTab = currentDestination?.hierarchy
+        ?.mapNotNull { it.route }
+        ?.flatMap { route -> visibleTabs.filter { route.startsWith(it.dest.route) } }
+        ?.maxByOrNull { it.dest.route.length }
+
     NavigationBar {
         visibleTabs.forEach { tab ->
-            // A detail screen keeps its parent tab highlighted, so opening a
-            // stock check from the Stock tab does not clear the selection.
-            val selected = currentDestination?.hierarchy?.any { dest ->
-                dest.route == tab.dest.route || dest.route?.startsWith(tab.dest.route) == true
-            } == true
+            val selected = tab == selectedTab
 
             NavigationBarItem(
                 selected = selected,
@@ -496,6 +501,8 @@ private fun AppBottomBar(navController: NavHostController, visibleTabs: List<Tab
                     Text(
                         text = stringResource(tab.label),
                         style = MaterialTheme.typography.labelSmall,
+                        // Six tabs on a narrow phone: one line, never two.
+                        maxLines = 1,
                     )
                 },
             )
