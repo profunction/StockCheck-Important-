@@ -233,6 +233,10 @@ class LoyverseSync(private val audit: AuditRepository) {
                 when (code) {
                     401, 403 -> "Loyverse refused the access token. Make a new one in Loyverse " +
                         "Back Office -> Settings -> Access tokens and connect again."
+                    // Without Loyverse's paid sales-history add-on, receipts
+                    // older than 31 days are refused with 402.
+                    402 -> "Loyverse only shares the last 31 days of sales on this account. " +
+                        "Disconnect, connect again with a start date inside the last month, then sync."
                     429 -> "Loyverse asked to slow down. Try the sync again in a minute."
                     else -> "Loyverse answered $code. ${detail.take(200)}"
                 },
