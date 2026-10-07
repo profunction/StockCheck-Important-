@@ -21,6 +21,7 @@ on:
       - 'storage.rules'
       - 'firebase.json'
       - 'web/**'
+      - 'site/**'
       - 'api/**'
       - 'rules-test/**'
       - '.github/workflows/deploy-firebase.yml'
@@ -97,6 +98,12 @@ jobs:
           if [ "$count" = "0" ]; then
             $FB apps:create WEB "Stock Check POS" --project "$PROJECT" --non-interactive
           fi
+
+      # The public pages are built from site/; built again here so the
+      # sitemap's dates are the day of the deploy.
+      - name: Build the public pages
+        if: steps.setup.outputs.ready == 'true'
+        run: node site/build.mjs
 
       - name: Deploy database rules, indexes and the website
         if: steps.setup.outputs.ready == 'true'

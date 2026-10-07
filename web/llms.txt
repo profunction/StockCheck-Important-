@@ -1,0 +1,75 @@
+# Pos Stock Check
+
+> Count stock by scanning with your phone, sell at the counter, and keep stock levels in step automatically. SST, DuitNow QR, 5-sen cash rounding, multiple branches, loyalty points, NFC/RFID and Loyverse import. 14-day free trial, from RM48 a month.
+
+Pos Stock Check is a stock-take and point-of-sale (POS) system for businesses in Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. It has two parts that share one database: the **Stock Check** Android app for counting stock by scanning barcodes, and the **Pos Stock Check** web cash register for selling at the counter. A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
+
+中文：用手机扫条码盘点，电脑收银，库存自动同步。支持 SST、DuitNow QR、现金四舍五入、多分店、会员积分、NFC/RFID 和 Loyverse 导入。14 天免费试用，每月 RM48 起。
+
+## Key facts
+- Country: Malaysia. Currency: ringgit (MYR). Languages: Chinese, English, Malay.
+- Free trial: 14 days, up to 5 users, no credit card.
+- Starter: RM48 per month, RM480 per year, or RM1,680 lifetime; 5 users.
+- Business: RM118 per month, RM1,180 per year, or RM4,180 lifetime; 20 users.
+- Unlimited: RM228 per month, RM2,280 per year, or RM7,980 lifetime; unlimited users.
+- Every plan includes both the stock-take app and the POS. Lifetime includes 24 months of updates and support.
+- Platforms: Stock Check app on Android; Pos Stock Check in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
+- Works offline: sales are kept on the device and sent when the connection returns.
+
+## How stock is calculated
+On hand = the last finished count + goods received since − sales and goods out since. Each count also shows how much was missing compared with what should have been there.
+
+## Features
+- **Phone stock-take**: Scan barcodes with the camera, say "five eggs", or tap NFC tags. Count by area; areas add up.
+- **Counter POS**: USB barcode scanner, 58/80 mm receipt printer, split payments, cash rounded to 5 sen, SST included or added.
+- **Stock that adds up**: On hand = last count + goods in since − sales since. Every figure is traceable, and each count shows what went missing.
+- **Restaurants**: Tables, dine-in / take-away, modifiers (sugar level, extra egg), kitchen tickets, service charge.
+- **Buying and transfers**: Suppliers, purchase orders, receiving and branch-to-branch transfers, all moving stock automatically.
+- **Members and points**: Member cards (barcode or NFC); customers earn points and spend them on later bills.
+- **Branches and staff rights**: Stock is kept per branch. Cashiers cannot change prices or delete receipts; voids need a reason.
+- **Works with other tills**: Loyverse syncs items, stock and sales, and counts can be written back; other POS systems import by Excel / CSV.
+- **Reports**: Sales summary, by item, category, employee, payment type, modifier, discount and tax; export to Excel.
+- **Open API**: Online shops and accounting software read and update items, stock, receipts and customers with an access token.
+
+## Malaysia-specific
+- SST, with prices tax-inclusive or tax added on top.
+- Cash rounded to the nearest 5 sen; card and DuitNow QR charged to the sen.
+- Records DuitNow QR, card, e-wallet, cash and bank transfer payments (money goes through the shop's own terminals).
+
+## Frequently asked questions
+### Does Pos Stock Check handle SST?
+Yes. Set the SST rate (for example 6% or 8%) and whether prices already include it; receipts and the tax report show it separately.
+
+### Can I take DuitNow QR and card payments?
+You can record DuitNow QR, card, e-wallet, cash and bank transfer. The system records the method and amount; the money goes through your usual QR or card terminal, not through the system.
+
+### Is cash rounded?
+Yes, to the nearest 5 sen as in Malaysia: .01 and .02 round down, .03 and .04 to .05, .06 and .07 to .05, .08 and .09 up. Card and QR are charged to the sen.
+
+### Can I sell without internet?
+Yes. Sales are kept on the computer while offline and sent automatically when the connection returns.
+
+### What hardware do I need?
+A computer or tablet with Chrome. A USB barcode scanner and a 58 mm or 80 mm thermal receipt printer are recommended. Counting uses an ordinary Android phone.
+
+### Does it support NFC and RFID?
+Yes. Android phones read NFC tags and member cards; USB NFC readers and UHF RFID handhelds work in keyboard mode with no setup.
+
+### I already use Loyverse. Can I use both?
+Yes. Paste a Loyverse access token to sync items, stock levels and sales; after a count, correct figures can be written back to Loyverse.
+
+### What about StoreHub, Qashier and other tills?
+Export a sales report (Excel or CSV) from your till and import it in the app; the columns are recognised automatically.
+
+### Is my data safe?
+Data is stored on Google Cloud (Firebase). Each employee sees only what their permissions and branch allow, and every change is logged.
+
+### Is there a free trial?
+Yes. Every new company gets 14 days free for up to 5 users, with no credit card.
+
+## Links
+- Website (中文): https://stockcheck-fb58e.web.app/
+- Website (English): https://stockcheck-fb58e.web.app/en/
+- Website (Bahasa Melayu): https://stockcheck-fb58e.web.app/ms/
+- POS sign-in: https://stockcheck-fb58e.web.app/pos/
+- Android app download: https://github.com/profunction/StockCheck-Important-/releases/tag/build-main

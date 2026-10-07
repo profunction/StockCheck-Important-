@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://stockcheck-fb58e.web.app/</loc>
+    <lastmod>2026-10-07</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/"/>
+    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/"/>
+  </url>
+  <url>
+    <loc>https://stockcheck-fb58e.web.app/en/</loc>
+    <lastmod>2026-10-07</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/"/>
+    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/"/>
+  </url>
+  <url>
+    <loc>https://stockcheck-fb58e.web.app/ms/</loc>
+    <lastmod>2026-10-07</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/"/>
+    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/"/>
+  </url>
+</urlset>

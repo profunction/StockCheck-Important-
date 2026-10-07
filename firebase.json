@@ -9,11 +9,19 @@
   "hosting": {
     "public": "web",
     "ignore": ["firebase.json", "**/.*", "**/*.test.mjs", "**/node_modules/**"],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "rewrites": [{ "source": "/pos/**", "destination": "/pos/index.html" }],
     "headers": [
       {
         "source": "**/*.@(html|js|css|webmanifest)",
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "/pos/**",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+      },
+      {
+        "source": "**/*.@(png|jpg|webp|svg)",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
       }
     ]
   }

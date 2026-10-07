@@ -1,0 +1,27 @@
+# Pos Stock Check
+# Everything public may be read and quoted, by search engines and AI
+# assistants alike. The POS itself is a signed-in tool and has nothing to index.
+User-agent: *
+Allow: /
+Disallow: /pos/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /pos/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /pos/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /pos/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /pos/
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://stockcheck-fb58e.web.app/sitemap.xml

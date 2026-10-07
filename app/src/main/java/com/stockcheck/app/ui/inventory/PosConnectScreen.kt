@@ -315,4 +315,4 @@ fun PosConnectScreen(
 }
 
 /** The POS website, served by Firebase Hosting from web/ in this repository. */
-private const val POS_WEBSITE = "https://stockcheck-fb58e.web.app"
+private const val POS_WEBSITE = "https://stockcheck-fb58e.web.app/pos/"
