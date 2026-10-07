@@ -215,7 +215,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').cat
 
 // ---------------------------------------------------------------------- boot
 
-window.addEventListener('hashchange', () => { if (session.uid) route(); });
+window.addEventListener('hashchange', () => { if (session.uid && sideEl) route(); });
 let sideTimer;
 onChange(() => {
   // Products and settings arrive in several snapshots; redraw the menu once.

@@ -253,8 +253,10 @@ if ('serviceWorker' in navigator) {
 
 // ---------------------------------------------------------------------- boot
 
+// Before the shell is drawn (still signing in) there is nothing to route:
+// renderShell() routes once it is up.
 window.addEventListener('hashchange', () => {
-  if (session.uid) route();
+  if (session.uid && sideEl) route();
 });
 
 // The sidebar's branch name and the page follow product and settings changes.

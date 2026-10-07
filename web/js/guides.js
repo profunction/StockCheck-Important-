@@ -190,7 +190,7 @@ export const WAREHOUSE_GUIDE = {
         '没有审批权限的人按「提交审批」；老板按「批准」。',
         '批准后按「确认下单」，再按「复制发 WhatsApp」发给供应商。',
       ] },
-      { id: 'online', title: '网购进货（拼多多、淘宝、Shopee、TikTok、Lazada）', steps: [
+      { id: 'online', title: '网购进货（拼多多、淘宝、Shopee、TikTok、Lazada）', video: V('wh-6-online'), steps: [
         '在购物 app 打开订单，长按文字 → 全选 → 复制（或复制订单邮件）。',
         '仓库系统 → 网购进货：选平台，把订单贴进去，按「读取订单」。',
         '核对：每一样配对到你的商品（系统会猜，下次同一样会记得）；新东西按「新增商品」；赠品勾「不入库」。',
@@ -241,7 +241,7 @@ export const WAREHOUSE_GUIDE = {
         'Without approval rights, press Send for approval; the owner presses Approve.',
         'Once approved, mark it ordered and Copy for WhatsApp to send to the supplier.',
       ] },
-      { id: 'online', title: 'Online purchases (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', steps: [
+      { id: 'online', title: 'Online purchases (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', video: V('wh-6-online'), steps: [
         'In the shopping app open the order, press and hold the text, Select all, Copy (or copy the order email).',
         'Warehouse → Online purchases: pick the platform, paste the order, press Read the order.',
         'Check it: match each item to one of your products (a best guess is offered, and remembered next time); New product for something new; tick Not stock for free gifts.',
@@ -292,7 +292,7 @@ export const WAREHOUSE_GUIDE = {
         'Tanpa hak kelulusan, tekan Hantar untuk kelulusan; pemilik tekan Luluskan.',
         'Selepas diluluskan, tandakan sudah dipesan dan Salin untuk WhatsApp kepada pembekal.',
       ] },
-      { id: 'online', title: 'Belian dalam talian (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', steps: [
+      { id: 'online', title: 'Belian dalam talian (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', video: V('wh-6-online'), steps: [
         'Dalam aplikasi beli-belah buka pesanan, tekan lama teks, Pilih semua, Salin (atau salin e-mel pesanan).',
         'Gudang → Belian dalam talian: pilih platform, tampal pesanan, tekan Baca pesanan.',
         'Semak: padankan setiap barang dengan barang anda (tekaan diberi, dan diingati lain kali); Barang baharu untuk yang baru; tanda Bukan stok untuk hadiah percuma.',
