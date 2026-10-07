@@ -34,9 +34,10 @@ function chromePath() {
 
 /**
  * Opens a browser on the sites. [seedPatch] changes the starting data,
- * [lang] the language, [viewport] the window size.
+ * [lang] the language, [viewport] the window size, [recordVideo] a folder
+ * to film the session into (tools/videos uses it).
  */
-export async function start({ seedPatch = {}, lang = 'zh', viewport = { width: 1366, height: 800 }, colorScheme = 'light' } = {}) {
+export async function start({ seedPatch = {}, lang = 'zh', viewport = { width: 1366, height: 800 }, colorScheme = 'light', recordVideo = null } = {}) {
   mkdirSync(OUT, { recursive: true });
   const server = http.createServer((req, res) => {
     const path = decodeURIComponent(req.url.split('?')[0]);
@@ -53,7 +54,7 @@ export async function start({ seedPatch = {}, lang = 'zh', viewport = { width: 1
   const base = `http://127.0.0.1:${server.address().port}`;
   const { chromium } = await playwright();
   const browser = await chromium.launch({ executablePath: chromePath() });
-  const context = await browser.newContext({ viewport, colorScheme, serviceWorkers: 'block' });
+  const context = await browser.newContext({ viewport, colorScheme, serviceWorkers: 'block', ...(recordVideo ? { recordVideo: { dir: recordVideo, size: viewport } } : {}) });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));

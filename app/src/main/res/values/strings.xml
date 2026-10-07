@@ -241,4 +241,41 @@
     <string name="pos_disconnect">Disconnect</string>
     <string name="pos_others_title">Other tills</string>
     <string name="pos_others_body">StoreHub, Xilnex, Qashier, AutoCount, SQL POS, Shopify POS, EasyStore and others: export the sales report from your till (Excel or CSV) and import it here. Any layout works. A direct connection will be added for each one once that provider gives access.</string>
+
+    <!-- How to use -->
+    <string name="guide_title">How to use</string>
+    <string name="guide_intro">Each job step by step. The steps work with no signal; the short videos stream from the website.</string>
+    <string name="guide_count_title">Counting with the phone</string>
+    <string name="guide_stock_title">Stock, goods in and out</string>
+    <string name="guide_team_title">Staff, branches and permissions</string>
+    <string name="guide_play">Watch the video</string>
+    <string name="guide_more_title">The till and the warehouse</string>
+    <string name="guide_more_body">Pos Stock Check (the till) and Warehouse Stock Check have their own guides with videos, on the website.</string>
+    <string name="guide_pos">Till guide (Pos Stock Check)</string>
+    <string name="guide_warehouse">Warehouse guide</string>
+    <string name="guide_tour">Show the welcome tour again</string>
+    <string name="guide_video_failed">The video could not play here. Check the internet connection, or open it in the browser.</string>
+    <string name="guide_open_browser">Open in browser</string>
+    <string name="guide_close">Close</string>
+    <string name="guide_entry">How to use</string>
+    <string name="guide_entry_sub">Step-by-step guides and videos</string>
+    <string name="wh_web_title">Warehouse Stock Check (website)</string>
+    <string name="wh_web_body">Purchase orders, receiving, transfers between warehouse and shops, adjustments with reasons and the audit log. Works on the phone browser too and can be installed as an app. Same account, same products and stock as this app.</string>
+    <string name="wh_web_open">Open the warehouse system</string>
+    <string-array name="guide_count_steps">
+        <item>Stock tab → new count; pick a template and an area.</item>
+        <item>Scan barcodes with the camera and enter how many; or say \"five eggs\", or use NFC tags.</item>
+        <item>Finish to see what is short or over at once.</item>
+        <item>Export Excel or CSV, or print, from History.</item>
+    </string-array>
+    <string-array name="guide_stock_steps">
+        <item>On hand: last count + goods in and out since.</item>
+        <item>Import deliveries and sales from Excel or CSV, or connect Loyverse to sync.</item>
+        <item>Sales at Pos Stock Check take stock off at once; set reorder points for reminders.</item>
+    </string-array>
+    <string-array name="guide_team_steps">
+        <item>The first to register is the admin; staff join with the company code.</item>
+        <item>Profile → Roles: who may count, see everything, change stock, use the till and the warehouse.</item>
+        <item>Branches and warehouses are kept apart; the audit log keeps every change.</item>
+    </string-array>
 </resources>

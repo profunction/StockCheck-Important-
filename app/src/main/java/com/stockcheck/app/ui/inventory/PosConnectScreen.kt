@@ -56,6 +56,7 @@ import com.stockcheck.app.pos.LoyverseSettings
 import com.stockcheck.app.pos.SyncResult
 import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
+import com.stockcheck.app.ui.guide.Links
 import com.stockcheck.app.ui.stock.friendlyDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -161,6 +162,30 @@ fun PosConnectScreen(
         ) {
             message?.let { text -> item { NoticeBar(text = text, tone = NoticeTone.ERROR) } }
             if (busy) item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
+
+            // The warehouse system: receiving, transfers and purchasing on the same stock.
+            item {
+                Card {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.wh_web_title), style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(6.dp))
+                        Text(stringResource(R.string.wh_web_body), style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.height(8.dp))
+                        Text(Links.WAREHOUSE, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                runCatching {
+                                    context.startActivity(
+                                        android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(Links.WAREHOUSE)),
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.wh_web_open)) }
+                    }
+                }
+            }
 
             // Our own till: the same products and stock, nothing to connect.
             item {
@@ -315,4 +340,4 @@ fun PosConnectScreen(
 }
 
 /** The POS website, served by Firebase Hosting from web/ in this repository. */
-private const val POS_WEBSITE = "https://stockcheck-fb58e.web.app/pos/"
+private const val POS_WEBSITE = Links.POS

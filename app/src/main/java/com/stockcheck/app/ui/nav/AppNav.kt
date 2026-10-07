@@ -66,6 +66,7 @@ import com.stockcheck.app.ui.common.EmptyState
 import com.stockcheck.app.ui.common.NoticeBar
 import com.stockcheck.app.ui.common.NoticeTone
 import com.stockcheck.app.export.MovementFile
+import com.stockcheck.app.ui.guide.GuideScreen
 import com.stockcheck.app.ui.history.HistoryDetailScreen
 import com.stockcheck.app.ui.inventory.ImportMovementsScreen
 import com.stockcheck.app.ui.inventory.PosConnectScreen
@@ -122,6 +123,8 @@ sealed class Dest(val route: String) {
     data object AuditLog : Dest("profile/audit")
 
     data object Onboarding : Dest("onboarding")
+
+    data object Guide : Dest("profile/guide")
 
     // Not "history/reports": that would also match history/{checkId}. The
     // "history" prefix still keeps the History tab lit while it is open.
@@ -443,6 +446,13 @@ private fun MainScaffold(
                     onEditRole = { roleId -> navController.navigate(Dest.Roles.of(roleId)) },
                     onViewAuditLog = { navController.navigate(Dest.AuditLog.route) },
                     onOpenOnboarding = { navController.navigate(Dest.Onboarding.route) },
+                    onOpenGuide = { navController.navigate(Dest.Guide.route) },
+                )
+            }
+            composable(Dest.Guide.route) {
+                GuideScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenTour = { navController.navigate(Dest.Onboarding.route) },
                 )
             }
             composable(Dest.Users.route) {

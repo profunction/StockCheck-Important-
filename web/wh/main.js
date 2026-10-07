@@ -177,7 +177,10 @@ export function menuButton() {
 
 /** Go to a page, e.g. go('receive', poId). */
 export function go(group, sub = '') {
-  location.hash = `#/${group}${sub ? `/${sub}` : ''}`;
+  const hash = `#/${group}${sub ? `/${sub}` : ''}`;
+  // Same address (an order saved from its own page): no hashchange, so draw again.
+  if (location.hash === hash) route();
+  else location.hash = hash;
 }
 
 // ------------------------------------------------------------ install as app

@@ -230,4 +230,41 @@
     <string name="pos_disconnect">Putuskan sambungan</string>
     <string name="pos_others_title">Sistem POS lain</string>
     <string name="pos_others_body">StoreHub, Xilnex, Qashier, AutoCount, SQL POS, Shopify POS, EasyStore dan lain-lain: eksport laporan jualan dari sistem POS anda (Excel atau CSV) dan import di sini. Apa-apa susun atur boleh. Sambungan terus akan ditambah untuk setiap satu apabila pembekal itu memberi akses.</string>
+
+    <!-- How to use -->
+    <string name="guide_title">Cara guna</string>
+    <string name="guide_intro">Setiap tugas langkah demi langkah. Langkah boleh dibaca tanpa internet; video pendek dimainkan dari laman web.</string>
+    <string name="guide_count_title">Kira stok dengan telefon</string>
+    <string name="guide_stock_title">Stok, barang masuk dan keluar</string>
+    <string name="guide_team_title">Pekerja, cawangan dan kebenaran</string>
+    <string name="guide_play">Tonton video</string>
+    <string name="guide_more_title">POS dan gudang</string>
+    <string name="guide_more_body">Pos Stock Check (POS) dan Warehouse Stock Check ada panduan dan video sendiri di laman web.</string>
+    <string name="guide_pos">Panduan POS</string>
+    <string name="guide_warehouse">Panduan gudang</string>
+    <string name="guide_tour">Tunjuk lawatan pengenalan lagi</string>
+    <string name="guide_video_failed">Video tidak dapat dimainkan di sini. Semak sambungan internet, atau buka dalam pelayar.</string>
+    <string name="guide_open_browser">Buka dalam pelayar</string>
+    <string name="guide_close">Tutup</string>
+    <string name="guide_entry">Cara guna</string>
+    <string name="guide_entry_sub">Panduan langkah demi langkah dan video</string>
+    <string name="wh_web_title">Warehouse Stock Check (laman web)</string>
+    <string name="wh_web_body">Pesanan belian, terima barang, pindahan antara gudang dan kedai, pelarasan dengan sebab dan log audit. Boleh guna di pelayar telefon dan dipasang sebagai aplikasi. Akaun, produk dan stok yang sama dengan aplikasi ini.</string>
+    <string name="wh_web_open">Buka sistem gudang</string>
+    <string-array name="guide_count_steps">
+        <item>Tab Stok → kiraan baharu; pilih templat dan kawasan.</item>
+        <item>Imbas kod bar dengan kamera dan isi kuantiti; atau sebut \"lima telur\", atau guna tag NFC.</item>
+        <item>Selesai untuk lihat kurang atau lebih serta-merta.</item>
+        <item>Eksport Excel atau CSV, atau cetak, dari Sejarah.</item>
+    </string-array>
+    <string-array name="guide_stock_steps">
+        <item>Baki stok = kiraan terakhir + masuk dan keluar sejak itu.</item>
+        <item>Import penghantaran dan jualan dari Excel atau CSV, atau sambung Loyverse.</item>
+        <item>Jualan di Pos Stock Check menolak stok serta-merta; tetapkan paras tambah untuk peringatan.</item>
+    </string-array>
+    <string-array name="guide_team_steps">
+        <item>Yang pertama mendaftar ialah admin; pekerja masuk dengan kod syarikat.</item>
+        <item>Profil → Peranan: siapa boleh kira, lihat semua, ubah stok, guna POS dan gudang.</item>
+        <item>Cawangan dan gudang berasingan; log audit menyimpan setiap perubahan.</item>
+    </string-array>
 </resources>

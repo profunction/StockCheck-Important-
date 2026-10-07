@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4ede2"/><stop offset="1" stop-color="#e3d6c2"/></linearGradient></defs><rect width="400" height="300" fill="url(#bg)"/><ellipse cx="200" cy="268" rx="90" ry="13" fill="#000" opacity=".14"/><rect x="120" y="58" width="160" height="208" rx="16" fill="#3a2418"/><rect x="120" y="58" width="160" height="208" rx="16" fill="url(#t)" opacity=".0"/>
+<ellipse cx="200" cy="60" rx="80" ry="12" fill="#c9c4bd"/><ellipse cx="200" cy="60" rx="68" ry="8" fill="#ece8e2"/>
+<rect x="120" y="112" width="160" height="78" fill="#2f8f3e"/><text x="200" y="150" font-family="Arial Black,Arial" font-weight="900" font-size="30" fill="#fff" text-anchor="middle">MALT</text>
+<text x="200" y="176" font-family="Arial" font-weight="700" font-size="15" fill="#d7f3c9" text-anchor="middle">CHOCO DRINK</text>
+<text x="200" y="232" font-family="Arial" font-weight="700" font-size="22" fill="#f2c94c" text-anchor="middle">1 kg</text><rect x="132" y="70" width="16" height="186" rx="8" fill="#fff" opacity=".12"/></svg>

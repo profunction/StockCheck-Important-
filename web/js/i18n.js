@@ -373,6 +373,11 @@ Object.assign(en, { movedToWarehouse: 'Purchase orders, receiving, transfers and
 Object.assign(zh, { movedToWarehouse: '采购单、收货、调货和供应商已经搬到仓库系统 —— 同一个账号、同一套库存，还多了审批和在途追踪。', openWarehouse: '打开仓库系统', posGuide: '使用教程', whApp: '仓库系统' });
 Object.assign(ms, { movedToWarehouse: 'Pesanan belian, penerimaan, pindahan dan pembekal kini dalam sistem gudang — log masuk dan stok yang sama, dengan kelulusan dan stok dalam perjalanan.', openWarehouse: 'Buka sistem gudang', posGuide: 'Cara guna', whApp: 'Sistem gudang' });
 
+
+Object.assign(en, { addSamples: 'Try sample items', removeSamples: 'Remove sample items', removeSamplesQ: 'Remove every sample item? Your own items stay.', samplesAdded: '13 sample items with pictures added', deleted: 'Deleted' });
+Object.assign(zh, { addSamples: '加载示范商品', removeSamples: '删除示范商品', removeSamplesQ: '删除全部示范商品？你自己的商品不会动。', samplesAdded: '已加入 13 样有图片的示范商品', deleted: '已删除' });
+Object.assign(ms, { addSamples: 'Cuba barang contoh', removeSamples: 'Buang barang contoh', removeSamplesQ: 'Buang semua barang contoh? Barang anda sendiri kekal.', samplesAdded: '13 barang contoh bergambar ditambah', deleted: 'Dipadam' });
+
 const DICTS = { en, zh, ms };
 
 function detect() {

@@ -7,6 +7,7 @@
  * modifiers -- and the app keeps those when it saves a product.
  */
 import { db, doc, getDownloadURL, ref, setDoc, storage, updateDoc, uploadBytes, deleteDoc, writeBatch } from './fb.js';
+import { DEMO_CATEGORIES, DEMO_ITEMS } from './demo.js';
 import { confirmBox, h, modal, mount, toast } from './dom.js';
 import { t } from './i18n.js';
 import { formatSen, inStoreBarcode, parseSen, productTaxIds, rm, taxList } from './money.js';
@@ -64,6 +65,7 @@ function itemList(main) {
 
   mount(main,
     head(t('itemList'),
+      sampleButton(),
       taxList(session.settings).length && session.can('POS_MANAGE') ? h('button', { onclick: bulkTaxes }, t('bulkTaxes')) : null,
       h('button', { class: 'primary', onclick: () => editProduct(null) }, `+ ${t('addItem')}`)),
     h('div', { class: 'row', style: { marginBottom: '12px' } }, searchBox, catSelect,
@@ -71,6 +73,38 @@ function itemList(main) {
     h('div', { class: 'table-wrap' }, h('table', { class: 'list' },
       h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, t('name')), h('th', {}, t('category')), h('th', { class: 'num' }, t('price')), h('th', { class: 'num' }, t('cost')), h('th', {}, t('taxCol')), h('th', {}, ''))),
       body)));
+}
+
+/**
+ * Sample items with pictures: offered while a shop has few items of its
+ * own, and removable in one go once it has tried them.
+ */
+function sampleButton() {
+  if (!session.can('POS_MANAGE')) return null;
+  const demo = session.products.filter((p) => p.demo);
+  if (demo.length) {
+    return h('button', {
+      onclick: async () => {
+        if (!await confirmBox(t('removeSamplesQ'), t('removeSamples'), t('cancel'))) return;
+        const batch = writeBatch(db);
+        demo.forEach((p) => batch.delete(doc(db, ws(`products/${p.barcode}`))));
+        try { await batch.commit(); toast(t('deleted'), 'ok'); } catch (err) { toast(err.message || String(err), 'error'); }
+      },
+    }, t('removeSamples'));
+  }
+  if (session.products.length >= 30) return null;
+  return h('button', {
+    onclick: async () => {
+      const batch = writeBatch(db);
+      const now = Date.now();
+      DEMO_ITEMS.filter((p) => !session.find(p.barcode)).forEach(({ barcode, ...p }) => batch.set(doc(db, ws(`products/${barcode}`)), {
+        ...p, createdAt: now, createdByUid: session.uid, updatedAt: now,
+      }));
+      const cats = [...session.categories, ...DEMO_CATEGORIES.filter((c) => !session.categories.some((x) => x.id === c.id))];
+      batch.set(doc(db, ws('pos/categories')), { list: cats, updatedAt: now });
+      try { await batch.commit(); toast(t('samplesAdded'), 'ok'); } catch (err) { toast(err.message || String(err), 'error'); }
+    },
+  }, t('addSamples'));
 }
 
 /** "SST 8%", or a tax-free pill, for the list. */
