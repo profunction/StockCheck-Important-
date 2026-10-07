@@ -115,6 +115,15 @@ class ProductRepository(private val audit: AuditRepository) {
                 sku = sku.trim(),
                 altBarcodes = alts,
                 unit = unit.trim().ifEmpty { "pcs" },
+                // Owned elsewhere -- the stock screen, the POS website -- and
+                // not on this form, so carried over rather than wiped.
+                reorderLevelMilli = existing?.reorderLevelMilli,
+                priceSen = existing?.priceSen,
+                category = existing?.category.orEmpty(),
+                photoUrl = existing?.photoUrl.orEmpty(),
+                costSen = existing?.costSen,
+                modifierIds = existing?.modifierIds.orEmpty(),
+                trackStock = existing?.trackStock ?: true,
                 active = true,
                 createdAt = existing?.createdAt ?: now,
                 createdByUid = existing?.createdByUid ?: session.uid,

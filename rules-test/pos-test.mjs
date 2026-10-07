@@ -1,0 +1,204 @@
+/**
+ * The POS website's reads and writes, against the real firestore.rules in
+ * the emulator.
+ *
+ * Each query is the shape web/js/ sends. The refusals matter as much as the
+ * passes: a cashier who could edit a sale, rewrite a price or record a
+ * delivery would make every figure the owner reads untrustworthy.
+ *
+ * Run: npx firebase emulators:exec --only firestore "node pos-test.mjs"
+ */
+import { readFileSync } from 'node:fs';
+import {
+  initializeTestEnvironment,
+  assertSucceeds,
+  assertFails,
+} from '@firebase/rules-unit-testing';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+  writeBatch,
+} from 'firebase/firestore';
+
+const WS = 'w1';
+const ws = (path) => `workspaces/${WS}/${path}`;
+
+const testEnv = await initializeTestEnvironment({
+  projectId: 'demo-stockcheck',
+  firestore: {
+    rules: readFileSync('../firestore.rules', 'utf8'),
+    host: '127.0.0.1',
+    port: 8080,
+  },
+});
+await testEnv.clearFirestore();
+
+await testEnv.withSecurityRulesDisabled(async (ctx) => {
+  const db = ctx.firestore();
+  const roles = {
+    admin: { name: 'Admin', permissions: [], builtIn: true },
+    cashier: { name: 'Cashier', permissions: ['POS_SELL'], builtIn: false },
+    shiftLead: { name: 'Shift lead', permissions: ['POS_SELL', 'POS_VOID', 'POS_REPORTS'], builtIn: false },
+    posManager: { name: 'POS manager', permissions: ['POS_MANAGE', 'POS_REPORTS'], builtIn: false },
+    worker: { name: 'Worker', permissions: ['CREATE_STOCK_CHECK'], builtIn: true },
+  };
+  for (const [id, data] of Object.entries(roles)) await setDoc(doc(db, ws(`roles/${id}`)), data);
+
+  const user = (roleId, branchIds = []) => ({
+    email: 'x@y.z', displayName: roleId, roleId, roleName: roleId, active: true, createdAt: 1, branchIds,
+  });
+  await setDoc(doc(db, ws('users/admin1')), user('admin'));
+  await setDoc(doc(db, ws('users/cashier1')), user('cashier'));
+  await setDoc(doc(db, ws('users/cashier2')), user('cashier'));
+  await setDoc(doc(db, ws('users/ipohCashier')), user('cashier', ['ipoh']));
+  await setDoc(doc(db, ws('users/lead')), user('shiftLead'));
+  await setDoc(doc(db, ws('users/ipohLead')), user('shiftLead', ['ipoh']));
+  await setDoc(doc(db, ws('users/mgr')), user('posManager'));
+  await setDoc(doc(db, ws('users/worker1')), user('worker'));
+
+  await setDoc(doc(db, ws('products/9555')), { name: 'Milo', unit: 'pcs', active: true, priceSen: 1590 });
+  await setDoc(doc(db, ws('sales/old1')), sale('cashier2', ''));
+  await setDoc(doc(db, ws('sales/klSale')), sale('cashier2', 'kl'));
+  await setDoc(doc(db, ws('orders/t1')), { branchId: '', table: 'T1', lines: [], updatedAt: 1 });
+  await setDoc(doc(db, ws('pos/settings')), { shopName: 'Kedai' });
+});
+
+function sale(cashierUid, branchId, extra = {}) {
+  return {
+    receiptNo: '261007-120000-AB', branchId, cashierUid, cashierName: 'C', status: 'COMPLETED',
+    createdAt: 1_790_000_000_000, lines: [{ barcode: '9555', name: 'Milo', qtyMilli: 2000, unitPriceSen: 1590, lineTotalSen: 3180 }],
+    subtotalSen: 3180, totalSen: 3180, payments: [{ method: 'CASH', amountSen: 3200 }], changeSen: 20,
+    ...extra,
+  };
+}
+
+function sold(uid, branchId = '', extra = {}) {
+  return {
+    barcode: '9555', productName: 'Milo', branchId, type: 'SALE', quantityMilli: 2000, at: 1,
+    source: 'POS', reference: 'r', note: '', createdByUid: uid, createdByName: 'C', createdAt: 1, ...extra,
+  };
+}
+
+const as = (uid) => testEnv.authenticatedContext(uid).firestore();
+const results = [];
+const expect = async (name, shouldPass, run) => {
+  let outcome = 'ok';
+  let detail = '';
+  try {
+    await (shouldPass ? assertSucceeds(run()) : assertFails(run()));
+  } catch (e) {
+    outcome = 'WRONG';
+    detail = (shouldPass ? 'was DENIED: ' : 'was ALLOWED: ') + String(e.message || e).split('\n')[0].slice(0, 140);
+  }
+  results.push({ name, outcome, detail });
+};
+
+// Ringing up a sale: the sale and its stock movement in one batch ---------------
+await expect('cashier: sale + stock movement in one batch', true, () => {
+  const db = as('cashier1');
+  const batch = writeBatch(db);
+  batch.set(doc(db, ws('sales/s1')), sale('cashier1', ''));
+  batch.set(doc(db, ws('movements/pos-s1-0')), sold('cashier1'));
+  return batch.commit();
+});
+await expect('cashier: sale in somebody else\'s name refused', false,
+  () => setDoc(doc(as('cashier1'), ws('sales/s2')), sale('cashier2', '')));
+await expect('cashier: sale written already voided refused', false,
+  () => setDoc(doc(as('cashier1'), ws('sales/s3')), sale('cashier1', '', { status: 'VOIDED' })));
+await expect('cashier: total that is not a whole number of sen refused', false,
+  () => setDoc(doc(as('cashier1'), ws('sales/s4')), sale('cashier1', '', { totalSen: 31.8 })));
+await expect('ipoh cashier: sale at Ipoh', true,
+  () => setDoc(doc(as('ipohCashier'), ws('sales/s5')), sale('ipohCashier', 'ipoh')));
+await expect('ipoh cashier: sale filed under KL refused', false,
+  () => setDoc(doc(as('ipohCashier'), ws('sales/s6')), sale('ipohCashier', 'kl')));
+await expect('worker without POS: sale refused', false,
+  () => setDoc(doc(as('worker1'), ws('sales/s7')), sale('worker1', '')));
+
+// What a cashier may do to stock: sell, nothing else ---------------------------
+await expect('cashier: record a delivery refused', false,
+  () => setDoc(doc(as('cashier1'), ws('movements/x1')), sold('cashier1', '', { type: 'RECEIVE' })));
+await expect('cashier: sale movement not marked POS refused', false,
+  () => setDoc(doc(as('cashier1'), ws('movements/x2')), sold('cashier1', '', { source: 'MANUAL' })));
+await expect('cashier: rewrite an existing movement refused', false,
+  () => setDoc(doc(as('cashier1'), ws('movements/pos-s1-0')), sold('cashier1', '', { quantityMilli: 1 })));
+await expect('cashier: refund movement refused', false,
+  () => setDoc(doc(as('cashier1'), ws('movements/x3')), sold('cashier1', '', { type: 'REFUND' })));
+
+// Reading sales ---------------------------------------------------------------
+await expect('cashier: own receipts', true,
+  () => getDocs(query(collection(as('cashier1'), ws('sales')), where('cashierUid', '==', 'cashier1'))));
+await expect('cashier: everybody\'s receipts refused', false,
+  () => getDocs(collection(as('cashier1'), ws('sales'))));
+await expect('cashier: another cashier\'s receipt refused', false,
+  () => getDoc(doc(as('cashier1'), ws('sales/old1'))));
+await expect('HQ shift lead: every receipt', true,
+  () => getDocs(collection(as('lead'), ws('sales'))));
+await expect('Ipoh shift lead: Ipoh receipts', true,
+  () => getDocs(query(collection(as('ipohLead'), ws('sales')), where('branchId', 'in', ['ipoh', '']))));
+await expect('Ipoh shift lead: every branch refused', false,
+  () => getDocs(collection(as('ipohLead'), ws('sales'))));
+
+// Voiding ---------------------------------------------------------------------
+const voiding = (uid) => ({ status: 'VOIDED', voidedAt: 2, voidedByUid: uid, voidedByName: 'L', voidReason: 'wrong item' });
+await expect('cashier: void refused', false,
+  () => updateDoc(doc(as('cashier1'), ws('sales/s1')), voiding('cashier1')));
+await expect('shift lead: void that also changes the total refused', false,
+  () => updateDoc(doc(as('lead'), ws('sales/s1')), { ...voiding('lead'), totalSen: 0 }));
+await expect('shift lead: void, and put the stock back', true, () => {
+  const db = as('lead');
+  const batch = writeBatch(db);
+  batch.update(doc(db, ws('sales/s1')), voiding('lead'));
+  batch.set(doc(db, ws('movements/void-s1-0')), sold('lead', '', { type: 'REFUND' }));
+  return batch.commit();
+});
+await expect('shift lead: void a voided sale again refused', false,
+  () => updateDoc(doc(as('lead'), ws('sales/s1')), voiding('lead')));
+await expect('Ipoh shift lead: void a KL sale refused', false,
+  () => updateDoc(doc(as('ipohLead'), ws('sales/klSale')), voiding('ipohLead')));
+await expect('admin: delete a sale refused', false,
+  () => deleteDoc(doc(as('admin1'), ws('sales/old1'))));
+
+// Products, prices and settings ---------------------------------------------
+await expect('POS manager: set a price', true,
+  () => updateDoc(doc(as('mgr'), ws('products/9555')), { priceSen: 1690, updatedAt: 2 }));
+await expect('POS manager: add a product with a photo', true,
+  () => setDoc(doc(as('mgr'), ws('products/1111')), { name: 'Teh tarik', priceSen: 250, photoUrl: 'https://x', active: true }));
+await expect('cashier: change a price refused', false,
+  () => updateDoc(doc(as('cashier1'), ws('products/9555')), { priceSen: 1 }));
+await expect('cashier: read register settings', true,
+  () => getDoc(doc(as('cashier1'), ws('pos/settings'))));
+await expect('cashier: change register settings refused', false,
+  () => setDoc(doc(as('cashier1'), ws('pos/settings')), { taxPct: 0 }));
+await expect('POS manager: change register settings', true,
+  () => setDoc(doc(as('mgr'), ws('pos/settings')), { shopName: 'Kedai Baru', taxPct: 6 }));
+
+// Open orders (restaurant tables, held sales) --------------------------------
+await expect('cashier: open a table', true,
+  () => setDoc(doc(as('cashier1'), ws('orders/t2')), { branchId: '', table: 'T2', lines: [], updatedAt: 1 }));
+await expect('cashier: see open tables', true,
+  () => getDocs(collection(as('cashier1'), ws('orders'))));
+await expect('cashier: close a paid table', true,
+  () => deleteDoc(doc(as('cashier1'), ws('orders/t1'))));
+await expect('ipoh cashier: open tables at Ipoh', true,
+  () => getDocs(query(collection(as('ipohCashier'), ws('orders')), where('branchId', '==', 'ipoh'))));
+await expect('ipoh cashier: every branch\'s tables refused', false,
+  () => getDocs(collection(as('ipohCashier'), ws('orders'))));
+await expect('worker without POS: open tables refused', false,
+  () => getDocs(collection(as('worker1'), ws('orders'))));
+
+const width = Math.max(...results.map((r) => r.name.length));
+let failed = 0;
+for (const r of results) {
+  if (r.outcome !== 'ok') failed++;
+  console.log(`${r.outcome === 'ok' ? 'PASS' : 'FAIL'}  ${r.name.padEnd(width)}  ${r.detail}`);
+}
+console.log(`\n${results.length - failed}/${results.length} passed`);
+await testEnv.cleanup();
+process.exit(failed === 0 ? 0 : 1);

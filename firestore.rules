@@ -352,19 +352,21 @@ service cloud.firestore {
         allow read: if active();
         // Creating is naming a barcode that had no name: the counter who just
         // scanned it is exactly the right person, so this stays open to them.
-        allow create: if can('CREATE_STOCK_CHECK') || can('EDIT_TEMPLATE');
+        // POS_MANAGE: whoever runs the till's product list adds items from
+        // the website, photos and prices included.
+        allow create: if can('CREATE_STOCK_CHECK') || can('EDIT_TEMPLATE') || can('POS_MANAGE');
         // Overwriting an entry that already exists is the other act -- what a
         // spreadsheet import does to the whole catalogue at once -- and that
         // needs the permission granted for it. The rules cannot see that four
         // hundred writes arrived as one import, but they can see that each one
         // lands on a product somebody already named.
-        allow update: if can('IMPORT_PRODUCTS') || can('EDIT_TEMPLATE')
+        allow update: if can('IMPORT_PRODUCTS') || can('EDIT_TEMPLATE') || can('POS_MANAGE')
                       // Whoever keeps the stock may say when it is low, and
                       // nothing else: not rename it, not deactivate it.
                       || (can('RECORD_STOCK_MOVEMENTS')
                           && request.resource.data.diff(resource.data).affectedKeys()
                                .hasOnly(['reorderLevelMilli', 'updatedAt']));
-        allow delete: if can('EDIT_TEMPLATE');
+        allow delete: if can('EDIT_TEMPLATE') || can('POS_MANAGE');
       }
 
       // ---------------------------------------------------- stock movements
@@ -387,7 +389,67 @@ service cloud.firestore {
         // replace what it wrote before, which is what stops a re-import from
         // counting a day's sales twice.
         allow create, update: if can('RECORD_STOCK_MOVEMENTS') && wellFormed(request.resource.data);
+        // The till takes what it sells off the shelf, and a voided sale puts
+        // it back -- and nothing else. A cashier cannot record a delivery or
+        // a write-off, and cannot rewrite one already there.
+        allow create: if wellFormed(request.resource.data)
+                      && request.resource.data.source == 'POS'
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && ((can('POS_SELL') && request.resource.data.type == 'SALE')
+                          || (can('POS_VOID') && request.resource.data.type == 'REFUND'));
         allow delete: if can('RECORD_STOCK_MOVEMENTS') && inMyBranch(resource.data);
+      }
+
+      // ------------------------------------------------------ POS: sales
+      //
+      // One document per receipt, written by the POS website. A sale is
+      // never edited or deleted -- money is not something a record gets to
+      // forget -- only voided, which keeps it and says who and why.
+      match /sales/{saleId} {
+        function saleShape(d) {
+          return d.cashierUid == request.auth.uid
+                 && d.status == 'COMPLETED'
+                 && d.totalSen is int
+                 && d.lines is list
+                 && d.payments is list
+                 && d.createdAt is int
+                 && inMyBranch(d);
+        }
+
+        // A cashier sees their own receipts (reprint, today's takings);
+        // reports see the branch's.
+        allow read: if active()
+                    && ((can('POS_SELL') && resource.data.cashierUid == request.auth.uid)
+                        || (can('POS_REPORTS') && inMyBranch(resource.data)));
+        allow create: if can('POS_SELL') && saleShape(request.resource.data);
+        allow update: if can('POS_VOID')
+                      && inMyBranch(resource.data)
+                      && resource.data.status == 'COMPLETED'
+                      && request.resource.data.status == 'VOIDED'
+                      && request.resource.data.voidedByUid == request.auth.uid
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'voidedAt', 'voidedByUid', 'voidedByName', 'voidReason']);
+        allow delete: if false;
+      }
+
+      // ---------------------------------------------- POS: open orders
+      //
+      // A restaurant table's bill while it is still being eaten, or a held
+      // retail sale. Shared by every till in the branch, so a waiter's order
+      // shows at the counter. Deleted once paid: the sale is the record.
+      match /orders/{orderId} {
+        allow read: if can('POS_SELL') && inMyBranch(resource.data);
+        allow create, update: if can('POS_SELL') && inMyBranch(request.resource.data);
+        allow delete: if can('POS_SELL') && inMyBranch(resource.data);
+      }
+
+      // -------------------------------------------- POS: register settings
+      //
+      // Receipt header, tax, service charge, payment methods, tables.
+      // Every member reads it so any till can print a receipt.
+      match /pos/{docId} {
+        allow read: if active();
+        allow write: if can('POS_MANAGE');
       }
 
       // -------------------------------------------------- POS connections

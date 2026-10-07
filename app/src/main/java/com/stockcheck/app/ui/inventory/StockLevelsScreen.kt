@@ -416,6 +416,7 @@ private fun typeLabel(type: MovementType?): String = stringResource(
 @Composable
 private fun sourceLabel(source: String): String = when (source) {
     MovementSource.LOYVERSE.name -> "Loyverse"
+    MovementSource.POS.name -> "POS"
     MovementSource.FILE.name -> stringResource(R.string.movement_source_file)
     else -> stringResource(R.string.movement_source_manual)
 }

@@ -34,3 +34,6 @@ jobs:
 
       - name: Branch scoping
         run: npx firebase emulators:exec --project demo-stockcheck --only firestore "node branch-test.mjs"
+
+      - name: POS website
+        run: npx firebase emulators:exec --project demo-stockcheck --only firestore "node pos-test.mjs"

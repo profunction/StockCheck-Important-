@@ -70,7 +70,16 @@ enum class Permission(val group: PermissionGroup, val label: String) {
     CREATE_ROLE(PermissionGroup.ADMIN, "Create role"),
     EDIT_ROLE(PermissionGroup.ADMIN, "Edit role"),
     DELETE_ROLE(PermissionGroup.ADMIN, "Delete role"),
-    CHANGE_PERMISSION(PermissionGroup.ADMIN, "Change permissions");
+    CHANGE_PERMISSION(PermissionGroup.ADMIN, "Change permissions"),
+
+    // --- Cash register (the Stock Check POS website) ---
+    // Selling and running the till are separate from managing it: a cashier
+    // rings up sales but must not be able to change a price or make a sale
+    // disappear.
+    POS_SELL(PermissionGroup.POS, "Use the cash register"),
+    POS_VOID(PermissionGroup.POS, "Void a sale"),
+    POS_MANAGE(PermissionGroup.POS, "Manage prices, products and register settings"),
+    POS_REPORTS(PermissionGroup.POS, "View sales reports");
 
     companion object {
         fun byNameOrNull(raw: String): Permission? = entries.firstOrNull { it.name == raw }
@@ -84,6 +93,7 @@ enum class PermissionGroup(val label: String) {
     TEMPLATE("Templates"),
     EXPORT("Import & export"),
     ADMIN("Users & roles"),
+    POS("Cash register (POS)"),
 }
 
 /**

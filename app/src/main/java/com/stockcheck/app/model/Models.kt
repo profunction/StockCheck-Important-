@@ -339,6 +339,24 @@ data class Product(
      * until someone says what low is.
      */
     val reorderLevelMilli: Long? = null,
+    /**
+     * Selling price in sen, set on the POS website. Null where nobody has
+     * priced it -- a counting-only customer never will.
+     */
+    val priceSen: Long? = null,
+    /** Groups the POS screen's product buttons: "Drinks", "Rice", "Snacks". */
+    val category: String = "",
+    /** Download URL of the product's photo, uploaded on the POS website. */
+    val photoUrl: String = "",
+    /** What one costs to buy in, in sen, for the POS website's profit reports. */
+    val costSen: Long? = null,
+    /** Modifier groups offered when it is sold ("Size", "Add-ons"), by id. */
+    val modifierIds: List<String> = emptyList(),
+    /**
+     * False for things that are made, not stocked -- a plate of nasi lemak --
+     * so selling one does not show up as missing stock.
+     */
+    val trackStock: Boolean = true,
     val active: Boolean = true,
     val createdAt: Long = 0L,
     val createdByUid: String = "",
@@ -374,7 +392,7 @@ enum class MovementType(val sign: Int) {
 }
 
 /** Where a movement was recorded. */
-enum class MovementSource { MANUAL, FILE, LOYVERSE }
+enum class MovementSource { MANUAL, FILE, LOYVERSE, POS }
 
 /**
  * Stock that came in or went out between two counts, at

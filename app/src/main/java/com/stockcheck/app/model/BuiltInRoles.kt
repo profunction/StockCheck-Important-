@@ -54,6 +54,10 @@ object BuiltInRoles {
         P.EDIT_EXPORTED_FILE,
         P.IMPORT_PRODUCTS,
         P.RECORD_STOCK_MOVEMENTS,
+        P.POS_SELL,
+        P.POS_VOID,
+        P.POS_MANAGE,
+        P.POS_REPORTS,
     )
 
     val seeds: List<Role> = listOf(

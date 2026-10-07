@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// Photos: what the app takes during a count, and product pictures uploaded
+// on the POS website. Everything lives under the company's own folder, and
+// only that company's active members may read or write it -- checked against
+// the same membership document firestore.rules uses.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function member(ws) {
+      return request.auth != null
+             && firestore.exists(/databases/(default)/documents/workspaces/$(ws)/users/$(request.auth.uid))
+             && firestore.get(/databases/(default)/documents/workspaces/$(ws)/users/$(request.auth.uid)).data.active == true;
+    }
+
+    // Photos taken during a count. No content-type check: the app uploads
+    // a file it wrote itself, and older builds do not label it.
+    match /workspaces/{ws}/stockChecks/{rest=**} {
+      allow read: if member(ws);
+      allow write: if member(ws)
+                   && (request.resource == null || request.resource.size < 15 * 1024 * 1024);
+    }
+
+    // Product pictures for the till. The website shrinks them before upload;
+    // the cap is for anything that skipped that.
+    match /workspaces/{ws}/products/{file} {
+      allow read: if member(ws);
+      allow write: if member(ws)
+                   && (request.resource == null
+                       || (request.resource.size < 5 * 1024 * 1024
+                           && request.resource.contentType.matches('image/.*')));
+    }
+  }
+}
