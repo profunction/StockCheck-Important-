@@ -11,7 +11,7 @@
 import { readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { item, world } from './world.mjs';
-import { APP_FILMS, slidesHtml } from './app-slides.mjs';
+import { APP_FILMS, SLIDE_AT, slidesHtml } from './app-slides.mjs';
 import { OUT, film } from './studio.mjs';
 
 // ---------------------------------------------------------------- the till
@@ -30,8 +30,8 @@ await film('pos-1-start', world({ mode: '' }), async (page, x, base) => {
   await x.caption('没注册 SST 的店：不要加任何税', 'Not SST-registered? Add no tax at all', 2000);
   await x.go(base, '/pos/#/settings/receipt', 1200);
   await x.caption('收据：店名、地址、电话、SST 号码', 'Receipt: shop name, address, phone, SST number');
-  await x.go(base, '/pos/#/settings/features', 1200);
-  await x.caption('以后随时可以在「设置 → 功能」换模式', 'Change the mode any time under Settings → Features', 2600);
+  await x.go(base, '/pos/#/profile', 1200);
+  await x.caption('模式选了就锁住；要换，管理员在「我的 Profile」输入密码', 'The mode is then locked; an admin changes it in Profile, with their password', 2800);
 });
 
 await film('pos-2-items', world({ mode: 'RETAIL' }), async (page, x, base) => {
@@ -179,6 +179,7 @@ await film('wh-1-purchase', world({ branch: 'gudang' }), async (page, x, base) =
 }, { path: '/warehouse/' });
 
 await film('wh-2-receive', world({ branch: 'gudang' }), async (page, x, base) => {
+  await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/receive', 1500);
   await x.title('收货', 'JEXO Warehouse · 收货', 'Receiving goods', { bg: WH_BG });
   await x.caption('货到了：选是哪一张采购单', 'Goods arrive: pick the purchase order');
@@ -202,6 +203,7 @@ await film('wh-2-receive', world({ branch: 'gudang' }), async (page, x, base) =>
 }, { path: '/warehouse/' });
 
 await film('wh-3-transfer', world({ branch: 'gudang' }), async (page, x, base) => {
+  await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/transfers/new', 1500);
   await x.title('调货', 'JEXO Warehouse · 仓库 → 门店', 'Transfers between places', { bg: WH_BG });
   await page.locator('.wh-head select').nth(1).selectOption('ipoh'); await x.wait(400);
@@ -227,6 +229,7 @@ await film('wh-3-transfer', world({ branch: 'gudang' }), async (page, x, base) =
 }, { path: '/warehouse/' });
 
 await film('wh-4-stock', world({ branch: 'gudang' }), async (page, x, base) => {
+  await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/adjust', 1500);
   await x.title('库存和调整', 'JEXO Warehouse · 库存', 'Stock and adjustments', { bg: WH_BG });
   await x.click('.wh-scan input.scan', 200);
@@ -245,6 +248,7 @@ await film('wh-4-stock', world({ branch: 'gudang' }), async (page, x, base) => {
 }, { path: '/warehouse/' });
 
 await film('wh-5-check', world({ branch: 'gudang' }), async (page, x, base) => {
+  await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/variance', 1500);
   await x.title('盘点差异和记录', 'JEXO Warehouse · 查账', 'Count differences and the audit log', { bg: WH_BG });
   await x.caption('手机 app 每次盘点，和账面数比较', 'Each count from the phone app against the books');
@@ -281,11 +285,265 @@ await film('wh-6-online', world({ branch: 'gudang' }), async (page, x, base) => 
   await x.caption('包裹到了：扫运单号，打开这张单收货', 'Parcel here: scan its tracking number to receive it', 2600);
 }, { path: '/warehouse/' });
 
+// ------------------------------------------------- more of the till
+
+const W = 'workspaces/w1/';
+/** The shop, with changes to its till settings. */
+const shopWith = (settings, opts = {}) => {
+  const w = world(opts);
+  w.set[`${W}pos/settings`] = { ...w.set[`${W}pos/settings`], ...settings };
+  return w;
+};
+
+await film('pos-7-shift', shopWith({ requireShift: true }), async (page, x, base) => {
+  await page.waitForSelector('.tile');
+  await x.title('开班和交班', 'JEXO POS · 班次', 'Opening and closing a shift');
+  await x.caption('开店：按「开班」，输入钱箱里的零钱', 'Opening: press Open shift, enter the float in the drawer');
+  await x.click('.shift-btn', 900);
+  await x.type('.dialog input', '200');
+  await x.click('.dialog .actions button.primary', 1000);
+  await x.caption('开班后才可以收钱，每张收据都记在这一班', 'Every receipt is kept under this shift', 2000);
+  await x.click('.tile:has-text("Malt")', 400);
+  await x.click('.tile:has-text("Air Mineral")', 400);
+  await x.click('.buttons .pay', 900);
+  await x.click('.dialog .paymethods button:has-text("现金")', 400);
+  await x.click('.dialog .quick button:has-text("RM 50")', 500);
+  await x.click('.dialog .actions button.primary', 1200);
+  await x.click('.dialog button:has-text("下一单")', 800);
+  await x.click('.shift-btn', 1500);
+  await x.caption('交班：系统算好钱箱应该有多少钱', 'Closing: it works out the cash that should be in the drawer', 2400);
+  await x.point('.dialog .shift-sum');
+  await x.caption('中途放入或拿出现金，按「放入现金 / 取出现金」写原因', 'Cash in or out during the day: with a reason', 2400);
+  await x.point('.dialog button:has-text("取出现金")');
+  await x.type('.dialog input >> nth=0', '210');
+  await x.caption('输入数到的现金，马上显示短少或多出', 'Enter the cash you counted: short or over at once', 2400);
+  await x.click('.dialog .actions button.primary', 900);
+  await x.click('.dialog .actions button.primary >> nth=-1', 1500);
+  await x.caption('交班单自动打印，老板在「报表 → 班次」看每一班', 'The shift slip prints; owners see every shift under Reports → Shifts', 2400);
+  await x.go(base, '/pos/#/reports/shifts', 1600);
+  await x.caption('谁开的班、卖多少、短多少，全部记录', 'Who opened it, what was sold, what was short — all kept', 2600);
+});
+
+await film('pos-8-labels', world({ mode: 'RETAIL' }), async (page, x, base) => {
+  await x.go(base, '/pos/#/items/list', 1300);
+  await page.evaluate(() => { window.open = () => ({ document: { write() {}, close() {} }, focus() {}, print() {} }); });
+  await x.title('价格标签', 'JEXO POS · 商品 → 价格标签', 'Printing shelf price labels');
+  await x.caption('商品 → 商品清单 → 按「价格标签」', 'Items → Item list → Price labels');
+  await x.click('button:has-text("价格标签")', 900);
+  await x.caption('勾要印的商品', 'Tick the items to print', 1600);
+  await x.click('.dialog label.check >> nth=0', 400);
+  await x.click('.dialog label.check >> nth=1', 400);
+  await x.click('.dialog label.check >> nth=2', 400);
+  await x.caption('选标签大小：常用的标签打印机尺寸都有', 'Choose the label size', 2000);
+  await x.point('.dialog select >> nth=0');
+  await x.caption('每样印几张也可以设定', 'And how many of each', 1600);
+  await x.point('.dialog .actions button.primary');
+  await x.caption('按「打印标签」：有名称、价钱和条码', 'Print labels: name, price and barcode on each', 2600);
+});
+
+await film('pos-9-customers', world({ mode: 'RETAIL' }), async (page, x, base) => {
+  await x.go(base, '/pos/#/customers', 1400);
+  await x.title('顾客和会员积分', 'JEXO POS · 顾客', 'Customers and loyalty points');
+  await x.caption('顾客清单：电话、积分、来了几次、花了多少', 'Phone, points, visits and spending for each customer');
+  await x.click('button:has-text("新增顾客")', 900);
+  await x.type('.dialog label.field input >> nth=0', 'Puan Rosnah');
+  await x.type('.dialog .grid2 input >> nth=0', '0124567890');
+  await x.caption('会员卡：扫卡号，或手机感应 NFC 卡', 'Member card: scan its number, or tap an NFC card', 2200);
+  await x.point('.dialog .row input');
+  await x.click('.dialog .actions button.primary', 1000);
+  await x.go(base, '/pos/#/settings/loyalty', 1300);
+  await x.caption('设置 → 积分：每 RM1 得几分，几分可以抵钱', 'Settings → Loyalty: points per ringgit and what they are worth', 2600);
+  await x.go(base, '/pos/#/customers', 1200);
+  await x.caption('顾客要求删除资料（PDPA）：按「删除顾客资料」', 'A customer asks to be removed (PDPA): Remove customer data', 2400);
+  await x.caption('90 天后自动删除，收据保留但没有名字', 'Erased after 90 days; receipts stay, without the name', 2400);
+  await x.point('button:has-text("导出 Excel")');
+  await x.caption('全部顾客可以导出 Excel', 'Export every customer to Excel', 2200);
+});
+
+await film('pos-10-einvoice', shopWith({ tin: 'C2584563200', msic: '47111' }, { withSales: true }), async (page, x, base) => {
+  await x.go(base, '/pos/#/reports/taxes', 1500);
+  await x.title('SST 和电子发票', 'JEXO POS · 税务', 'SST and the e-invoice (MyInvois)');
+  await x.caption('税务报表：每个税率收了多少，不收税的也分开', 'Tax report: each rate, and tax-free sales apart', 2400);
+  await x.go(base, '/pos/#/settings/receipt', 1300);
+  await x.caption('设置 → 收据：填公司 TIN 和 MSIC 号码', 'Settings → Receipt: your TIN and MSIC code', 2400);
+  await x.go(base, '/pos/#/reports/einvoice', 1400);
+  const month = new Date().toISOString().slice(0, 7);
+  await page.fill('input[type=month]', month);
+  await page.dispatchEvent('input[type=month]', 'change');
+  await x.wait(1200);
+  await x.caption('每个月：一般顾客的收据合并成一张电子发票', 'Each month: receipts to ordinary buyers in one consolidated e-invoice', 2800);
+  await x.point('button:has-text("下载 JSON")');
+  await x.caption('下载 JSON 上传到 MyInvois，或 CSV 给会计', 'Download JSON for MyInvois, or CSV for the accountant', 2800);
+});
+
+await film('pos-11-setup', world({ mode: 'RETAIL' }), async (page, x, base) => {
+  await x.go(base, '/pos/#/settings/payments', 1400);
+  await x.title('收银设定', 'JEXO POS · 付款、收据、收银机', 'Payments, receipt and till numbers');
+  await x.caption('付款方式：现金、DuitNow QR、刷卡、电子钱包', 'Payment types: cash, DuitNow QR, card, e-wallet', 2400);
+  await x.caption('QR 和刷卡用银行给的机器收，收银只是记录', 'QR and card are taken on the bank’s terminal; the till records them', 2600);
+  await x.go(base, '/pos/#/settings/receipt', 1300);
+  await x.caption('收据：店名、地址、SST 号码、纸宽 58 或 80mm', 'Receipt: name, address, SST number, 58 or 80 mm paper', 2400);
+  await x.go(base, '/pos/#/settings/device', 1400);
+  await x.caption('这台电脑：收银机号码，可以改名字，例如「1 号柜台」', 'This device: its till number, and a name like “Counter 1”', 2600);
+  await x.point('.this-till');
+  await x.caption('收据和报表都会写是哪一台收银机', 'Receipts and reports show which till', 2000);
+  await page.mouse.wheel(0, 500); await x.wait(800);
+  await x.caption('打印机和钱箱：USB 收据打印机可以直接连接', 'Printer and cash drawer: connect a USB receipt printer', 2600);
+  await x.go(base, '/pos/#/settings/stores', 1300);
+  await x.caption('分店：每间店的库存、销售分开', 'Stores: each shop’s stock and sales apart', 2200);
+  await x.go(base, '/pos/#/settings/addons', 1300);
+  await x.caption('附加功能：现在有什么，还可以加什么', 'Add-ons: what you have and what you can add', 2400);
+});
+
+await film('pos-12-lock', world({ mode: 'RETAIL' }), async (page, x, base) => {
+  await page.waitForSelector('.tile');
+  await x.title('锁定收银和换模式', 'JEXO POS · 只给收银员用收银', 'Till lock, folding menu and changing the mode');
+  await x.caption('左上角的按钮：菜单可以收起来，画面更大', 'The menu folds away for a bigger till', 1800);
+  await x.click('.side .side-collapse', 1200);
+  await x.click('.menu-toggle >> nth=0', 1200);
+  await x.caption('右上角「锁定收银」：这台电脑只能用收银', 'Lock till, top right: this computer shows only the till', 2200);
+  await x.click('button[data-act="till-lock"]', 900);
+  await x.type('.dialog input[type=password]', 'secret');
+  await x.caption('要输入管理员的 email 和密码', 'It takes an admin’s email and password', 1800);
+  await x.click('button[data-act="till-lock-ok"]', 1400);
+  await x.caption('锁了之后：报表、设定、仓库都打不开', 'Locked: no reports, settings or warehouse here', 2400);
+  await x.caption('解锁也要管理员密码', 'Unlocking needs the admin password too', 1600);
+  await x.click('button[data-act="till-lock"]', 900);
+  await x.type('.dialog input[type=password]', 'secret');
+  await x.click('button[data-act="till-lock-ok"]', 1400);
+  await x.go(base, '/pos/#/profile', 1400);
+  await x.caption('换收银模式：只有管理员，在 Profile 这里', 'Changing the till’s mode: admins only, here in Profile', 2400);
+  await x.click('button[data-act="change-mode"]', 1000);
+  await x.click('.dialog .modecard[data-mode="SUPERMARKET"]', 600);
+  await x.type('.dialog input[type=password]', 'secret');
+  await x.caption('再输入一次自己的密码，才会换', 'Type your password again to change it', 1800);
+  await x.click('.dialog .actions button.primary', 1500);
+  await x.caption('员工看到 Profile，但不能换模式', 'Staff see Profile, but cannot change the mode', 2400);
+});
+
+await film('pos-13-staff', world({ mode: 'RETAIL' }), async (page, x, base) => {
+  await x.go(base, '/pos/#/employees', 1500);
+  await x.title('员工和权限', 'JEXO POS · 员工', 'Staff and what they may do');
+  await x.caption('员工清单：每个人的角色和分店', 'Each person’s role and branch');
+  await x.click('button:has-text("新增员工")', 1000);
+  await x.caption('填名字、email、密码，选角色和分店', 'Name, email, password, role and branch', 2400);
+  await x.click('.dialog button:has-text("取消")', 700);
+  await x.caption('员工也可以自己注册：用公司代码加入', 'Or staff sign up themselves with the company code', 2400);
+  await x.go(base, '/pos/#/inventory/levels', 1500);
+  await x.caption('库存：每间分店现在有多少，低库存显示出来', 'Stock: what each branch has; low stock stands out', 2400);
+  await x.go(base, '/pos/#/inventory/adjust', 1300);
+  await x.caption('调整库存要选原因，每一笔都记录', 'Every stock change needs a reason and is logged', 2400);
+});
+
+await film('pos-14-api', world({ mode: 'RETAIL' }), async (page, x, base) => {
+  await x.go(base, '/pos/#/integrations/tokens', 1500);
+  await x.title('API 和连接其他系统', 'JEXO POS · 集成', 'API: connecting other systems');
+  await x.caption('会计软件或网店要读你的资料：开一个访问令牌', 'For accounting software or a web shop: create an access token', 2400);
+  await x.click('button:has-text("新增访问令牌")', 900);
+  await x.type('.dialog input', 'Akaun SQL');
+  await x.click('.dialog .actions button.primary', 1200);
+  await x.caption('令牌只显示一次，复制好交给对方', 'The token is shown once: copy it for them', 2400);
+  await page.keyboard.press('Escape'); await x.wait(500);
+  await x.go(base, '/pos/#/integrations/api', 1400);
+  await x.caption('说明页：商品、库存、收据、顾客，每一个怎样读写', 'The API page: items, stock, receipts and customers', 2600);
+  await x.caption('不用了按「撤销」，对方马上不能再用', 'Revoke it and it stops working at once', 2200);
+});
+
+await film('cloud-1-dashboard', world({ mode: 'RETAIL', withSales: true }), async (page, x, base) => {
+  await x.go(base, '/pos/#/cloud', 1800);
+  await x.title('JEXO Cloud 总览', 'JEXO Cloud · 老板一页看全部', 'JEXO Cloud: the whole business on one page');
+  await x.caption('今天卖了多少、几单、平均每单', 'Today’s sales, receipts and average bill', 2400);
+  await page.mouse.wheel(0, 400); await x.wait(900);
+  await x.caption('库存：低库存、没货、库存价值', 'Stock: low, out, and what it is worth', 2400);
+  await page.mouse.wheel(0, 400); await x.wait(900);
+  await x.caption('仓库：待批准、待收货、在途', 'Warehouse: to approve, to receive, in transit', 2400);
+  await x.caption('你买了哪些配套，这一页就显示哪些', 'It shows what your plan includes', 2200);
+  await x.go(base, '/app/', 1600);
+  await x.caption('应用中心：收银、仓库、盘点、Cloud 随时换', 'The app centre: switch between the till, warehouse, Count and Cloud', 2600);
+}, { path: '/pos/' });
+
+// ------------------------------------------------ JEXO Count on the web
+
+await film('count-1-web', world({}), async (page, x, base) => {
+  await page.waitForSelector('.cnt-card, .cnt-list');
+  await x.title('网页版盘点', 'JEXO Count · 电脑或手机浏览器', 'JEXO Count in the browser');
+  await x.caption('和手机 app 同一个账号、同一份盘点', 'Same account and the same counts as the phone app', 2200);
+  await x.click('button:has-text("新盘点")', 900);
+  await x.type('form input >> nth=0', 'Rak 3');
+  await x.click('form button.primary', 1400);
+  await page.waitForSelector('input.scan');
+  await x.caption('用扫码枪或镜头扫，扫几次就是几个', 'Scan with a scanner or the camera; each scan adds one', 2000);
+  await x.click('input.scan', 200);
+  for (const pic of ['malt', 'malt', 'malt', 'rice', 'rice']) await x.scan(item(pic).barcode, 500);
+  await x.caption('称重的或很多的：先输入数量再扫', 'Weighed or many: type the quantity, then scan', 2000);
+  await x.type('.cnt-qty', '24');
+  await x.click('input.scan', 200);
+  await x.scan(item('water').barcode, 900);
+  await x.caption('按数字可以直接改', 'Tap a number to change it', 1800);
+  await x.click(`.cnt-line[data-code="${item('rice').barcode}"] .cnt-n`, 800);
+  await x.type('.dialog input', '6');
+  await x.click('.dialog .actions button.primary', 900);
+  await x.caption('全部数好，按「完成」', 'All counted: Finish', 1600);
+  await x.click('button[data-act="finish"]', 900);
+  await x.click('.dialog .actions button.primary >> nth=-1', 1500);
+  await x.caption('完成后不能再改；仓库系统马上看到差异', 'Finished counts are locked; the warehouse sees the differences at once', 2800);
+}, { path: '/count/' });
+
+// ------------------------------------------- accounts and the app centre
+
+await film('acc-1-signup', world({}), async (page, x, base) => {
+  // Signed out until the sign-in below (the flag lasts across pages).
+  await page.addInitScript(() => { if (!sessionStorage.getItem('demo.in')) window.__signedOut = true; });
+  await x.go(base, '/app/#create', 1500);
+  await page.waitForSelector('.auth-card');
+  await x.title('注册和登录', 'JEXO · 账号', 'Signing up, joining and passwords');
+  await x.caption('老板：「注册公司」，你就是管理员，有 14 天试用', 'Owner: Create a company — you are its admin, with a 14-day trial', 2600);
+  const vals = ['Ah Hock', 'ahhock@kedaimaju.my', 'rahsia123', 'rahsia123', 'Kedai Maju', 'kedaimaju'];
+  for (const [i, v] of vals.entries()) await x.type(`.auth-card form input >> nth=${i}`, v, 150);
+  await x.caption('公司代码自己定，员工用它来加入', 'Pick a company code; staff join with it', 2200);
+  await x.click('.auth-tabs button[data-tab="join"]', 900);
+  await x.caption('员工：「加入公司」，填老板给的公司代码', 'Staff: Join a company with the code from the owner', 2600);
+  await x.click('.auth-tabs button[data-tab="signin"]', 900);
+  await x.click('button[data-tab="reset"]', 900);
+  await x.caption('忘记密码：填 email 和公司代码，重设链接寄到 email', 'Forgot it? Email and company code: a reset link is emailed', 2800);
+  await x.click('.auth-tabs button[data-tab="signin"]', 900);
+  await x.caption('以后用 email 和密码登录', 'From then on, sign in with email and password', 1600);
+  await x.type('.auth-card form input >> nth=0', 'ahhock@kedaimaju.my', 150);
+  await x.type('.auth-card form input >> nth=1', 'rahsia123', 150);
+  await page.evaluate(() => sessionStorage.setItem('demo.in', '1'));
+  await x.click('.auth-card form button.primary', 1800);
+  await page.waitForSelector('.hub-app');
+  await x.caption('应用中心：你的配套有的 app 可以打开', 'The app centre: the apps in your plan open', 2400);
+  await x.point('.hub-app[data-app="pos"]');
+  await x.caption('没买的会锁着，升级就开', 'The rest are locked until you upgrade', 2000);
+  await x.click('.hub-app[data-app="count"]', 1800);
+  await x.click('.appswitch summary', 1000);
+  await x.caption('每个 app 上面都可以随时换去另一个', 'Switch to another app from the top of any app', 2600);
+}, { path: null });
+
+// ------------------------------------------------ the warehouse, set up
+
+await film('wh-0-setup', world({ branch: 'gudang' }), async (page, x, base) => {
+  await page.waitForSelector('.wh-tile');
+  await x.go(base, '/warehouse/#/places', 1500);
+  await x.title('仓库系统设定', 'JEXO Warehouse · 开始', 'Setting up the warehouse', { bg: WH_BG });
+  await x.caption('仓库和分店：每个地点库存分开算', 'Warehouses and shops, each with its own stock', 2400);
+  await x.go(base, '/warehouse/#/suppliers', 1400);
+  await x.caption('供应商：电话、联络人、付款条件', 'Suppliers: phone, contact, payment terms', 2400);
+  await x.go(base, '/warehouse/#/', 1300);
+  await x.caption('「现在在」选你人在哪一个仓库或门店', '“Working at”: the warehouse or shop you are in', 2200);
+  await x.point('select');
+  await x.caption('员工权限在 JEXO Count app 的「角色」设定', 'Staff permissions are set under Roles in the JEXO Count app', 2600);
+  await x.caption('手机上按「安装」，工人就像用 app 一样', 'On a phone, Install it and workers use it like an app', 2400);
+}, { path: '/warehouse/' });
+
 // ------------------------------------------------------- the phone app
 
 for (const f of APP_FILMS) {
-  await film(f.name, {}, async (page) => {
+  await film(f.name, {}, async (page, x) => {
     await page.setContent(slidesHtml(f));
+    x.cue(`${f.title[0]}。${f.title[1]}`, f.title[2]);
+    f.slides.forEach(([, head, zh, en], i) => x.cue(`${head}。${zh}`, en, SLIDE_AT(i)));
     await page.waitForFunction(() => window.__slidesDone === true, null, { timeout: 120000 });
   }, { path: null });
 }

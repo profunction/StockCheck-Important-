@@ -1,10 +1,12 @@
 /**
  * A guide page: a list of jobs, each with numbered steps and, where there is
- * one, a short video of it being done. Shared by the till and the warehouse
- * system; the words live in guides.js in each language.
+ * one, a short video of it being done -- read aloud as it plays (narrate.js).
+ * Shared by every app and the public /guide/ page; the words live in
+ * guides.js in each language.
  */
 import { h, mount } from './dom.js';
 import { getLang } from './i18n.js';
+import { narratedVideo } from './narrate.js';
 
 export function renderGuide(main, guide, header) {
   const lang = guide[getLang()] ? getLang() : 'en';
@@ -19,5 +21,5 @@ export function renderGuide(main, guide, header) {
         s.lead ? h('p', { class: 'muted', style: { marginTop: 0 } }, s.lead) : null,
         h('ol', { class: 'steps' }, s.steps.map((x) => h('li', {}, h('span', {}, x)))),
         s.tip ? h('p', { class: 'tip' }, s.tip) : null),
-      s.video ? h('video', { src: s.video, controls: true, preload: 'none', playsinline: true, poster: s.poster || '' }) : h('div')))));
+      s.video ? narratedVideo(s.video, s.poster || '') : h('div')))));
 }

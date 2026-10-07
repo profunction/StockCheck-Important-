@@ -65,10 +65,12 @@ export async function createUserWithEmailAndPassword(_a, email) {
 }
 export async function deleteUser() { window.__deletedUser = (window.__deletedUser || 0) + 1; }
 window.__resetMails = [];
-// An admin's password at the till: j@x.com (u1, admin) with anything but "wrong".
+// An admin's password at the till: j@x.com, or any admin's email in the
+// store (the guide videos' shop), with anything but "wrong".
 export async function verifyAdmin(email, password) {
   if (password === 'wrong') { const e = new Error('wrong'); e.code = 'auth/wrong-password'; throw e; }
-  if (email !== 'j@x.com') { const e = new Error('not admin'); e.code = 'not-admin'; throw e; }
+  const admin = [...store].some(([k, v]) => /^workspaces\/[^/]+\/users\//.test(k) && v.email === email && v.roleId === 'admin');
+  if (email !== 'j@x.com' && !admin) { const e = new Error('not admin'); e.code = 'not-admin'; throw e; }
 }
 // Re-entering the password: "wrong" is the wrong one.
 export const EmailAuthProvider = { credential: (email, password) => ({ email, password }) };

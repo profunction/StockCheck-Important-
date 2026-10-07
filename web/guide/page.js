@@ -1,17 +1,19 @@
 /**
  * /guide/: every product's step-by-step guide on one public page -- what the
  * phone app's "How to use" opens, and somewhere to send a new customer.
- * #app, #pos or #warehouse picks the tab.
+ * #app, #pos, #warehouse, #cloud or #account picks the tab.
  */
 import { h, mount } from '../js/dom.js';
 import { getLang, LANGS, setLang } from '../js/i18n.js';
 import { renderGuide } from '../js/guide.js';
-import { APP_GUIDE, POS_GUIDE, WAREHOUSE_GUIDE } from '../js/guides.js';
+import { ACCOUNT_GUIDE, APP_GUIDE, CLOUD_GUIDE, POS_GUIDE, WAREHOUSE_GUIDE } from '../js/guides.js';
 
 const TABS = {
-  app: { guide: APP_GUIDE, label: { zh: 'JEXO Count 手机 app', en: 'JEXO Count app', ms: 'Aplikasi JEXO Count' } },
+  account: { guide: ACCOUNT_GUIDE, label: { zh: '账号和注册', en: 'Account & sign-up', ms: 'Akaun & daftar' } },
+  app: { guide: APP_GUIDE, label: { zh: 'JEXO Count（手机 + 网页）', en: 'JEXO Count (phone + web)', ms: 'JEXO Count (telefon + web)' } },
   pos: { guide: POS_GUIDE, label: { zh: 'JEXO POS 收银', en: 'JEXO POS (till)', ms: 'JEXO POS (POS)' } },
-  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: '仓库系统', en: 'Warehouse system', ms: 'Sistem gudang' } },
+  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: 'JEXO Warehouse 仓库', en: 'JEXO Warehouse', ms: 'JEXO Warehouse (gudang)' } },
+  cloud: { guide: CLOUD_GUIDE, label: { zh: 'JEXO Cloud 老板总览', en: 'JEXO Cloud', ms: 'JEXO Cloud' } },
 };
 const TITLE = { zh: '使用教程', en: 'How to use', ms: 'Cara guna' };
 

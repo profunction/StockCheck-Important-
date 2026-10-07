@@ -3,9 +3,11 @@
  * languages. Shown on the till's and the warehouse's "How to use" pages and
  * on /guide/ (which the phone app links to). Videos are in web/videos/,
  * filmed by tools/videos/record.mjs; their captions are Chinese with a line
- * of English.
+ * of English, and the guide pages read them aloud (narrate.js).
  */
-const V = (name) => `/videos/${name}.webm`;
+// ?v= changes when the videos are filmed again, so week-old cached copies are not shown
+// with new narration.
+const V = (name) => `/videos/${name}.webm?v=2`;
 
 export const POS_GUIDE = {
   zh: {
@@ -13,7 +15,7 @@ export const POS_GUIDE = {
     sections: [
       { id: 'start', title: '开始使用', video: V('pos-1-start'), steps: [
         '电脑或平板用 Chrome 打开收银系统，用 JEXO Count app 的同一个账号登录。',
-        '第一次打开会问你的店是哪一种：餐饮、超市 / 迷你市场、店面零售。选一个。',
+        '第一次打开会问你的店是哪一种：餐饮、超市 / 迷你市场、店面零售。选了就锁住，要换由管理员到「我的 Profile」。',
         '设置 → 税和服务费：注册了 SST 才加税，大部分商品收的那个勾「默认」。',
         '设置 → 收据：店名、地址、电话、SST 号码、纸宽（58 或 80mm）。',
         '设置 → 付款方式：现金、DuitNow QR、刷卡、电子钱包，也可以自己加。',
@@ -54,6 +56,58 @@ export const POS_GUIDE = {
         '收据：点一张可以重印；作废要写原因，记录不会被删除。',
         '每一页都可以按「导出」变成 Excel 给会计。',
       ] },
+      { id: 'shift', title: '开班和交班', video: V('pos-7-shift'), steps: [
+        '设置 → 功能：打开「收钱前要开班」，每张收据都会记在一个班里。',
+        '开店：按收银画面上的「开班」，输入钱箱里的零钱。',
+        '中途放入或拿出现金：按班次按钮 →「放入现金 / 取出现金」，写原因。',
+        '关店：按班次按钮，系统算好应有现金；输入数到的现金，马上显示短少或多出。',
+        '按「交班」，交班单自动打印；老板在 报表 → 班次 看每一班。',
+      ] },
+      { id: 'labels', title: '价格标签', video: V('pos-8-labels'), steps: [
+        '商品 → 商品清单 → 按「价格标签」。',
+        '勾要印的商品，选标签大小和每样几张。',
+        '按「打印标签」：每张有名称、价钱和条码，用标签打印机印。',
+      ] },
+      { id: 'customers', title: '顾客、会员积分和 PDPA', video: V('pos-9-customers'), steps: [
+        '顾客 → 新增顾客：名字、电话、email；会员卡可以扫卡号或感应 NFC 卡。',
+        '设置 → 积分：每 RM1 得几分、几分可以抵钱、最少几分才能用。',
+        '收银时按「顾客」选会员，积分自动累积。',
+        '顾客要求删除资料（PDPA）：打开顾客 →「删除顾客资料」；90 天内可以恢复，之后自动删除，收据保留但没有名字。',
+        '按「导出 Excel」导出全部顾客。',
+      ] },
+      { id: 'einvoice', title: 'SST 和电子发票（MyInvois）', video: V('pos-10-einvoice'), steps: [
+        '设置 → 税：注册了 SST 才加；不收税的商品在商品里把税取消。',
+        '报表 → 税：每个税率收了多少，不收税的销售分开列出。',
+        '设置 → 收据：填公司 TIN 和 MSIC 号码。',
+        '报表 → 电子发票：选月份，一般顾客的收据合并成一张电子发票。',
+        '按「下载 JSON」上传到 MyInvois，或「下载 CSV」给会计。',
+      ] },
+      { id: 'setup', title: '付款方式、收据和收银机号码', video: V('pos-11-setup'), steps: [
+        '设置 → 付款方式：现金、DuitNow QR、刷卡、电子钱包，也可以自己加。',
+        'DuitNow QR 和刷卡：用银行给的 QR 立牌或刷卡机收钱，收银系统记录用了哪一种。',
+        '设置 → 收据：店名、地址、电话、SST 号码、纸宽 58 或 80mm。',
+        '设置 → 这台设备：看这台是「收银机几号」，可以改名字（例如「1 号柜台」）；收据和报表会写是哪一台。',
+        '同一页可以连接 USB 收据打印机和钱箱。',
+        '设置 → 分店：每间店的库存和销售分开；设置 → 附加功能：看配套有什么、还能加什么。',
+      ] },
+      { id: 'lock', title: '锁定收银、收起菜单、换模式', video: V('pos-12-lock'), steps: [
+        '左上角的按钮把菜单收起来，收银画面更大；再按一次打开。',
+        '右上角「锁定收银」：输入管理员 email 和密码，这台电脑就只能用收银。',
+        '锁定后报表、设置、仓库和其他 app 都打不开；解锁也要管理员密码。',
+        '收银模式（餐饮 / 超市 / 店面）选了就锁住；要换：管理员到「我的 Profile」→「更换模式」，再输入自己的密码。',
+      ] },
+      { id: 'staff', title: '员工和库存', video: V('pos-13-staff'), steps: [
+        '员工 → 新增员工：名字、email、密码、角色、分店。',
+        '员工也可以自己注册：在登录页选「加入公司」，填公司代码。',
+        '库存 → 库存数量：每间分店现在有多少，低库存显示出来。',
+        '库存 → 调整：一定要选原因，每一笔都记录。',
+      ] },
+      { id: 'api', title: 'API 和连接其他系统', video: V('pos-14-api'), steps: [
+        '集成 → 访问令牌 → 新增访问令牌，写这是给谁用的（例如会计软件）。',
+        '令牌只显示一次：复制好交给对方。',
+        '集成 → API 说明：商品、库存、收据、顾客怎样读写。',
+        '不用了按「撤销」，对方马上不能再用。',
+      ] },
       { id: 'hardware', title: '扫码枪、打印机、NFC', steps: [
         'USB 扫码枪：插上就能用，不用装软件。',
         '收据打印机（58 / 80mm 热敏）：先装好驱动，第一次打印时选它，页边距选「无」。',
@@ -67,7 +121,7 @@ export const POS_GUIDE = {
     sections: [
       { id: 'start', title: 'Getting started', video: V('pos-1-start'), steps: [
         'Open the POS in Chrome on a computer or tablet and sign in with your JEXO Count app account.',
-        'The first time, it asks what kind of shop you are: restaurant, supermarket / mini market, or retail shop.',
+        'The first time, it asks what kind of shop you are: restaurant, supermarket / mini market, or retail shop. It is then locked; an admin changes it in Profile.',
         'Settings → Taxes: add SST only if you are registered; tick "default" for the rate most items carry.',
         'Settings → Receipt: shop name, address, phone, SST number, paper width (58 or 80 mm).',
         'Settings → Payment types: cash, DuitNow QR, card, e-wallet, or your own.',
@@ -108,6 +162,58 @@ export const POS_GUIDE = {
         'Receipts: open one to reprint; a void needs a reason and is never deleted.',
         'Export any page to Excel for the accountant.',
       ] },
+      { id: 'shift', title: 'Opening and closing a shift', video: V('pos-7-shift'), steps: [
+        'Settings → Features: turn on "Open a shift before taking money"; every receipt then belongs to a shift.',
+        'Opening: press Open shift on the till and enter the float in the drawer.',
+        'Cash in or out during the day: the shift button → Cash in / Cash out, with a reason.',
+        'Closing: press the shift button; it works out the cash that should be there. Enter what you counted and it shows short or over.',
+        'Close shift prints the shift slip; owners see every shift under Reports → Shifts.',
+      ] },
+      { id: 'labels', title: 'Price labels', video: V('pos-8-labels'), steps: [
+        'Items → Item list → Price labels.',
+        'Tick the items, choose the label size and how many of each.',
+        'Print labels: name, price and barcode on each, on the label printer.',
+      ] },
+      { id: 'customers', title: 'Customers, loyalty and PDPA', video: V('pos-9-customers'), steps: [
+        'Customers → Add customer: name, phone, email; scan a member card number or tap an NFC card.',
+        'Settings → Loyalty: points per ringgit, what a point is worth, the fewest that can be used.',
+        'At the till press Customer to pick the member; points add up by themselves.',
+        'A customer asks to be removed (PDPA): open them → Remove customer data. It can be undone for 90 days, then it is erased; receipts stay without the name.',
+        'Export Excel exports every customer.',
+      ] },
+      { id: 'einvoice', title: 'SST and the e-invoice (MyInvois)', video: V('pos-10-einvoice'), steps: [
+        'Settings → Taxes: add SST only if registered; untick tax on tax-free items.',
+        'Reports → Taxes: each rate, with tax-free sales apart.',
+        'Settings → Receipt: your company TIN and MSIC code.',
+        'Reports → E-invoice: pick the month; receipts to ordinary buyers become one consolidated e-invoice.',
+        'Download JSON to upload to MyInvois, or Download CSV for the accountant.',
+      ] },
+      { id: 'setup', title: 'Payment types, receipt and till numbers', video: V('pos-11-setup'), steps: [
+        'Settings → Payment types: cash, DuitNow QR, card, e-wallet, or your own.',
+        'DuitNow QR and card: take the money on the bank’s QR stand or card terminal; the till records which was used.',
+        'Settings → Receipt: shop name, address, phone, SST number, 58 or 80 mm paper.',
+        'Settings → This device: which till number this computer is, and a name such as "Counter 1"; receipts and reports show it.',
+        'The same page connects a USB receipt printer and cash drawer.',
+        'Settings → Stores keeps each shop’s stock and sales apart; Settings → Add-ons shows what your plan has and what can be added.',
+      ] },
+      { id: 'lock', title: 'Till lock, folding menu, changing the mode', video: V('pos-12-lock'), steps: [
+        'The button at the top left folds the menu away for a bigger till; press again to open it.',
+        'Lock till, top right: an admin’s email and password, and this computer shows only the till.',
+        'Locked, reports, settings, the warehouse and the other apps stay shut; unlocking needs the admin password too.',
+        'The till mode (restaurant / supermarket / retail) is locked once chosen; to change it, an admin goes to Profile → Change mode and types their password again.',
+      ] },
+      { id: 'staff', title: 'Staff and stock', video: V('pos-13-staff'), steps: [
+        'Employees → Add employee: name, email, password, role, branch.',
+        'Or staff sign up themselves: Join a company on the sign-in page, with the company code.',
+        'Inventory → Stock levels: what each branch has; low stock stands out.',
+        'Inventory → Adjust: always with a reason, and every change is logged.',
+      ] },
+      { id: 'api', title: 'API: connecting other systems', video: V('pos-14-api'), steps: [
+        'Integrations → Access tokens → Add access token, named for who uses it (e.g. accounting software).',
+        'The token is shown once: copy it for them.',
+        'Integrations → API: how to read and write items, stock, receipts and customers.',
+        'Revoke it when it is no longer needed and it stops working at once.',
+      ] },
       { id: 'hardware', title: 'Scanner, printer, NFC', steps: [
         'USB barcode scanner: plug it in, nothing to install.',
         'Receipt printer (58 / 80 mm thermal): install its driver, choose it the first time you print, margins "None".',
@@ -121,7 +227,7 @@ export const POS_GUIDE = {
     sections: [
       { id: 'start', title: 'Mula guna', video: V('pos-1-start'), steps: [
         'Buka POS dengan Chrome di komputer atau tablet, log masuk dengan akaun aplikasi JEXO Count.',
-        'Kali pertama, ia bertanya jenis kedai: restoran, pasar raya / pasar mini, atau kedai runcit.',
+        'Kali pertama, ia bertanya jenis kedai: restoran, pasar raya / pasar mini, atau kedai runcit. Ia kemudian dikunci; admin menukarnya di Profil.',
         'Tetapan → Cukai: tambah SST hanya jika berdaftar; tandakan "lalai" untuk kadar kebanyakan barang.',
         'Tetapan → Resit: nama kedai, alamat, telefon, no. SST, lebar kertas (58 atau 80 mm).',
         'Tetapan → Jenis bayaran: tunai, DuitNow QR, kad, e-dompet, atau sendiri.',
@@ -162,6 +268,58 @@ export const POS_GUIDE = {
         'Resit: buka untuk cetak semula; pembatalan perlukan sebab dan tidak pernah dipadam.',
         'Eksport mana-mana halaman ke Excel untuk akauntan.',
       ] },
+      { id: 'shift', title: 'Buka dan tutup syif', video: V('pos-7-shift'), steps: [
+        'Tetapan → Ciri: hidupkan "Buka syif sebelum terima wang"; setiap resit masuk ke satu syif.',
+        'Buka: tekan Buka syif di kaunter dan isi wang apungan dalam laci.',
+        'Tunai masuk atau keluar: butang syif → Tunai masuk / Tunai keluar, dengan sebab.',
+        'Tutup: tekan butang syif; ia mengira tunai yang sepatutnya ada. Isi tunai dikira, ia tunjuk kurang atau lebih.',
+        'Tutup syif mencetak slip syif; pemilik lihat setiap syif di Laporan → Syif.',
+      ] },
+      { id: 'labels', title: 'Label harga', video: V('pos-8-labels'), steps: [
+        'Barang → Senarai barang → Label harga.',
+        'Tandakan barang, pilih saiz label dan berapa salinan.',
+        'Cetak label: nama, harga dan kod bar, pada pencetak label.',
+      ] },
+      { id: 'customers', title: 'Pelanggan, mata ganjaran dan PDPA', video: V('pos-9-customers'), steps: [
+        'Pelanggan → Tambah pelanggan: nama, telefon, e-mel; imbas nombor kad ahli atau sentuh kad NFC.',
+        'Tetapan → Mata ganjaran: mata setiap ringgit, nilai satu mata, paling sedikit boleh guna.',
+        'Di kaunter tekan Pelanggan untuk pilih ahli; mata bertambah sendiri.',
+        'Pelanggan minta dibuang (PDPA): buka → Buang data pelanggan. Boleh dibatalkan dalam 90 hari, kemudian dipadam; resit kekal tanpa nama.',
+        'Eksport Excel untuk semua pelanggan.',
+      ] },
+      { id: 'einvoice', title: 'SST dan e-invois (MyInvois)', video: V('pos-10-einvoice'), steps: [
+        'Tetapan → Cukai: tambah SST hanya jika berdaftar; nyahtanda cukai pada barang tanpa cukai.',
+        'Laporan → Cukai: setiap kadar, dengan jualan tanpa cukai berasingan.',
+        'Tetapan → Resit: TIN dan kod MSIC syarikat.',
+        'Laporan → E-invois: pilih bulan; resit kepada pembeli biasa menjadi satu e-invois disatukan.',
+        'Muat turun JSON untuk MyInvois, atau CSV untuk akauntan.',
+      ] },
+      { id: 'setup', title: 'Jenis bayaran, resit dan nombor kaunter', video: V('pos-11-setup'), steps: [
+        'Tetapan → Jenis bayaran: tunai, DuitNow QR, kad, e-dompet, atau sendiri.',
+        'DuitNow QR dan kad: terima wang dengan papan QR atau terminal kad bank; POS merekod jenis yang digunakan.',
+        'Tetapan → Resit: nama kedai, alamat, telefon, no. SST, kertas 58 atau 80 mm.',
+        'Tetapan → Peranti ini: nombor kaunter komputer ini, dan nama seperti "Kaunter 1"; resit dan laporan menunjukkannya.',
+        'Halaman yang sama menyambung pencetak resit USB dan laci tunai.',
+        'Tetapan → Kedai mengasingkan stok dan jualan setiap kedai; Tetapan → Tambahan menunjukkan pakej anda dan apa boleh ditambah.',
+      ] },
+      { id: 'lock', title: 'Kunci kaunter, lipat menu, tukar mod', video: V('pos-12-lock'), steps: [
+        'Butang di kiri atas melipat menu untuk kaunter yang lebih besar; tekan lagi untuk buka.',
+        'Kunci kaunter, kanan atas: e-mel dan kata laluan admin, dan komputer ini hanya tunjuk kaunter.',
+        'Bila dikunci, laporan, tetapan, gudang dan aplikasi lain ditutup; buka kunci juga perlu kata laluan admin.',
+        'Mod kaunter (restoran / pasar raya / runcit) dikunci selepas dipilih; untuk menukar, admin ke Profil → Tukar mod dan taip kata laluan semula.',
+      ] },
+      { id: 'staff', title: 'Pekerja dan stok', video: V('pos-13-staff'), steps: [
+        'Pekerja → Tambah pekerja: nama, e-mel, kata laluan, peranan, cawangan.',
+        'Atau pekerja mendaftar sendiri: Sertai syarikat di halaman log masuk, dengan kod syarikat.',
+        'Inventori → Paras stok: baki setiap cawangan; stok rendah ditonjolkan.',
+        'Inventori → Laras: sentiasa dengan sebab, dan setiap perubahan direkod.',
+      ] },
+      { id: 'api', title: 'API: sambung sistem lain', video: V('pos-14-api'), steps: [
+        'Integrasi → Token akses → Tambah token, dinamakan untuk pengguna (cth. perisian perakaunan).',
+        'Token ditunjukkan sekali: salin untuk mereka.',
+        'Integrasi → API: cara baca dan tulis barang, stok, resit dan pelanggan.',
+        'Batalkan bila tidak diperlukan dan ia berhenti serta-merta.',
+      ] },
       { id: 'hardware', title: 'Pengimbas, pencetak, NFC', steps: [
         'Pengimbas kod bar USB: pasang sahaja, tiada perisian.',
         'Pencetak resit (58 / 80 mm terma): pasang pemacunya, pilih kali pertama mencetak, margin "Tiada".',
@@ -176,7 +334,7 @@ export const WAREHOUSE_GUIDE = {
   zh: {
     intro: '仓库系统和收银、JEXO Count app 用同一套商品和库存。货进、货出、货在哪里，都在这里做。',
     sections: [
-      { id: 'setup', title: '开始设定', steps: [
+      { id: 'setup', title: '开始设定', video: V('wh-0-setup'), steps: [
         '手机或电脑用 Chrome 打开仓库系统，用同一个账号登录。手机上按「安装」变成 app。',
         '管理员：仓库和分店 → 新增地点 → 类型选「仓库」。',
         '在 JEXO Count app 的「角色」给员工权限：收货、调货、调整要「记录进出货」。',
@@ -227,7 +385,7 @@ export const WAREHOUSE_GUIDE = {
   en: {
     intro: 'The warehouse system shares items and stock with the till and the JEXO Count app. Goods in, goods out, and where everything is — all here.',
     sections: [
-      { id: 'setup', title: 'Setting up', steps: [
+      { id: 'setup', title: 'Setting up', video: V('wh-0-setup'), steps: [
         'Open the warehouse system in Chrome on a phone or computer and sign in with the same account. On a phone, press Install to make it an app.',
         'Admin: Warehouses & branches → Add a place → type Warehouse.',
         'In the JEXO Count app’s roles, give staff "Record goods in/out" to receive, transfer and adjust.',
@@ -278,7 +436,7 @@ export const WAREHOUSE_GUIDE = {
   ms: {
     intro: 'Sistem gudang berkongsi barang dan stok dengan POS dan aplikasi JEXO Count. Barang masuk, keluar, dan di mana semuanya — semua di sini.',
     sections: [
-      { id: 'setup', title: 'Persediaan', steps: [
+      { id: 'setup', title: 'Persediaan', video: V('wh-0-setup'), steps: [
         'Buka sistem gudang dengan Chrome di telefon atau komputer, log masuk dengan akaun yang sama. Di telefon, tekan Pasang.',
         'Admin: Gudang & cawangan → Tambah lokasi → jenis Gudang.',
         'Dalam peranan aplikasi JEXO Count, beri pekerja "Rekod barang masuk/keluar" untuk terima, pindah dan laras.',
@@ -348,6 +506,25 @@ export const APP_GUIDE = {
         '「我的」→ 角色：设定谁能盘点、看全部、改库存、用收银和仓库。',
         '分店和仓库分开算；操作记录保留每一次修改。',
       ] },
+      { id: 'web', title: '网页版盘点（电脑或手机浏览器）', video: V('count-1-web'), steps: [
+        '浏览器打开 /count/，用同一个账号登录；和手机 app 是同一份盘点。',
+        '按「新盘点」，选分店、写区域（例如 Rak 3），按开始。',
+        '用扫码枪或镜头扫，扫几次就是几个；称重的或很多的，先输入数量再扫。',
+        '按数字可以直接改；不认识的条码可以取名字。',
+        '全部数好按「完成」；完成后只能看，仓库系统马上看到差异。',
+      ] },
+      { id: 'loyverse', title: '连接 Loyverse', video: V('app-4-loyverse'), steps: [
+        'Loyverse 后台 → 设定 → 访问令牌 → 新增，复制令牌。',
+        'app →「我的」→ Loyverse → 贴上令牌，按连接。',
+        '商品有条码的用条码，没有的用 SKU；售价和成本一起拿进来。',
+        'Loyverse 卖出的，库存自动减少；盘点后可以把正确数量写回 Loyverse（要先确认）。',
+      ] },
+      { id: 'account', title: '注册、加入公司、忘记密码', video: V('app-5-account'), steps: [
+        '老板：「注册公司」，填公司名和公司代码，你就是管理员，有 14 天试用。',
+        '员工：「加入公司」，填老板给的公司代码。',
+        '忘记密码：填 email 和公司代码，重设链接寄到 email。',
+        '同一个账号可以用手机 app、收银、仓库和网页版盘点。',
+      ] },
     ],
   },
   en: {
@@ -369,6 +546,25 @@ export const APP_GUIDE = {
         'Profile tab → Roles: who may count, see everything, change stock, use the till and the warehouse.',
         'Branches and warehouses are kept apart; the audit log keeps every change.',
       ] },
+      { id: 'web', title: 'JEXO Count in the browser', video: V('count-1-web'), steps: [
+        'Open /count/ in a browser and sign in with the same account; the counts are the same as the phone app’s.',
+        'New count: pick the branch, write the area (e.g. Rak 3), start.',
+        'Scan with a scanner or the camera; each scan adds one. Weighed or many: type the quantity, then scan.',
+        'Tap a number to change it; name a barcode it does not know.',
+        'Finish when everything is counted; it is then read only, and the warehouse sees the differences at once.',
+      ] },
+      { id: 'loyverse', title: 'Connecting Loyverse', video: V('app-4-loyverse'), steps: [
+        'Loyverse back office → Settings → Access tokens → add, copy the token.',
+        'App → Profile → Loyverse → paste the token, connect.',
+        'Items come in by barcode, or by SKU if there is none, with price and cost.',
+        'Loyverse sales take stock off by themselves; after a count, write the correct figures back to Loyverse (you confirm first).',
+      ] },
+      { id: 'account', title: 'Signing up, joining, forgotten password', video: V('app-5-account'), steps: [
+        'Owner: Create company, with its name and a company code — you are its admin, with a 14-day trial.',
+        'Staff: Join company with the code from the owner.',
+        'Forgotten password: your email and the company code, and a reset link is emailed.',
+        'One account for the phone app, the till, the warehouse and Count on the web.',
+      ] },
     ],
   },
   ms: {
@@ -389,6 +585,130 @@ export const APP_GUIDE = {
         'Yang pertama mendaftar ialah admin; pekerja masuk dengan kod syarikat.',
         'Profil → Peranan: siapa boleh kira, lihat semua, ubah stok, guna POS dan gudang.',
         'Cawangan dan gudang berasingan; log audit menyimpan setiap perubahan.',
+      ] },
+      { id: 'web', title: 'JEXO Count dalam pelayar', video: V('count-1-web'), steps: [
+        'Buka /count/ dalam pelayar dan log masuk dengan akaun yang sama; kiraan sama dengan aplikasi telefon.',
+        'Kiraan baharu: pilih cawangan, tulis kawasan (cth. Rak 3), mula.',
+        'Imbas dengan pengimbas atau kamera; setiap imbasan tambah satu. Ditimbang atau banyak: taip kuantiti, kemudian imbas.',
+        'Tekan nombor untuk menukar; namakan kod bar yang tidak dikenali.',
+        'Selesai bila semua dikira; ia kemudian baca sahaja, dan gudang nampak bezanya serta-merta.',
+      ] },
+      { id: 'loyverse', title: 'Sambung Loyverse', video: V('app-4-loyverse'), steps: [
+        'Pejabat Loyverse → Tetapan → Token akses → tambah, salin token.',
+        'Aplikasi → Profil → Loyverse → tampal token, sambung.',
+        'Barang masuk ikut kod bar, atau SKU jika tiada, dengan harga dan kos.',
+        'Jualan Loyverse menolak stok sendiri; selepas kiraan, tulis angka betul ke Loyverse (anda sahkan dahulu).',
+      ] },
+      { id: 'account', title: 'Daftar, sertai, lupa kata laluan', video: V('app-5-account'), steps: [
+        'Pemilik: Daftar syarikat, dengan nama dan kod syarikat — anda admin, dengan percubaan 14 hari.',
+        'Pekerja: Sertai syarikat dengan kod daripada pemilik.',
+        'Lupa kata laluan: e-mel dan kod syarikat, pautan set semula dihantar ke e-mel.',
+        'Satu akaun untuk aplikasi telefon, kaunter, gudang dan Count di web.',
+      ] },
+    ],
+  },
+};
+
+export const CLOUD_GUIDE = {
+  zh: {
+    intro: 'JEXO Cloud 是老板看的总览：销售、库存、仓库都在一页。你的配套有什么，就显示什么。',
+    sections: [
+      { id: 'dashboard', title: 'JEXO Cloud 总览', video: V('cloud-1-dashboard'), steps: [
+        '在应用中心按 JEXO Cloud，或收银后台左边菜单「JEXO Cloud」。',
+        '今天：销售、单数、平均每单，和最近的收据。',
+        '库存：低库存、没货、库存价值。',
+        '仓库：待批准的采购单、待收货、在途的调货。',
+        '要看细节：报表（收银）、库存（仓库系统）各有完整页面。',
+      ] },
+      { id: 'apps', title: '应用中心：换 app', video: V('acc-1-signup'), steps: [
+        '打开 /app/：你的配套有的 app 可以打开，没买的会锁着。',
+        '每个 app 上面都有「切换应用」，可以随时换去另一个。',
+        '升级配套后，锁着的 app 马上打开。',
+      ] },
+    ],
+  },
+  en: {
+    intro: 'JEXO Cloud is the owner’s overview: sales, stock and the warehouse on one page, following what your plan includes.',
+    sections: [
+      { id: 'dashboard', title: 'The JEXO Cloud overview', video: V('cloud-1-dashboard'), steps: [
+        'Press JEXO Cloud in the app centre, or in the till back office menu.',
+        'Today: sales, receipts, the average bill, and the latest receipts.',
+        'Stock: low, out, and what it is worth.',
+        'Warehouse: purchase orders to approve, to receive, and transfers in transit.',
+        'For detail: Reports (till) and Stock (warehouse) have full pages.',
+      ] },
+      { id: 'apps', title: 'The app centre: switching apps', video: V('acc-1-signup'), steps: [
+        'Open /app/: the apps in your plan open; the rest are locked.',
+        'Every app has Switch app at the top to move to another at any time.',
+        'Upgrade the plan and the locked apps open at once.',
+      ] },
+    ],
+  },
+  ms: {
+    intro: 'JEXO Cloud ialah gambaran pemilik: jualan, stok dan gudang dalam satu halaman, mengikut pakej anda.',
+    sections: [
+      { id: 'dashboard', title: 'Gambaran JEXO Cloud', video: V('cloud-1-dashboard'), steps: [
+        'Tekan JEXO Cloud di pusat aplikasi, atau dalam menu pejabat POS.',
+        'Hari ini: jualan, resit, purata bil, dan resit terkini.',
+        'Stok: rendah, habis, dan nilainya.',
+        'Gudang: pesanan untuk diluluskan, untuk diterima, dan pindahan dalam perjalanan.',
+        'Untuk butiran: Laporan (POS) dan Stok (gudang) ada halaman penuh.',
+      ] },
+      { id: 'apps', title: 'Pusat aplikasi: tukar aplikasi', video: V('acc-1-signup'), steps: [
+        'Buka /app/: aplikasi dalam pakej anda dibuka; yang lain dikunci.',
+        'Setiap aplikasi ada Tukar aplikasi di atas untuk bertukar bila-bila masa.',
+        'Naik taraf pakej dan aplikasi yang dikunci terus dibuka.',
+      ] },
+    ],
+  },
+};
+
+export const ACCOUNT_GUIDE = {
+  zh: {
+    intro: '一个账号用全部 JEXO：手机 app、收银、仓库、网页版盘点和 Cloud。',
+    sections: [
+      { id: 'signup', title: '注册、加入公司、忘记密码', video: V('acc-1-signup'), steps: [
+        '老板：打开 /app/ →「开新公司」，填名字、email、密码、公司名和公司代码（至少 4 个字）。你就是管理员，有 14 天试用。',
+        '员工：「加入公司」，填老板给的公司代码；先是员工身份，老板之后可以给更多权限。',
+        '管理员在「我的 Profile」看得到公司代码。',
+        '忘记密码：登录页按「忘记密码？」，填 email 和公司代码，重设链接寄到 email。',
+        '登录后到应用中心，你的配套有的 app 都可以打开。',
+      ] },
+      { id: 'phone', title: '在手机 app 注册', video: V('app-5-account'), steps: [
+        'JEXO Count app 一样有「注册公司」「加入公司」「忘记密码」。',
+        '在 app 注册的账号，网页和收银也可以直接登录。',
+      ] },
+    ],
+  },
+  en: {
+    intro: 'One account for all of JEXO: the phone app, the till, the warehouse, Count on the web and Cloud.',
+    sections: [
+      { id: 'signup', title: 'Signing up, joining, forgotten password', video: V('acc-1-signup'), steps: [
+        'Owner: open /app/ → Create company: name, email, password, company name and a company code (at least 4 characters). You are its admin, with a 14-day trial.',
+        'Staff: Join a company with the code from the owner; you start as staff, and the owner can give you more later.',
+        'Admins see the company code in Profile.',
+        'Forgotten password: Forgot password? on the sign-in page, your email and the company code, and a reset link is emailed.',
+        'Signed in, the app centre opens the apps your plan includes.',
+      ] },
+      { id: 'phone', title: 'Signing up in the phone app', video: V('app-5-account'), steps: [
+        'The JEXO Count app has the same Create company, Join company and Forgot password.',
+        'An account made in the app signs in on the web and the till too.',
+      ] },
+    ],
+  },
+  ms: {
+    intro: 'Satu akaun untuk semua JEXO: aplikasi telefon, kaunter, gudang, Count di web dan Cloud.',
+    sections: [
+      { id: 'signup', title: 'Daftar, sertai, lupa kata laluan', video: V('acc-1-signup'), steps: [
+        'Pemilik: buka /app/ → Syarikat baharu: nama, e-mel, kata laluan, nama syarikat dan kod syarikat (sekurang-kurangnya 4 aksara). Anda admin, dengan percubaan 14 hari.',
+        'Pekerja: Sertai syarikat dengan kod daripada pemilik; mula sebagai pekerja, pemilik boleh beri lebih kemudian.',
+        'Admin nampak kod syarikat di Profil.',
+        'Lupa kata laluan: Lupa kata laluan? di halaman log masuk, e-mel dan kod syarikat, pautan set semula dihantar.',
+        'Selepas log masuk, pusat aplikasi membuka aplikasi dalam pakej anda.',
+      ] },
+      { id: 'phone', title: 'Daftar dalam aplikasi telefon', video: V('app-5-account'), steps: [
+        'Aplikasi JEXO Count ada Daftar syarikat, Sertai syarikat dan Lupa kata laluan yang sama.',
+        'Akaun dibuat dalam aplikasi boleh log masuk di web dan kaunter juga.',
       ] },
     ],
   },

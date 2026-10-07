@@ -2,8 +2,12 @@
  * The film studio shared by the guide videos (record.mjs) and the
  * marketing videos (promo.mjs): a visible pointer, captions, title cards,
  * and film() -- one browser session recorded to web/videos/<name>.webm.
+ *
+ * Every caption and title is also written down with the moment it appeared
+ * (web/videos/<name>.webm.json, [{ t, zh, en }]): the guide pages read them
+ * aloud while the video plays (web/js/narrate.js).
  */
-import { mkdirSync, renameSync, rmSync } from 'node:fs';
+import { mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { start } from '../../tests/ui/harness.mjs';
@@ -34,18 +38,25 @@ const OVERLAY = () => {
   document.body.append(c, cap);
 };
 
-export function helpers(page) {
+const plain = (html) => String(html || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+
+export function helpers(page, cues = [], t0 = Date.now()) {
   const wait = (ms) => page.waitForTimeout(ms);
   const overlay = () => page.evaluate(OVERLAY);
+  /** Something to say [after] ms from now. */
+  const cue = (zh, en, after = 0) => { if (zh || en) cues.push({ t: Date.now() - t0 + after, zh: plain(zh), en: plain(en) }); };
   return {
     wait,
+    cue,
     async caption(zh, en = '', ms = 2300) {
       await overlay();
+      cue(zh, en);
       await page.evaluate(([a, b]) => { const c = document.getElementById('demo-cap'); c.innerHTML = a ? `${a}${b ? `<small>${b}</small>` : ''}` : ''; }, [zh, en]);
       await wait(ms);
     },
     async title(big, small, en, { bg = '' } = {}) {
       await overlay();
+      cue(`${plain(big)}。${plain(small)}`, en);
       await page.evaluate(([b, s, e, g]) => {
         const t = document.createElement('div'); t.id = 'demo-title'; if (g) t.style.setProperty('--demo-bg', g);
         t.innerHTML = `<div>${b}<small>${s}</small><em>${e}</em></div>`; document.body.append(t);
@@ -94,7 +105,8 @@ export async function film(name, seed, fn, { path = '/pos/', size = SIZE, lang =
   mkdirSync(dir, { recursive: true });
   const s = await start({ seedPatch: seed, viewport: size, recordVideo: dir, lang });
   if (seed?.branch) await s.page.addInitScript((b) => localStorage.setItem('pos.branch.w1', JSON.stringify(b)), seed.branch);
-  const x = helpers(s.page);
+  const cues = [];
+  const x = helpers(s.page, cues, Date.now());
   try {
     if (path) await s.page.goto(s.base + path);
     await fn(s.page, x, s.base);
@@ -105,6 +117,7 @@ export async function film(name, seed, fn, { path = '/pos/', size = SIZE, lang =
   const video = s.page.video();
   await s.context.close();
   renameSync(await video.path(), join(OUT, `${name}.webm`));
+  writeFileSync(join(OUT, `${name}.webm.json`), `${JSON.stringify(cues)}\n`);
   rmSync(dir, { recursive: true, force: true });
   await s.done();
   console.log('filmed', name);

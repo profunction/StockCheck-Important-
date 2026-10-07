@@ -107,3 +107,22 @@ Receive). Part of the procurement module: `may: 'procurement.purchase'`.
 - **Till lock** (`web/js/tilllock.js`): a counter computer can be locked to the register; an
   admin's email and password lock and unlock it. The other apps send a locked computer back to
   the till. It locks screens; roles and rules still decide what each person may do.
+
+## Guides with a voice
+
+Every app and every job in it has a guide section with a short video
+(`web/js/guides.js`, shown on each app's "How to use" page and on `/guide/`,
+which has tabs for the account, JEXO Count, POS, Warehouse and Cloud).
+
+- The videos are filmed by `tools/videos/record.mjs` in the pretend shop of
+  `world.mjs`: `node tools/videos/record.mjs` films them all, or name some.
+- Each caption and title is also saved, with the moment it appeared, in
+  `web/videos/<name>.webm.json`.
+- While a video plays, `web/js/narrate.js` reads those steps aloud with the
+  viewer's own device voice (Chinese or English; Malay pages use the English
+  line until Malay captions are added). The video waits while a step is
+  read. Viewers can switch the voice off; the choice is kept.
+- The voice is not inside the video file: there is no speech engine where
+  the videos are made. A downloaded video is silent, with its captions.
+- After filming again, raise `?v=` in `guides.js` so browsers do not show a
+  cached old video with the new steps.

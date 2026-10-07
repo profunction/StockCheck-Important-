@@ -235,4 +235,45 @@ let failed = 0;
   failed += await s.done();
 }
 
+// ------------------------------------------------ guides that talk
+{
+  const s = await start({});
+  const { page, base, step } = s;
+  // The device's voice, listened to: what would be said, in which language.
+  await page.addInitScript(() => {
+    window.__spoken = [];
+    class Utterance { constructor(text) { this.text = text; } }
+    window.SpeechSynthesisUtterance = Utterance;
+    Object.defineProperty(window, 'speechSynthesis', { value: {
+      paused: false, getVoices: () => [],
+      speak(u) { window.__spoken.push([u.text, u.lang]); setTimeout(() => u.onend?.(), 20); },
+      cancel() {}, pause() {}, resume() {},
+    } });
+  });
+  await step('guide: every tab, every section with a video has its voice switch', async () => {
+    for (const tab of ['account', 'app', 'pos', 'warehouse', 'cloud']) {
+      await page.goto(`${base}/guide/#${tab}`);
+      await page.reload();
+      await page.waitForSelector('.guide section');
+      const [videos, switches] = await page.evaluate(() => [document.querySelectorAll('.guide video').length, document.querySelectorAll('.guide [data-act="narrate"]').length]);
+      if (!videos || videos !== switches) throw new Error(`${tab}: ${videos} videos, ${switches} switches`);
+    }
+  });
+  await step('guide: playing a video reads its steps aloud in the page language', async () => {
+    await page.goto(`${base}/guide/#pos`);
+    await page.reload();
+    await page.waitForSelector('.guide video');
+    await page.evaluate(() => { const v = document.querySelector('.guide video'); v.muted = true; v.play(); });
+    await page.waitForFunction(() => window.__spoken.length > 0, null, { timeout: 20000 });
+    const [text, lang] = await page.evaluate(() => window.__spoken[0]);
+    if (!/收银/.test(text) || !lang.startsWith('zh')) throw new Error(`${text} ${lang}`);
+  });
+  await step('guide: the voice can be switched off', async () => {
+    await page.click('.guide [data-act="narrate"] >> nth=0');
+    await page.waitForSelector('.guide [data-act="narrate"]:has-text("关")');
+    if (await page.evaluate(() => JSON.parse(localStorage.getItem('guide.narrate')))) throw new Error('not kept');
+  });
+  failed += await s.done();
+}
+
 process.exit(failed ? 1 : 0);

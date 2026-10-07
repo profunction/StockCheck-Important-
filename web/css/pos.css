@@ -485,3 +485,6 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .till-locked-note { margin: 0 12px 8px; padding: 8px 10px; border-radius: 9px; background: rgba(245, 158, 11, .15); color: #fcd34d; font-size: 13px; display: flex; gap: 8px; align-items: center; }
 .till-badge { display: inline-flex; align-items: center; padding: 0 12px; min-height: 40px; border-radius: 10px; background: var(--surface-3); font-weight: 700; white-space: nowrap; }
 .till-badge:empty { display: none; }
+.narrated { display: grid; gap: 6px; align-content: start; }
+.narrated video { width: 100%; border-radius: 10px; background: #000; }
+.narrate-toggle { justify-self: start; font-size: 14px; min-height: 34px; }

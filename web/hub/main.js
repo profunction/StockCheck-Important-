@@ -21,6 +21,7 @@ function render() {
     h('header', { class: 'hub-top' },
       h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 34, height: 34 }), 'JEXO'),
       h('span', { class: 'grow' }),
+      h('a', { class: 'btn ghost', href: '/guide/#account', 'data-act': 'guide' }, icon('check', 17), t('posGuide')),
       langPicker(),
       h('button', { class: 'ghost', onclick: signOutNow }, icon('logout', 17), t('signOut'))),
     h('main', { class: 'hub-main' },

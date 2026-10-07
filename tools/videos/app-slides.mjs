@@ -58,7 +58,31 @@ export const APP_FILMS = [
       ['log', '操作记录', '每一次修改都记下来，谁、什么时候、改了什么', 'Every change is logged: who, when, what'],
     ],
   },
+  {
+    name: 'app-4-loyverse',
+    title: ['连接 Loyverse', 'JEXO Count app · Loyverse 同步', 'Syncing with Loyverse POS'],
+    slides: [
+      ['key', '拿令牌', 'Loyverse 后台 → 设定 → 访问令牌 → 新增，复制', 'Loyverse back office → Settings → Access tokens → add, copy'],
+      ['sync', '贴进 app', 'app →「我的」→ Loyverse → 贴上令牌，按连接', 'App → Profile → Loyverse → paste the token, connect'],
+      ['box', '商品同步', '有条码的用条码，没有的用 SKU；售价和成本一起拿', 'Items come by barcode, or SKU if none, with price and cost'],
+      ['cart', '销售同步', 'Loyverse 卖出的，库存自动减少', 'Loyverse sales take stock off automatically'],
+      ['check', '写回 Loyverse', '盘点后可以把正确数量写回 Loyverse（要先确认）', 'After a count, write correct figures back (you confirm first)'],
+    ],
+  },
+  {
+    name: 'app-5-account',
+    title: ['注册和忘记密码', 'JEXO Count app · 账号', 'Accounts on the phone app'],
+    slides: [
+      ['store', '注册公司', '老板选「注册公司」，填公司名和公司代码', 'Owner: Create company, with its name and code'],
+      ['user', '加入公司', '员工选「加入公司」，填老板给的公司代码', 'Staff: Join company with the owner’s code'],
+      ['key', '忘记密码', '填 email 和公司代码，重设链接寄到 email', 'Forgot it: email and company code, a reset link is emailed'],
+      ['shield', '同一个账号', '同一个账号可以用 app、收银、仓库和网页版盘点', 'One account for the app, till, warehouse and web Count'],
+    ],
+  },
 ];
+
+/** When slide [i] (from 0) comes up: after the 3 s title, 4.2 s each. */
+export const SLIDE_AT = (i) => 3000 + 4200 * i;
 
 export function slidesHtml(film) {
   const [t1, t2, t3] = film.title;
