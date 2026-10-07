@@ -51,7 +51,7 @@ addStrings({
     app_pos: '柜台收银：店面零售、超市或餐饮。',
     app_cloud: '老板用：今天的销售、库存、报表和员工。',
     app_warehouse: '进货出货、调货、采购单、网购进货。',
-    suNoAccount: '还没有账号？', suJoin: '加入公司', suCreate: '开新公司', suName: '你的名字', suPassword2: '再输入一次密码', suCompany: '公司名字',
+    suNoAccount: '还没有账号？', suJoin: '加入公司', suCreate: '注册新公司', suName: '你的名字', suPassword2: '再输入一次密码', suCompany: '公司名字',
     suCode: '公司代码', suCodeNew: '设一个公司代码（4 个字母或数字以上，例如 KEDAIMAJU）',
     suJoinBtn: '加入公司', suCreateBtn: '开公司，开始 14 天免费试用',
     suJoinHelp: '公司代码由老板给你。你会以员工身份加入，老板之后可以给你更多权限。',

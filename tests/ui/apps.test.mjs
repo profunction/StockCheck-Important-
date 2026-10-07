@@ -259,6 +259,16 @@ let failed = 0;
       if (!videos || videos !== switches) throw new Error(`${tab}: ${videos} videos, ${switches} switches`);
     }
   });
+  await step('guide: beside the account guide, sign in or register with a company code', async () => {
+    await page.goto(`${base}/guide/#account`);
+    await page.reload();
+    await page.waitForSelector('.gp-split .acct');
+    for (const go of ['create', 'join', 'signin', 'reset']) await page.waitForSelector(`.acct a[data-go="${go}"]`);
+    await page.addInitScript(() => { window.__signedOut = true; });
+    await page.click('.acct a[data-go="create"]');
+    await page.waitForSelector('.auth-tabs button.on[data-tab="create"]');
+    if (!(await page.isVisible('.auth-card:has-text("公司代码")'))) throw new Error('no company code on register');
+  });
   await step('guide: playing a video reads its steps aloud in the page language', async () => {
     await page.goto(`${base}/guide/#pos`);
     await page.reload();

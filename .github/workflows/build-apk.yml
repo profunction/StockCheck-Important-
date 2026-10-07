@@ -69,16 +69,19 @@ jobs:
           done
           ls -l webapps-out
 
+      # A spare copy; the release below is what phones download. Its storage
+      # fills up, and that must never stop the release.
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: ${{ steps.name.outputs.apk }}
           path: |
             app/build/outputs/apk/debug/*.apk
             webapps-out/*.apk
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 3
 
       # A release gives a plain download link. Artifacts arrive as a zip and
       # need a signed-in browser, which is awkward on the device that has to
