@@ -214,6 +214,15 @@
     <string name="pos_never_synced">Belum disegerak</string>
     <string name="pos_last_sync">Kali terakhir disegerak %1$s: %2$s</string>
     <string name="pos_sync_now">Segerak sekarang</string>
+    <string name="write_back_open">Tulis ke Loyverse</string>
+    <string name="write_back_title">Tulis kiraan ke Loyverse</string>
+    <string name="write_back_intro">Stok Loyverse ditukar kepada kiraan anda, campur barang masuk dan keluar sejak itu. Nyahtanda apa-apa yang anda tidak pasti.</string>
+    <string name="write_back_sync_first">Segerak dahulu, supaya jualan sejak segerak terakhir tidak ditimpa.</string>
+    <string name="write_back_pick_branch">Pilih cawangan di atas dahulu: setiap cawangan ialah kedai Loyverse sendiri.</string>
+    <string name="write_back_nothing">Tiada perubahan: Loyverse sudah sama dengan kiraan.</string>
+    <string name="write_back_change">Loyverse %1$s → %2$s</string>
+    <string name="write_back_go">Tulis %1$d</string>
+    <string name="write_back_done">%1$d barang dikemas kini dalam Loyverse.</string>
     <string name="pos_sync_done">%1$d produk baharu, %2$d dikemas kini · stok %3$d · %4$d rekod jualan</string>
     <string name="pos_disconnect">Putuskan sambungan</string>
     <string name="pos_others_title">Sistem POS lain</string>

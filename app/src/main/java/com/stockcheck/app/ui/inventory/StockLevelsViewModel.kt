@@ -17,7 +17,9 @@ import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockLedger
 import com.stockcheck.app.model.StockMovement
 import com.stockcheck.app.pos.LoyverseSettings
+import com.stockcheck.app.pos.Loyverse
 import com.stockcheck.app.pos.PosStock
+import com.stockcheck.app.pos.WriteBack
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -38,6 +40,13 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
 enum class LevelFilter { ALL, LOW, MISSING, UNCOUNTED }
+
+/** What a write-back to the till would change, or why it cannot be worked out. */
+data class WriteBackPlan(
+    val items: List<WriteBack> = emptyList(),
+    /** Several branches: which one's count to write has to be chosen first. */
+    val needsBranch: Boolean = false,
+)
 
 data class LevelsState(
     val loading: Boolean = true,
@@ -137,6 +146,34 @@ class StockLevelsViewModel(private val session: Session) : ViewModel() {
             emit(last)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LevelsState())
+
+    /**
+     * Counted figures that differ from Loyverse's, for the shown branch.
+     * With several branches and "all" chosen there is no single shelf to
+     * write, so a branch has to be picked first.
+     */
+    val writeBack: StateFlow<WriteBackPlan> = combine(state, posStock, _branchId, branches) { s, pos, branch, all ->
+        val target = branch ?: if (all.isEmpty()) "" else null
+        if (target == null) {
+            WriteBackPlan(needsBranch = true)
+        } else {
+            WriteBackPlan(items = Loyverse.planWriteBack(s.levels, pos?.levels.orEmpty(), target))
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WriteBackPlan())
+
+    private val _writing = MutableStateFlow(false)
+    val writing: StateFlow<Boolean> = _writing.asStateFlow()
+
+    fun pushToLoyverse(items: List<WriteBack>, onDone: (Int) -> Unit) {
+        if (_writing.value) return
+        _writing.value = true
+        viewModelScope.launch {
+            runCatching { ServiceLocator.loyverse.pushStock(session, items) }
+                .onSuccess(onDone)
+                .onFailure { _message.value = it.message }
+            _writing.value = false
+        }
+    }
 
     private data class Inputs(
         val checks: List<StockCheck>,

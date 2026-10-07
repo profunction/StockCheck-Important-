@@ -225,6 +225,15 @@
     <string name="pos_never_synced">Not synced yet</string>
     <string name="pos_last_sync">Last synced %1$s: %2$s</string>
     <string name="pos_sync_now">Sync now</string>
+    <string name="write_back_open">Write to Loyverse</string>
+    <string name="write_back_title">Write counts back to Loyverse</string>
+    <string name="write_back_intro">Loyverse\'s stock is changed to what your count found, plus what came in and went out since. Untick anything you are not sure about.</string>
+    <string name="write_back_sync_first">Sync first, so sales since your last sync are not written over.</string>
+    <string name="write_back_pick_branch">Choose a branch above first: each branch is its own Loyverse store.</string>
+    <string name="write_back_nothing">Nothing to change: Loyverse already matches your counts.</string>
+    <string name="write_back_change">Loyverse %1$s → %2$s</string>
+    <string name="write_back_go">Write %1$d</string>
+    <string name="write_back_done">Updated %1$d items in Loyverse.</string>
     <string name="pos_sync_done">%1$d new products, %2$d updated · stock for %3$d · %4$d sales records</string>
     <string name="pos_disconnect">Disconnect</string>
     <string name="pos_others_title">Other tills</string>

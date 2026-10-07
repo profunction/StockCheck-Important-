@@ -264,6 +264,42 @@ class LoyverseSync(private val audit: AuditRepository) {
         }
     }
 
+    /**
+     * Writes counted figures back into Loyverse, so its stock matches the
+     * shelf. Only what the person confirmed in the dialog; and the stored
+     * copy of Loyverse's figures is updated to match, so the screen shows
+     * the new numbers without waiting for the next sync.
+     */
+    suspend fun pushStock(session: Session, updates: List<WriteBack>): Int {
+        session.require(Permission.CHANGE_PERMISSION)
+        if (updates.isEmpty()) return 0
+        val settings = Db.integration(NAME).getAs<LoyverseSettings>()
+            ?: throw IllegalStateException("Loyverse is not connected.")
+        withContext(Dispatchers.IO) {
+            updates.chunked(WRITE_BATCH).forEach { chunk ->
+                request("POST", "/inventory", settings.token, Loyverse.writeBackBody(chunk))
+            }
+        }
+        Db.integration(STOCK).getAs<PosStock>()?.let { stored ->
+            val written = updates.associateBy { it.variantId + "|" + it.storeId }
+            val levels = stored.levels.map { level ->
+                written[level.variantId + "|" + level.storeId]?.takeIf { level.parts == 1 }
+                    ?.let { level.copy(inStockMilli = it.toMilli) } ?: level
+            }
+            Db.integration(STOCK).set(stored.copy(levels = levels)).awaitAck()
+        }
+        audit.record(
+            session = session,
+            entity = "Integration",
+            entityId = NAME,
+            entityLabel = "Loyverse",
+            action = AuditAction.UPDATE,
+            field = "stock written back",
+            newValue = updates.joinToString { "${it.name} ${it.fromMilli / 1000.0} -> ${it.toMilli / 1000.0}" }.take(900),
+        )
+        return updates.size
+    }
+
     // ----------------------------------------------------------------- HTTP
 
     private fun String?.param(): String =
@@ -281,15 +317,22 @@ class LoyverseSync(private val audit: AuditRepository) {
         return all
     }
 
-    private fun get(path: String, token: String): String {
+    private fun get(path: String, token: String): String = request("GET", path, token, null)
+
+    private fun request(method: String, path: String, token: String, body: String?): String {
         val connection = (URL(Loyverse.BASE + path).openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
+            requestMethod = method
             connectTimeout = 15_000
             readTimeout = 30_000
             setRequestProperty("Authorization", "Bearer $token")
             setRequestProperty("Accept", "application/json")
+            if (body != null) {
+                doOutput = true
+                setRequestProperty("Content-Type", "application/json")
+            }
         }
         try {
+            if (body != null) connection.outputStream.use { it.write(body.toByteArray()) }
             val code = connection.responseCode
             if (code in 200..299) return connection.inputStream.bufferedReader().use { it.readText() }
             val detail = connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
@@ -313,6 +356,8 @@ class LoyverseSync(private val audit: AuditRepository) {
     private companion object {
         const val NAME = "loyverse"
         const val STOCK = "loyverse_stock"
+        /** Inventory levels per POST; Loyverse's list endpoints use 250 too. */
+        const val WRITE_BATCH = 250
         /** How far back each sync re-reads, for receipts that synced late. */
         const val RESYNC_DAYS = 7L
         const val MAX_PAGES = 400

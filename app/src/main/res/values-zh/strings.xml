@@ -214,6 +214,15 @@
     <string name="pos_never_synced">还没同步过</string>
     <string name="pos_last_sync">上次同步 %1$s：%2$s</string>
     <string name="pos_sync_now">立即同步</string>
+    <string name="write_back_open">写回 Loyverse</string>
+    <string name="write_back_title">把盘点数量写回 Loyverse</string>
+    <string name="write_back_intro">Loyverse 的库存会改成你盘点到的数量（加上之后的进货和卖出）。不确定的商品请取消勾选。</string>
+    <string name="write_back_sync_first">请先同步，免得把上次同步之后卖出的数量盖掉。</string>
+    <string name="write_back_pick_branch">请先在上面选一间分店：每间分店是 Loyverse 里的一间店。</string>
+    <string name="write_back_nothing">不用改：Loyverse 的数量已经跟盘点一样。</string>
+    <string name="write_back_change">Loyverse %1$s → %2$s</string>
+    <string name="write_back_go">写回 %1$d 样</string>
+    <string name="write_back_done">已更新 Loyverse 的 %1$d 样商品。</string>
     <string name="pos_sync_done">新商品 %1$d 个，更新 %2$d 个 · 库存 %3$d 样 · 销售 %4$d 笔</string>
     <string name="pos_disconnect">断开连接</string>
     <string name="pos_others_title">其他收银系统</string>

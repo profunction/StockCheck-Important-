@@ -94,6 +94,7 @@ fun StockLevelsScreen(
 
     var menuOpen by remember { mutableStateOf(false) }
     var recording by remember { mutableStateOf(false) }
+    var writingBack by remember { mutableStateOf(false) }
     var opened by remember { mutableStateOf<StockLedger.Level?>(null) }
 
     val shown = state.levels
@@ -188,8 +189,13 @@ fun StockLevelsScreen(
                                     color = MaterialTheme.colorScheme.outline,
                                 )
                             }
-                            TextButton(onClick = viewModel::syncLoyverse, enabled = !syncing) {
-                                Text(stringResource(R.string.pos_sync_now))
+                            Column(horizontalAlignment = Alignment.End) {
+                                TextButton(onClick = viewModel::syncLoyverse, enabled = !syncing) {
+                                    Text(stringResource(R.string.pos_sync_now))
+                                }
+                                TextButton(onClick = { writingBack = true }, enabled = !syncing) {
+                                    Text(stringResource(R.string.write_back_open))
+                                }
                             }
                         }
                     }
@@ -290,6 +296,29 @@ fun StockLevelsScreen(
                 }
             }
         }
+    }
+
+    if (writingBack) {
+        val plan by viewModel.writeBack.collectAsStateWithLifecycle()
+        val writing by viewModel.writing.collectAsStateWithLifecycle()
+        val context = androidx.compose.ui.platform.LocalContext.current
+        WriteBackDialog(
+            plan = plan,
+            lastSyncedAt = loyverse?.lastSyncedAt ?: 0L,
+            busy = writing || syncing,
+            onSync = viewModel::syncLoyverse,
+            onDismiss = { writingBack = false },
+            onConfirm = { items ->
+                viewModel.pushToLoyverse(items) { count ->
+                    writingBack = false
+                    android.widget.Toast.makeText(
+                        context,
+                        context.getString(R.string.write_back_done, count),
+                        android.widget.Toast.LENGTH_LONG,
+                    ).show()
+                }
+            },
+        )
     }
 
     if (recording) {
@@ -625,6 +654,72 @@ private fun RecordDialog(
                 onClick = { onSave(type, code, parsed ?: 0L, branch, note) },
                 enabled = code.isNotBlank() && (parsed ?: 0L) > 0L,
             ) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+/**
+ * Sending counted figures to Loyverse, product by product, after the person
+ * has seen each change. A wrong count written into the till is a wrong
+ * figure at every till, so nothing goes without this screen.
+ */
+@Composable
+private fun WriteBackDialog(
+    plan: WriteBackPlan,
+    lastSyncedAt: Long,
+    busy: Boolean,
+    onSync: () -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: (List<com.stockcheck.app.pos.WriteBack>) -> Unit,
+) {
+    // Ten minutes: sales rung up since the last sync would otherwise be
+    // written over with a figure from before them.
+    val stale = System.currentTimeMillis() - lastSyncedAt > 10 * 60 * 1000L
+    var unticked by remember { mutableStateOf(setOf<String>()) }
+    val chosen = plan.items.filter { it.key !in unticked }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.write_back_title)) },
+        text = {
+            Column(modifier = Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
+                Text(stringResource(R.string.write_back_intro), style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(8.dp))
+                when {
+                    stale -> {
+                        Text(stringResource(R.string.write_back_sync_first), color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = onSync, enabled = !busy) { Text(stringResource(R.string.pos_sync_now)) }
+                    }
+                    plan.needsBranch -> Text(stringResource(R.string.write_back_pick_branch))
+                    plan.items.isEmpty() -> Text(stringResource(R.string.write_back_nothing))
+                    else -> plan.items.forEach { item ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            androidx.compose.material3.Checkbox(
+                                checked = item.key !in unticked,
+                                onCheckedChange = { on -> unticked = if (on) unticked - item.key else unticked + item.key },
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.name, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text(
+                                    stringResource(
+                                        R.string.write_back_change,
+                                        Quantity.format(item.fromMilli),
+                                        Quantity.format(item.toMilli),
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.outline,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(chosen) },
+                enabled = !busy && !stale && !plan.needsBranch && chosen.isNotEmpty(),
+            ) { Text(stringResource(R.string.write_back_go, chosen.size)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )

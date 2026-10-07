@@ -16,6 +16,27 @@ data class PosLevel(
     val key: String = "",
     val name: String = "",
     val inStockMilli: Long = 0L,
+    /** Where to write a corrected figure back: Loyverse's variant and store. */
+    val variantId: String = "",
+    val storeId: String = "",
+    /**
+     * How many Loyverse variant-and-store figures were added up into this
+     * one. More than one -- two stores mapped to one branch -- cannot be
+     * written back as a single number, so it is left alone.
+     */
+    val parts: Int = 1,
+)
+
+/** One correction to send to Loyverse after a count. */
+data class WriteBack(
+    val key: String,
+    val name: String,
+    val variantId: String,
+    val storeId: String,
+    /** What Loyverse says now. */
+    val fromMilli: Long,
+    /** What the count says, with what moved since. */
+    val toMilli: Long,
 )
 
 /** The latest stock figures read from the till, at `integrations/loyverse_stock`. */
@@ -260,7 +281,7 @@ object Loyverse {
             } else {
                 matcher.resolve(variant.sku, variant.displayName).takeIf { it.matched } ?: byBarcode
             }
-            Triple(storeBranches[level.storeId].orEmpty(), product, level.inStock)
+            Triple(storeBranches[level.storeId].orEmpty(), product, level)
         }
             .groupBy { (branch, product, _) -> branch to product.key }
             .map { (key, group) ->
@@ -268,9 +289,45 @@ object Loyverse {
                     branchId = key.first,
                     key = key.second,
                     name = group.first().second.name,
-                    inStockMilli = group.sumOf { it.third },
+                    inStockMilli = group.sumOf { it.third.inStock },
+                    variantId = group.first().third.variantId,
+                    storeId = group.first().third.storeId,
+                    parts = group.size,
                 )
             }
+
+    /**
+     * What to correct in Loyverse after a count: every product counted here
+     * whose Loyverse figure is different from what the count says is there
+     * now. Only products Loyverse keeps stock for, at a branch that is one
+     * Loyverse store -- anything else has no single number to overwrite.
+     *
+     * [levels] must be [branchId]'s own, synced from Loyverse first, so the
+     * sales since the count are in them and are not written over.
+     */
+    fun planWriteBack(levels: List<com.stockcheck.app.model.StockLedger.Level>, pos: List<PosLevel>, branchId: String): List<WriteBack> {
+        val till = pos.filter { it.branchId == branchId && it.parts == 1 && it.variantId.isNotEmpty() }.associateBy { it.key }
+        return levels.mapNotNull { level ->
+            if (level.counted == null) return@mapNotNull null
+            val target = till[level.key] ?: return@mapNotNull null
+            if (target.inStockMilli == level.onHand) return@mapNotNull null
+            WriteBack(level.key, level.label, target.variantId, target.storeId, target.inStockMilli, level.onHand)
+        }.sortedBy { it.name.lowercase() }
+    }
+
+    /** The body of POST /inventory for [updates]. Loyverse takes stock as a plain number. */
+    fun writeBackBody(updates: List<WriteBack>): String {
+        val array = org.json.JSONArray()
+        updates.forEach { u ->
+            array.put(
+                JSONObject()
+                    .put("variant_id", u.variantId)
+                    .put("store_id", u.storeId)
+                    .put("stock_after", u.toMilli / 1000.0),
+            )
+        }
+        return JSONObject().put("inventory_levels", array).toString()
+    }
 
     /** One movement-to-be per branch, day and product -- the same shape a file import makes. */
     data class DayTotal(

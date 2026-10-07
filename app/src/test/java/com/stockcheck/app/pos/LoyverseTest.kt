@@ -228,4 +228,49 @@ class LoyverseTest {
         assertEquals("Eggs", plan.create.single().name)
         assertEquals(1, plan.noBarcode)
     }
+
+    private fun level(key: String, counted: Long?, inSince: Long = 0, outSince: Long = 0) =
+        com.stockcheck.app.model.StockLedger.Level(
+            key = key, barcode = key, name = key, unit = "pcs", counted = counted, countedAt = if (counted == null) null else 1L,
+            inSince = inSince, outSince = outSince, reorderLevel = null, lossAtCount = null,
+        )
+
+    @Test
+    fun `write-back sends what the count says is there now, and only where it differs`() {
+        val pos = listOf(
+            PosLevel(branchId = "", key = "milo", inStockMilli = Quantity.of(20), variantId = "v1", storeId = "s1"),
+            PosLevel(branchId = "", key = "sugar", inStockMilli = Quantity.of(7), variantId = "v2", storeId = "s1"),
+            PosLevel(branchId = "", key = "rice", inStockMilli = Quantity.of(5), variantId = "v3", storeId = "s1"),
+            // Two stores added into one branch: no single figure to overwrite.
+            PosLevel(branchId = "", key = "eggs", inStockMilli = Quantity.of(9), variantId = "v4", storeId = "s1", parts = 2),
+            PosLevel(branchId = "ipoh", key = "milo", inStockMilli = Quantity.of(3), variantId = "v1", storeId = "s2"),
+        )
+        val plan = Loyverse.planWriteBack(
+            levels = listOf(
+                // Counted 18, sold 2 since -> 16 on the shelf now.
+                level("milo", Quantity.of(18), outSince = Quantity.of(2)),
+                level("sugar", Quantity.of(7)),
+                // Never counted here: nothing to say about it.
+                level("rice", null, inSince = Quantity.of(4)),
+                level("eggs", Quantity.of(1)),
+            ),
+            pos = pos,
+            branchId = "",
+        )
+        assertEquals(listOf("milo"), plan.map { it.key })
+        assertEquals(Quantity.of(20), plan.single().fromMilli)
+        assertEquals(Quantity.of(16), plan.single().toMilli)
+        assertEquals("s1", plan.single().storeId)
+    }
+
+    @Test
+    fun `write-back body is what Loyverse's POST inventory takes`() {
+        val body = org.json.JSONObject(
+            Loyverse.writeBackBody(listOf(WriteBack("k", "Rice", "v1", "s1", 0, 1_250))),
+        )
+        val level = body.getJSONArray("inventory_levels").getJSONObject(0)
+        assertEquals("v1", level.getString("variant_id"))
+        assertEquals("s1", level.getString("store_id"))
+        assertEquals(1.25, level.getDouble("stock_after"), 0.0)
+    }
 }
