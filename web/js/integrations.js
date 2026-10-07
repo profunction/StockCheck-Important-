@@ -1,5 +1,5 @@
 /**
- * Integrations: access tokens for the Stock Check POS API, and how to use it.
+ * Integrations: access tokens for the Pos Stock Check API, and how to use it.
  *
  * A token is shown once, when it is made. Only its SHA-256 is stored -- as
  * the document id under apiTokens/ -- so nobody who can read the database,

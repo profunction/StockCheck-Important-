@@ -204,7 +204,7 @@
     <string name="role_unit">单位</string>
     <string name="role_expiry">有效期</string>
     <string name="pos_title">连接收银系统</string>
-    <string name="pos_web_title">Stock Check POS（网站）</string>
+    <string name="pos_web_title">Pos Stock Check（网站）</string>
     <string name="pos_web_body">我们自己的收银系统，适合商店、超市、仓库和餐厅。在柜台电脑打开，用这个同样的账号登录，插上 USB 扫码枪和收据打印机就能用。商品、照片、价格和库存都和这个 app 共用，不用另外连接。</string>
     <string name="pos_web_open">打开 POS 网站</string>
     <string name="pos_admin_only">只有公司管理员可以连接收银系统。</string>

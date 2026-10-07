@@ -2,7 +2,7 @@
   "name": "stockcheck-pos-api",
   "private": true,
   "type": "module",
-  "description": "The Stock Check POS API. Deployed to Cloud Run by .github/workflows/deploy-firebase.yml.",
+  "description": "The Pos Stock Check API. Deployed to Cloud Run by .github/workflows/deploy-firebase.yml.",
   "scripts": {
     "start": "node server.mjs",
     "test": "node lib.test.mjs && node api-test.mjs"

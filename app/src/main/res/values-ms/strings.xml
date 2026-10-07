@@ -204,7 +204,7 @@
     <string name="role_unit">Unit</string>
     <string name="role_expiry">Tarikh luput</string>
     <string name="pos_title">Sambung sistem POS</string>
-    <string name="pos_web_title">Stock Check POS (laman web)</string>
+    <string name="pos_web_title">Pos Stock Check (laman web)</string>
     <string name="pos_web_body">Mesin kaunter kami sendiri untuk kedai, pasar raya, gudang dan restoran. Buka di komputer kaunter, log masuk dengan akaun yang sama, pasang pengimbas kod bar USB dan pencetak resit. Produk, gambar, harga dan stok dikongsi dengan aplikasi ini.</string>
     <string name="pos_web_open">Buka laman web POS</string>
     <string name="pos_admin_only">Hanya pentadbir syarikat boleh menyambung sistem POS.</string>

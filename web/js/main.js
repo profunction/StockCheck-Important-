@@ -78,7 +78,7 @@ function renderSignIn(message = '') {
       }
     },
   },
-  h('div', { class: 'brandmark' }, h('span', { class: 'logo' }, 'S'), 'Stock Check POS'),
+  h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 40, height: 40 }), 'Pos Stock Check'),
   h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')),
   h('label', { class: 'field' }, t('email'), email),
   h('label', { class: 'field' }, t('password'), password),

@@ -1,6 +1,6 @@
 {
-  "name": "Stock Check POS",
-  "short_name": "Stock Check POS",
+  "name": "Pos Stock Check",
+  "short_name": "Pos Stock Check",
   "description": "Cash register and back office that shares products and stock with the Stock Check app.",
   "start_url": "/#/pos",
   "scope": "/",

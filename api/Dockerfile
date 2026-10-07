@@ -1,4 +1,4 @@
-# The Stock Check POS API, for Cloud Run.
+# The Pos Stock Check API, for Cloud Run.
 FROM node:22-slim
 ENV NODE_ENV=production
 WORKDIR /app

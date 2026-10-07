@@ -1,4 +1,4 @@
-# Stock Check POS API
+# Pos Stock Check API
 
 A JSON REST API over a company's items, stock, receipts and customers, for
 online shops, accounting programs and anything else that wants to connect.
