@@ -12,7 +12,7 @@
     "rewrites": [{ "source": "**", "destination": "/index.html" }],
     "headers": [
       {
-        "source": "**/*.@(html|js|css)",
+        "source": "**/*.@(html|js|css|webmanifest)",
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       }
     ]

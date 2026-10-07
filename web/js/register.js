@@ -14,7 +14,8 @@ import { billTotals, formatQty, formatSen, lineAmount, lineTotal, parseQty, pars
 import { onChange, session, ws } from './session.js';
 import { kitchenView, printView } from './receipt.js';
 import { openPayment } from './pay.js';
-import { pickCustomer } from './customers.js';
+import { loadCustomers, pickCustomer } from './customers.js';
+import { listenForTags, nfcSupported, normalizeTag } from './nfc.js';
 import { scanWithCamera } from './camera.js';
 import { menuButton } from './main.js';
 
@@ -63,6 +64,21 @@ export function render(main) {
   els.sums = h('div', { class: 'sums' });
   els.buttons = h('div', { class: 'buttons' });
   els.openCount = h('span', { class: 'pill' }, '0');
+  // Chrome on Android reads NFC tags and member cards; it has to be started
+  // from a tap, so it is a button that stays on until tapped again.
+  let stopNfc = null;
+  els.nfc = h('button', {
+    onclick: async () => {
+      if (stopNfc) { stopNfc(); stopNfc = null; els.nfc.classList.remove('primary'); return; }
+      try {
+        stopNfc = await listenForTags((id) => addByCode(id));
+        els.nfc.classList.add('primary');
+        toast(t('nfcOn'), 'ok');
+      } catch (err) {
+        toast(`${t('nfcError')}: ${err.message || err}`, 'error');
+      }
+    },
+  }, '📶 NFC');
 
   const fnb = session.settings.mode !== 'RETAIL';
   const bar = h('div', { class: 'bar' },
@@ -70,7 +86,8 @@ export function render(main) {
     els.search,
     h('span', { class: 'grow' }),
     fnb ? h('button', { onclick: openTables }, `🍽 ${t('tables')}`) : null,
-    h('button', { onclick: openTicketsList }, `🧾 ${t('openTickets')} `, els.openCount));
+    h('button', { onclick: openTicketsList }, `🧾 ${t('openTickets')} `, els.openCount),
+    nfcSupported() ? els.nfc : null);
 
   mount(root,
     h('div', { class: 'register' },
@@ -113,6 +130,7 @@ export function render(main) {
   }, (err) => console.warn('orders', err));
 
   return () => {
+    stopNfc?.();
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('online', goOnline);
     window.removeEventListener('offline', goOnline);
@@ -169,14 +187,28 @@ function drawTiles() {
 
 // ---------------------------------------------------------------- adding
 
-function addByCode(code) {
-  const product = session.find(code);
-  if (!product) {
-    toast(`${t('notFound')}: ${code}`, 'error');
-    beep();
-    return;
+/**
+ * Whatever a scanner, a camera or an NFC tap produced: a product's barcode
+ * or bound tag first, then a customer's member card.
+ */
+async function addByCode(raw) {
+  const code = String(raw).trim();
+  const product = session.find(code) || session.find(normalizeTag(code));
+  if (product) return addProduct(product);
+  try {
+    const tag = normalizeTag(code);
+    const member = (await loadCustomers()).find((c) => (c.cardIds || []).some((id) => id === code || id === tag));
+    if (member) {
+      cart.customer = { id: member.id, name: member.name, phone: member.phone || '', points: member.points || 0 };
+      toast(`👤 ${member.name}`, 'ok');
+      drawTicket();
+      return;
+    }
+  } catch {
+    // Customers are a bonus here; a till without permission still sells.
   }
-  addProduct(product);
+  toast(`${t('notFound')}: ${code}`, 'error');
+  beep();
 }
 
 async function addProduct(product) {

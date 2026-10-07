@@ -12,6 +12,7 @@ import { formatQty, formatSen, parseQty, parseSen, receiptNo, rm } from './money
 import { isLow, levels as ledgerLevels, merge } from './ledger.js';
 import { session, ws } from './session.js';
 import { menuButton } from './main.js';
+import { scanWithCamera } from './camera.js';
 
 export function render(main, sub) {
   const pages = { levels: levelsPage, adjust: adjustPage, purchase: purchasePage, transfers: transferPage, suppliers: supplierPage };
@@ -154,7 +155,9 @@ function adjustPage(main) {
     head(t('invAdjust')),
     h('p', { class: 'muted' }, t('inventoryHelp')),
     canMove() ? h('div', { class: 'card', style: { display: 'grid', gap: '12px', maxWidth: '720px', marginBottom: '16px' } },
-      h('label', { class: 'field' }, t('product'), code), found,
+      h('label', { class: 'field' }, t('product'), h('div', { class: 'row', style: { flexWrap: 'nowrap' } },
+        h('div', { class: 'grow', style: { flex: 1 } }, code),
+        h('button', { type: 'button', title: t('scanCamera'), onclick: async () => { const c = await scanWithCamera(); if (c) { code.value = c; code.dispatchEvent(new Event('input')); } } }, '📷'))), found,
       h('datalist', { id: 'inv-products' }, session.products.slice(0, 3000).map((p) => h('option', { value: p.barcode }, p.name))),
       h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('type'), type), h('label', { class: 'field' }, t('quantity'), qty)),
       h('label', { class: 'field' }, t('note'), note),
@@ -189,7 +192,9 @@ function lineEditor(lines, { withCost = false } = {}) {
       h('input', { style: { width: '90px' }, inputmode: 'decimal', value: formatQty(l.qtyMilli), onchange: (e) => { l.qtyMilli = parseQty(e.target.value) || l.qtyMilli; e.target.value = formatQty(l.qtyMilli); } }),
       withCost ? h('input', { style: { width: '100px' }, inputmode: 'decimal', value: formatSen(l.costSen || 0), title: t('cost'), onchange: (e) => { l.costSen = parseSen(e.target.value) ?? l.costSen; } }) : null,
       h('button', { class: 'ghost', type: 'button', onclick: () => { lines.splice(i, 1); draw(); } }, '✕'))),
-    h('div', { class: 'row' }, h('div', { class: 'grow', style: { flex: 1 } }, pick), h('button', { type: 'button', onclick: add }, `+ ${t('add')}`)),
+    h('div', { class: 'row' }, h('div', { class: 'grow', style: { flex: 1 } }, pick),
+      h('button', { type: 'button', title: t('scanCamera'), onclick: async () => { const c = await scanWithCamera(); if (c) { pick.value = c; add(); } } }, '📷'),
+      h('button', { type: 'button', onclick: add }, `+ ${t('add')}`)),
     h('datalist', { id: 'line-products' }, session.products.slice(0, 3000).map((p) => h('option', { value: p.barcode }, p.name))));
   draw();
   return box;

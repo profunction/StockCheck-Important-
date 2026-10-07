@@ -444,6 +444,14 @@ private fun ProductDialog(
         scanning = granted
     }
 
+    // Tapping an NFC tag while the form is open binds it to this product as
+    // another code, so tapping it later -- here or on the POS website --
+    // finds the product.
+    com.stockcheck.app.scan.NfcTagReader { tag ->
+        val known = tag.equals(barcode.trim(), ignoreCase = true) || alts.any { it.equals(tag, ignoreCase = true) }
+        if (barcode.isBlank()) barcode = tag else if (!known) alts = alts + tag
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {

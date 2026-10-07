@@ -160,6 +160,7 @@ function renderSide() {
       h('div', { class: 'muted', style: { fontSize: '13px' } }, `${t('branch')}: ${session.branchName()}`)),
     nav,
     h('div', { class: 'foot' },
+      installPrompt ? h('button', { class: 'primary', onclick: install }, `⬇ ${t('installApp')}`) : null,
       langPicker(),
       h('button', { onclick: () => signOut(auth) }, t('signOut'))));
 }
@@ -197,6 +198,32 @@ async function route() {
 /** A "☰" button pages put in their header, for narrow screens. */
 export function menuButton() {
   return h('button', { class: 'menu-toggle ghost', onclick: () => shell?.classList.add('menu') }, '☰');
+}
+
+// ------------------------------------------------------------ install as app
+
+// Chrome offers to install the website as an app (its own icon, full
+// screen, opens with the internet down). The offer is kept and shown as a
+// button in the sidebar, since the browser's own prompt is easy to miss.
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  if (session.uid && sideEl) renderSide();
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  if (session.uid && sideEl) renderSide();
+});
+async function install() {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice.catch(() => null);
+  installPrompt = null;
+  renderSide();
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
 // ---------------------------------------------------------------------- boot

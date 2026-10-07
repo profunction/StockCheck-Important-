@@ -11,6 +11,8 @@ import { t } from './i18n.js';
 import { formatSen, rm } from './money.js';
 import { session, ws } from './session.js';
 import { menuButton } from './main.js';
+import { scanWithCamera } from './camera.js';
+import { normalizeTag, nfcSupported, readOneTag } from './nfc.js';
 
 let cache = null;
 
@@ -25,6 +27,7 @@ export async function loadCustomers(force = false) {
 const matches = (c, q) => {
   const text = q.trim().toLowerCase();
   if (!text) return true;
+  if ((c.cardIds || []).some((id) => id.toLowerCase() === text || id === normalizeTag(q))) return true;
   return (c.name || '').toLowerCase().includes(text) || (c.phone || '').replace(/\D/g, '').includes(text.replace(/\D/g, '') || '\u0000') ||
     (c.email || '').toLowerCase().includes(text) || (c.code || '').toLowerCase() === text;
 };
@@ -60,6 +63,8 @@ export function editCustomer(existing, onSaved, prefill = {}) {
   const phone = h('input', { value: c.phone || '', inputmode: 'tel' });
   const email = h('input', { value: c.email || '', type: 'email' });
   const note = h('input', { value: c.note || '' });
+  const cards = h('input', { value: (c.cardIds || []).join(', '), placeholder: t('memberCardHint') });
+  const addCard = (id) => { if (id) cards.value = [cards.value, id].filter(Boolean).join(', '); };
   const points = h('input', { value: String(c.points || 0), inputmode: 'numeric', disabled: !session.can('POS_MANAGE') });
   return new Promise((resolve) => {
     let saved = null;
@@ -68,6 +73,10 @@ export function editCustomer(existing, onSaved, prefill = {}) {
       h('label', { class: 'field' }, t('name'), name),
       h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('phone'), phone), h('label', { class: 'field' }, t('email'), email)),
       h('label', { class: 'field' }, t('note'), note),
+      h('label', { class: 'field' }, t('memberCard'), h('div', { class: 'row', style: { flexWrap: 'nowrap' } },
+        h('div', { class: 'grow', style: { flex: 1 } }, cards),
+        h('button', { type: 'button', title: t('scanCamera'), onclick: async () => addCard(await scanWithCamera()) }, '📷'),
+        nfcSupported() ? h('button', { type: 'button', title: t('tapNfc'), onclick: async () => addCard(await readOneTag()) }, '📶') : null)),
       !isNew ? h('div', { class: 'grid2' },
         h('label', { class: 'field' }, t('points'), points),
         h('div', { class: 'muted' }, `${t('visits')}: ${c.visits || 0} · ${t('totalSpent')}: ${rm(c.totalSpentSen || 0)}`)) : null,
@@ -86,7 +95,11 @@ export function editCustomer(existing, onSaved, prefill = {}) {
           onclick: async () => {
             if (!name.value.trim()) return toast(t('errName'), 'error');
             const now = Date.now();
-            const fields = { name: name.value.trim(), phone: phone.value.trim(), email: email.value.trim(), note: note.value.trim(), updatedAt: now };
+            const fields = {
+              name: name.value.trim(), phone: phone.value.trim(), email: email.value.trim(), note: note.value.trim(),
+              cardIds: cards.value.split(/[,\s]+/).map((x) => normalizeTag(x)).filter(Boolean),
+              updatedAt: now,
+            };
             try {
               if (isNew) {
                 const ref = doc(collection(db, ws('customers')));

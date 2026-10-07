@@ -13,6 +13,7 @@ import { formatSen, inStoreBarcode, parseSen, rm } from './money.js';
 import { onChange, session, ws } from './session.js';
 import { menuButton } from './main.js';
 import { scanWithCamera } from './camera.js';
+import { nfcSupported, readOneTag } from './nfc.js';
 
 export function render(main, sub) {
   const pages = { list: itemList, categories: categoryList, modifiers: modifierList, discounts: discountList };
@@ -186,7 +187,10 @@ function editProduct(product) {
         h('label', { class: 'field' }, t('category'), category),
         h('label', { class: 'field' }, t('unit'), unit),
         h('label', { class: 'field' }, 'SKU', sku),
-        h('label', { class: 'field' }, t('altBarcodes'), altCodes)),
+        h('label', { class: 'field' }, t('altBarcodes'), h('div', { class: 'row', style: { flexWrap: 'nowrap' } },
+          h('div', { class: 'grow', style: { flex: 1 } }, altCodes),
+          h('button', { type: 'button', title: t('scanCamera'), onclick: async () => { const c = await scanWithCamera(); if (c) altCodes.value = [altCodes.value, c].filter(Boolean).join(', '); } }, '📷'),
+          nfcSupported() ? h('button', { type: 'button', title: t('bindNfc'), onclick: async () => { const tag = await readOneTag(t('bindNfc')); if (tag) altCodes.value = [altCodes.value, tag].filter(Boolean).join(', '); } }, '📶') : null))),
       h('datalist', { id: 'units' }, ['pcs', 'kg', 'g', 'ctn', 'box', 'pack', 'bottle', 'l'].map((u) => h('option', { value: u }))),
       session.modifiers.length ? h('div', { style: { display: 'grid', gap: '6px' } },
         h('h3', { style: { margin: 0 } }, t('itemModifiers')),

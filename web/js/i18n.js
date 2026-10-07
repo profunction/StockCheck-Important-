@@ -184,6 +184,8 @@ const ms = {
 
 // ------------------------------------------- customers, inventory, API
 Object.assign(en, {
+  installApp: 'Install as app',
+  nfcOn: 'NFC on — tap a tag or member card on the back of this device.', nfcError: 'NFC is not available', nfcUnreadable: 'That tag could not be read. Hold it still and try again.', tapNfc: 'Tap the NFC card or tag', holdNfc: 'Hold it against the back of the phone or tablet.', bindNfc: 'Tap the NFC tag for this item', memberCard: 'Member card', memberCardHint: 'Scan or tap the card; several with commas',
   scanCamera: 'Scan with camera', pointCamera: 'Point the camera at the barcode', errCamera: 'The camera could not be opened. Allow this website to use the camera.', errCameraScan: 'This browser cannot scan with the camera. Use a USB scanner or Chrome.',
   navCustomers: 'Customers', navIntegrations: 'Integrations', setLoyalty: 'Loyalty',
   invLevels: 'Stock levels', invAdjust: 'Stock adjustments', invPurchase: 'Purchase orders', invTransfers: 'Transfer orders', invSuppliers: 'Suppliers',
@@ -228,6 +230,8 @@ Object.assign(en, {
   apiNotes: 'Lists return up to 250 at a time with a "cursor" for the next page. Money is in sen (RM 15.90 = 1590) and quantities are plain numbers.',
 });
 Object.assign(zh, {
+  installApp: '安装成 App',
+  nfcOn: 'NFC 已开启 — 把标签或会员卡贴近这台机器背面。', nfcError: '这台机器不能用 NFC', nfcUnreadable: '读不到这个标签，请拿稳再试一次。', tapNfc: '请感应 NFC 卡或标签', holdNfc: '贴近手机或平板的背面。', bindNfc: '感应这个商品的 NFC 标签', memberCard: '会员卡', memberCardHint: '扫描或感应会员卡；多张用逗号隔开',
   scanCamera: '用镜头扫描', pointCamera: '把条码对准镜头', errCamera: '打不开镜头。请允许这个网站使用相机。', errCameraScan: '这个浏览器不能用镜头扫描，请用 USB 扫码枪或 Chrome。',
   navCustomers: '顾客', navIntegrations: '整合', setLoyalty: '会员积分',
   invLevels: '库存数量', invAdjust: '库存调整', invPurchase: '采购单', invTransfers: '调货单', invSuppliers: '供应商',
@@ -268,6 +272,8 @@ Object.assign(zh, {
   apiNotes: '列表一次最多 250 笔，用 "cursor" 拿下一页。金额单位是仙（RM 15.90 = 1590），数量是普通数字。',
 });
 Object.assign(ms, {
+  installApp: 'Pasang sebagai aplikasi',
+  memberCard: 'Kad ahli', tapNfc: 'Sentuh kad atau tag NFC',
   scanCamera: 'Imbas dengan kamera', pointCamera: 'Halakan kamera ke kod bar',
   navCustomers: 'Pelanggan', navIntegrations: 'Integrasi', setLoyalty: 'Kesetiaan', invLevels: 'Paras stok', invAdjust: 'Pelarasan stok',
   invPurchase: 'Pesanan belian', invTransfers: 'Pindahan stok', invSuppliers: 'Pembekal', intTokens: 'Token akses',

@@ -382,6 +382,12 @@ fun StockCheckScreen(
                 }
             }
 
+            // An NFC tag bound to a product counts it, like a scan. Listening
+            // whenever the count is open for editing, camera on or off.
+            com.stockcheck.app.scan.NfcTagReader(enabled = !frozen && pendingItem == null) { tag ->
+                viewModel.onBarcodeScanned(tag)
+            }
+
             AnimatedVisibility(visible = scannerActive && !frozen && pendingItem == null) {
                 ScannerPanel(
                     hasPermission = hasCamera,
