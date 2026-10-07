@@ -591,7 +591,7 @@ private fun LicenceBanner(licence: Licence, now: Long) {
         !licence.allows(Licence.MODULE_APP) -> NoticeBar(
             text = "The ${licence.planEnum.label} plan does not include counting in this app. " +
                 "Your records stay readable here; counting comes with the All-in-One plans " +
-                "or the NEXO Count plan.",
+                "or the JEXO Count plan.",
             tone = NoticeTone.WARNING,
         )
 

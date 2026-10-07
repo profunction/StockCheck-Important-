@@ -1,6 +1,6 @@
-# Modules: how NEXO grows without getting complicated
+# Modules: how JEXO grows without getting complicated
 
-NEXO — *One Business. Connected.* (formerly Pos Stock Check / Stock Check).
+JEXO — *One Business. Connected.* (formerly Pos Stock Check / Stock Check).
 Only names on screen changed: the Android package `com.stockcheck.app`,
 Firestore paths, licence keys, URLs and saved settings are unchanged.
 
@@ -9,24 +9,23 @@ Underneath, every part is a **module** in one registry.
 
 | Customer sees | Module id | Licence key | Status |
 |---|---|---|---|
-| NEXO Count 盘点通 (Android) | `count` | `app` | live |
-| NEXO POS 收银通 (web) | `pos` | `pos` | live |
-| NEXO Warehouse 仓管通 | `warehouse` | `warehouse` | live |
-| NEXO Procurement (purchase orders, suppliers) | `procurement` (needs `warehouse`) | `warehouse` | live |
-| NEXO Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
+| JEXO Count 盘点通 (Android) | `count` | `app` | live |
+| JEXO POS 收银通 (web) | `pos` | `pos` | live |
+| JEXO Warehouse 仓管通 | `warehouse` | `warehouse` | live |
+| JEXO Procurement (purchase orders, suppliers, 网购进货 online purchases) | `procurement` (needs `warehouse`) | `warehouse` | live |
+| JEXO Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
 | Open API | `api` | `api` | live |
-| NEXO Commerce 电商同步 | `ecommerce` | `ecommerce` | planned |
-| NEXO Accounting | `accounting` | `accounting` | planned |
-| NEXO Logistics 配送 | `logistics` | `logistics` | planned |
-| NEXO B2B | `b2b` | `b2b` | planned |
+| JEXO Accounting | `accounting` | `accounting` | planned |
+| JEXO Logistics 配送 | `logistics` | `logistics` | planned |
+| JEXO B2B | `b2b` | `b2b` | planned |
 
 Each entry also lists `menuItems`, `routes` and `apiScopes`. Planned
 modules are never on, whatever a licence says.
 
-NEXO Cloud 云后台 is not a module: it is the signed-in website itself. Its
+JEXO Cloud 云后台 is not a module: it is the signed-in website itself. Its
 dashboard (`web/js/dashboard.js`, menu `#/cloud`) shows today's sales only
 with the POS and `POS_REPORTS`, stock with Count or POS, and orders to
-receive / transfers on the way only with NEXO Warehouse.
+receive / transfers on the way only with JEXO Warehouse.
 
 ## Where a company's modules come from
 
@@ -77,3 +76,15 @@ without scopes (all made before scopes existed) keeps every right.
    `live` only when it really works.
 7. Tests: registry (on/off/dependency), API (module off → 403), UI
    (off → hidden), rules.
+
+## Online purchases (网购进货)
+
+Stock bought on Pinduoduo, Taobao, Shopee, TikTok Shop or Lazada becomes a
+purchase order (`web/wh/online.js`, reader in `web/js/onlineorder.js`).
+These platforms give buyers no API for their orders, so the order is pasted
+as text and read; the person checks it before saving. The order keeps
+`source: 'ONLINE'`, `onlinePlatform`, `onlineOrderNo`, `trackingNo`,
+`currency`, `fxRateMicro` (RM per unit x 1e6) and `shippingSen`; each line
+keeps `sourceTitle`, which is how a product is matched again next time. Stock
+changes only when the parcel is received (scan its tracking number on
+Receive). Part of the procurement module: `may: 'procurement.purchase'`.

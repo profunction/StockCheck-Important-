@@ -87,6 +87,23 @@
           }
         ]
       }
+    ],
+    "redirects": [
+      {
+        "source": "/ecommerce/",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/en/ecommerce/",
+        "destination": "/en/",
+        "type": 301
+      },
+      {
+        "source": "/ms/ecommerce/",
+        "destination": "/ms/",
+        "type": 301
+      }
     ]
   }
 }

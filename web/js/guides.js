@@ -12,12 +12,12 @@ export const POS_GUIDE = {
     intro: '跟着下面做，一个下午就能开始收银。每一段都有短片示范。',
     sections: [
       { id: 'start', title: '开始使用', video: V('pos-1-start'), steps: [
-        '电脑或平板用 Chrome 打开收银系统，用 NEXO Count app 的同一个账号登录。',
+        '电脑或平板用 Chrome 打开收银系统，用 JEXO Count app 的同一个账号登录。',
         '第一次打开会问你的店是哪一种：餐饮、超市 / 迷你市场、店面零售。选一个。',
         '设置 → 税和服务费：注册了 SST 才加税，大部分商品收的那个勾「默认」。',
         '设置 → 收据：店名、地址、电话、SST 号码、纸宽（58 或 80mm）。',
         '设置 → 付款方式：现金、DuitNow QR、刷卡、电子钱包，也可以自己加。',
-        '地址栏右边按「安装」，桌面就有 NEXO POS 的图标。',
+        '地址栏右边按「安装」，桌面就有 JEXO POS 的图标。',
       ], tip: '没有网络照样可以收银，网络回来会自动上传。' },
       { id: 'items', title: '商品和照片', video: V('pos-2-items'), steps: [
         '商品 → 分类：先开几个分类（饮料、杂货、熟食）。',
@@ -66,12 +66,12 @@ export const POS_GUIDE = {
     intro: 'Follow these and you can be selling the same afternoon. Each part has a short video.',
     sections: [
       { id: 'start', title: 'Getting started', video: V('pos-1-start'), steps: [
-        'Open the POS in Chrome on a computer or tablet and sign in with your NEXO Count app account.',
+        'Open the POS in Chrome on a computer or tablet and sign in with your JEXO Count app account.',
         'The first time, it asks what kind of shop you are: restaurant, supermarket / mini market, or retail shop.',
         'Settings → Taxes: add SST only if you are registered; tick "default" for the rate most items carry.',
         'Settings → Receipt: shop name, address, phone, SST number, paper width (58 or 80 mm).',
         'Settings → Payment types: cash, DuitNow QR, card, e-wallet, or your own.',
-        'Press "Install" at the right of the address bar for a NEXO POS icon on the desktop.',
+        'Press "Install" at the right of the address bar for a JEXO POS icon on the desktop.',
       ], tip: 'It keeps selling without internet and uploads when the connection returns.' },
       { id: 'items', title: 'Items and photos', video: V('pos-2-items'), steps: [
         'Items → Categories: make a few (drinks, groceries, food).',
@@ -120,12 +120,12 @@ export const POS_GUIDE = {
     intro: 'Ikut langkah di bawah dan anda boleh mula menjual pada petang yang sama. Setiap bahagian ada video pendek.',
     sections: [
       { id: 'start', title: 'Mula guna', video: V('pos-1-start'), steps: [
-        'Buka POS dengan Chrome di komputer atau tablet, log masuk dengan akaun aplikasi NEXO Count.',
+        'Buka POS dengan Chrome di komputer atau tablet, log masuk dengan akaun aplikasi JEXO Count.',
         'Kali pertama, ia bertanya jenis kedai: restoran, pasar raya / pasar mini, atau kedai runcit.',
         'Tetapan → Cukai: tambah SST hanya jika berdaftar; tandakan "lalai" untuk kadar kebanyakan barang.',
         'Tetapan → Resit: nama kedai, alamat, telefon, no. SST, lebar kertas (58 atau 80 mm).',
         'Tetapan → Jenis bayaran: tunai, DuitNow QR, kad, e-dompet, atau sendiri.',
-        'Tekan "Pasang" di hujung bar alamat untuk ikon NEXO POS di desktop.',
+        'Tekan "Pasang" di hujung bar alamat untuk ikon JEXO POS di desktop.',
       ], tip: 'Ia terus menjual tanpa internet dan memuat naik bila talian kembali.' },
       { id: 'items', title: 'Barang dan gambar', video: V('pos-2-items'), steps: [
         'Barang → Kategori: buat beberapa (minuman, runcit, makanan).',
@@ -174,12 +174,12 @@ export const POS_GUIDE = {
 
 export const WAREHOUSE_GUIDE = {
   zh: {
-    intro: '仓库系统和收银、NEXO Count app 用同一套商品和库存。货进、货出、货在哪里，都在这里做。',
+    intro: '仓库系统和收银、JEXO Count app 用同一套商品和库存。货进、货出、货在哪里，都在这里做。',
     sections: [
       { id: 'setup', title: '开始设定', steps: [
         '手机或电脑用 Chrome 打开仓库系统，用同一个账号登录。手机上按「安装」变成 app。',
         '管理员：仓库和分店 → 新增地点 → 类型选「仓库」。',
-        '在 NEXO Count app 的「角色」给员工权限：收货、调货、调整要「记录进出货」。',
+        '在 JEXO Count app 的「角色」给员工权限：收货、调货、调整要「记录进出货」。',
         '开采购单要「开采购单和管理供应商」；批准要「批准采购单」。',
         '左下「现在在」选你人在哪个仓库或门店。',
       ], tip: '工人用手机：下面五个大按钮 —— 首页、收货、调货、库存、更多。' },
@@ -190,6 +190,13 @@ export const WAREHOUSE_GUIDE = {
         '没有审批权限的人按「提交审批」；老板按「批准」。',
         '批准后按「确认下单」，再按「复制发 WhatsApp」发给供应商。',
       ] },
+      { id: 'online', title: '网购进货（拼多多、淘宝、Shopee、TikTok、Lazada）', steps: [
+        '在购物 app 打开订单，长按文字 → 全选 → 复制（或复制订单邮件）。',
+        '仓库系统 → 网购进货：选平台，把订单贴进去，按「读取订单」。',
+        '核对：每一样配对到你的商品（系统会猜，下次同一样会记得）；新东西按「新增商品」；赠品勾「不入库」。',
+        '人民币订单填今天的汇率；运费可以算进成本。按「保存采购单」。',
+        '包裹到了：收货 → 扫包裹上的运单号 → 一样一样扫 → 完成收货，库存才增加。',
+      ], tip: '这些平台没有开放买家订单接口，所以是复制贴上，不是自动拉取；同一张订单贴两次会被挡下。' },
       { id: 'receive', title: '收货', video: V('wh-2-receive'), steps: [
         '收货 → 选这批货的采购单（没有采购单也可以收）。',
         '填送货单号，然后一样一样扫；同一样扫几次就是几件。',
@@ -211,19 +218,19 @@ export const WAREHOUSE_GUIDE = {
         '调整库存：扫商品，选减少 / 增加 / 改成实际数量，一定要选原因。',
       ] },
       { id: 'check', title: '盘点差异和操作记录', video: V('wh-5-check'), steps: [
-        '盘点在 NEXO Count app 做；完成后这里会看到和账面差多少、值多少钱。',
+        '盘点在 JEXO Count app 做；完成后这里会看到和账面差多少、值多少钱。',
         '点一次盘点，看哪些商品短少，再点商品查每一笔进出。',
         '操作记录：每一次收货、调货、调整、审批都在，没有人能改或删。',
       ] },
     ],
   },
   en: {
-    intro: 'The warehouse system shares items and stock with the till and the NEXO Count app. Goods in, goods out, and where everything is — all here.',
+    intro: 'The warehouse system shares items and stock with the till and the JEXO Count app. Goods in, goods out, and where everything is — all here.',
     sections: [
       { id: 'setup', title: 'Setting up', steps: [
         'Open the warehouse system in Chrome on a phone or computer and sign in with the same account. On a phone, press Install to make it an app.',
         'Admin: Warehouses & branches → Add a place → type Warehouse.',
-        'In the NEXO Count app’s roles, give staff "Record goods in/out" to receive, transfer and adjust.',
+        'In the JEXO Count app’s roles, give staff "Record goods in/out" to receive, transfer and adjust.',
         'Raising purchase orders needs "Raise purchase orders"; approving needs "Approve purchase orders".',
         'Bottom left, "Working at": choose the warehouse or shop you are in.',
       ], tip: 'Workers on a phone get five big buttons along the bottom: Home, Receive, Transfers, Stock, More.' },
@@ -234,6 +241,13 @@ export const WAREHOUSE_GUIDE = {
         'Without approval rights, press Send for approval; the owner presses Approve.',
         'Once approved, mark it ordered and Copy for WhatsApp to send to the supplier.',
       ] },
+      { id: 'online', title: 'Online purchases (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', steps: [
+        'In the shopping app open the order, press and hold the text, Select all, Copy (or copy the order email).',
+        'Warehouse → Online purchases: pick the platform, paste the order, press Read the order.',
+        'Check it: match each item to one of your products (a best guess is offered, and remembered next time); New product for something new; tick Not stock for free gifts.',
+        'For orders in yuan, enter today\'s rate; shipping can go into the cost. Press Save purchase order.',
+        'When the parcel arrives: Receive → scan the tracking number on the label → scan the items → Complete. Only then does stock go up.',
+      ], tip: 'These platforms have no way for another program to read a buyer\'s orders, so it is copy and paste, not automatic; the same order pasted twice is refused.' },
       { id: 'receive', title: 'Receiving', video: V('wh-2-receive'), steps: [
         'Receive → pick the purchase order for the delivery (or receive without one).',
         'Enter the delivery note number, then scan each item; scanning twice is two.',
@@ -255,19 +269,19 @@ export const WAREHOUSE_GUIDE = {
         'Adjust stock: scan, choose less / more / set to actual, and always a reason.',
       ] },
       { id: 'check', title: 'Count differences and the audit log', video: V('wh-5-check'), steps: [
-        'Counts are made in the NEXO Count app; here you see how far each was from the books, and what it is worth.',
+        'Counts are made in the JEXO Count app; here you see how far each was from the books, and what it is worth.',
         'Open a count to see what is short, then open an item for every movement.',
         'Audit log: every receiving, transfer, adjustment and approval — nobody can change or delete them.',
       ] },
     ],
   },
   ms: {
-    intro: 'Sistem gudang berkongsi barang dan stok dengan POS dan aplikasi NEXO Count. Barang masuk, keluar, dan di mana semuanya — semua di sini.',
+    intro: 'Sistem gudang berkongsi barang dan stok dengan POS dan aplikasi JEXO Count. Barang masuk, keluar, dan di mana semuanya — semua di sini.',
     sections: [
       { id: 'setup', title: 'Persediaan', steps: [
         'Buka sistem gudang dengan Chrome di telefon atau komputer, log masuk dengan akaun yang sama. Di telefon, tekan Pasang.',
         'Admin: Gudang & cawangan → Tambah lokasi → jenis Gudang.',
-        'Dalam peranan aplikasi NEXO Count, beri pekerja "Rekod barang masuk/keluar" untuk terima, pindah dan laras.',
+        'Dalam peranan aplikasi JEXO Count, beri pekerja "Rekod barang masuk/keluar" untuk terima, pindah dan laras.',
         'Membuat pesanan belian perlukan "Buat pesanan belian"; meluluskan perlukan "Luluskan pesanan belian".',
         'Bawah kiri, "Bekerja di": pilih gudang atau kedai anda.',
       ], tip: 'Pekerja di telefon dapat lima butang besar di bawah: Utama, Terima, Pindahan, Stok, Lagi.' },
@@ -278,6 +292,13 @@ export const WAREHOUSE_GUIDE = {
         'Tanpa hak kelulusan, tekan Hantar untuk kelulusan; pemilik tekan Luluskan.',
         'Selepas diluluskan, tandakan sudah dipesan dan Salin untuk WhatsApp kepada pembekal.',
       ] },
+      { id: 'online', title: 'Belian dalam talian (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', steps: [
+        'Dalam aplikasi beli-belah buka pesanan, tekan lama teks, Pilih semua, Salin (atau salin e-mel pesanan).',
+        'Gudang → Belian dalam talian: pilih platform, tampal pesanan, tekan Baca pesanan.',
+        'Semak: padankan setiap barang dengan barang anda (tekaan diberi, dan diingati lain kali); Barang baharu untuk yang baru; tanda Bukan stok untuk hadiah percuma.',
+        'Untuk pesanan dalam yuan, masukkan kadar hari ini; kos penghantaran boleh dimasukkan ke kos. Tekan Simpan pesanan belian.',
+        'Bila bungkusan sampai: Terima → imbas nombor penjejakan pada label → imbas barang → Selesai. Barulah stok bertambah.',
+      ], tip: 'Platform ini tidak membenarkan program lain membaca pesanan pembeli, jadi ia salin dan tampal, bukan automatik; pesanan yang sama ditampal dua kali ditolak.' },
       { id: 'receive', title: 'Terima barang', video: V('wh-2-receive'), steps: [
         'Terima → pilih pesanan belian untuk penghantaran (atau terima tanpa PO).',
         'Isi no. nota hantaran, kemudian imbas setiap barang; imbas dua kali ialah dua.',
@@ -299,7 +320,7 @@ export const WAREHOUSE_GUIDE = {
         'Laras stok: imbas, pilih kurang / tambah / tetapkan sebenar, dan sentiasa sebab.',
       ] },
       { id: 'check', title: 'Beza kiraan dan log audit', video: V('wh-5-check'), steps: [
-        'Kiraan dibuat dalam aplikasi NEXO Count; di sini anda lihat bezanya dengan buku dan nilainya.',
+        'Kiraan dibuat dalam aplikasi JEXO Count; di sini anda lihat bezanya dengan buku dan nilainya.',
         'Buka kiraan untuk lihat yang kurang, kemudian buka barang untuk setiap pergerakan.',
         'Log audit: setiap penerimaan, pindahan, pelarasan dan kelulusan — tiada siapa boleh ubah atau padam.',
       ] },
@@ -309,7 +330,7 @@ export const WAREHOUSE_GUIDE = {
 
 export const APP_GUIDE = {
   zh: {
-    intro: 'NEXO Count 是 Android 手机盘点 app。下面的短片是步骤卡，一步一步说明。',
+    intro: 'JEXO Count 是 Android 手机盘点 app。下面的短片是步骤卡，一步一步说明。',
     sections: [
       { id: 'count', title: '手机盘点', video: V('app-1-count'), steps: [
         '「盘点」→ 新盘点，选模板和区域。',
@@ -320,7 +341,7 @@ export const APP_GUIDE = {
       { id: 'stock', title: '库存和进出货', video: V('app-2-stock'), steps: [
         '「库存」页：现在有多少 = 最后盘点 + 之后进出。',
         '用 Excel / CSV 导入进货和销售，或连接 Loyverse 自动同步。',
-        'NEXO POS 卖出，库存马上减少；设补货点就会提醒。',
+        'JEXO POS 卖出，库存马上减少；设补货点就会提醒。',
       ] },
       { id: 'team', title: '员工、分店和权限', video: V('app-3-team'), steps: [
         '第一个注册的人是管理员；员工用公司代码加入。',
@@ -330,7 +351,7 @@ export const APP_GUIDE = {
     ],
   },
   en: {
-    intro: 'NEXO Count is the Android stock-take app. The short videos are step cards that walk through each job.',
+    intro: 'JEXO Count is the Android stock-take app. The short videos are step cards that walk through each job.',
     sections: [
       { id: 'count', title: 'Counting with the phone', video: V('app-1-count'), steps: [
         'Stock tab → new count; pick a template and an area.',
@@ -341,7 +362,7 @@ export const APP_GUIDE = {
       { id: 'stock', title: 'Stock, goods in and out', video: V('app-2-stock'), steps: [
         'On hand tab: on hand = last count + goods in and out since.',
         'Import deliveries and sales from Excel / CSV, or connect Loyverse to sync.',
-        'Sales at NEXO POS take stock off at once; set reorder points for reminders.',
+        'Sales at JEXO POS take stock off at once; set reorder points for reminders.',
       ] },
       { id: 'team', title: 'Staff, branches and permissions', video: V('app-3-team'), steps: [
         'The first to register is the admin; staff join with the company code.',
@@ -351,7 +372,7 @@ export const APP_GUIDE = {
     ],
   },
   ms: {
-    intro: 'NEXO Count ialah aplikasi kira stok Android. Video pendek ialah kad langkah untuk setiap tugas.',
+    intro: 'JEXO Count ialah aplikasi kira stok Android. Video pendek ialah kad langkah untuk setiap tugas.',
     sections: [
       { id: 'count', title: 'Kira stok dengan telefon', video: V('app-1-count'), steps: [
         'Tab Stok → kiraan baharu; pilih templat dan kawasan.',
@@ -362,7 +383,7 @@ export const APP_GUIDE = {
       { id: 'stock', title: 'Stok, barang masuk dan keluar', video: V('app-2-stock'), steps: [
         'Tab Baki stok: baki = kiraan terakhir + masuk dan keluar sejak itu.',
         'Import penghantaran dan jualan dari Excel / CSV, atau sambung Loyverse.',
-        'Jualan di NEXO POS menolak stok serta-merta; tetapkan paras tambah untuk peringatan.',
+        'Jualan di JEXO POS menolak stok serta-merta; tetapkan paras tambah untuk peringatan.',
       ] },
       { id: 'team', title: 'Pekerja, cawangan dan kebenaran', video: V('app-3-team'), steps: [
         'Yang pertama mendaftar ialah admin; pekerja masuk dengan kod syarikat.',

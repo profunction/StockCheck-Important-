@@ -1,5 +1,5 @@
 /**
- * The NEXO Count phone app's guide videos: illustrated step cards (number,
+ * The JEXO Count phone app's guide videos: illustrated step cards (number,
  * picture, what to do) rather than screen recordings -- the Android app
  * cannot be filmed in this environment, and a mock-up passed off as the
  * real screen would mislead.
@@ -25,7 +25,7 @@ const ICON = {
 export const APP_FILMS = [
   {
     name: 'app-1-count',
-    title: ['手机盘点', 'NEXO Count app · 盘点', 'Counting stock with the phone'],
+    title: ['手机盘点', 'JEXO Count app · 盘点', 'Counting stock with the phone'],
     slides: [
       ['list', '开始一次盘点', '打开 app →「盘点」→ 新盘点，选模板和区域（例如：冷房、货架 7）', 'Stock tab → new count; pick a template and an area'],
       ['scan', '扫条码', '用手机镜头扫商品条码，输入数到多少', 'Scan the barcode with the camera, enter how many'],
@@ -37,19 +37,19 @@ export const APP_FILMS = [
   },
   {
     name: 'app-2-stock',
-    title: ['库存和进出货', 'NEXO Count app · 库存', 'Stock levels, goods in and out'],
+    title: ['库存和进出货', 'JEXO Count app · 库存', 'Stock levels, goods in and out'],
     slides: [
       ['box', '「库存」页', '每样商品现在有多少 = 最后一次盘点 + 之后进出', 'On hand = last count + goods in and out since'],
       ['file', '导入进货和销售', '用 Excel / CSV 导入，系统自动认出每一栏', 'Import Excel or CSV; columns are recognised'],
       ['sync', '连接 Loyverse', '贴上 Loyverse 令牌，商品、库存、销售自动同步', 'Paste a Loyverse token: items, stock and sales sync'],
-      ['cart', '连接 NEXO POS', '收银卖出，手机上的库存马上减少', 'A sale at the till takes it off the phone’s stock'],
+      ['cart', '连接 JEXO POS', '收银卖出，手机上的库存马上减少', 'A sale at the till takes it off the phone’s stock'],
       ['bell', '补货提醒', '设补货点，低于就显示「要补货」', 'Set a reorder point; it says when to buy'],
       ['check', '写回 Loyverse', '盘点后，可以把正确数量写回 Loyverse（要先确认）', 'After a count, write correct figures back to Loyverse'],
     ],
   },
   {
     name: 'app-3-team',
-    title: ['员工、分店和权限', 'NEXO Count app · 团队', 'Staff, branches and permissions'],
+    title: ['员工、分店和权限', 'JEXO Count app · 团队', 'Staff, branches and permissions'],
     slides: [
       ['user', '注册公司', '第一个注册的人就是管理员，自动有 14 天试用', 'The first to register is the admin, with a 14-day trial'],
       ['key', '员工加入', '把公司代码告诉员工，他们注册时填就加入', 'Staff join with the company code'],

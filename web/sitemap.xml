@@ -96,28 +96,4 @@
     <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/wholesale/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/wholesale/"/>
   </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/ecommerce/</loc>
-    <lastmod>2026-10-07</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/ecommerce/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/en/ecommerce/</loc>
-    <lastmod>2026-10-07</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/ecommerce/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/ms/ecommerce/</loc>
-    <lastmod>2026-10-07</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/ecommerce/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/ecommerce/"/>
-  </url>
 </urlset>

@@ -59,7 +59,7 @@ export const PLANS = {
     multiBranch: true, loyverse: true,
   },
   APP_ONLY: {
-    label: 'NEXO Count', pack: 'STANDALONE', seats: 3, tills: 0,
+    label: 'JEXO Count', pack: 'STANDALONE', seats: 3, tills: 0,
     monthlySen: 2_800, yearlySen: 28_000, lifetimeSen: null,
     modules: { app: true, pos: false, warehouse: false, api: false },
     multiBranch: false, loyverse: true,

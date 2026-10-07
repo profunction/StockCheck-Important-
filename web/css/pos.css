@@ -1,5 +1,5 @@
 /*
- * NEXO POS and NEXO Cloud. A till is looked at all day under shop lights, so:
+ * JEXO POS and JEXO Cloud. A till is looked at all day under shop lights, so:
  * cool neutrals, ink navy for structure, one teal for what can be pressed or
  * is chosen, amber for "pay attention", and money set large in tabular figures.
  */
@@ -403,7 +403,7 @@ table.list .thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: c
 .addon { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
 .addon.on { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
 
-/* NEXO Cloud dashboard */
+/* JEXO Cloud dashboard */
 .dash-part { margin-bottom: 22px; }
 .dash-part h2 { font-size: 17px; }
 .dash-part .cards { margin-bottom: 12px; }

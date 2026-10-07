@@ -27,7 +27,7 @@ test('an expired licence hides nothing: reports and exports stay open', () => {
 
 test('unknown and planned modules are off, even if a licence says on', () => {
   assert.equal(isEnabled(lic('UNLIMITED'), 'nope'), false);
-  assert.equal(isEnabled(lic('UNLIMITED', { modules: { ecommerce: true, pos: true } }), 'ecommerce'), false);
+  assert.equal(isEnabled(lic('UNLIMITED', { modules: { accounting: true, pos: true } }), 'accounting'), false);
   assert.throws(() => getModule('nope'), /Unknown module/);
 });
 
@@ -64,10 +64,10 @@ test('API token scopes: none means all; listed means only those', () => {
   assert.equal(tokenAllows({}, 'made.up'), false);
 });
 
-test('the NEXO modules', () => {
-  assert.deepEqual(moduleIds(), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'ecommerce', 'accounting', 'logistics', 'b2b']);
-  assert.equal(MODULES.count.displayName.en, 'NEXO Count');
-  for (const id of ['ecommerce', 'accounting', 'logistics', 'b2b']) assert.equal(MODULES[id].status, 'planned');
+test('the JEXO modules', () => {
+  assert.deepEqual(moduleIds(), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'accounting', 'logistics', 'b2b']);
+  assert.equal(MODULES.count.displayName.en, 'JEXO Count');
+  for (const id of ['accounting', 'logistics', 'b2b']) assert.equal(MODULES[id].status, 'planned');
 });
 
 test('every module is fully described', () => {

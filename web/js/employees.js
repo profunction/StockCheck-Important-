@@ -1,7 +1,7 @@
 /**
  * Employees and what each role may do at the till.
  *
- * Accounts are shared with the NEXO Count app: someone added here signs in
+ * Accounts are shared with the JEXO Count app: someone added here signs in
  * to the app and the website alike. An owner sees who works where, adds
  * staff, and switches the POS permissions on per role.
  */

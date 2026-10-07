@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NEXO Count</string>
+    <string name="app_name">JEXO Count</string>
 
     <!-- Language picker -->
     <string name="language">Language</string>
@@ -83,8 +83,8 @@
     <string name="paywall_contact_whatsapp">WhatsApp us</string>
     <string name="paywall_contact_email">Email us</string>
     <string name="paywall_contact_prompt">Ask for a licence:</string>
-    <string name="paywall_contact_message">Hello, I would like a NEXO Count licence. Company code: %1$s</string>
-    <string name="paywall_contact_subject">NEXO Count licence — %1$s</string>
+    <string name="paywall_contact_message">Hello, I would like a JEXO Count licence. Company code: %1$s</string>
+    <string name="paywall_contact_subject">JEXO Count licence — %1$s</string>
     <string name="paywall_no_email">No app on this phone can send email.</string>
 
     <!-- First-run tour -->
@@ -93,7 +93,7 @@
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_done">Get started</string>
-    <string name="onboarding_step1_title">Welcome to NEXO Count</string>
+    <string name="onboarding_step1_title">Welcome to JEXO Count</string>
     <string name="onboarding_step1_body">Tap "New stock check", pick a template and area, and you\'re ready to scan.</string>
     <string name="onboarding_step2_title">Scan a barcode</string>
     <string name="onboarding_step2_body">Point the camera at a barcode. The first scan adds the item. Scanning the same barcode again asks how much to add, so nothing gets counted twice by accident.</string>
@@ -216,7 +216,7 @@
     <string name="role_unit">Unit</string>
     <string name="role_expiry">Expiry date</string>
     <string name="pos_title">Connect your till (POS)</string>
-    <string name="pos_web_title">NEXO POS (website)</string>
+    <string name="pos_web_title">JEXO POS (website)</string>
     <string name="pos_web_body">Our own cash register for shops, supermarkets, warehouses and restaurants. Open it on the counter computer, sign in with this same account, plug in a USB barcode scanner and a receipt printer. Products, photos, prices and stock are shared with this app — nothing to connect.</string>
     <string name="pos_web_open">Open the POS website</string>
     <string name="pos_admin_only">Only a company admin can connect a till.</string>
@@ -250,8 +250,8 @@
     <string name="guide_team_title">Staff, branches and permissions</string>
     <string name="guide_play">Watch the video</string>
     <string name="guide_more_title">The till and the warehouse</string>
-    <string name="guide_more_body">NEXO POS (the till) and NEXO Warehouse have their own guides with videos, on the website.</string>
-    <string name="guide_pos">Till guide (NEXO POS)</string>
+    <string name="guide_more_body">JEXO POS (the till) and JEXO Warehouse have their own guides with videos, on the website.</string>
+    <string name="guide_pos">Till guide (JEXO POS)</string>
     <string name="guide_warehouse">Warehouse guide</string>
     <string name="guide_tour">Show the welcome tour again</string>
     <string name="guide_video_failed">The video could not play here. Check the internet connection, or open it in the browser.</string>
@@ -259,7 +259,7 @@
     <string name="guide_close">Close</string>
     <string name="guide_entry">How to use</string>
     <string name="guide_entry_sub">Step-by-step guides and videos</string>
-    <string name="wh_web_title">NEXO Warehouse (website)</string>
+    <string name="wh_web_title">JEXO Warehouse (website)</string>
     <string name="wh_web_body">Purchase orders, receiving, transfers between warehouse and shops, adjustments with reasons and the audit log. Works on the phone browser too and can be installed as an app. Same account, same products and stock as this app.</string>
     <string name="wh_web_open">Open the warehouse system</string>
     <string-array name="guide_count_steps">
@@ -271,12 +271,12 @@
     <string-array name="guide_stock_steps">
         <item>On hand: last count + goods in and out since.</item>
         <item>Import deliveries and sales from Excel or CSV, or connect Loyverse to sync.</item>
-        <item>Sales at NEXO POS take stock off at once; set reorder points for reminders.</item>
+        <item>Sales at JEXO POS take stock off at once; set reorder points for reminders.</item>
     </string-array>
     <string-array name="guide_team_steps">
         <item>The first to register is the admin; staff join with the company code.</item>
         <item>Profile → Roles: who may count, see everything, change stock, use the till and the warehouse.</item>
         <item>Branches and warehouses are kept apart; the audit log keeps every change.</item>
     </string-array>
-    <string name="pos_loyverse_plan">Loyverse sync comes with the Business and Unlimited plans, and with the NEXO Count plan.</string>
+    <string name="pos_loyverse_plan">Loyverse sync comes with the Business and Unlimited plans, and with the JEXO Count plan.</string>
 </resources>

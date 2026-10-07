@@ -18,7 +18,7 @@ import { OUT, film } from './studio.mjs';
 
 await film('pos-1-start', world({ mode: '' }), async (page, x, base) => {
   await page.waitForSelector('.modecard');
-  await x.title('开始使用收银系统', 'NEXO POS · 第一步', 'Getting started');
+  await x.title('开始使用收银系统', 'JEXO POS · 第一步', 'Getting started');
   await x.caption('第一次打开，先选你的店是哪一种', 'First time: choose what kind of shop you are');
   await x.point('.modecard[data-mode="FNB"]'); await x.point('.modecard[data-mode="SUPERMARKET"]'); await x.point('.modecard[data-mode="RETAIL"]');
   await x.caption('超市：一直扫码，结账快', 'Supermarket: scan after scan, fast checkout', 1800);
@@ -36,7 +36,7 @@ await film('pos-1-start', world({ mode: '' }), async (page, x, base) => {
 
 await film('pos-2-items', world({ mode: 'RETAIL' }), async (page, x, base) => {
   await x.go(base, '/pos/#/items/list', 1200);
-  await x.title('商品和照片', 'NEXO POS · 商品', 'Items and photos');
+  await x.title('商品和照片', 'JEXO POS · 商品', 'Items and photos');
   await x.caption('商品清单：照片、售价、成本、税', 'Item list: photo, price, cost and tax');
   await x.click('button:has-text("新增商品")', 900);
   await x.click('.dialog button:has-text("生成")', 500);
@@ -60,7 +60,7 @@ await film('pos-2-items', world({ mode: 'RETAIL' }), async (page, x, base) => {
 
 await film('pos-3-retail', world({ mode: 'RETAIL' }), async (page, x) => {
   await page.waitForSelector('.tile');
-  await x.title('店面零售收银', 'NEXO POS · 店面零售', 'Retail shop checkout');
+  await x.title('店面零售收银', 'JEXO POS · 店面零售', 'Retail shop checkout');
   await x.caption('点商品图片，或用扫码枪扫', 'Tap a picture, or scan with the scanner');
   await x.click('.tile:has-text("Malt")', 500);
   await x.click('.tile:has-text("Roti 面包")', 500);
@@ -86,7 +86,7 @@ await film('pos-3-retail', world({ mode: 'RETAIL' }), async (page, x) => {
 
 await film('pos-4-market', world({ mode: 'SUPERMARKET' }), async (page, x) => {
   await page.waitForSelector('.market');
-  await x.title('超市收银', 'NEXO POS · 超市 / 迷你市场', 'Supermarket checkout');
+  await x.title('超市收银', 'JEXO POS · 超市 / 迷你市场', 'Supermarket checkout');
   await x.click('.mlines', 200);
   await x.caption('一直扫，账单是清单，总数很大', 'Keep scanning; the total is big and clear');
   for (const pic of ['malt', 'water', 'water', 'coffee']) await x.scan(item(pic).barcode, 650);
@@ -114,7 +114,7 @@ await film('pos-4-market', world({ mode: 'SUPERMARKET' }), async (page, x) => {
 
 await film('pos-5-fnb', world({ mode: 'FNB' }), async (page, x) => {
   await page.waitForSelector('.tile');
-  await x.title('餐饮点单', 'NEXO POS · 餐饮', 'Restaurant ordering');
+  await x.title('餐饮点单', 'JEXO POS · 餐饮', 'Restaurant ordering');
   await x.click('.reg-bar button:has-text("桌位")', 900);
   await x.caption('先选桌位', 'Pick a table', 1400);
   await x.click('.tables button:has-text("3")', 800);
@@ -142,7 +142,7 @@ await film('pos-5-fnb', world({ mode: 'FNB' }), async (page, x) => {
 
 await film('pos-6-reports', world({ mode: 'RETAIL', withSales: true }), async (page, x, base) => {
   await x.go(base, '/pos/#/reports/summary', 1500);
-  await x.title('报表', 'NEXO POS · 老板看报表', 'Reports for the owner');
+  await x.title('报表', 'JEXO POS · 老板看报表', 'Reports for the owner');
   await x.caption('今天卖了多少、赚多少、几单', 'Today’s sales, profit and receipts');
   await x.go(base, '/pos/#/reports/items', 1300);
   await x.caption('哪样最好卖、哪样最赚钱', 'Best sellers and what earns most');
@@ -158,11 +158,11 @@ await film('pos-6-reports', world({ mode: 'RETAIL', withSales: true }), async (p
 
 // ---------------------------------------------------------- the warehouse
 
-const WH_BG = 'linear-gradient(135deg,#0f2537,#2a6ea6)';
+const WH_BG = 'linear-gradient(135deg,#0b1b2b,#12385a 65%,#1d5a8a)';
 
 await film('wh-1-purchase', world({ branch: 'gudang' }), async (page, x, base) => {
   await page.waitForSelector('.wh-tile');
-  await x.title('采购单和补货', 'NEXO Warehouse · 采购', 'Purchase orders and reorder', { bg: WH_BG });
+  await x.title('采购单和补货', 'JEXO Warehouse · 采购', 'Purchase orders and reorder', { bg: WH_BG });
   await x.caption('首页：今天要做的事，一按就到', 'Home: today’s jobs, one tap away');
   await x.go(base, '/warehouse/#/purchase/reorder', 1500);
   await x.caption('低于补货点的商品，自动建议要订多少', 'Below the reorder point: how much to order');
@@ -180,7 +180,7 @@ await film('wh-1-purchase', world({ branch: 'gudang' }), async (page, x, base) =
 
 await film('wh-2-receive', world({ branch: 'gudang' }), async (page, x, base) => {
   await x.go(base, '/warehouse/#/receive', 1500);
-  await x.title('收货', 'NEXO Warehouse · 收货', 'Receiving goods', { bg: WH_BG });
+  await x.title('收货', 'JEXO Warehouse · 收货', 'Receiving goods', { bg: WH_BG });
   await x.caption('货到了：选是哪一张采购单', 'Goods arrive: pick the purchase order');
   await x.click('.wh-card:has-text("PO-")', 1200);
   await x.type('.wh-head input', 'DO-77812');
@@ -203,7 +203,7 @@ await film('wh-2-receive', world({ branch: 'gudang' }), async (page, x, base) =>
 
 await film('wh-3-transfer', world({ branch: 'gudang' }), async (page, x, base) => {
   await x.go(base, '/warehouse/#/transfers/new', 1500);
-  await x.title('调货', 'NEXO Warehouse · 仓库 → 门店', 'Transfers between places', { bg: WH_BG });
+  await x.title('调货', 'JEXO Warehouse · 仓库 → 门店', 'Transfers between places', { bg: WH_BG });
   await page.locator('.wh-head select').nth(1).selectOption('ipoh'); await x.wait(400);
   await x.caption('从仓库送去门店：扫要送的货', 'Warehouse to shop: scan what goes', 1800);
   await x.click('.wh-scan input.scan', 200);
@@ -228,7 +228,7 @@ await film('wh-3-transfer', world({ branch: 'gudang' }), async (page, x, base) =
 
 await film('wh-4-stock', world({ branch: 'gudang' }), async (page, x, base) => {
   await x.go(base, '/warehouse/#/adjust', 1500);
-  await x.title('库存和调整', 'NEXO Warehouse · 库存', 'Stock and adjustments', { bg: WH_BG });
+  await x.title('库存和调整', 'JEXO Warehouse · 库存', 'Stock and adjustments', { bg: WH_BG });
   await x.click('.wh-scan input.scan', 200);
   await x.scan(item('eggs').barcode, 1200);
   await x.caption('调整库存一定要选原因：损坏、过期、丢失…', 'Every adjustment needs a reason', 2000);
@@ -246,7 +246,7 @@ await film('wh-4-stock', world({ branch: 'gudang' }), async (page, x, base) => {
 
 await film('wh-5-check', world({ branch: 'gudang' }), async (page, x, base) => {
   await x.go(base, '/warehouse/#/variance', 1500);
-  await x.title('盘点差异和记录', 'NEXO Warehouse · 查账', 'Count differences and the audit log', { bg: WH_BG });
+  await x.title('盘点差异和记录', 'JEXO Warehouse · 查账', 'Count differences and the audit log', { bg: WH_BG });
   await x.caption('手机 app 每次盘点，和账面数比较', 'Each count from the phone app against the books');
   await x.click('table.list tr.click', 1500);
   await x.caption('短少多少、值多少钱，一目了然', 'What is short and what it is worth', 2400);

@@ -1,5 +1,5 @@
 /**
- * The NEXO API's shapes: what goes out, what is accepted in.
+ * The JEXO API's shapes: what goes out, what is accepted in.
  * Pure -- no Firebase -- so it is tested on its own (lib.test.mjs).
  *
  * Field names are snake_case, like most public APIs and like Loyverse's,
@@ -177,7 +177,7 @@ export class ApiError extends Error {
     this.status = status;
     // A stable word for programs (MODULE_NOT_ENABLED, ...); the message is for people.
     this.code = code;
-    // More for programs, e.g. { module: 'ecommerce' }.
+    // More for programs, e.g. { module: 'api' }.
     this.extra = extra;
   }
 }

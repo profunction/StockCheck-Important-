@@ -35,6 +35,7 @@ export function render(main, sub) {
   const tabs = h('div', { class: 'seg wh-tabs' });
   mount(main,
     head(t('whPurchase'),
+      canBuy() ? h('button', { onclick: () => go('online') }, icon('download', 17), t('whOnline')) : null,
       canBuy() ? h('button', { onclick: () => go('purchase', 'reorder') }, icon('percent', 17), t('whReorderTitle')) : null,
       canBuy() ? h('button', { class: 'primary', onclick: () => go('purchase', 'new') }, icon('plus', 17), t('newPo')) : null),
     h('p', { class: 'muted' }, t('whPurchaseHelp')),
@@ -186,7 +187,8 @@ function view(box, po) {
         po.approvedByName ? `${t('whApprovedBy')} ${po.approvedByName} ${dateTime(po.approvedAt)}` : '',
         po.expectedAt ? `${t('whExpected')} ${new Date(po.expectedAt).toLocaleDateString()}` : '',
       ].filter(Boolean).join(' · ')),
-      po.note ? h('div', {}, po.note) : null),
+      po.note ? h('div', {}, po.note) : null,
+      po.source === 'ONLINE' && po.currency && po.currency !== 'MYR' ? h('div', { class: 'muted' }, `¥1 = RM ${(po.fxRateMicro / 1e6).toFixed(4)} · ${t('whOnlineShipping')} ${rm(po.shippingSen || 0)}`) : null),
     h('div', { class: 'table-wrap' }, h('table', { class: 'list' },
       h('thead', {}, h('tr', {}, [t('name'), t('whOrdered'), t('whReceivedQty'), t('whDamaged'), t('whStillToCome'), t('whUnitCost'), t('total')].map((x, i) => h('th', { class: i ? 'num' : '' }, x)))),
       h('tbody', {}, (po.lines || []).map((l) => h('tr', {},

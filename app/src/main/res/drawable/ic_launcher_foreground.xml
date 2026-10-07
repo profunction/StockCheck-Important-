@@ -3,16 +3,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- NEXO mark: the N as a line joining two nodes (web/brand/nexo-mark.svg),
+    <!-- JEXO mark: the J as a line joining two nodes (web/brand/jexo-mark.svg),
          inside the adaptive-icon safe zone (centre 66dp). -->
     <group android:scaleX="1.1" android:scaleY="1.1" android:translateX="18.8" android:translateY="18.8">
         <path
-            android:pathData="M20,44 L20,20 L44,44 L44,20"
+            android:pathData="M44,18 L44,36 A12,12 0 0,1 20,36"
             android:strokeColor="#FFFFFF"
             android:strokeWidth="6"
             android:strokeLineCap="round"
             android:strokeLineJoin="round" />
-        <path android:fillColor="#2DD4BF" android:pathData="M14,44 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
-        <path android:fillColor="#2DD4BF" android:pathData="M38,20 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
+        <path android:fillColor="#2DD4BF" android:pathData="M14,36 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
+        <path android:fillColor="#2DD4BF" android:pathData="M38,18 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
     </group>
 </vector>

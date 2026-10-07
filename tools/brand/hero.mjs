@@ -1,7 +1,7 @@
 /**
  * The website's hero pictures (web/img/hero-{zh,en,ms}.jpg): the real
- * NEXO POS with a bill under way in the pretend shop (world.mjs, items with
- * their pictures), and NEXO Warehouse on a phone beside it, on the NEXO
+ * JEXO POS with a bill under way in the pretend shop (world.mjs, items with
+ * their pictures), and JEXO Warehouse on a phone beside it, on the JEXO
  * navy. Nothing is mocked up -- both screens are screenshots of the system.
  *
  *   node tools/brand/hero.mjs
@@ -17,9 +17,9 @@ const tmp = join(root, 'tools', 'brand', '_hero');
 mkdirSync(tmp, { recursive: true });
 
 const LABELS = {
-  zh: { pos: 'NEXO POS · 收银', wh: 'NEXO Warehouse · 仓库', count: 'NEXO Count · 盘点', stock: '一份库存' },
-  en: { pos: 'NEXO POS', wh: 'NEXO Warehouse', count: 'NEXO Count', stock: 'One stock' },
-  ms: { pos: 'NEXO POS · Kaunter', wh: 'NEXO Warehouse · Gudang', count: 'NEXO Count · Kira stok', stock: 'Satu stok' },
+  zh: { pos: 'JEXO POS · 收银', wh: 'JEXO Warehouse · 仓库', count: 'JEXO Count · 盘点', stock: '一份库存' },
+  en: { pos: 'JEXO POS', wh: 'JEXO Warehouse', count: 'JEXO Count', stock: 'One stock' },
+  ms: { pos: 'JEXO POS · Kaunter', wh: 'JEXO Warehouse · Gudang', count: 'JEXO Count · Kira stok', stock: 'Satu stok' },
 };
 
 async function screens(lang) {
@@ -69,7 +69,7 @@ function scene(lang) {
   <svg class="net" viewBox="0 0 1400 900"><g stroke="rgba(45,212,191,.35)" stroke-width="2" fill="none">
     <path d="M220 850 C 500 760, 760 820, 1050 700"/><path d="M660 830 C 800 860, 900 870, 1000 860"/><path d="M1180 120 L 1350 210"/></g>
     <g fill="#2dd4bf"><circle cx="220" cy="850" r="7"/><circle cx="1050" cy="700" r="7"/><circle cx="1300" cy="860" r="6"/><circle cx="1180" cy="120" r="6"/><circle cx="1350" cy="210" r="6"/></g></svg>
-  <div class="tag"><svg viewBox="0 0 64 64" width="40" height="40"><rect width="64" height="64" rx="14" fill="#fff"/><path d="M20 44V20l24 24V20" fill="none" stroke="#0B1B2B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="44" r="6" fill="#14B8A6"/><circle cx="44" cy="20" r="6" fill="#14B8A6"/></svg>NEXO<small>One Business. Connected.</small></div>
+  <div class="tag"><svg viewBox="0 0 64 64" width="40" height="40"><rect width="64" height="64" rx="14" fill="#fff"/><path d="M44 18V36a12 12 0 0 1-24 0" fill="none" stroke="#0B1B2B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="36" r="6" fill="#14B8A6"/><circle cx="44" cy="18" r="6" fill="#14B8A6"/></svg>JEXO<small>One Business. Connected.</small></div>
   <div class="laptop"><div class="screen"><img src="${dataUrl(join(tmp, `pos-${lang}.png`))}"></div><div class="base"></div></div>
   <div class="phone"><img src="${dataUrl(join(tmp, `wh-${lang}.png`))}"></div>
   <div class="chip" style="left:110px;top:760px"><i></i>${L.pos}</div>

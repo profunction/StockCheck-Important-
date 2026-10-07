@@ -1,7 +1,7 @@
 {
-  "name": "NEXO Warehouse",
+  "name": "JEXO Warehouse",
   "short_name": "Warehouse",
-  "description": "Receiving, transfers, purchase orders and stock control for NEXO.",
+  "description": "Receiving, transfers, purchase orders and stock control for JEXO.",
   "start_url": "/warehouse/#/home",
   "scope": "/warehouse/",
   "id": "/warehouse/",

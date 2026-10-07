@@ -1,7 +1,7 @@
 {
-  "name": "NEXO POS",
-  "short_name": "NEXO POS",
-  "description": "Cash register and back office that shares products and stock with the NEXO Count app.",
+  "name": "JEXO POS",
+  "short_name": "JEXO POS",
+  "description": "Cash register and back office that shares products and stock with the JEXO Count app.",
   "start_url": "/pos/#/pos",
   "scope": "/pos/",
   "display": "standalone",

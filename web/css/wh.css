@@ -95,3 +95,8 @@ details summary { cursor: pointer; padding: 6px 0; }
   .wh-po-fields { grid-template-columns: 1fr 1fr; }
   .wh-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* 网购进货 */
+.wh-online-line .scanwrap { margin-top: 6px; }
+.wh-online-line.skipped { opacity: .55; }
+.wh-online-total { display: grid; gap: 4px; margin: 12px 0; }

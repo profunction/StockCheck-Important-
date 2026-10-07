@@ -32,15 +32,14 @@ const PAID = ['STARTER', 'BUSINESS', 'UNLIMITED'];
 /** The language switcher in the top bar, kept short so the bar fits one line. */
 const SHORT = { zh: '中文', en: 'EN', ms: 'BM' };
 
-/** The header logo: the connected-N mark and the name, drawn inline. */
-const LOGO = `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0B1B2B"/><path d="M20 44V20l24 24V20" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="44" r="6" fill="#2DD4BF"/><circle cx="44" cy="20" r="6" fill="#2DD4BF"/></svg><span>${BRAND.name}</span>`;
+/** The header logo: the connected-J mark and the name, drawn inline. */
+const LOGO = `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0B1B2B"/><path d="M44 18V36a12 12 0 0 1-24 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="36" r="6" fill="#2DD4BF"/><circle cx="44" cy="18" r="6" fill="#2DD4BF"/></svg><span>${BRAND.name}</span>`;
 
 /** Line icons for the kinds of business (24-unit, stroke = currentColor). */
 const ICONS = {
   retail: '<path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 7H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',
   fnb: '<path d="M7 3v8m-2-8v5a2 2 0 0 0 4 0V3M7 11v10"/><path d="M17 21V3c-2.2 1.2-3 3.5-3 6v4h3"/>',
   wholesale: '<path d="M3 9.5 12 4l9 5.5V20H3z"/><path d="M7 20v-6h10v6M7 17h10"/>',
-  ecommerce: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M8 9h.01M12 9l4 0"/>',
 };
 const icon = (id) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[id] || ''}</svg>`;
 
@@ -363,7 +362,7 @@ function llms() {
 
 > ${en.description}
 
-${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **NEXO Count**, the Android app for counting stock by scanning barcodes; **NEXO POS**, the web cash register for the counter; **NEXO Warehouse** for receiving, transfers and purchase orders; and **NEXO Cloud**, the owner's back office. NEXO was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
+${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **JEXO Count**, the Android app for counting stock by scanning barcodes; **JEXO POS**, the web cash register for the counter; **JEXO Warehouse** for receiving, transfers and purchase orders; and **JEXO Cloud**, the owner's back office. JEXO was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
 
 中文：${zh.description}
 
@@ -374,7 +373,7 @@ ${PAID.map(plan).join('\n')}
 ${['APP_ONLY', 'POS_ONLY', 'API_ONLY'].map((id) => `- ${PLANS[id].label} (standalone): ${rm(PLANS[id].monthlySen)} per month or ${rm(PLANS[id].yearlySen)} per year; ${en.standalone[id]}.`).join('\n')}
 - Lifetime licences are limited to 50 in total.
 - Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes ${LIFETIME_SUPPORT_MONTHS} months of updates and support.
-- Platforms: NEXO Count on Android; NEXO POS, NEXO Warehouse and NEXO Cloud in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
+- Platforms: JEXO Count on Android; JEXO POS, JEXO Warehouse and JEXO Cloud in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
 - Works offline: sales are kept on the device and sent when the connection returns.
 
 ## How stock is calculated
@@ -386,7 +385,7 @@ ${en.features.map(([h, p]) => `- **${h}**: ${p}`).join('\n')}
 ## The four products (one shared stock)
 ${Object.values(PAGES.en.products).map((x) => `- **${x.name}** (${x.kind}): ${x.line} ${x.points.join('; ')}.`).join('\n')}
 
-Chinese names: 盘点通 (NEXO Count), 收银通 (NEXO POS), 仓管通 (NEXO Warehouse), 云后台 (NEXO Cloud).
+Chinese names: 盘点通 (JEXO Count), 收银通 (JEXO POS), 仓管通 (JEXO Warehouse), 云后台 (JEXO Cloud).
 
 ## By kind of business
 ${INDUSTRY_IDS.map((id) => { const x = PAGES.en.industries[id]; return `- [${x.name}](${SITE}/en/${id}/): ${x.lead}${x.soon ? ` (${x.soon})` : ''}`; }).join('\n')}

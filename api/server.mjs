@@ -1,5 +1,5 @@
 /**
- * The NEXO API.
+ * The JEXO API.
  *
  * Lets another system -- an online shop, an accounting program, a
  * customer's own spreadsheet script -- read and update a company's items,
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 app.get('/', (_req, res) => res.json({
-  name: 'NEXO API',
+  name: 'JEXO API',
   version: 1,
   docs: 'https://stockcheck-fb58e.web.app/#/integrations/api',
 }));
@@ -371,4 +371,4 @@ app.use((err, _req, res, _next) => {
 });
 
 const port = Number(process.env.PORT) || 8080;
-app.listen(port, () => console.log(`NEXO API on :${port}`));
+app.listen(port, () => console.log(`JEXO API on :${port}`));

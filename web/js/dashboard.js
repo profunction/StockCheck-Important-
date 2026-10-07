@@ -1,7 +1,7 @@
 /**
- * NEXO Cloud: the owner's first look at the business. What it shows follows
+ * JEXO Cloud: the owner's first look at the business. What it shows follows
  * the company's modules (modules.js) and the person's permissions -- a shop
- * with only the POS sees today's sales and stock; add NEXO Warehouse and the
+ * with only the POS sees today's sales and stock; add JEXO Warehouse and the
  * orders to receive and goods on the way appear; a module that is not on
  * shows nothing here (and is offered under Settings -> Add more instead).
  *
@@ -27,7 +27,6 @@ export function widgetsFor(who) {
     sales: who.may('pos.reports'),
     stock: who.has('count') || who.has('pos') ? who.can('RECORD_STOCK_MOVEMENTS') || who.can('POS_MANAGE') || who.can('POS_REPORTS') : false,
     warehouse: who.may('warehouse.view') && (who.can('RECORD_STOCK_MOVEMENTS') || who.can('WH_PURCHASE') || who.can('WH_APPROVE') || who.can('POS_MANAGE')),
-    ecommerce: who.may('ecommerce.view'),
   };
 }
 
@@ -70,13 +69,12 @@ export function render(main) {
   const whBox = h('div', {}, pending());
 
   mount(main,
-    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, 'NEXO Cloud'), h('span', { class: 'grow' }),
+    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, 'JEXO Cloud'), h('span', { class: 'grow' }),
       h('span', { class: 'muted' }, session.companyName || '')),
     h('p', { class: 'muted', style: { marginTop: '-6px' } }, t('dashLead')),
     show.sales ? section(t('dashToday'), h('a', { href: '#/reports/summary' }, `${t('repSummary')} →`), salesBox) : null,
     show.stock ? section(t('dashStock'), h('a', { href: '#/inventory/levels' }, `${t('invLevels')} →`), stockBox) : null,
     show.warehouse ? section(MODULES.warehouse.displayName.en, h('a', { href: '/warehouse/' }, `${t('whApp')} →`), whBox) : null,
-    show.ecommerce ? section(MODULES.ecommerce.displayName.en, null, h('p', { class: 'muted' }, t('dashSoon'))) : null,
     addMore());
 
   if (show.sales) {

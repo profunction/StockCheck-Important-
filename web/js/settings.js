@@ -281,7 +281,7 @@ function tillsCard() {
  */
 function addons(main) {
   const lang = getLang();
-  const order = ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'ecommerce', 'accounting', 'logistics', 'b2b'];
+  const order = ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'accounting', 'logistics', 'b2b'];
   const card = (id) => {
     const m = MODULES[id];
     const on = session.has(id);

@@ -22,7 +22,7 @@ const OVERLAY = () => {
   style.textContent = `
     #demo-cursor{position:fixed;z-index:99999;width:22px;height:22px;border-radius:50%;background:rgba(255,196,0,.9);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:none;transform:translate(-50%,-50%);transition:left .5s ease, top .5s ease, transform .15s}
     #demo-cursor.click{transform:translate(-50%,-50%) scale(.6)}
-    #demo-cap{position:fixed;z-index:99998;left:50%;bottom:26px;transform:translateX(-50%);max-width:88%;background:rgba(17,38,27,.94);color:#fff;font:700 25px/1.35 "Noto Sans CJK SC","Noto Sans SC",sans-serif;padding:11px 26px;border-radius:14px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:opacity .3s;pointer-events:none}
+    #demo-cap{position:fixed;z-index:99998;left:50%;bottom:26px;transform:translateX(-50%);max-width:88%;background:rgba(11,27,43,.94);color:#fff;font:700 25px/1.35 "Noto Sans CJK SC","Noto Sans SC",sans-serif;padding:11px 26px;border-radius:14px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:opacity .3s;pointer-events:none}
     #demo-cap small{display:block;font:500 16px/1.3 system-ui,sans-serif;opacity:.82;margin-top:3px}
     #demo-cap:empty{opacity:0}
     #demo-title{position:fixed;inset:0;z-index:99997;background:var(--demo-bg,linear-gradient(135deg,#0b1b2b,#12385a 70%,#0f4c4a));color:#fff;display:grid;place-items:center;text-align:center;font:800 52px/1.3 "Noto Sans CJK SC","Noto Sans SC",sans-serif;transition:opacity .6s;pointer-events:none}

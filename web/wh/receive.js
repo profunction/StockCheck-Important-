@@ -7,7 +7,7 @@
  * - a receiving record (what was ordered, received, damaged, rejected),
  *   never edited afterwards;
  * - a RECEIVE movement for what was received, so stock goes up for the
- *   NEXO Count app and the till at once;
+ *   JEXO Count app and the till at once;
  * - the purchase order's received and damaged figures, and its status;
  * - an audit entry.
  *
@@ -33,21 +33,32 @@ export function render(main, sub) {
   if (sub) return receiving(main, sub);
   const list = h('div', { class: 'wh-list' });
   const history = h('div');
+  let open = [];
+  // A parcel from an online order: scanning its tracking label finds the order.
+  const parcel = h('input', { class: 'scan', placeholder: t('whScanParcel'), 'aria-label': t('whScanParcel'), autocomplete: 'off', onkeydown: (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const code = parcel.value.trim().toUpperCase();
+    parcel.value = '';
+    const po = code && open.find((p) => [p.trackingNo, p.onlineOrderNo, p.poNo].some((x) => x && String(x).toUpperCase() === code));
+    if (po) go('receive', po.id); else if (code) toast(`${t('notFound')}: ${code}`, 'error');
+  } });
   mount(main,
     head(t('whReceive'), h('button', { onclick: () => go('receive', 'free') }, icon('plus', 17), t('whReceiveNoPo'))),
     h('p', { class: 'muted' }, t('whReceiveHelp')),
+    h('div', { class: 'wh-scan', style: { marginBottom: '12px' } }, h('div', { class: 'search-box' }, icon('barcode', 18), parcel)),
     list,
     h('h2', { style: { marginTop: '24px' } }, t('whRecentReceiving')),
     history);
   loading(list);
   loadPurchaseOrders().then((pos) => {
-    const open = pos.filter((p) => ['ORDERED', 'PARTIAL'].includes(p.status) && isMine(p.branchId))
+    open = pos.filter((p) => ['ORDERED', 'PARTIAL'].includes(p.status) && isMine(p.branchId))
       .sort((a, b) => ((a.branchId || '') === session.branchId ? -1 : 0) - ((b.branchId || '') === session.branchId ? -1 : 0) || (a.expectedAt || a.createdAt) - (b.expectedAt || b.createdAt));
     mount(list, open.length ? open.map((po) => {
       const left = (po.lines || []).reduce((s, l) => s + outstanding(l), 0);
       return h('button', { class: 'wh-card', onclick: () => go('receive', po.id) },
         h('div', { class: 'row' }, h('strong', { class: 'grow' }, po.poNo), pill(t(`po_${po.status}`), po.status === 'PARTIAL' ? 'warn' : 'good')),
-        h('div', {}, po.supplierName || t('whNoSupplier')),
+        h('div', {}, po.supplierName || t('whNoSupplier'), po.trackingNo ? h('span', { class: 'muted' }, ` · ${t('whOnlineTracking')} ${po.trackingNo}`) : null),
         h('div', { class: 'muted' }, `${placeName(po.branchId)} · ${(po.lines || []).length} ${t('whLines')} · ${t('whStillToCome')} ${formatQty(left)}`,
           po.expectedAt ? ` · ${t('whExpected')} ${new Date(po.expectedAt).toLocaleDateString()}` : ''));
     }) : h('p', { class: 'muted' }, t('whNoOpenPos')));

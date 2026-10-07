@@ -9,8 +9,8 @@ import { renderGuide } from '../js/guide.js';
 import { APP_GUIDE, POS_GUIDE, WAREHOUSE_GUIDE } from '../js/guides.js';
 
 const TABS = {
-  app: { guide: APP_GUIDE, label: { zh: 'NEXO Count 手机 app', en: 'NEXO Count app', ms: 'Aplikasi NEXO Count' } },
-  pos: { guide: POS_GUIDE, label: { zh: 'NEXO POS 收银', en: 'NEXO POS (till)', ms: 'NEXO POS (POS)' } },
+  app: { guide: APP_GUIDE, label: { zh: 'JEXO Count 手机 app', en: 'JEXO Count app', ms: 'Aplikasi JEXO Count' } },
+  pos: { guide: POS_GUIDE, label: { zh: 'JEXO POS 收银', en: 'JEXO POS (till)', ms: 'JEXO POS (POS)' } },
   warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: '仓库系统', en: 'Warehouse system', ms: 'Sistem gudang' } },
 };
 const TITLE = { zh: '使用教程', en: 'How to use', ms: 'Cara guna' };

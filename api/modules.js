@@ -1,5 +1,5 @@
 /**
- * The module registry: every part of NEXO a company can have, in
+ * The module registry: every part of JEXO a company can have, in
  * one place -- its name for customers, what it depends on, which existing
  * permissions each of its actions needs, which menu entries and API routes
  * belong to it.
@@ -33,14 +33,14 @@ import { PLANS } from './plans.js';
 export const MODULES = {
   count: {
     id: 'count', licenceKey: 'app', status: 'live', kind: 'core', dependsOn: [],
-    displayName: { zh: 'NEXO Count', en: 'NEXO Count', ms: 'NEXO Count' },
+    displayName: { zh: 'JEXO Count', en: 'JEXO Count', ms: 'JEXO Count' },
     description: { zh: '手机盘点', en: 'Mobile stock counting', ms: 'Kira stok dengan telefon' },
     actions: { view: [], count: ['CREATE_STOCK_CHECK'], move: ['RECORD_STOCK_MOVEMENTS'] },
     menuItems: ['inventory'], routes: [], apiScopes: [],
   },
   pos: {
     id: 'pos', licenceKey: 'pos', status: 'live', kind: 'core', dependsOn: [],
-    displayName: { zh: 'NEXO POS', en: 'NEXO POS', ms: 'NEXO POS' },
+    displayName: { zh: 'JEXO POS', en: 'JEXO POS', ms: 'JEXO POS' },
     description: { zh: '柜台收银', en: 'Point of sale', ms: 'Jualan di kaunter' },
     actions: {
       view: [],
@@ -54,7 +54,7 @@ export const MODULES = {
   },
   warehouse: {
     id: 'warehouse', licenceKey: 'warehouse', status: 'live', kind: 'addon', dependsOn: [],
-    displayName: { zh: 'NEXO Warehouse', en: 'NEXO Warehouse', ms: 'NEXO Warehouse' },
+    displayName: { zh: 'JEXO Warehouse', en: 'JEXO Warehouse', ms: 'JEXO Warehouse' },
     description: { zh: '仓库、收货、调货', en: 'Warehouse, receiving, transfers', ms: 'Gudang, terima barang, pindahan' },
     actions: {
       view: [],
@@ -66,7 +66,7 @@ export const MODULES = {
   },
   procurement: {
     id: 'procurement', licenceKey: 'warehouse', status: 'live', kind: 'addon', dependsOn: ['warehouse'],
-    displayName: { zh: 'NEXO Procurement', en: 'NEXO Procurement', ms: 'NEXO Procurement' },
+    displayName: { zh: 'JEXO Procurement', en: 'JEXO Procurement', ms: 'JEXO Procurement' },
     description: { zh: '采购单、供应商、补货', en: 'Purchase orders, suppliers, reordering', ms: 'Pesanan belian, pembekal, tambah stok' },
     actions: {
       view: [],
@@ -78,7 +78,7 @@ export const MODULES = {
   },
   tax: {
     id: 'tax', licenceKey: 'pos', status: 'live', kind: 'addon', dependsOn: ['pos'],
-    displayName: { zh: 'NEXO Tax', en: 'NEXO Tax', ms: 'NEXO Tax' },
+    displayName: { zh: 'JEXO Tax', en: 'JEXO Tax', ms: 'JEXO Tax' },
     description: { zh: 'SST 和 LHDN 电子发票', en: 'SST and LHDN e-invoices', ms: 'SST dan e-Invois LHDN' },
     actions: { view: [], einvoice: ['POS_REPORTS'] },
     menuItems: ['reports/taxes', 'reports/einvoice'], routes: [], apiScopes: [],
@@ -94,30 +94,23 @@ export const MODULES = {
     apiScopes: ['items.read', 'items.write', 'inventory.read', 'inventory.write', 'receipts.read',
       'customers.read', 'customers.write', 'stores.read', 'sync.write'],
   },
-  ecommerce: {
-    id: 'ecommerce', licenceKey: 'ecommerce', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    displayName: { zh: 'NEXO Commerce', en: 'NEXO Commerce', ms: 'NEXO Commerce' },
-    description: { zh: 'Shopee、TikTok、Shopify 同步', en: 'Shopee, TikTok and Shopify sync', ms: 'Segerak Shopee, TikTok, Shopify' },
-    actions: { view: [], sync: ['POS_MANAGE'], manage: ['POS_MANAGE'] },
-    menuItems: [], routes: ['/ecommerce'], apiScopes: [],
-  },
   accounting: {
     id: 'accounting', licenceKey: 'accounting', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    displayName: { zh: 'NEXO Accounting', en: 'NEXO Accounting', ms: 'NEXO Accounting' },
+    displayName: { zh: 'JEXO Accounting', en: 'JEXO Accounting', ms: 'JEXO Accounting' },
     description: { zh: 'SQL Account、AutoCount 连接', en: 'SQL Account and AutoCount links', ms: 'Sambungan SQL Account, AutoCount' },
     actions: { view: [], export: ['POS_REPORTS'] },
     menuItems: [], routes: [], apiScopes: [],
   },
   logistics: {
     id: 'logistics', licenceKey: 'logistics', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    displayName: { zh: 'NEXO Logistics', en: 'NEXO Logistics', ms: 'NEXO Logistics' },
+    displayName: { zh: 'JEXO Logistics', en: 'JEXO Logistics', ms: 'JEXO Logistics' },
     description: { zh: 'Lalamove、GrabExpress 配送', en: 'Lalamove and GrabExpress delivery', ms: 'Penghantaran Lalamove, GrabExpress' },
     actions: { view: [], book: ['POS_SELL'] },
     menuItems: [], routes: [], apiScopes: [],
   },
   b2b: {
     id: 'b2b', licenceKey: 'b2b', status: 'planned', kind: 'addon', dependsOn: ['warehouse'],
-    displayName: { zh: 'NEXO B2B', en: 'NEXO B2B', ms: 'NEXO B2B' },
+    displayName: { zh: 'JEXO B2B', en: 'JEXO B2B', ms: 'JEXO B2B' },
     description: { zh: '门店和批发客户下单', en: 'Orders from shops and trade customers', ms: 'Pesanan dari kedai dan pelanggan borong' },
     actions: { view: [], order: ['RECORD_STOCK_MOVEMENTS'] },
     menuItems: [], routes: [], apiScopes: [],

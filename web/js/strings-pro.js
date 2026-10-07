@@ -6,8 +6,8 @@
 import { addStrings } from './i18n.js';
 
 const en = {
-  // NEXO Cloud dashboard
-  navCloud: 'NEXO Cloud', dashLead: 'Your business today, in one place. What shows here follows the products you have.',
+  // JEXO Cloud dashboard
+  navCloud: 'JEXO Cloud', dashLead: 'Your business today, in one place. What shows here follows the products you have.',
   dashToday: 'Today', dashSales: 'Sales today', dashReceipts: 'Receipts', dashAverage: 'Average bill', dashVoided: 'Voided',
   dashRecent: 'Latest receipts', dashNoSales: 'No sales yet today.', dashStock: 'Stock', dashItems: 'Items with stock',
   dashStockValue: 'Stock value (at cost)', dashLow: 'Low stock', dashOut: 'Out of stock', dashLowList: 'Low on stock',
@@ -24,7 +24,6 @@ const en = {
   addonAsk_pos: 'Sell at the counter', addonWhat_pos: 'Barcode checkout or restaurant ordering, SST, receipts, works offline.',
   addonAsk_warehouse: 'Need a central warehouse?', addonWhat_warehouse: 'Purchase orders, receiving, transfers to shops, adjustments, reorder suggestions.',
   addonAsk_api: 'Connect your own system?', addonWhat_api: 'Let an online shop or accounting program read and update items, stock and receipts.',
-  addonAsk_ecommerce: 'Selling on Shopee or TikTok?', addonWhat_ecommerce: 'One stock for the shop and online, so nothing is sold twice.',
   addonAsk_accounting: 'Using accounting software?', addonWhat_accounting: 'Sales into SQL Account or AutoCount. (The monthly LHDN e-invoice is already in Reports.)',
   addonAsk_logistics: 'Sending orders out?', addonWhat_logistics: 'Book Lalamove or GrabExpress from the order.',
   // shifts
@@ -64,8 +63,8 @@ const en = {
 };
 
 const zh = {
-  // NEXO Cloud dashboard
-  navCloud: 'NEXO Cloud 云后台', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
+  // JEXO Cloud dashboard
+  navCloud: 'JEXO Cloud 云后台', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
   dashToday: '今天', dashSales: '今天销售', dashReceipts: '收据', dashAverage: '平均每单', dashVoided: '已作废',
   dashRecent: '最近的收据', dashNoSales: '今天还没有销售。', dashStock: '库存', dashItems: '有库存的商品',
   dashStockValue: '库存价值（成本）', dashLow: '低库存', dashOut: '没货', dashLowList: '库存不足',
@@ -82,7 +81,6 @@ const zh = {
   addonAsk_pos: '柜台收银', addonWhat_pos: '扫码收银或餐饮点单、SST、收据，没网络也能用。',
   addonAsk_warehouse: '需要管理中央仓库？', addonWhat_warehouse: '采购单、收货、调货给门店、库存调整、补货建议。',
   addonAsk_api: '要连接自己的系统？', addonWhat_api: '让网店或会计软件读写商品、库存和收据。',
-  addonAsk_ecommerce: '在 Shopee、TikTok 卖东西？', addonWhat_ecommerce: '店里和网上共用一份库存，不会卖超。',
   addonAsk_accounting: '用会计软件？', addonWhat_accounting: '销售自动进 SQL Account 或 AutoCount。（每月 LHDN 电子发票现在已经在「报表」里。）',
   addonAsk_logistics: '要送货？', addonWhat_logistics: '从订单直接叫 Lalamove 或 GrabExpress。',
   noData: '这段时间没有记录。', shift: '班次', shiftNone: '未开班', shiftOpenSince: '开班于', openShift: '开班', closeShift: '交班',
@@ -116,8 +114,8 @@ const zh = {
 };
 
 const ms = {
-  // NEXO Cloud dashboard
-  navCloud: 'NEXO Cloud', dashLead: 'Perniagaan anda hari ini, di satu tempat. Apa yang dipaparkan ikut produk yang anda ada.',
+  // JEXO Cloud dashboard
+  navCloud: 'JEXO Cloud', dashLead: 'Perniagaan anda hari ini, di satu tempat. Apa yang dipaparkan ikut produk yang anda ada.',
   dashToday: 'Hari ini', dashSales: 'Jualan hari ini', dashReceipts: 'Resit', dashAverage: 'Purata bil', dashVoided: 'Dibatalkan',
   dashRecent: 'Resit terkini', dashNoSales: 'Belum ada jualan hari ini.', dashStock: 'Stok', dashItems: 'Barang ada stok',
   dashStockValue: 'Nilai stok (kos)', dashLow: 'Stok rendah', dashOut: 'Habis stok', dashLowList: 'Stok tidak cukup',
@@ -134,7 +132,6 @@ const ms = {
   addonAsk_pos: 'Jual di kaunter', addonWhat_pos: 'Imbas & jual atau pesanan restoran, SST, resit, boleh tanpa internet.',
   addonAsk_warehouse: 'Perlu gudang pusat?', addonWhat_warehouse: 'Pesanan belian, terima barang, pindahan ke kedai, pelarasan, cadangan tambah stok.',
   addonAsk_api: 'Sambung sistem anda sendiri?', addonWhat_api: 'Biar kedai dalam talian atau perisian akaun baca dan kemas kini barang, stok dan resit.',
-  addonAsk_ecommerce: 'Jual di Shopee atau TikTok?', addonWhat_ecommerce: 'Satu stok untuk kedai dan dalam talian, tiada jualan berlebihan.',
   addonAsk_accounting: 'Guna perisian akaun?', addonWhat_accounting: 'Jualan terus ke SQL Account atau AutoCount. (e-Invois LHDN bulanan sudah ada dalam Laporan.)',
   addonAsk_logistics: 'Hantar pesanan?', addonWhat_logistics: 'Tempah Lalamove atau GrabExpress dari pesanan.',
   noData: 'Tiada rekod dalam tempoh ini.', shift: 'Syif', shiftNone: 'Tiada syif dibuka', shiftOpenSince: 'Syif sejak', openShift: 'Buka syif', closeShift: 'Tutup syif',

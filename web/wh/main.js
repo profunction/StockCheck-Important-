@@ -1,6 +1,6 @@
 /**
  * The warehouse system: receiving, transfers, adjustments, purchasing and
- * stock control for the same company, products and stock as the NEXO Count
+ * stock control for the same company, products and stock as the JEXO Count
  * app and the till. Laid out for a phone in a worker's hand (big buttons,
  * a bar along the bottom) and for a manager at a computer (a sidebar).
  */
@@ -22,6 +22,7 @@ const MENU = [
   { id: 'adjust', icon: 'sliders', label: 'whAdjust', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./adjust.js') },
   { id: 'stock', icon: 'barcode', label: 'whStock', perm: null, page: () => import('./stock.js'), bottom: true },
   { id: 'purchase', icon: 'receipt', label: 'whPurchase', may: 'procurement.purchase', page: () => import('./purchase.js') },
+  { id: 'online', icon: 'download', label: 'whOnline', may: 'procurement.purchase', page: () => import('./online.js') },
   { id: 'suppliers', icon: 'users', label: 'whSuppliers', may: 'procurement.suppliers', page: () => import('./suppliers.js') },
   { id: 'variance', icon: 'percent', label: 'whVariance', perm: null, page: () => import('./variance.js') },
   { id: 'places', icon: 'store', label: 'whPlaces', perm: 'ADMIN', page: () => import('./places.js') },
@@ -75,7 +76,7 @@ function renderSignIn(message = '') {
       }
     },
   },
-  h('div', { class: 'brandmark' }, h('img', { src: '/icons/wh-192.png', alt: '', width: 40, height: 40 }), 'NEXO Warehouse'),
+  h('div', { class: 'brandmark' }, h('img', { src: '/icons/wh-192.png', alt: '', width: 40, height: 40 }), 'JEXO Warehouse'),
   h('h2', { style: { margin: '6px 0 0' } }, t('signIn')),
   h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')),
   h('label', { class: 'field' }, t('email'), email),
@@ -91,7 +92,7 @@ function renderSignIn(message = '') {
   langPicker());
   mount(app, h('div', { class: 'signin-split' },
     h('section', { class: 'signin-brand wh-brand' },
-      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/wh-192.png', alt: '', width: 36, height: 36 }), 'NEXO Warehouse'),
+      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/wh-192.png', alt: '', width: 36, height: 36 }), 'JEXO Warehouse'),
       h('div', { style: { display: 'grid', gap: '22px' } },
         h('h1', {}, t('whTagline')),
         h('ul', {},
@@ -133,7 +134,7 @@ function renderSide() {
   const { group } = currentRoute();
   const visible = MENU.filter(allowed);
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png', alt: '', width: 28, height: 28 }), 'NEXO Warehouse'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png', alt: '', width: 28, height: 28 }), 'JEXO Warehouse'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email),

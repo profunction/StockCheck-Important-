@@ -1,7 +1,7 @@
 /**
- * The customer-first structure of the public NEXO site: what NEXO is in
+ * The customer-first structure of the public JEXO site: what JEXO is in
  * one line ("One Business. Connected."), then "what is your business?",
- * then the four products (NEXO Count, POS, Warehouse, Cloud), then the
+ * then the four products (JEXO Count, POS, Warehouse, Cloud), then the
  * solutions that can be added as the business grows. site/build.mjs
  * renders it; the product names come from web/js/brand.js.
  *
@@ -11,17 +11,17 @@
  * customers' counts back them.
  */
 
-export const INDUSTRY_IDS = ['retail', 'fnb', 'wholesale', 'ecommerce'];
+export const INDUSTRY_IDS = ['retail', 'fnb', 'wholesale'];
 
 export const PAGES = {
   zh: {
     nav: { home: '首页', industries: '适合我的生意', products: '产品', addons: '解决方案', pricing: '价格', guide: '资源', login: '登录', trial: '免费试用' },
     hero: {
-      eyebrow: 'NEXO · 手机盘点 · 收银 · 仓库 · 云后台',
+      eyebrow: 'JEXO · 手机盘点 · 收银 · 仓库 · 云后台',
       h1: 'One Business. Connected.',
       sub: '一个系统，连接你的盘点、收银、仓库和后台',
       lead: '用手机盘点，柜台收银，仓库进出货，老板在云后台看全部。同一份库存，一个地方管理。生意扩大后，再按需要增加功能。',
-      cta: '开始免费试用', cta2: '了解 NEXO',
+      cta: '开始免费试用', cta2: '了解 JEXO',
       note: '不用信用卡 · 中文 / English / Bahasa Melayu · 马来西亚',
     },
     industriesTitle: '你的生意是什么？',
@@ -40,26 +40,21 @@ export const PAGES = {
         points: [['仓库库存', '每个仓库、门店分开算；现有、在途、订购中、可用、价值。'], ['进货', '采购单（老板批准）、扫码收货、记录损坏和短少。'], ['调货给门店', '仓库发货马上扣，货在「在途」，门店收到再加；少了会记差异。'], ['库存调整', '每次调整都要选原因：损坏、过期、丢失、找到。'], ['补货建议', '低于补货点自动建议订多少，一键生成采购单。']],
         soon: '即将推出：门店订货单、拣货单。',
         products: ['warehouse', 'stocktake', 'backoffice'], plan: '建议 Business（RM118/月，20 位用户、多分店）。' },
-      ecommerce: { icon: 'ecommerce', name: '电商卖家', short: '一份库存，店里和网上一起卖',
-        h1: '电商卖家', lead: '先把库存管准：店里、仓库、网上卖的都从同一份库存出。',
-        points: [['现在就能用', '手机盘点 + 收银 + 仓库，库存准确；网上的销售用 Excel / CSV 导入就会扣库存。'], ['自己的网店', '用开放 API 连接你的网店或 Shopify，读写商品和库存、回传网上的销售（Unlimited 或 API 配套）。']],
-        soon: '电商同步即将推出：Shopee、TikTok Shop、Shopify 库存和订单自动同步、防超卖。想第一批用，WhatsApp 我们登记。',
-        products: ['stocktake', 'pos', 'backoffice'], plan: '现在建议 Starter 或 Unlimited（要 API）；电商同步推出后再增加。' },
     },
-    productsTitle: 'NEXO 产品：四个产品，一份库存',
+    productsTitle: 'JEXO 产品：四个产品，一份库存',
     products: {
-      stocktake: { name: 'NEXO Count', kind: '盘点通 · Android App', line: '用手机快速完成库存盘点。', points: ['手机扫码', '语音输入数量', '离线盘点', '库存核对：短少多少', '照片记录', 'Loyverse 同步'], cta: '我要开始盘点' },
-      pos: { name: 'NEXO POS', kind: '收银通 · 网页 / 可安装', line: '让柜台收银更快、更简单。', points: ['零售：扫码、SST、现金四舍五入、收据、离线', '餐饮：堂食外带、加料、厨房单、服务费'], cta: '我是零售店', cta2: '我是餐饮店' },
-      warehouse: { name: 'NEXO Warehouse', kind: '仓管通 · 网页 / 手机', line: '管理仓库、进出货和门店调货。', points: ['采购单和批准', '扫码收货', '调货（在途）', '库存调整', '补货建议'], cta: '看仓库方案' },
-      backoffice: { name: 'NEXO Cloud', kind: '云后台 · 网页', line: '老板查看生意、管理员工、开启扩展功能。', points: ['销售和交班报表', '员工和权限', '商品、价格、税', '每月 LHDN 电子发票', '按生意显示的仪表板'], cta: '登录后台' },
+      stocktake: { name: 'JEXO Count', kind: '盘点通 · Android App', line: '用手机快速完成库存盘点。', points: ['手机扫码', '语音输入数量', '离线盘点', '库存核对：短少多少', '照片记录', 'Loyverse 同步'], cta: '我要开始盘点' },
+      pos: { name: 'JEXO POS', kind: '收银通 · 网页 / 可安装', line: '让柜台收银更快、更简单。', points: ['零售：扫码、SST、现金四舍五入、收据、离线', '餐饮：堂食外带、加料、厨房单、服务费'], cta: '我是零售店', cta2: '我是餐饮店' },
+      warehouse: { name: 'JEXO Warehouse', kind: '仓管通 · 网页 / 手机', line: '管理仓库、进出货和门店调货。', points: ['采购单和批准', '扫码收货', '调货（在途）', '库存调整', '补货建议'], cta: '看仓库方案' },
+      backoffice: { name: 'JEXO Cloud', kind: '云后台 · 网页', line: '老板查看生意、管理员工、开启扩展功能。', points: ['销售和交班报表', '员工和权限', '商品、价格、税', '每月 LHDN 电子发票', '按生意显示的仪表板'], cta: '登录后台' },
     },
     addonsTitle: '解决方案：生意扩大了，再增加功能',
     addonsLead: '一开始只需要盘点和收银。需要的时候再加，不用换系统，资料都在。',
     addons: [
-      { name: 'NEXO Warehouse · 仓库与订货', ask: '需要管理中央仓库？', what: '仓库、采购单、调货、补货建议。', state: 'live' },
-      { name: 'NEXO Tax · 会计与电子发票', ask: '要交 LHDN 电子发票？', what: '每月 MyInvois 合并电子发票已包含。SQL Account、AutoCount 连接即将推出。', state: 'part' },
-      { name: 'NEXO Commerce · 电商同步', ask: '在 Shopee、TikTok 卖东西？', what: '库存和订单自动同步、防超卖。', state: 'soon' },
-      { name: 'NEXO Logistics · 配送', ask: '要安排送货？', what: 'Lalamove、GrabExpress。', state: 'soon' },
+      { name: 'JEXO Warehouse · 仓库与订货', ask: '需要管理中央仓库？', what: '仓库、采购单、调货、补货建议。', state: 'live' },
+      { name: 'JEXO Procurement · 网购进货', ask: '在拼多多、淘宝、Shopee、TikTok 进货？', what: '把订单贴进来就变成采购单：商品、数量、价钱、运费、人民币汇率自动算好；包裹到了扫运单号收货，库存马上加上去。', state: 'live' },
+      { name: 'JEXO Tax · 会计与电子发票', ask: '要交 LHDN 电子发票？', what: '每月 MyInvois 合并电子发票已包含。SQL Account、AutoCount 连接即将推出。', state: 'part' },
+      { name: 'JEXO Logistics · 配送', ask: '要安排送货？', what: 'Lalamove、GrabExpress。', state: 'soon' },
     ],
     state: { live: '现在可以用', part: '部分已经可以用', soon: '即将推出' },
     back: '回首页', usesTitle: '会用到', planTitle: '建议的配套', ctaPage: '免费试用 14 天', ctaTalk: '看全部价格',
@@ -67,11 +62,11 @@ export const PAGES = {
   en: {
     nav: { home: 'Home', industries: 'For Your Business', products: 'Products', addons: 'Solutions', pricing: 'Pricing', guide: 'Resources', login: 'Login', trial: 'Free Trial' },
     hero: {
-      eyebrow: 'NEXO · Stock counting · POS · Warehouse · Cloud',
+      eyebrow: 'JEXO · Stock counting · POS · Warehouse · Cloud',
       h1: 'One Business. Connected.',
       sub: 'One system that connects your stock counts, checkout, warehouse and back office',
       lead: 'Count stock on your phone, sell at the counter, move goods through the warehouse, and see it all in the cloud. One stock, managed in one place. Add more as the business grows.',
-      cta: 'Start Free Trial', cta2: 'Explore NEXO',
+      cta: 'Start Free Trial', cta2: 'Explore JEXO',
       note: 'No credit card · 中文 / English / Bahasa Melayu · Malaysia',
     },
     industriesTitle: 'What is your business?',
@@ -90,26 +85,21 @@ export const PAGES = {
         points: [['Warehouse stock', 'Each warehouse and shop apart: on hand, in transit, on order, available, value.'], ['Goods in', 'Purchase orders with the owner\'s approval, receiving by scan, damages and shortages noted.'], ['Transfers to shops', 'Off the warehouse when sent, in transit, onto the shop when received; differences kept.'], ['Adjustments', 'Every change needs a reason: damaged, expired, lost, found.'], ['Reorder suggestions', 'Below the reorder point, how much to order — one tap makes the purchase order.']],
         soon: 'Coming soon: store order requests, pick lists.',
         products: ['warehouse', 'stocktake', 'backoffice'], plan: 'Business (RM118/month, 20 users, branches).' },
-      ecommerce: { icon: 'ecommerce', name: 'Online sellers', short: 'One stock for the shop and online',
-        h1: 'Online sellers', lead: 'Get the stock right first: the shop, the warehouse and online all sell from one stock.',
-        points: [['Ready today', 'Phone counts, POS and warehouse keep stock accurate; import online sales from Excel / CSV and they come off the stock.'], ['Your own online shop', 'Connect your website or Shopify through the open API to read and update items and stock and send in online sales (Unlimited or the API plan).']],
-        soon: 'Online store sync is coming: Shopee, TikTok Shop and Shopify stock and orders in sync, no overselling. WhatsApp us to be among the first.',
-        products: ['stocktake', 'pos', 'backoffice'], plan: 'Starter, or Unlimited for the API, today; add the sync when it arrives.' },
     },
     productsTitle: 'Four products, one stock',
     products: {
-      stocktake: { name: 'NEXO Count', kind: 'Android app', line: 'Count your stock quickly with a phone.', points: ['Phone barcode scanning', 'Say the quantity', 'Counts offline', 'Shows what is short', 'Photos', 'Loyverse sync'], cta: 'Start counting' },
-      pos: { name: 'NEXO POS', kind: 'Web, installable', line: 'Faster, simpler checkout at the counter.', points: ['Retail: barcode, SST, cash rounding, receipts, offline', 'Restaurant: dine-in, modifiers, kitchen tickets, service charge'], cta: 'I run a shop', cta2: 'I run a restaurant' },
-      warehouse: { name: 'NEXO Warehouse', kind: 'Web and phone', line: 'Warehouse stock, goods in and out, transfers to shops.', points: ['Purchase orders and approval', 'Receiving by scan', 'Transfers in transit', 'Adjustments', 'Reorder suggestions'], cta: 'See the warehouse setup' },
-      backoffice: { name: 'NEXO Cloud', kind: 'Web', line: 'For the owner: the business at a glance, staff, and adding more.', points: ['Sales and shift reports', 'Staff and permissions', 'Items, prices, taxes', 'Monthly LHDN e-invoice', 'A dashboard that fits your business'], cta: 'Sign in' },
+      stocktake: { name: 'JEXO Count', kind: 'Android app', line: 'Count your stock quickly with a phone.', points: ['Phone barcode scanning', 'Say the quantity', 'Counts offline', 'Shows what is short', 'Photos', 'Loyverse sync'], cta: 'Start counting' },
+      pos: { name: 'JEXO POS', kind: 'Web, installable', line: 'Faster, simpler checkout at the counter.', points: ['Retail: barcode, SST, cash rounding, receipts, offline', 'Restaurant: dine-in, modifiers, kitchen tickets, service charge'], cta: 'I run a shop', cta2: 'I run a restaurant' },
+      warehouse: { name: 'JEXO Warehouse', kind: 'Web and phone', line: 'Warehouse stock, goods in and out, transfers to shops.', points: ['Purchase orders and approval', 'Receiving by scan', 'Transfers in transit', 'Adjustments', 'Reorder suggestions'], cta: 'See the warehouse setup' },
+      backoffice: { name: 'JEXO Cloud', kind: 'Web', line: 'For the owner: the business at a glance, staff, and adding more.', points: ['Sales and shift reports', 'Staff and permissions', 'Items, prices, taxes', 'Monthly LHDN e-invoice', 'A dashboard that fits your business'], cta: 'Sign in' },
     },
     addonsTitle: 'Solutions: add more as the business grows',
     addonsLead: 'Start with counting and checkout. Add more when you need it — no new system, your data stays.',
     addons: [
-      { name: 'NEXO Warehouse · Warehouse & ordering', ask: 'Need a central warehouse?', what: 'Warehouses, purchase orders, transfers, reorder suggestions.', state: 'live' },
-      { name: 'NEXO Tax · Accounting & e-invoice', ask: 'Submitting LHDN e-invoices?', what: 'The monthly MyInvois consolidated e-invoice is included. SQL Account and AutoCount links are coming.', state: 'part' },
-      { name: 'NEXO Commerce · Online store sync', ask: 'Selling on Shopee or TikTok?', what: 'Stock and orders in sync, no overselling.', state: 'soon' },
-      { name: 'NEXO Logistics · Delivery', ask: 'Sending orders out?', what: 'Lalamove, GrabExpress.', state: 'soon' },
+      { name: 'JEXO Warehouse · Warehouse & ordering', ask: 'Need a central warehouse?', what: 'Warehouses, purchase orders, transfers, reorder suggestions.', state: 'live' },
+      { name: 'JEXO Procurement · Online purchases', ask: 'Buying stock on Pinduoduo, Taobao, Shopee or TikTok?', what: 'Paste the order and it becomes a purchase order — items, quantities, prices, shipping and the yuan rate worked out. When the parcel arrives, scan its tracking number to receive it into stock.', state: 'live' },
+      { name: 'JEXO Tax · Accounting & e-invoice', ask: 'Submitting LHDN e-invoices?', what: 'The monthly MyInvois consolidated e-invoice is included. SQL Account and AutoCount links are coming.', state: 'part' },
+      { name: 'JEXO Logistics · Delivery', ask: 'Sending orders out?', what: 'Lalamove, GrabExpress.', state: 'soon' },
     ],
     state: { live: 'Available now', part: 'Partly available', soon: 'Coming soon' },
     back: 'Home', usesTitle: 'What you use', planTitle: 'Suggested plan', ctaPage: 'Try free for 14 days', ctaTalk: 'See all prices',
@@ -117,11 +107,11 @@ export const PAGES = {
   ms: {
     nav: { home: 'Utama', industries: 'Perniagaan Anda', products: 'Produk', addons: 'Penyelesaian', pricing: 'Harga', guide: 'Sumber', login: 'Log masuk', trial: 'Cuba Percuma' },
     hero: {
-      eyebrow: 'NEXO · Kira stok · POS · Gudang · Awan',
+      eyebrow: 'JEXO · Kira stok · POS · Gudang · Awan',
       h1: 'One Business. Connected.',
       sub: 'Satu sistem yang menyambung kiraan stok, kaunter, gudang dan pejabat belakang anda',
       lead: 'Kira stok dengan telefon, jual di kaunter, urus barang masuk dan keluar gudang, dan lihat semuanya di awan. Satu stok, diurus di satu tempat. Tambah fungsi bila perniagaan berkembang.',
-      cta: 'Mula Cuba Percuma', cta2: 'Terokai NEXO',
+      cta: 'Mula Cuba Percuma', cta2: 'Terokai JEXO',
       note: 'Tanpa kad kredit · 中文 / English / Bahasa Melayu · Malaysia',
     },
     industriesTitle: 'Apa perniagaan anda?',
@@ -140,26 +130,21 @@ export const PAGES = {
         points: [['Stok gudang', 'Setiap gudang dan kedai berasingan: ada, dalam transit, dipesan, boleh guna, nilai.'], ['Barang masuk', 'Pesanan belian dengan kelulusan pemilik, terima dengan imbasan, rekod rosak dan kurang.'], ['Pindahan ke kedai', 'Tolak dari gudang bila dihantar, dalam transit, masuk ke kedai bila diterima; beza direkod.'], ['Pelarasan', 'Setiap perubahan perlu sebab: rosak, luput, hilang, dijumpai.'], ['Cadangan tambah stok', 'Bawah paras tambah, berapa perlu dipesan — satu tekan buat pesanan belian.']],
         soon: 'Akan datang: permintaan pesanan kedai, senarai pungut.',
         products: ['warehouse', 'stocktake', 'backoffice'], plan: 'Business (RM118/bulan, 20 pengguna, cawangan).' },
-      ecommerce: { icon: 'ecommerce', name: 'Penjual dalam talian', short: 'Satu stok untuk kedai dan dalam talian',
-        h1: 'Penjual dalam talian', lead: 'Betulkan stok dahulu: kedai, gudang dan dalam talian jual dari satu stok.',
-        points: [['Boleh guna hari ini', 'Kira stok, POS dan gudang pastikan stok tepat; import jualan dalam talian dari Excel / CSV dan stok ditolak.'], ['Kedai dalam talian sendiri', 'Sambung laman web atau Shopify anda melalui API terbuka untuk baca dan kemas kini barang dan stok serta hantar jualan dalam talian (Unlimited atau pelan API).']],
-        soon: 'Segerak kedai dalam talian akan datang: stok dan pesanan Shopee, TikTok Shop dan Shopify selari, tiada jualan berlebihan. WhatsApp kami untuk jadi antara yang pertama.',
-        products: ['stocktake', 'pos', 'backoffice'], plan: 'Starter, atau Unlimited untuk API, hari ini; tambah segerak bila tiba.' },
     },
     productsTitle: 'Empat produk, satu stok',
     products: {
-      stocktake: { name: 'NEXO Count', kind: 'Aplikasi Android', line: 'Kira stok dengan cepat guna telefon.', points: ['Imbas kod bar dengan telefon', 'Sebut kuantiti', 'Kira tanpa internet', 'Tunjuk apa yang kurang', 'Foto', 'Segerak Loyverse'], cta: 'Mula kira stok' },
-      pos: { name: 'NEXO POS', kind: 'Web, boleh dipasang', line: 'Bayaran di kaunter lebih cepat dan mudah.', points: ['Runcit: kod bar, SST, bundar tunai, resit, luar talian', 'Restoran: makan sini, pengubah, tiket dapur, caj perkhidmatan'], cta: 'Saya ada kedai', cta2: 'Saya ada restoran' },
-      warehouse: { name: 'NEXO Warehouse', kind: 'Web dan telefon', line: 'Stok gudang, barang masuk dan keluar, pindahan ke kedai.', points: ['Pesanan belian dan kelulusan', 'Terima dengan imbasan', 'Pindahan dalam transit', 'Pelarasan', 'Cadangan tambah stok'], cta: 'Lihat pelan gudang' },
-      backoffice: { name: 'NEXO Cloud', kind: 'Web', line: 'Untuk pemilik: perniagaan sekali pandang, pekerja, dan tambah fungsi.', points: ['Laporan jualan dan syif', 'Pekerja dan kebenaran', 'Barang, harga, cukai', 'e-Invois LHDN bulanan', 'Papan pemuka ikut perniagaan'], cta: 'Log masuk' },
+      stocktake: { name: 'JEXO Count', kind: 'Aplikasi Android', line: 'Kira stok dengan cepat guna telefon.', points: ['Imbas kod bar dengan telefon', 'Sebut kuantiti', 'Kira tanpa internet', 'Tunjuk apa yang kurang', 'Foto', 'Segerak Loyverse'], cta: 'Mula kira stok' },
+      pos: { name: 'JEXO POS', kind: 'Web, boleh dipasang', line: 'Bayaran di kaunter lebih cepat dan mudah.', points: ['Runcit: kod bar, SST, bundar tunai, resit, luar talian', 'Restoran: makan sini, pengubah, tiket dapur, caj perkhidmatan'], cta: 'Saya ada kedai', cta2: 'Saya ada restoran' },
+      warehouse: { name: 'JEXO Warehouse', kind: 'Web dan telefon', line: 'Stok gudang, barang masuk dan keluar, pindahan ke kedai.', points: ['Pesanan belian dan kelulusan', 'Terima dengan imbasan', 'Pindahan dalam transit', 'Pelarasan', 'Cadangan tambah stok'], cta: 'Lihat pelan gudang' },
+      backoffice: { name: 'JEXO Cloud', kind: 'Web', line: 'Untuk pemilik: perniagaan sekali pandang, pekerja, dan tambah fungsi.', points: ['Laporan jualan dan syif', 'Pekerja dan kebenaran', 'Barang, harga, cukai', 'e-Invois LHDN bulanan', 'Papan pemuka ikut perniagaan'], cta: 'Log masuk' },
     },
     addonsTitle: 'Penyelesaian: tambah bila perniagaan berkembang',
     addonsLead: 'Mula dengan kira stok dan kaunter. Tambah bila perlu — tiada sistem baharu, data anda kekal.',
     addons: [
-      { name: 'NEXO Warehouse · Gudang & pesanan', ask: 'Perlu gudang pusat?', what: 'Gudang, pesanan belian, pindahan, cadangan tambah stok.', state: 'live' },
-      { name: 'NEXO Tax · Akaun & e-Invois', ask: 'Hantar e-Invois LHDN?', what: 'e-Invois disatukan MyInvois bulanan sudah termasuk. Sambungan SQL Account dan AutoCount akan datang.', state: 'part' },
-      { name: 'NEXO Commerce · Segerak kedai dalam talian', ask: 'Jual di Shopee atau TikTok?', what: 'Stok dan pesanan selari, tiada jualan berlebihan.', state: 'soon' },
-      { name: 'NEXO Logistics · Penghantaran', ask: 'Hantar pesanan?', what: 'Lalamove, GrabExpress.', state: 'soon' },
+      { name: 'JEXO Warehouse · Gudang & pesanan', ask: 'Perlu gudang pusat?', what: 'Gudang, pesanan belian, pindahan, cadangan tambah stok.', state: 'live' },
+      { name: 'JEXO Procurement · Belian dalam talian', ask: 'Beli stok di Pinduoduo, Taobao, Shopee atau TikTok?', what: 'Tampal pesanan dan ia jadi pesanan belian — barang, kuantiti, harga, penghantaran dan kadar yuan dikira. Bila bungkusan sampai, imbas nombor penjejakan untuk terima ke stok.', state: 'live' },
+      { name: 'JEXO Tax · Akaun & e-Invois', ask: 'Hantar e-Invois LHDN?', what: 'e-Invois disatukan MyInvois bulanan sudah termasuk. Sambungan SQL Account dan AutoCount akan datang.', state: 'part' },
+      { name: 'JEXO Logistics · Penghantaran', ask: 'Hantar pesanan?', what: 'Lalamove, GrabExpress.', state: 'soon' },
     ],
     state: { live: 'Ada sekarang', part: 'Sebahagian ada', soon: 'Akan datang' },
     back: 'Utama', usesTitle: 'Yang anda guna', planTitle: 'Pelan dicadangkan', ctaPage: 'Cuba percuma 14 hari', ctaTalk: 'Lihat semua harga',
