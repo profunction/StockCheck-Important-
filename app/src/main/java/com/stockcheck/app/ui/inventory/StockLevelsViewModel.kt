@@ -17,6 +17,7 @@ import com.stockcheck.app.model.StockItem
 import com.stockcheck.app.model.StockLedger
 import com.stockcheck.app.model.StockMovement
 import com.stockcheck.app.pos.LoyverseSettings
+import com.stockcheck.app.pos.PosStock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -95,6 +96,13 @@ class StockLevelsViewModel(private val session: Session) : ViewModel() {
         .catch { emit(null) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** The till's own stock figures; like the connection, admins only. */
+    private val posStock: StateFlow<PosStock?> = (
+        if (canConnect) ServiceLocator.loyverse.observeStock() else flowOf(null)
+        )
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     private val _branchId = MutableStateFlow<String?>(null)
     val branchId: StateFlow<String?> = _branchId.asStateFlow()
 
@@ -117,7 +125,8 @@ class StockLevelsViewModel(private val session: Session) : ViewModel() {
         movements.filterNotNull(),
         products,
         _branchId,
-    ) { checks, movements, products, branch -> Inputs(checks, movements, products, branch) }
+        posStock,
+    ) { checks, movements, products, branch, pos -> Inputs(checks, movements, products, branch, pos) }
         .distinctUntilChanged()
         .transformLatest { inputs ->
             emit(last.copy(loading = true))
@@ -134,6 +143,7 @@ class StockLevelsViewModel(private val session: Session) : ViewModel() {
         val movements: List<StockMovement>,
         val products: List<Product>,
         val branch: String?,
+        val pos: PosStock?,
     )
 
     private suspend fun build(inputs: Inputs): LevelsState {
@@ -153,7 +163,12 @@ class StockLevelsViewModel(private val session: Session) : ViewModel() {
                 catalogue = catalogue,
             )
         }
-        val levels = if (perBranch.size == 1) perBranch.single() else StockLedger.merge(perBranch)
+        val counted = if (perBranch.size == 1) perBranch.single() else StockLedger.merge(perBranch)
+        val till = inputs.pos?.levels.orEmpty()
+            .filter { inputs.branch == null || it.branchId == inputs.branch }
+            .groupBy { it.key }
+            .mapValues { (_, list) -> list.first().name to list.sumOf { it.inStockMilli } }
+        val levels = StockLedger.withPos(counted, till, catalogue)
 
         val countedAt = levels.associate { it.key to it.countedAt }
         val since = moves

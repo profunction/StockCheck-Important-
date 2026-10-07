@@ -154,6 +154,7 @@
     <string name="levels_since">之后：进 +%1$s，出 −%2$s</string>
     <string name="levels_loss">上次盘点 %1$s</string>
     <string name="levels_on_hand">现有</string>
+    <string name="levels_pos">Loyverse 显示 %1$s</string>
     <string name="level_expected_found">上次盘点：应有 %1$s，实际 %2$s</string>
     <string name="level_since_then">上次盘点之后的进出</string>
     <string name="level_nothing_since">之后没有进出记录。</string>

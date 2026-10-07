@@ -137,4 +137,51 @@ class LoyverseTest {
             Loyverse.movementId(again.first { it.planned.key == "M1" }),
         )
     }
+
+    @Test
+    fun `inventory levels, with a null and a minus kept as they are`() {
+        val page = Loyverse.parseInventory(
+            """
+            {"inventory_levels":[
+              {"variant_id":"v1","store_id":"s1","in_stock":20,"updated_at":"2026-10-07T00:00:00Z"},
+              {"variant_id":"v2","store_id":"s1","in_stock":-2.5},
+              {"variant_id":"v3","store_id":"s1","in_stock":null}
+            ],"cursor":"more"}
+            """,
+        )
+        assertEquals(listOf(Quantity.of(20), -2_500L), page.values.map { it.inStock })
+        assertEquals("more", page.cursor)
+    }
+
+    @Test
+    fun `till stock adds up per branch and matches by barcode, then sku`() {
+        val catalogue = listOf(
+            Product(barcode = "9555", name = "Milo 1kg"),
+            Product(barcode = "8888", name = "Sugar", sku = "SG"),
+        )
+        val variants = listOf(
+            Loyverse.Variant("v1", barcode = "9555", sku = "", itemName = "Milo"),
+            // Loyverse has a different barcode on file, but the SKU is known.
+            Loyverse.Variant("v2", barcode = "1234", sku = "SG", itemName = "Gula"),
+            Loyverse.Variant("v3", barcode = "", sku = "", itemName = "Eggs"),
+        ).associateBy { it.variantId }
+        val levels = Loyverse.stockLevels(
+            levels = listOf(
+                Loyverse.InventoryLevel("v1", "s1", Quantity.of(20)),
+                Loyverse.InventoryLevel("v1", "s2", Quantity.of(5)),
+                Loyverse.InventoryLevel("v2", "s1", Quantity.of(7)),
+                Loyverse.InventoryLevel("v3", "s1", Quantity.of(30)),
+                Loyverse.InventoryLevel("gone", "s1", Quantity.of(1)),
+            ),
+            variants = variants,
+            storeBranches = mapOf("s2" to "ipoh"),
+            matcher = MovementFile.Matcher(catalogue),
+        ).associateBy { it.branchId to it.key }
+
+        assertEquals(Quantity.of(20), levels.getValue("" to "9555").inStockMilli)
+        assertEquals(Quantity.of(5), levels.getValue("ipoh" to "9555").inStockMilli)
+        assertEquals(Quantity.of(7), levels.getValue("" to "8888").inStockMilli)
+        assertEquals(Quantity.of(30), levels.getValue("" to "name:eggs").inStockMilli)
+        assertEquals(4, levels.size)
+    }
 }

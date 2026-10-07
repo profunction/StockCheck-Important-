@@ -165,6 +165,7 @@
     <string name="levels_since">Since then: +%1$s in, −%2$s out</string>
     <string name="levels_loss">%1$s at last count</string>
     <string name="levels_on_hand">On hand</string>
+    <string name="levels_pos">Loyverse says %1$s</string>
     <string name="level_expected_found">Last count: expected %1$s, found %2$s</string>
     <string name="level_since_then">In and out since the last count</string>
     <string name="level_nothing_since">Nothing in or out since.</string>

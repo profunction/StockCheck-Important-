@@ -154,6 +154,7 @@
     <string name="levels_since">Sejak itu: +%1$s masuk, −%2$s keluar</string>
     <string name="levels_loss">%1$s semasa kiraan terakhir</string>
     <string name="levels_on_hand">Ada</string>
+    <string name="levels_pos">Loyverse: %1$s</string>
     <string name="level_expected_found">Kiraan terakhir: dijangka %1$s, dijumpai %2$s</string>
     <string name="level_since_then">Masuk dan keluar sejak kiraan terakhir</string>
     <string name="level_nothing_since">Tiada keluar masuk sejak itu.</string>

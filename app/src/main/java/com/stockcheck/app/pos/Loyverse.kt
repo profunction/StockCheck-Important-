@@ -8,6 +8,21 @@ import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.roundToLong
 
+/** The till's own stock figure for one product at one branch. */
+data class PosLevel(
+    val branchId: String = "",
+    /** The product key, as [com.stockcheck.app.model.StockLedger.Level.key]. */
+    val key: String = "",
+    val name: String = "",
+    val inStockMilli: Long = 0L,
+)
+
+/** The latest stock figures read from the till, at `integrations/loyverse_stock`. */
+data class PosStock(
+    val fetchedAt: Long = 0L,
+    val levels: List<PosLevel> = emptyList(),
+)
+
 /**
  * Loyverse's API, read into what this app needs.
  *
@@ -21,6 +36,7 @@ import kotlin.math.roundToLong
  * - /receipts -> { receipts: [ { receipt_number, receipt_type: SALE|REFUND,
  *                  cancelled_at, created_at, receipt_date, store_id,
  *                  line_items: [ { id, variant_id, item_name, sku, quantity } ] } ], cursor }
+ * - /inventory -> { inventory_levels: [ { variant_id, store_id, in_stock, updated_at } ], cursor }
  *
  * Parsing is defensive: a field this build does not expect is ignored and a
  * missing one is blank, because a till's API changing a detail must cost one
@@ -48,6 +64,9 @@ object Loyverse {
     )
 
     data class Page<T>(val values: List<T>, val cursor: String?)
+
+    /** What Loyverse's own stock count says one variant has at one store. */
+    data class InventoryLevel(val variantId: String, val storeId: String, val inStock: Long)
 
     fun parseStores(body: String): List<Store> {
         val array = JSONObject(body).optJSONArray("stores") ?: return emptyList()
@@ -123,6 +142,63 @@ object Loyverse {
         }
         return Page(lines, json.cursor())
     }
+
+    /**
+     * Loyverse's own stock figures -- what the owner typed in, less what the
+     * till has sold since. Only items with stock tracking switched on in
+     * Loyverse are listed.
+     */
+    fun parseInventory(body: String): Page<InventoryLevel> {
+        val json = JSONObject(body)
+        val array = json.optJSONArray("inventory_levels")
+        val levels = mutableListOf<InventoryLevel>()
+        if (array != null) {
+            for (i in 0 until array.length()) {
+                val level = array.optJSONObject(i) ?: continue
+                val variantId = level.nonNullString("variant_id")
+                if (variantId.isEmpty() || level.isNull("in_stock")) continue
+                levels += InventoryLevel(
+                    variantId = variantId,
+                    storeId = level.nonNullString("store_id"),
+                    // Can be negative: a till sells what it was never told it had.
+                    inStock = (level.optDouble("in_stock", 0.0) * 1000).roundToLong(),
+                )
+            }
+        }
+        return Page(levels, json.cursor())
+    }
+
+    /**
+     * Loyverse's stock added up per branch and product, products matched to
+     * the product list the same way sales are.
+     */
+    fun stockLevels(
+        levels: List<InventoryLevel>,
+        variants: Map<String, Variant>,
+        storeBranches: Map<String, String>,
+        matcher: MovementFile.Matcher,
+    ): List<PosLevel> =
+        levels.mapNotNull { level ->
+            val variant = variants[level.variantId] ?: return@mapNotNull null
+            // Barcode first; a variant whose barcode the product list does
+            // not know may still be known by its SKU.
+            val byBarcode = matcher.resolve(variant.barcode, variant.itemName)
+            val product = if (byBarcode.matched || variant.sku.isEmpty()) {
+                byBarcode
+            } else {
+                matcher.resolve(variant.sku, variant.itemName).takeIf { it.matched } ?: byBarcode
+            }
+            Triple(storeBranches[level.storeId].orEmpty(), product, level.inStock)
+        }
+            .groupBy { (branch, product, _) -> branch to product.key }
+            .map { (key, group) ->
+                PosLevel(
+                    branchId = key.first,
+                    key = key.second,
+                    name = group.first().second.name,
+                    inStockMilli = group.sumOf { it.third },
+                )
+            }
 
     /** One movement-to-be per branch, day and product -- the same shape a file import makes. */
     data class DayTotal(

@@ -197,4 +197,35 @@ class StockLedgerTest {
         assertEquals(140L, units(all.getValue("rice").onHand))
         assertEquals(5L, units(all.getValue("oil").onHand))
     }
+
+    @Test
+    fun `stock entered in the till shows before the first count`() {
+        val milo = Product(barcode = "9555", name = "Milo 1kg", reorderLevelMilli = Quantity.of(25))
+        val levels = StockLedger.withPos(
+            levels = emptyList(),
+            pos = mapOf("9555" to ("Milo" to Quantity.of(20))),
+            catalogue = mapOf("9555" to milo),
+        ).single()
+        assertEquals(20L, units(levels.shown))
+        assertTrue(levels.shownFromPos)
+        assertEquals("Milo 1kg", levels.name)
+        // Below the product's reorder level of 25.
+        assertTrue(levels.isLow)
+    }
+
+    @Test
+    fun `once counted, the count wins and the till sits beside it`() {
+        val counted = ledger(counts = listOf(count(at = 10) to listOf(line("9555", 18)))).values.toList()
+        val level = StockLedger.withPos(counted, mapOf("9555" to ("Milo" to Quantity.of(20)))).single()
+        assertEquals(18L, units(level.shown))
+        assertEquals(20L, units(level.pos))
+        assertFalse(level.shownFromPos)
+    }
+
+    @Test
+    fun `head office adds the tills up too`() {
+        val a = StockLedger.withPos(emptyList(), mapOf("x" to ("X" to Quantity.of(3))))
+        val b = StockLedger.withPos(emptyList(), mapOf("x" to ("X" to Quantity.of(4))))
+        assertEquals(7L, units(StockLedger.merge(listOf(a, b)).single().pos))
+    }
 }

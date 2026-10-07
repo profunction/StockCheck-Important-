@@ -40,9 +40,25 @@ object StockLedger {
          * expect -- the first count of a product.
          */
         val lossAtCount: Long?,
+        /**
+         * What the shop's till says it has, when the till keeps stock
+         * (Loyverse does). Null when there is no till figure.
+         */
+        val pos: Long? = null,
     ) {
         val onHand: Long get() = (counted ?: 0L) + inSince - outSince
-        val isLow: Boolean get() = reorderLevel != null && onHand <= reorderLevel
+
+        /**
+         * The figure to show. Once counted here, the count and what moved
+         * since. Never counted, the till's own figure is a better guess than
+         * movements from nothing -- the till already took its sales off it.
+         */
+        val shown: Long get() = if (counted == null && pos != null) pos else onHand
+
+        /** True when the big number is the till's figure rather than this app's. */
+        val shownFromPos: Boolean get() = counted == null && pos != null
+
+        val isLow: Boolean get() = reorderLevel != null && shown <= reorderLevel
         val label: String get() = name.ifEmpty { barcode }
     }
 
@@ -121,6 +137,7 @@ object StockLedger {
                 val first = levels.first()
                 val counts = levels.mapNotNull { it.counted }
                 val losses = levels.mapNotNull { it.lossAtCount }
+                val tills = levels.mapNotNull { it.pos }
                 first.copy(
                     name = levels.firstOrNull { it.name.isNotEmpty() }?.name.orEmpty(),
                     counted = if (counts.isEmpty()) null else counts.sum(),
@@ -128,9 +145,42 @@ object StockLedger {
                     inSince = levels.sumOf { it.inSince },
                     outSince = levels.sumOf { it.outSince },
                     lossAtCount = if (losses.isEmpty()) null else losses.sum(),
+                    pos = if (tills.isEmpty()) null else tills.sum(),
                 )
             }
             .sortedBy { it.label.lowercase() }
+
+    /**
+     * Puts the till's stock figures beside [levels]. A product the till
+     * keeps stock of but nothing here has touched yet gets a line of its
+     * own, so stock entered in the till shows up before the first count.
+     */
+    fun withPos(
+        levels: List<Level>,
+        pos: Map<String, Pair<String, Long>>,
+        catalogue: Map<String, Product> = emptyMap(),
+    ): List<Level> {
+        if (pos.isEmpty()) return levels
+        val known = levels.map { it.key }.toSet()
+        val merged = levels.map { level -> pos[level.key]?.let { level.copy(pos = it.second) } ?: level }
+        val added = pos.filterKeys { it !in known }.map { (key, value) ->
+            val product = catalogue[key]
+            Level(
+                key = key,
+                barcode = product?.barcode ?: key.takeUnless { it.startsWith("name:") }.orEmpty(),
+                name = product?.name?.ifBlank { null } ?: value.first,
+                unit = product?.unit.orEmpty(),
+                counted = null,
+                countedAt = null,
+                inSince = 0L,
+                outSince = 0L,
+                reorderLevel = product?.reorderLevelMilli,
+                lossAtCount = null,
+                pos = value.second,
+            )
+        }
+        return (merged + added).sortedBy { it.label.lowercase() }
+    }
 
     /** When each product was last counted, in any area. */
     private fun latestTimes(

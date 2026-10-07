@@ -42,7 +42,13 @@ data class LoyverseSettings(
     val connectedAt: Long = 0L,
 )
 
-data class SyncResult(val receiptLines: Int, val productDays: Int, val unmatched: Int)
+data class SyncResult(
+    val receiptLines: Int,
+    val productDays: Int,
+    val unmatched: Int,
+    /** Products Loyverse keeps a stock figure for; null when it would not say. */
+    val stockLevels: Int?,
+)
 
 /**
  * Brings a shop's Loyverse sales in as stock movements.
@@ -55,6 +61,9 @@ data class SyncResult(val receiptLines: Int, val productDays: Int, val unmatched
 class LoyverseSync(private val audit: AuditRepository) {
 
     fun observe(): Flow<LoyverseSettings?> = Db.integration(NAME).asFlow<LoyverseSettings>()
+
+    /** Loyverse's own stock figures as of the last sync. */
+    fun observeStock(): Flow<PosStock?> = Db.integration(STOCK).asFlow<PosStock>()
 
     /**
      * Checks the token by asking Loyverse for the shop's stores, and keeps it
@@ -98,6 +107,7 @@ class LoyverseSync(private val audit: AuditRepository) {
     suspend fun disconnect(session: Session) {
         session.require(Permission.CHANGE_PERMISSION)
         Db.integration(NAME).delete().awaitAck()
+        Db.integration(STOCK).delete().awaitAck()
         audit.record(
             session = session,
             entity = "Integration",
@@ -130,6 +140,25 @@ class LoyverseSync(private val audit: AuditRepository) {
                 Loyverse.parseReceipts(get("/receipts?limit=250&created_at_min=$since" + cursor.param(), settings.token))
             }
             variants to lines
+        }
+
+        // Stock figures are a bonus on top of sales: a shop that does not
+        // track stock in Loyverse, or an account Loyverse will not show them
+        // to, still gets its sales.
+        val stock = runCatching {
+            withContext(Dispatchers.IO) {
+                paged { cursor -> Loyverse.parseInventory(get("/inventory?limit=250" + cursor.param(), settings.token)) }
+            }
+        }.getOrNull()?.let { levels ->
+            Loyverse.stockLevels(
+                levels = levels,
+                variants = variants.associateBy { it.variantId },
+                storeBranches = settings.storeBranches,
+                matcher = MovementFile.Matcher(catalogue),
+            )
+        }
+        if (stock != null) {
+            Db.integration(STOCK).set(PosStock(fetchedAt = System.currentTimeMillis(), levels = stock)).awaitAck()
         }
 
         val totals = Loyverse.totals(
@@ -180,12 +209,14 @@ class LoyverseSync(private val audit: AuditRepository) {
             receiptLines = lines.size,
             productDays = totals.size,
             unmatched = totals.map { it.planned }.filter { !it.matched }.map { it.key }.distinct().size,
+            stockLevels = stock?.size,
         )
         Db.integration(NAME).update(
             mapOf(
                 "lastSyncedAt" to now,
                 "lastResult" to "${result.receiptLines} receipt lines, ${result.productDays} product-days" +
-                    " from $windowStart",
+                    " from $windowStart" +
+                    (result.stockLevels?.let { ", stock for $it products" } ?: ", stock not shared"),
             ),
         ).awaitAck()
         audit.record(
@@ -248,6 +279,7 @@ class LoyverseSync(private val audit: AuditRepository) {
 
     private companion object {
         const val NAME = "loyverse"
+        const val STOCK = "loyverse_stock"
         /** How far back each sync re-reads, for receipts that synced late. */
         const val RESYNC_DAYS = 7L
         const val MAX_PAGES = 400

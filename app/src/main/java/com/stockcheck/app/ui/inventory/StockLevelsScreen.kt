@@ -352,6 +352,18 @@ private fun LevelRow(level: StockLedger.Level, onClick: () -> Unit) {
                 )
             }
             Text(detail, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            level.pos?.let { till ->
+                Text(
+                    text = stringResource(R.string.levels_pos, amount(till, level.unit)),
+                    style = MaterialTheme.typography.labelSmall,
+                    // A till that disagrees with the count is worth a look.
+                    color = if (!level.shownFromPos && till != level.onHand) {
+                        MaterialTheme.colorScheme.tertiary
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    },
+                )
+            }
             if (level.inSince != 0L || level.outSince != 0L) {
                 Text(
                     text = stringResource(
@@ -374,7 +386,7 @@ private fun LevelRow(level: StockLedger.Level, onClick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = amount(level.onHand, level.unit),
+                text = amount(level.shown, level.unit),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = if (level.isLow) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
@@ -432,9 +444,12 @@ private fun LevelDialog(
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = stringResource(R.string.levels_on_hand) + ": " + amount(level.onHand, level.unit),
+                    text = stringResource(R.string.levels_on_hand) + ": " + amount(level.shown, level.unit),
                     style = MaterialTheme.typography.titleMedium,
                 )
+                level.pos?.let { till ->
+                    Text(stringResource(R.string.levels_pos, amount(till, level.unit)))
+                }
                 if (level.counted != null && level.countedAt != null) {
                     Text(
                         stringResource(
