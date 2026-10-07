@@ -14,7 +14,7 @@ import { billTotals, formatQty, formatSen, lineAmount, lineTotal, parseQty, pars
 import { onChange, session, ws } from './session.js';
 import { kitchenView, printView } from './receipt.js';
 import { openPayment } from './pay.js';
-import { loadCustomers, pickCustomer } from './customers.js';
+import { freshCustomer, loadCustomers, pickCustomer } from './customers.js';
 import { listenForTags, nfcSupported, normalizeTag } from './nfc.js';
 import { scanWithCamera } from './camera.js';
 import { menuButton } from './main.js';
@@ -80,12 +80,13 @@ export function render(main) {
     },
   }, '📶 NFC');
 
-  const fnb = session.settings.mode !== 'RETAIL';
+  // Shown or hidden as the shop's settings arrive and change.
+  els.tablesBtn = h('button', { onclick: openTables }, `🍽 ${t('tables')}`);
   const bar = h('div', { class: 'bar' },
     menuButton(),
     els.search,
     h('span', { class: 'grow' }),
-    fnb ? h('button', { onclick: openTables }, `🍽 ${t('tables')}`) : null,
+    els.tablesBtn,
     h('button', { onclick: openTicketsList }, `🧾 ${t('openTickets')} `, els.openCount),
     nfcSupported() ? els.nfc : null);
 
@@ -108,7 +109,16 @@ export function render(main) {
   // A USB scanner is a keyboard. Whatever is focused, a scan should land in
   // the scan box -- unless somebody is typing in another field or a dialog.
   const onKey = (e) => {
-    if (document.querySelector('.backdrop')) return;
+    const open = document.querySelector('.backdrop');
+    if (open) {
+      // The "change: RM 12.20" box after a sale: a scanner starting the next
+      // customer closes it, and the key goes to the scan box.
+      const afterSale = open.querySelector('[data-after-sale]');
+      if (!afterSale || e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+      afterSale.click();
+      els.scan.focus();
+      return;
+    }
     const target = e.target;
     const typing = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
     if (!typing && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -146,6 +156,10 @@ function sellable() {
 }
 
 function drawAll() {
+  const fnb = session.settings.mode !== 'RETAIL';
+  els.tablesBtn.classList.toggle('hidden', !fnb);
+  // A sale started before the settings loaded took the default order type.
+  if (!cart.lines.length && !cart.orderId && !cart.table) cart.orderType = defaultOrderType();
   drawChips();
   drawTiles();
   drawTicket();
@@ -197,7 +211,8 @@ async function addByCode(raw) {
   if (product) return addProduct(product);
   try {
     const tag = normalizeTag(code);
-    const member = (await loadCustomers()).find((c) => (c.cardIds || []).some((id) => id === code || id === tag));
+    const found = (await loadCustomers()).find((c) => (c.cardIds || []).some((id) => id === code || id === tag));
+    const member = found && await freshCustomer(found);
     if (member) {
       cart.customer = { id: member.id, name: member.name, phone: member.phone || '', points: member.points || 0 };
       toast(`👤 ${member.name}`, 'ok');

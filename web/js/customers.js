@@ -5,7 +5,7 @@
  * have spent and to their points, and points can pay for part of a bill.
  * The rate is set under Settings -> Loyalty.
  */
-import { collection, db, doc, getDocs, setDoc, updateDoc, deleteDoc } from './fb.js';
+import { collection, db, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from './fb.js';
 import { confirmBox, dateTime, h, modal, mount, toast } from './dom.js';
 import { t } from './i18n.js';
 import { formatSen, rm } from './money.js';
@@ -125,10 +125,26 @@ export function editCustomer(existing, onSaved, prefill = {}) {
   });
 }
 
+/**
+ * A customer as they are right now, for attaching to a sale. Points change
+ * with every sale on every till, so the cached list is only good for
+ * finding them; the balance is read fresh, or points already spent could be
+ * spent again.
+ */
+export async function freshCustomer(c) {
+  try {
+    const snap = await getDoc(doc(db, ws(`customers/${c.id}`)));
+    if (snap.exists()) return { ...snap.data(), id: c.id };
+  } catch {
+    // Offline: the cached copy is the best there is.
+  }
+  return c;
+}
+
 /** The till's "who is this?" picker. Resolves a customer, or null. */
 export async function pickCustomer() {
   let list = [];
-  try { list = await loadCustomers(); } catch (err) { toast(err.message, 'error'); }
+  try { list = await loadCustomers(true); } catch (err) { toast(err.message, 'error'); }
   return new Promise((resolve) => {
     let chosen = null;
     const results = h('div', { style: { display: 'grid', gap: '6px', maxHeight: '50vh', overflowY: 'auto' } });
@@ -161,7 +177,7 @@ export async function pickCustomer() {
           h('span', { class: 'grow' }),
           h('button', { onclick: close }, t('cancel'))),
       ];
-    }, { onClose: () => resolve(chosen) });
+    }, { onClose: () => (chosen ? freshCustomer(chosen).then(resolve) : resolve(null)) });
     draw();
   });
 }

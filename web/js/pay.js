@@ -199,13 +199,15 @@ async function recordSale(cart, totals, payments) {
   });
   if (cart.orderId) batch.delete(doc(db, ws(`orders/${cart.orderId}`)));
   if (cart.customer) {
-    batch.update(doc(db, ws(`customers/${cart.customer.id}`)), {
+    // A merge, not an update: an update of a customer someone has just
+    // deleted fails, and a batch that fails loses the sale with it.
+    batch.set(doc(db, ws(`customers/${cart.customer.id}`)), {
       points: increment((sale.pointsEarned || 0) - (sale.pointsRedeemed || 0)),
       visits: increment(1),
       totalSpentSen: increment(sale.totalSen),
       lastVisitAt: now,
       updatedAt: now,
-    });
+    }, { merge: true });
   }
 
   // Not awaited: offline, commit() only settles once the server has it, and
@@ -217,7 +219,10 @@ async function recordSale(cart, totals, payments) {
 
 function afterSale(sale) {
   if (session.settings.autoPrint !== false) printView(receiptView(sale));
+  // data-after-sale: the register closes this box when the next scan
+  // starts, so the next customer's first item is not lost behind it.
   modal((close) => [
+    h('span', { 'data-after-sale': true, hidden: true, onclick: close }),
     h('div', { class: 'bigsum' }, sale.changeSen ? `${t('change')} ${rm(sale.changeSen)}` : t('paid')),
     h('p', { class: 'muted', style: { textAlign: 'center', margin: 0 } }, sale.receiptNo),
     h('div', { class: 'actions' },
