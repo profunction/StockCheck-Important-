@@ -21,6 +21,7 @@ on:
       - 'storage.rules'
       - 'firebase.json'
       - 'web/**'
+      - 'api/**'
       - 'rules-test/**'
       - '.github/workflows/deploy-firebase.yml'
 
@@ -107,6 +108,31 @@ jobs:
       - name: Deploy storage rules
         if: steps.setup.outputs.ready == 'true'
         run: rules-test/node_modules/.bin/firebase deploy --only storage --project "$PROJECT" --non-interactive --force
+
+      # The POS API runs on Cloud Run. Deploying it needs Cloud Run and
+      # Cloud Build permissions on the key's account, granted once (see the
+      # README in api/). Without them the website still goes out.
+      - uses: google-github-actions/auth@v2
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        if: steps.setup.outputs.ready == 'true'
+
+      - name: Deploy the POS API
+        id: api
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+        run: |
+          diff -u web/js/ledger.js api/ledger.js
+          gcloud run deploy stockcheck-api --source api --region asia-southeast1 --project "$PROJECT" \
+            --allow-unauthenticated --memory 512Mi --max-instances 3 --quiet
+
+      - name: If the API did not deploy
+        if: steps.setup.outputs.ready == 'true' && steps.api.outcome == 'failure'
+        run: |
+          echo "::warning::The POS API was not deployed. The key's account needs Cloud Run Admin, Cloud Build Editor, Service Account User and Artifact Registry Admin. See api/README.md."
 
       - name: Where it is
         if: steps.setup.outputs.ready == 'true'

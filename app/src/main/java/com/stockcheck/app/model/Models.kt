@@ -396,7 +396,7 @@ enum class MovementType(val sign: Int) {
 }
 
 /** Where a movement was recorded. */
-enum class MovementSource { MANUAL, FILE, LOYVERSE, POS }
+enum class MovementSource { MANUAL, FILE, LOYVERSE, POS, API }
 
 /**
  * Stock that came in or went out between two counts, at

@@ -9,6 +9,8 @@ on:
     paths:
       - 'firestore.rules'
       - 'rules-test/**'
+      - 'api/**'
+      - 'web/js/ledger.js'
       - '.github/workflows/rules-test.yml'
 
 jobs:
@@ -37,3 +39,27 @@ jobs:
 
       - name: POS website
         run: npx firebase emulators:exec --project demo-stockcheck --only firestore "node pos-test.mjs"
+
+  # The POS API against the Firestore emulator.
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: The API's stock maths is the website's
+        run: diff -u web/js/ledger.js api/ledger.js
+      - run: npm ci || npm install
+        working-directory: rules-test
+      - run: npm install --no-audit --no-fund
+        working-directory: api
+      - run: node lib.test.mjs
+        working-directory: api
+      - name: End to end
+        working-directory: rules-test
+        run: npx firebase emulators:exec --project demo-stockcheck --only firestore "node ../api/api-test.mjs"
