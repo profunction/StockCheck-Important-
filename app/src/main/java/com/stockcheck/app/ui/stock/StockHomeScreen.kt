@@ -765,7 +765,12 @@ private fun LicenceBlockedDialog(
                 // for a code and names nobody -- and since every licence,
                 // trial included, is issued by hand, a customer with no way
                 // to ask is one who can neither start nor pay.
-                if (whatsApp.isNotBlank() || supportEmail.isNotBlank()) {
+                //
+                // Not in a copy Google Play sells through: a Play app may sell
+                // its plans only with Play's own billing, never point to
+                // another way to pay. The website and the side-loaded APK
+                // keep these.
+                if (!playAvailable && (whatsApp.isNotBlank() || supportEmail.isNotBlank())) {
                     Spacer(Modifier.height(12.dp))
                     Text(
                         text = stringResource(R.string.paywall_contact_prompt),
