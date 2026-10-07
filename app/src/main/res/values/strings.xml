@@ -214,7 +214,7 @@
     <string name="role_expiry">Expiry date</string>
     <string name="pos_title">Connect your till (POS)</string>
     <string name="pos_admin_only">Only a company admin can connect a till.</string>
-    <string name="pos_loyverse_intro">Sales come in automatically. In Loyverse Back Office go to Settings → Access tokens → Add access token, then paste the token here.</string>
+    <string name="pos_loyverse_intro">Products, stock and sales come over from Loyverse each time you sync. In Loyverse Back Office go to Settings → Access tokens → Add access token, then paste the token here.</string>
     <string name="pos_token">Access token</string>
     <string name="pos_start_from">Bring sales in from</string>
     <string name="pos_connect">Connect</string>
@@ -222,7 +222,7 @@
     <string name="pos_never_synced">Not synced yet</string>
     <string name="pos_last_sync">Last synced %1$s: %2$s</string>
     <string name="pos_sync_now">Sync now</string>
-    <string name="pos_sync_done">%1$d records brought in; %2$d products not in your product list.</string>
+    <string name="pos_sync_done">%1$d new products, %2$d updated · stock for %3$d · %4$d sales records</string>
     <string name="pos_disconnect">Disconnect</string>
     <string name="pos_others_title">Other tills</string>
     <string name="pos_others_body">StoreHub, Xilnex, Qashier, AutoCount, SQL POS, Shopify POS, EasyStore and others: export the sales report from your till (Excel or CSV) and import it here. Any layout works. A direct connection will be added for each one once that provider gives access.</string>

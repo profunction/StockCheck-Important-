@@ -51,7 +51,6 @@ import com.stockcheck.app.data.can
 import com.stockcheck.app.export.MovementFile
 import com.stockcheck.app.model.Branch
 import com.stockcheck.app.model.Permission
-import com.stockcheck.app.model.Product
 import com.stockcheck.app.model.Session
 import com.stockcheck.app.pos.LoyverseSettings
 import com.stockcheck.app.pos.SyncResult
@@ -84,10 +83,6 @@ class PosViewModel(private val session: Session) : ViewModel() {
         .catch { emit(emptyList()) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    private val products: StateFlow<List<Product>> = ServiceLocator.products.observeProducts()
-        .catch { emit(emptyList()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
@@ -111,7 +106,7 @@ class PosViewModel(private val session: Session) : ViewModel() {
 
     fun setStoreBranch(storeId: String, branchId: String) = whileBusy { sync.setStoreBranch(session, storeId, branchId) }
 
-    fun syncNow() = whileBusy { _result.value = sync.sync(session, products.value) }
+    fun syncNow() = whileBusy { _result.value = sync.sync(session) }
 
     fun disconnect() = whileBusy { sync.disconnect(session) }
 
@@ -235,7 +230,7 @@ fun PosConnectScreen(
                                 )
                                 result?.let {
                                     Text(
-                                        stringResource(R.string.pos_sync_done, it.productDays, it.unmatched),
+                                        stringResource(R.string.pos_sync_done, it.newProducts, it.renamedProducts, it.stockLevels ?: 0, it.productDays),
                                         style = MaterialTheme.typography.bodySmall,
                                     )
                                 }

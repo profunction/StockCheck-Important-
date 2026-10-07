@@ -203,7 +203,7 @@
     <string name="role_expiry">Tarikh luput</string>
     <string name="pos_title">Sambung sistem POS</string>
     <string name="pos_admin_only">Hanya pentadbir syarikat boleh menyambung sistem POS.</string>
-    <string name="pos_loyverse_intro">Jualan masuk secara automatik. Dalam Loyverse Back Office pergi ke Settings → Access tokens → Add access token, kemudian tampal token di sini.</string>
+    <string name="pos_loyverse_intro">Produk, stok dan jualan dibawa dari Loyverse setiap kali anda segerak. Dalam Loyverse Back Office pergi ke Settings → Access tokens → Add access token, kemudian tampal token di sini.</string>
     <string name="pos_token">Token akses</string>
     <string name="pos_start_from">Bawa masuk jualan dari</string>
     <string name="pos_connect">Sambung</string>
@@ -211,7 +211,7 @@
     <string name="pos_never_synced">Belum disegerak</string>
     <string name="pos_last_sync">Kali terakhir disegerak %1$s: %2$s</string>
     <string name="pos_sync_now">Segerak sekarang</string>
-    <string name="pos_sync_done">%1$d rekod dibawa masuk; %2$d produk tiada dalam senarai produk.</string>
+    <string name="pos_sync_done">%1$d produk baharu, %2$d dikemas kini · stok %3$d · %4$d rekod jualan</string>
     <string name="pos_disconnect">Putuskan sambungan</string>
     <string name="pos_others_title">Sistem POS lain</string>
     <string name="pos_others_body">StoreHub, Xilnex, Qashier, AutoCount, SQL POS, Shopify POS, EasyStore dan lain-lain: eksport laporan jualan dari sistem POS anda (Excel atau CSV) dan import di sini. Apa-apa susun atur boleh. Sambungan terus akan ditambah untuk setiap satu apabila pembekal itu memberi akses.</string>

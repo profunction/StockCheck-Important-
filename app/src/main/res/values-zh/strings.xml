@@ -203,7 +203,7 @@
     <string name="role_expiry">有效期</string>
     <string name="pos_title">连接收银系统</string>
     <string name="pos_admin_only">只有公司管理员可以连接收银系统。</string>
-    <string name="pos_loyverse_intro">销售资料会自动导入。在 Loyverse 后台进入 Settings → Access tokens → Add access token，然后把令牌贴到这里。</string>
+    <string name="pos_loyverse_intro">每次同步，Loyverse 的商品、库存数量和销售都会一起过来。在 Loyverse 后台进入 Settings → Access tokens → Add access token，然后把令牌贴到这里。</string>
     <string name="pos_token">访问令牌（Access token）</string>
     <string name="pos_start_from">从哪一天开始导入</string>
     <string name="pos_connect">连接</string>
@@ -211,7 +211,7 @@
     <string name="pos_never_synced">还没同步过</string>
     <string name="pos_last_sync">上次同步 %1$s：%2$s</string>
     <string name="pos_sync_now">立即同步</string>
-    <string name="pos_sync_done">导入了 %1$d 笔；%2$d 个商品不在商品清单。</string>
+    <string name="pos_sync_done">新商品 %1$d 个，更新 %2$d 个 · 库存 %3$d 样 · 销售 %4$d 笔</string>
     <string name="pos_disconnect">断开连接</string>
     <string name="pos_others_title">其他收银系统</string>
     <string name="pos_others_body">StoreHub、Xilnex、Qashier、AutoCount、SQL POS、Shopify POS、EasyStore 等：从收银系统导出销售报表（Excel 或 CSV）再导入这里，任何格式都可以。等各家厂商开放连接后，会再加上自动连接。</string>

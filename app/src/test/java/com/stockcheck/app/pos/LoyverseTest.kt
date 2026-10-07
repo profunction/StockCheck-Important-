@@ -184,4 +184,48 @@ class LoyverseTest {
         assertEquals(Quantity.of(30), levels.getValue("" to "name:eggs").inStockMilli)
         assertEquals(4, levels.size)
     }
+
+    @Test
+    fun `variant options become part of the name`() {
+        val page = Loyverse.parseItems(
+            """
+            {"items":[{"item_name":"Milo","variants":[
+                {"variant_id":"v1","barcode":"9555","option1_value":"1kg","option2_value":null},
+                {"variant_id":"v2","barcode":"9556"}
+            ]}]}
+            """,
+        )
+        assertEquals(listOf("Milo 1kg", "Milo"), page.values.map { it.displayName })
+    }
+
+    @Test
+    fun `loyverse items fill the product list without touching what only this app knows`() {
+        val catalogue = listOf(
+            // Scanned here before it was named.
+            Product(barcode = "9555", name = "", unit = "tin", reorderLevelMilli = Quantity.of(5)),
+            // Known by another of its barcodes.
+            Product(barcode = "8888", name = "Gula", sku = "SG", altBarcodes = listOf("8889")),
+            Product(barcode = "7777", name = "Same", sku = "S"),
+        )
+        val plan = Loyverse.planProducts(
+            variants = listOf(
+                Loyverse.Variant("v1", barcode = "9555", sku = "M1", itemName = "Milo", options = "1kg"),
+                Loyverse.Variant("v2", barcode = "8889", sku = "SG", itemName = "Sugar"),
+                Loyverse.Variant("v3", barcode = "7777", sku = "S", itemName = "Same"),
+                Loyverse.Variant("v4", barcode = "1234", sku = "", itemName = "Eggs"),
+                Loyverse.Variant("v5", barcode = "", sku = "X", itemName = "Loose rice"),
+            ),
+            catalogue = catalogue,
+            now = 1L,
+            uid = "u",
+        )
+        assertEquals("Milo 1kg" to "M1", plan.update["9555"])
+        // Updated under its own id, not the barcode Loyverse used.
+        assertEquals("Sugar" to "SG", plan.update["8888"])
+        // Nothing changed, nothing written.
+        assertFalse("7777" in plan.update)
+        assertEquals(listOf("1234"), plan.create.map { it.barcode })
+        assertEquals("Eggs", plan.create.single().name)
+        assertEquals(1, plan.noBarcode)
+    }
 }

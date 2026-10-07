@@ -246,7 +246,7 @@ class StockLevelsViewModel(private val session: Session) : ViewModel() {
         if (_syncing.value) return
         _syncing.value = true
         viewModelScope.launch {
-            runCatching { ServiceLocator.loyverse.sync(session, products.value) }
+            runCatching { ServiceLocator.loyverse.sync(session) }
                 .onFailure { _message.value = it.message }
             _syncing.value = false
         }

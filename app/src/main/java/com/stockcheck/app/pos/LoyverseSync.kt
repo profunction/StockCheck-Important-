@@ -1,6 +1,7 @@
 package com.stockcheck.app.pos
 
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.SetOptions
 import com.stockcheck.app.data.AuditRepository
 import com.stockcheck.app.data.Db
 import com.stockcheck.app.data.asFlow
@@ -48,6 +49,8 @@ data class SyncResult(
     val unmatched: Int,
     /** Products Loyverse keeps a stock figure for; null when it would not say. */
     val stockLevels: Int?,
+    val newProducts: Int = 0,
+    val renamedProducts: Int = 0,
 )
 
 /**
@@ -117,9 +120,10 @@ class LoyverseSync(private val audit: AuditRepository) {
         )
     }
 
-    suspend fun sync(session: Session, catalogue: List<Product>): SyncResult {
+    suspend fun sync(session: Session): SyncResult {
         session.require(Permission.CHANGE_PERMISSION)
         session.require(Permission.RECORD_STOCK_MOVEMENTS)
+        session.require(Permission.IMPORT_PRODUCTS)
         val settings = Db.integration(NAME).getAs<LoyverseSettings>()
             ?: throw IllegalStateException("Loyverse is not connected.")
         require(settings.token.isNotBlank()) { "Loyverse is not connected." }
@@ -141,6 +145,16 @@ class LoyverseSync(private val audit: AuditRepository) {
             }
             variants to lines
         }
+
+        // Products first, so the sales and stock below match the list as
+        // Loyverse has it now. Read fresh rather than taken from a screen:
+        // a list not loaded yet would make every item look new.
+        val before = Db.products().get().await().toObjects(Product::class.java)
+        val plan = Loyverse.planProducts(variants, before, System.currentTimeMillis(), session.uid)
+        writeProducts(plan)
+        val catalogue = before.map { product ->
+            plan.update[product.barcode]?.let { (name, sku) -> product.copy(name = name, sku = sku) } ?: product
+        } + plan.create
 
         // Stock figures are a bonus on top of sales: a shop that does not
         // track stock in Loyverse, or an account Loyverse will not show them
@@ -210,13 +224,16 @@ class LoyverseSync(private val audit: AuditRepository) {
             productDays = totals.size,
             unmatched = totals.map { it.planned }.filter { !it.matched }.map { it.key }.distinct().size,
             stockLevels = stock?.size,
+            newProducts = plan.create.size,
+            renamedProducts = plan.update.size,
         )
         Db.integration(NAME).update(
             mapOf(
                 "lastSyncedAt" to now,
                 "lastResult" to "${result.receiptLines} receipt lines, ${result.productDays} product-days" +
                     " from $windowStart" +
-                    (result.stockLevels?.let { ", stock for $it products" } ?: ", stock not shared"),
+                    (result.stockLevels?.let { ", stock for $it products" } ?: ", stock not shared") +
+                    ", ${result.newProducts} new products, ${result.renamedProducts} updated",
             ),
         ).awaitAck()
         audit.record(
@@ -229,6 +246,22 @@ class LoyverseSync(private val audit: AuditRepository) {
             newValue = "${result.productDays} product-days from $windowStart",
         )
         return result
+    }
+
+    private suspend fun writeProducts(plan: Loyverse.ProductPlan) {
+        val now = System.currentTimeMillis()
+        val writes = plan.create.map { it.barcode to it as Any } +
+            plan.update.map { (id, change) ->
+                // Only what Loyverse owns; the rest of the product is this app's.
+                id to mapOf("name" to change.first, "sku" to change.second, "updatedAt" to now)
+            }
+        writes.chunked(400).forEach { chunk ->
+            val batch = Db.batch()
+            chunk.forEach { (id, data) ->
+                if (data is Product) batch.set(Db.product(id), data) else batch.set(Db.product(id), data, SetOptions.merge())
+            }
+            batch.commit().awaitAck()
+        }
     }
 
     // ----------------------------------------------------------------- HTTP

@@ -2,6 +2,7 @@ package com.stockcheck.app.pos
 
 import com.stockcheck.app.export.MovementFile
 import com.stockcheck.app.model.MovementType
+import com.stockcheck.app.model.Product
 import org.json.JSONObject
 import java.time.Instant
 import java.time.LocalDate
@@ -48,7 +49,17 @@ object Loyverse {
 
     data class Store(val id: String, val name: String)
 
-    data class Variant(val variantId: String, val barcode: String, val sku: String, val itemName: String)
+    data class Variant(
+        val variantId: String,
+        val barcode: String,
+        val sku: String,
+        val itemName: String,
+        /** "Large", "Chocolate / 1kg": what tells one variant of an item from another. */
+        val options: String = "",
+    ) {
+        /** The name a product gets here: the item, and the variant if there are several. */
+        val displayName: String get() = listOf(itemName, options).filter { it.isNotBlank() }.joinToString(" ")
+    }
 
     data class ReceiptLine(
         val receiptNumber: String,
@@ -92,9 +103,13 @@ object Loyverse {
                     if (id.isEmpty()) continue
                     variants += Variant(
                         variantId = id,
-                        barcode = variant.nonNullString("barcode"),
-                        sku = variant.nonNullString("sku"),
-                        itemName = name,
+                        barcode = variant.nonNullString("barcode").trim(),
+                        sku = variant.nonNullString("sku").trim(),
+                        itemName = name.trim(),
+                        options = listOf("option1_value", "option2_value", "option3_value")
+                            .map { variant.nonNullString(it).trim() }
+                            .filter { it.isNotEmpty() }
+                            .joinToString(" / "),
                     )
                 }
             }
@@ -143,6 +158,63 @@ object Loyverse {
         return Page(lines, json.cursor())
     }
 
+    /** What a sync does to the product list. */
+    data class ProductPlan(
+        /** Items Loyverse has and the product list does not. */
+        val create: List<Product>,
+        /** Existing products whose name or SKU Loyverse now says differently: id -> (name, sku). */
+        val update: Map<String, Pair<String, String>>,
+        /** Items with no barcode, which a scanner could never find. */
+        val noBarcode: Int,
+    )
+
+    /**
+     * Brings the product list in line with Loyverse's items.
+     *
+     * Loyverse is where the shop names things, so its name and SKU win. What
+     * only this app knows -- other barcodes, the unit, the reorder level, a
+     * product switched off -- is left alone. An item is matched by any of a
+     * product's barcodes; one with no barcode is skipped, because a product
+     * here is the thing a scan finds.
+     */
+    fun planProducts(variants: List<Variant>, catalogue: List<Product>, now: Long, uid: String): ProductPlan {
+        val byCode = catalogue
+            .flatMap { product -> product.allBarcodes.map { it.lowercase() to product } }
+            .toMap()
+        val create = mutableMapOf<String, Product>()
+        val update = mutableMapOf<String, Pair<String, String>>()
+        var noBarcode = 0
+        variants.forEach { variant ->
+            val name = variant.displayName
+            if (variant.barcode.isEmpty()) {
+                noBarcode++
+                return@forEach
+            }
+            val existing = byCode[variant.barcode.lowercase()]
+            when {
+                existing != null -> {
+                    val newName = name.ifEmpty { existing.name }
+                    val newSku = variant.sku.ifEmpty { existing.sku }
+                    if (newName != existing.name || newSku != existing.sku) {
+                        update[existing.barcode] = newName to newSku
+                    }
+                }
+                variant.barcode.lowercase() !in create.keys.map { it.lowercase() } -> {
+                    create[variant.barcode] = Product(
+                        barcode = variant.barcode,
+                        name = name.ifEmpty { variant.barcode },
+                        sku = variant.sku,
+                        active = true,
+                        createdAt = now,
+                        createdByUid = uid,
+                        updatedAt = now,
+                    )
+                }
+            }
+        }
+        return ProductPlan(create.values.toList(), update, noBarcode)
+    }
+
     /**
      * Loyverse's own stock figures -- what the owner typed in, less what the
      * till has sold since. Only items with stock tracking switched on in
@@ -182,11 +254,11 @@ object Loyverse {
             val variant = variants[level.variantId] ?: return@mapNotNull null
             // Barcode first; a variant whose barcode the product list does
             // not know may still be known by its SKU.
-            val byBarcode = matcher.resolve(variant.barcode, variant.itemName)
+            val byBarcode = matcher.resolve(variant.barcode, variant.displayName)
             val product = if (byBarcode.matched || variant.sku.isEmpty()) {
                 byBarcode
             } else {
-                matcher.resolve(variant.sku, variant.itemName).takeIf { it.matched } ?: byBarcode
+                matcher.resolve(variant.sku, variant.displayName).takeIf { it.matched } ?: byBarcode
             }
             Triple(storeBranches[level.storeId].orEmpty(), product, level.inStock)
         }
