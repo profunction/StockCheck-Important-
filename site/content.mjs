@@ -8,7 +8,10 @@
 
 /** Where the site lives. Change to the shop's own domain once it is connected. */
 export const SITE = 'https://stockcheck-fb58e.web.app';
-export const APP_DOWNLOAD = 'https://github.com/profunction/StockCheck-Important-/releases/tag/build-main';
+/** The Android app, put on the website by the deploy (the repository is private). Google Play once it is listed there. */
+export const APP_DOWNLOAD = `${SITE}/download/StockCheck.apk`;
+export const WAREHOUSE_URL = `${SITE}/warehouse/`;
+export const GUIDE_URL = `${SITE}/guide/`;
 export const POS_URL = `${SITE}/pos/`;
 
 /** Shown only when filled in. */
@@ -19,7 +22,7 @@ export const LANGS = {
     path: '/', htmlLang: 'zh-Hans-MY', label: '中文',
     title: 'Pos Stock Check｜手机盘点 + POS 收银系统，马来西亚商店、超市、仓库、餐厅',
     description: '用手机扫条码盘点，电脑收银，库存自动同步。支持 SST、DuitNow QR、现金四舍五入、多分店、会员积分、NFC/RFID 和 Loyverse 导入。14 天免费试用，每月 RM48 起。',
-    nav: { features: '功能', how: '怎么用', pricing: '价格', faq: '常见问题', open: '登录收银' },
+    nav: { features: '功能', how: '怎么用', pricing: '价格', faq: '常见问题', guide: '使用教程', open: '登录收银' },
     hero: {
       eyebrow: '马来西亚商店的盘点和收银系统',
       h1: '用手机盘点，用电脑收银，库存自动对得上',
@@ -34,7 +37,10 @@ export const LANGS = {
       ['电脑收银（POS）', 'USB 扫码枪、收据打印机（58/80mm）、分开付款、现金四舍五入到 5 仙、SST 含税或另加。'],
       ['库存自动计算', '库存 = 最后一次盘点 + 之后进货 − 之后卖出。每个数字都查得到来源，盘点后直接看到短少多少。'],
       ['餐厅功能', '桌位、堂食 / 外带、加料（甜度、加蛋）、厨房单、服务费。'],
-      ['进货和调货', '供应商、采购单、收货、分店之间调货，全部自动进出库存。'],
+      ['仓库系统', '采购单（老板批准）、扫码收货、损坏记录、仓库和门店之间调货（在途）、带原因的库存调整、补货建议、操作记录。手机浏览器就能用。'],
+      ['开班交班和钱箱', '收银员开班点备用金，交班点现金，马上知道短少或多出，打印交班单；收现金自动开钱箱。'],
+      ['价格标签', '30×20 或 40×30 mm 标签：商品名、价钱、条码，免税商品自动标「TANPA SST」。'],
+      ['电子发票 MyInvois', '每个月一键生成 LHDN 合并电子发票（JSON / CSV），上传 MyInvois 或交给会计。'],
       ['会员和积分', '会员卡（条码或 NFC），消费累积积分，下次可以抵钱。'],
       ['多分店、员工权限', '每间分店分开算库存；收银员不能改价、不能删收据，作废要写原因。'],
       ['连接别的收银系统', 'Loyverse 自动同步商品、库存、销售，也可以写回盘点数量；其他 POS 用 Excel / CSV 导入。'],
@@ -46,7 +52,9 @@ export const LANGS = {
     howTitle: '三步开始',
     how: [['下载 app，注册公司', '在 Android 手机安装 Stock Check，第一个注册的人就是管理员，自动有 14 天试用。'], ['盘点一次', '扫一遍店里的东西，或用 Excel 导入商品清单。'], ['打开收银系统', '柜台电脑用 Chrome 打开 Pos Stock Check，用同一个账号登录，插上扫码枪和打印机就能卖。']],
     pricingTitle: '价格',
-    pricingNote: '全部方案都包括盘点 app 和收银系统。年付等于送 2 个月；终身版包括 24 个月更新和支援。',
+    pricingNote: '全功能配套包括盘点 app、收银系统和仓库系统。年付等于送 2 个月；终身版只限 50 套，包括 24 个月更新和支援。',
+    standaloneTitle: '只需要其中一样？单独配套',
+    standalone: { APP_ONLY: '只要手机盘点 app（3 位用户，可写回 Loyverse）', POS_ONLY: '只要收银系统（2 台收银机，SST、报表）', API_ONLY: '只要 API（连接网店、会计软件）' },
     perMonth: '/ 月', perYear: '/ 年', lifetime: '终身', users: '位用户', unlimitedUsers: '用户不限',
     faqTitle: '常见问题',
     faq: [
@@ -60,6 +68,9 @@ export const LANGS = {
       ['其他收银系统（StoreHub、Qashier 等）呢？', '从你的收银系统导出销售报表（Excel 或 CSV），在 app 里导入，系统会自动认出每一栏。'],
       ['资料安全吗？', '资料存在 Google Cloud（Firebase）。每个员工只看得到自己权限和分店范围内的资料，每一次修改都有记录。'],
       ['有免费试用吗？', '有，注册后自动有 14 天免费试用，最多 5 位用户，不用信用卡。'],
+      ['可以开 LHDN 电子发票吗？', '可以。每个月在「报表 → 电子发票」下载合并电子发票（MyInvois 格式 JSON 和 CSV），上传到 MyInvois 网站。'],
+      ['顾客要求删除个人资料怎么办？', '按「删除顾客资料 (PDPA)」：马上隐藏，90 天后永久删除，旧收据保留金额但删掉名字和电话，符合 PDPA 2010。'],
+      ['有教学视频吗？', '有。每个系统都有一步一步的教学和视频，在网站的「使用教程」页面，app 里「我的 → 使用教程」也有。'],
     ],
     finalTitle: '今天就开始盘点', finalLead: '先免费用 14 天，满意再付费。',
     contactTitle: '联系我们', footer: '马来西亚商店、超市、仓库和餐厅的盘点与收银系统。',
@@ -69,7 +80,7 @@ export const LANGS = {
     path: '/en/', htmlLang: 'en-MY', label: 'English',
     title: 'Pos Stock Check | Stock-take app + POS for Malaysian shops, supermarkets, warehouses and restaurants',
     description: 'Count stock by scanning with your phone, sell at the counter, and keep stock levels in step automatically. SST, DuitNow QR, 5-sen cash rounding, multiple branches, loyalty points, NFC/RFID and Loyverse import. 14-day free trial, from RM48 a month.',
-    nav: { features: 'Features', how: 'How it works', pricing: 'Pricing', faq: 'FAQ', open: 'Sign in to POS' },
+    nav: { features: 'Features', how: 'How it works', pricing: 'Pricing', faq: 'FAQ', guide: 'Guides', open: 'Sign in to POS' },
     hero: {
       eyebrow: 'Stock-take and POS for Malaysian businesses',
       h1: 'Count stock on your phone, sell at the counter, and the numbers always agree',
@@ -84,7 +95,10 @@ export const LANGS = {
       ['Counter POS', 'USB barcode scanner, 58/80 mm receipt printer, split payments, cash rounded to 5 sen, SST included or added.'],
       ['Stock that adds up', 'On hand = last count + goods in since − sales since. Every figure is traceable, and each count shows what went missing.'],
       ['Restaurants', 'Tables, dine-in / take-away, modifiers (sugar level, extra egg), kitchen tickets, service charge.'],
-      ['Buying and transfers', 'Suppliers, purchase orders, receiving and branch-to-branch transfers, all moving stock automatically.'],
+      ['Warehouse system', 'Purchase orders with approval, receiving by scan, damage notes, warehouse-to-shop transfers (in transit), adjustments with reasons, reorder suggestions, audit log. Works in a phone browser.'],
+      ['Shifts and cash drawer', 'Cashiers open a shift with a float and close it with the cash counted; short or over at a glance, slip printed; the drawer opens for cash.'],
+      ['Price labels', '30×20 or 40×30 mm labels: name, price, barcode, and a TANPA SST mark on exempt goods.'],
+      ['MyInvois e-invoice', 'Each month, the LHDN consolidated e-invoice (JSON / CSV) in one click, ready for MyInvois.'],
       ['Members and points', 'Member cards (barcode or NFC); customers earn points and spend them on later bills.'],
       ['Branches and staff rights', 'Stock is kept per branch. Cashiers cannot change prices or delete receipts; voids need a reason.'],
       ['Works with other tills', 'Loyverse syncs items, stock and sales, and counts can be written back; other POS systems import by Excel / CSV.'],
@@ -96,7 +110,9 @@ export const LANGS = {
     howTitle: 'Start in three steps',
     how: [['Install the app and register', 'Install Stock Check on an Android phone. The first person to register is the admin, with a 14-day trial.'], ['Do a first count', 'Scan what is in the shop, or import your item list from Excel.'], ['Open the POS', 'On the counter computer, open Pos Stock Check in Chrome, sign in with the same account, plug in a scanner and printer, and sell.']],
     pricingTitle: 'Pricing',
-    pricingNote: 'Every plan includes the stock-take app and the POS. Paying yearly gives two months free; lifetime includes 24 months of updates and support.',
+    pricingNote: 'All-in-One plans include the stock-take app, the POS and the warehouse system. Paying yearly gives two months free; lifetime is limited to 50 sets and includes 24 months of updates and support.',
+    standaloneTitle: 'Need just one part? Standalone plans',
+    standalone: { APP_ONLY: 'The stock-take app only (3 users, Loyverse write-back)', POS_ONLY: 'The POS only (2 tills, SST, reports)', API_ONLY: 'The API only (online shop, accounting)' },
     perMonth: '/ month', perYear: '/ year', lifetime: 'lifetime', users: 'users', unlimitedUsers: 'Unlimited users',
     faqTitle: 'Frequently asked questions',
     faq: [
@@ -110,6 +126,9 @@ export const LANGS = {
       ['What about StoreHub, Qashier and other tills?', 'Export a sales report (Excel or CSV) from your till and import it in the app; the columns are recognised automatically.'],
       ['Is my data safe?', 'Data is stored on Google Cloud (Firebase). Each employee sees only what their permissions and branch allow, and every change is logged.'],
       ['Is there a free trial?', 'Yes. Every new company gets 14 days free for up to 5 users, with no credit card.'],
+      ['Can it make LHDN e-invoices?', 'Yes. Each month, Reports → e-Invoice downloads the consolidated e-invoice (MyInvois JSON and CSV) to submit in the MyInvois portal.'],
+      ['A customer asks to delete their data?', 'Press Remove (PDPA): hidden at once, erased for good after 90 days; old receipts keep the amounts but lose the name and phone, as PDPA 2010 requires.'],
+      ['Are there video guides?', 'Yes. Every part has step-by-step guides with videos on the website\'s Guide page, and in the app under Profile → How to use.'],
     ],
     finalTitle: 'Start counting today', finalLead: 'Use it free for 14 days, then decide.',
     contactTitle: 'Contact', footer: 'Stock-take and POS for shops, supermarkets, warehouses and restaurants in Malaysia.',
@@ -119,7 +138,7 @@ export const LANGS = {
     path: '/ms/', htmlLang: 'ms-MY', label: 'Bahasa Melayu',
     title: 'Pos Stock Check | Aplikasi kira stok + POS untuk kedai, pasar raya, gudang dan restoran di Malaysia',
     description: 'Kira stok dengan mengimbas kod bar di telefon, jual di kaunter, dan stok sentiasa sepadan. SST, DuitNow QR, pembundaran tunai 5 sen, banyak cawangan, mata ganjaran, NFC/RFID dan import Loyverse. Percubaan percuma 14 hari, dari RM48 sebulan.',
-    nav: { features: 'Ciri', how: 'Cara guna', pricing: 'Harga', faq: 'Soalan lazim', open: 'Log masuk POS' },
+    nav: { features: 'Ciri', how: 'Cara guna', pricing: 'Harga', faq: 'Soalan lazim', guide: 'Panduan', open: 'Log masuk POS' },
     hero: {
       eyebrow: 'Kira stok dan POS untuk perniagaan Malaysia',
       h1: 'Kira stok di telefon, jual di kaunter, dan angkanya sentiasa sepadan',
@@ -134,7 +153,10 @@ export const LANGS = {
       ['POS kaunter', 'Pengimbas kod bar USB, pencetak resit 58/80 mm, bayaran berpecah, tunai dibundarkan ke 5 sen, SST termasuk atau ditambah.'],
       ['Stok yang tepat', 'Stok = kiraan terakhir + barang masuk − jualan sejak itu. Setiap angka boleh dikesan, dan setiap kiraan menunjukkan barang yang hilang.'],
       ['Restoran', 'Meja, makan sini / bungkus, pilihan tambahan, tiket dapur, caj perkhidmatan.'],
-      ['Belian dan pindahan', 'Pembekal, pesanan belian, terima barang dan pindahan antara cawangan.'],
+      ['Sistem gudang', 'Pesanan belian dengan kelulusan, terima barang dengan imbasan, rekod rosak, pindahan gudang ke kedai (dalam transit), pelarasan dengan sebab, cadangan tambah stok, log audit.'],
+      ['Syif dan laci tunai', 'Juruwang buka syif dengan wang apungan dan tutup dengan kiraan tunai; kurang atau lebih terus nampak, slip dicetak; laci terbuka untuk bayaran tunai.'],
+      ['Label harga', 'Label 30×20 atau 40×30 mm: nama, harga, kod bar, tanda TANPA SST untuk barang dikecualikan.'],
+      ['e-Invois MyInvois', 'Setiap bulan, e-invois disatukan LHDN (JSON / CSV) dalam satu klik, untuk dihantar ke MyInvois.'],
       ['Ahli dan mata ganjaran', 'Kad ahli (kod bar atau NFC); pelanggan kumpul mata dan guna untuk bayar.'],
       ['Cawangan dan hak pekerja', 'Stok setiap cawangan berasingan. Juruwang tidak boleh ubah harga atau padam resit.'],
       ['Sambung dengan POS lain', 'Loyverse menyegerakkan barang, stok dan jualan; POS lain diimport dengan Excel / CSV.'],
@@ -146,7 +168,9 @@ export const LANGS = {
     howTitle: 'Mula dalam tiga langkah',
     how: [['Pasang aplikasi dan daftar', 'Pasang Stock Check di telefon Android. Orang pertama yang mendaftar ialah admin, dengan percubaan 14 hari.'], ['Buat kiraan pertama', 'Imbas barang di kedai, atau import senarai barang dari Excel.'], ['Buka POS', 'Di komputer kaunter, buka Pos Stock Check dalam Chrome, log masuk dengan akaun yang sama, dan mula menjual.']],
     pricingTitle: 'Harga',
-    pricingNote: 'Setiap pelan termasuk aplikasi kira stok dan POS. Bayaran tahunan memberi 2 bulan percuma; seumur hidup termasuk 24 bulan kemas kini dan sokongan.',
+    pricingNote: 'Pelan Semua-dalam-Satu termasuk aplikasi kira stok, POS dan sistem gudang. Bayaran tahunan memberi 2 bulan percuma; seumur hidup terhad 50 set dan termasuk 24 bulan kemas kini dan sokongan.',
+    standaloneTitle: 'Perlu satu sahaja? Pelan berasingan',
+    standalone: { APP_ONLY: 'Aplikasi kira stok sahaja (3 pengguna, tulis balik ke Loyverse)', POS_ONLY: 'POS sahaja (2 kaunter, SST, laporan)', API_ONLY: 'API sahaja (kedai dalam talian, perakaunan)' },
     perMonth: '/ bulan', perYear: '/ tahun', lifetime: 'seumur hidup', users: 'pengguna', unlimitedUsers: 'Pengguna tanpa had',
     faqTitle: 'Soalan lazim',
     faq: [
@@ -158,6 +182,9 @@ export const LANGS = {
       ['Menyokong NFC dan RFID?', 'Ya. Telefon Android membaca tag NFC dan kad ahli; pembaca NFC USB dan RFID UHF berfungsi dalam mod papan kekunci.'],
       ['Saya guna Loyverse. Boleh guna bersama?', 'Boleh. Tampal token akses Loyverse untuk menyegerakkan barang, stok dan jualan.'],
       ['Ada percubaan percuma?', 'Ada. Setiap syarikat baharu mendapat 14 hari percuma untuk sehingga 5 pengguna, tanpa kad kredit.'],
+      ['Boleh buat e-invois LHDN?', 'Boleh. Setiap bulan, Laporan → e-Invois memuat turun e-invois disatukan (JSON dan CSV MyInvois) untuk dihantar di portal MyInvois.'],
+      ['Pelanggan minta data dipadam?', 'Tekan Padam (PDPA): disembunyikan serta-merta, dihapus selepas 90 hari; resit lama kekal jumlahnya tanpa nama dan telefon, seperti kehendak PDPA 2010.'],
+      ['Ada video panduan?', 'Ada. Setiap bahagian ada panduan langkah demi langkah dengan video di halaman Panduan laman web, dan dalam aplikasi di Profil → Cara guna.'],
     ],
     finalTitle: 'Mula mengira stok hari ini', finalLead: 'Guna percuma 14 hari, kemudian buat keputusan.',
     contactTitle: 'Hubungi kami', footer: 'Kira stok dan POS untuk kedai, pasar raya, gudang dan restoran di Malaysia.',

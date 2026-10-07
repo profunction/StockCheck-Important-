@@ -14,7 +14,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PLANS, TRIAL_DAYS, LIFETIME_SUPPORT_MONTHS } from '../platform/plans.mjs';
-import { APP_DOWNLOAD, CONTACT, LANGS, POS_URL, SITE } from './content.mjs';
+import { APP_DOWNLOAD, CONTACT, GUIDE_URL, LANGS, POS_URL, SITE, WAREHOUSE_URL } from './content.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'web');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -144,6 +144,10 @@ function page(lang) {
 <p class="price">${rm(p.monthlySen)} <small>${esc(t.perMonth)}</small></p>
 <ul><li>${esc(seats)}</li><li>${rm(p.yearlySen)} ${esc(t.perYear)}</li><li>${rm(p.lifetimeSen)} ${esc(t.lifetime)}</li></ul></div>`;
   }).join('\n');
+  const standalone = t.standalone ? `<h3 style="margin-top:28px">${esc(t.standaloneTitle)}</h3>
+<div class="plans">${Object.entries(t.standalone).map(([id, what]) => `<div class="plan"><h3>${esc(PLANS[id].label)}</h3>
+<p class="price">${rm(PLANS[id].monthlySen)} <small>${esc(t.perMonth)}</small></p>
+<ul><li>${esc(what)}</li><li>${rm(PLANS[id].yearlySen)} ${esc(t.perYear)}</li></ul></div>`).join('\n')}</div>` : '';
   const contact = CONTACT.whatsapp || CONTACT.email
     ? `<section id="contact"><div class="wrap"><h2>${esc(t.contactTitle)}</h2><p>${[
       CONTACT.whatsapp ? `WhatsApp: <a href="https://wa.me/${esc(CONTACT.whatsapp)}">+${esc(CONTACT.whatsapp)}</a>` : '',
@@ -182,7 +186,7 @@ ${jsonLd(lang, t).map((o) => `<script type="application/ld+json">${JSON.stringif
 <body>
 <header class="top"><div class="wrap">
 <a class="logo" href="${t.path}"><img src="/icons/icon-192.png" alt="" width="34" height="34">Pos Stock Check</a>
-<nav class="main" aria-label="${esc(t.langName)}"><a href="#features">${esc(t.nav.features)}</a><a href="#how">${esc(t.nav.how)}</a><a href="#pricing">${esc(t.nav.pricing)}</a><a href="#faq">${esc(t.nav.faq)}</a></nav>
+<nav class="main" aria-label="${esc(t.langName)}"><a href="#features">${esc(t.nav.features)}</a><a href="#how">${esc(t.nav.how)}</a><a href="#pricing">${esc(t.nav.pricing)}</a><a href="#faq">${esc(t.nav.faq)}</a><a href="/guide/">${esc(t.nav.guide)}</a></nav>
 <span class="spacer"></span>
 <div class="langs">${Object.entries(LANGS).map(([k, o]) => `<a href="${o.path}" hreflang="${o.htmlLang}"${k === lang ? ' aria-current="page"' : ''}>${esc(o.label)}</a>`).join('')}</div>
 <a class="btn ghost" href="/pos/" rel="nofollow">${esc(t.nav.open)}</a>
@@ -207,6 +211,7 @@ ${jsonLd(lang, t).map((o) => `<script type="application/ld+json">${JSON.stringif
 <ol class="steps">${t.how.map(([h, p]) => `<li><h3>${esc(h)}</h3><p>${esc(p)}</p></li>`).join('\n')}</ol></div></section>
 <section id="pricing"><div class="wrap"><h2>${esc(t.pricingTitle)}</h2>
 <div class="plans">${plans}</div>
+${standalone}
 <p class="small">${esc(t.pricingNote)}</p></div></section>
 <section id="faq"><div class="wrap"><h2>${esc(t.faqTitle)}</h2>
 ${t.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n')}</div></section>
@@ -236,7 +241,9 @@ Pos Stock Check is a stock-take and point-of-sale (POS) system for businesses in
 - Country: Malaysia. Currency: ringgit (MYR). Languages: Chinese, English, Malay.
 - Free trial: ${TRIAL_DAYS} days, up to 5 users, no credit card.
 ${PAID.map(plan).join('\n')}
-- Every plan includes both the stock-take app and the POS. Lifetime includes ${LIFETIME_SUPPORT_MONTHS} months of updates and support.
+${['APP_ONLY', 'POS_ONLY', 'API_ONLY'].map((id) => `- ${PLANS[id].label} (standalone): ${rm(PLANS[id].monthlySen)} per month or ${rm(PLANS[id].yearlySen)} per year; ${en.standalone[id]}.`).join('\n')}
+- Lifetime licences are limited to 50 in total.
+- Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes ${LIFETIME_SUPPORT_MONTHS} months of updates and support.
 - Platforms: Stock Check app on Android; Pos Stock Check in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
 - Works offline: sales are kept on the device and sent when the connection returns.
 
@@ -260,6 +267,8 @@ ${en.faq.map(([q, a]) => `### ${q}\n${a}`).join('\n\n')}
 - Website (Bahasa Melayu): ${SITE}/ms/
 - POS sign-in: ${POS_URL}
 - Android app download: ${APP_DOWNLOAD}
+- Warehouse system (web, works on phones): ${WAREHOUSE_URL}
+- Step-by-step guides with videos: ${GUIDE_URL}
 ${CONTACT.email ? `- Email: ${CONTACT.email}\n` : ''}${CONTACT.whatsapp ? `- WhatsApp: +${CONTACT.whatsapp}\n` : ''}`;
 }
 

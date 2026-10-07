@@ -13,6 +13,11 @@ name: Deploy to Firebase
 # private key. Without it this workflow does nothing and stays green.
 on:
   workflow_dispatch:
+  # A new APK is put on the website as soon as it is built.
+  workflow_run:
+    workflows: ['Build APK']
+    types: [completed]
+    branches: [main]
   push:
     branches: [main]
     paths:
@@ -25,6 +30,9 @@ on:
       - 'api/**'
       - 'rules-test/**'
       - '.github/workflows/deploy-firebase.yml'
+
+permissions:
+  contents: read
 
 concurrency:
   group: firebase-deploy
@@ -104,6 +112,21 @@ jobs:
       - name: Build the public pages
         if: steps.setup.outputs.ready == 'true'
         run: node site/build.mjs
+
+      # The repository is private, so its releases cannot be downloaded by
+      # customers: the latest APK is served from the website instead.
+      - name: Put the latest Android app on the website
+        if: steps.setup.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p web/download
+          if gh release download build-main --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir /tmp/apk --clobber; then
+            mv /tmp/apk/*.apk web/download/StockCheck.apk
+            ls -l web/download
+          else
+            echo "::warning::No APK release found; the download link will not work until Build APK has run."
+          fi
 
       - name: Deploy database rules, indexes and the website
         if: steps.setup.outputs.ready == 'true'

@@ -12,7 +12,11 @@ Pos Stock Check is a stock-take and point-of-sale (POS) system for businesses in
 - Starter: RM48 per month, RM480 per year, or RM1,680 lifetime; 5 users.
 - Business: RM118 per month, RM1,180 per year, or RM4,180 lifetime; 20 users.
 - Unlimited: RM228 per month, RM2,280 per year, or RM7,980 lifetime; unlimited users.
-- Every plan includes both the stock-take app and the POS. Lifetime includes 24 months of updates and support.
+- Stock Check App (standalone): RM28 per month or RM280 per year; The stock-take app only (3 users, Loyverse write-back).
+- POS (standalone): RM38 per month or RM380 per year; The POS only (2 tills, SST, reports).
+- API (standalone): RM68 per month or RM680 per year; The API only (online shop, accounting).
+- Lifetime licences are limited to 50 in total.
+- Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes 24 months of updates and support.
 - Platforms: Stock Check app on Android; Pos Stock Check in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
 - Works offline: sales are kept on the device and sent when the connection returns.
 
@@ -24,7 +28,10 @@ On hand = the last finished count + goods received since − sales and goods out
 - **Counter POS**: USB barcode scanner, 58/80 mm receipt printer, split payments, cash rounded to 5 sen, SST included or added.
 - **Stock that adds up**: On hand = last count + goods in since − sales since. Every figure is traceable, and each count shows what went missing.
 - **Restaurants**: Tables, dine-in / take-away, modifiers (sugar level, extra egg), kitchen tickets, service charge.
-- **Buying and transfers**: Suppliers, purchase orders, receiving and branch-to-branch transfers, all moving stock automatically.
+- **Warehouse system**: Purchase orders with approval, receiving by scan, damage notes, warehouse-to-shop transfers (in transit), adjustments with reasons, reorder suggestions, audit log. Works in a phone browser.
+- **Shifts and cash drawer**: Cashiers open a shift with a float and close it with the cash counted; short or over at a glance, slip printed; the drawer opens for cash.
+- **Price labels**: 30×20 or 40×30 mm labels: name, price, barcode, and a TANPA SST mark on exempt goods.
+- **MyInvois e-invoice**: Each month, the LHDN consolidated e-invoice (JSON / CSV) in one click, ready for MyInvois.
 - **Members and points**: Member cards (barcode or NFC); customers earn points and spend them on later bills.
 - **Branches and staff rights**: Stock is kept per branch. Cashiers cannot change prices or delete receipts; voids need a reason.
 - **Works with other tills**: Loyverse syncs items, stock and sales, and counts can be written back; other POS systems import by Excel / CSV.
@@ -67,9 +74,20 @@ Data is stored on Google Cloud (Firebase). Each employee sees only what their pe
 ### Is there a free trial?
 Yes. Every new company gets 14 days free for up to 5 users, with no credit card.
 
+### Can it make LHDN e-invoices?
+Yes. Each month, Reports → e-Invoice downloads the consolidated e-invoice (MyInvois JSON and CSV) to submit in the MyInvois portal.
+
+### A customer asks to delete their data?
+Press Remove (PDPA): hidden at once, erased for good after 90 days; old receipts keep the amounts but lose the name and phone, as PDPA 2010 requires.
+
+### Are there video guides?
+Yes. Every part has step-by-step guides with videos on the website's Guide page, and in the app under Profile → How to use.
+
 ## Links
 - Website (中文): https://stockcheck-fb58e.web.app/
 - Website (English): https://stockcheck-fb58e.web.app/en/
 - Website (Bahasa Melayu): https://stockcheck-fb58e.web.app/ms/
 - POS sign-in: https://stockcheck-fb58e.web.app/pos/
-- Android app download: https://github.com/profunction/StockCheck-Important-/releases/tag/build-main
+- Android app download: https://stockcheck-fb58e.web.app/download/StockCheck.apk
+- Warehouse system (web, works on phones): https://stockcheck-fb58e.web.app/warehouse/
+- Step-by-step guides with videos: https://stockcheck-fb58e.web.app/guide/
