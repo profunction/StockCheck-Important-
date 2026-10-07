@@ -8,6 +8,7 @@ import { paymentLabel, t } from './i18n.js';
 import { DEFAULT_SETTINGS, session, ws } from './session.js';
 import { menuButton } from './main.js';
 import { taxList } from './money.js';
+import { chosenMode, modeCards } from './modes.js';
 
 export function render(main, sub) {
   const pages = { features, payments, taxes, loyalty, receipt, stores, device };
@@ -17,7 +18,7 @@ export function render(main, sub) {
 
 const canEdit = () => session.can('POS_MANAGE');
 
-function page(main, title, fields, onSave) {
+function page(main, title, fields, onSave, { wide = false } = {}) {
   const save = h('button', { class: 'primary', disabled: !canEdit() }, t('save'));
   save.onclick = async () => {
     const patch = onSave();
@@ -34,26 +35,35 @@ function page(main, title, fields, onSave) {
   mount(main,
     h('div', { class: 'page-head' }, menuButton(), h('h1', {}, title)),
     !canEdit() ? h('p', { class: 'muted' }, t('settingsReadOnly')) : null,
-    h('div', { class: 'card', style: { display: 'grid', gap: '14px', maxWidth: '640px' } }, fields, h('div', { class: 'actions' }, save)));
+    h('div', { class: 'card', style: { display: 'grid', gap: '14px', maxWidth: wide ? '980px' : '640px' } }, fields, h('div', { class: 'actions' }, save)));
 }
 
 function features(main) {
   const s = session.settings;
-  const mode = h('select', {},
-    ['RETAIL', 'FNB', 'BOTH'].map((m) => h('option', { value: m, selected: s.mode === m }, t(`mode_${m}`))));
+  let mode = chosenMode(s) || s.mode;
+  const cards = h('div', { class: 'modepick', style: { padding: 0, minHeight: 0, justifyItems: 'stretch' } });
   const kitchen = h('input', { type: 'checkbox', checked: s.kitchenTicket !== false });
   const tables = h('textarea', { rows: 3 }, (s.tables || []).join(', '));
-  page(main, t('setFeatures'), [
-    h('label', { class: 'field' }, t('businessType'), mode),
-    h('p', { class: 'muted', style: { margin: 0 } }, t('modeHelp')),
+  // Tables and kitchen tickets only mean something to a restaurant.
+  const fnbOnly = h('div', { style: { display: 'grid', gap: '14px' } },
     h('label', { class: 'check' }, kitchen, t('kitchenTicketOpt')),
     h('label', { class: 'field' }, t('tableNames'), tables),
-    h('p', { class: 'muted', style: { margin: 0 } }, t('tableNamesHelp')),
+    h('p', { class: 'muted', style: { margin: 0 } }, t('tableNamesHelp')));
+  const drawCards = () => {
+    mount(cards, modeCards(mode, (m) => { mode = m; drawCards(); }));
+    fnbOnly.classList.toggle('hidden', mode === 'SUPERMARKET' || mode === 'RETAIL');
+  };
+  drawCards();
+  page(main, t('setFeatures'), [
+    h('h3', { style: { margin: 0 } }, t('businessType')),
+    cards,
+    h('p', { class: 'muted', style: { margin: 0 } }, t('modeHelp')),
+    fnbOnly,
   ], () => ({
-    mode: mode.value,
+    mode,
     kitchenTicket: kitchen.checked,
     tables: tables.value.split(/[,\n]/).map((x) => x.trim()).filter(Boolean),
-  }));
+  }), { wide: true });
 }
 
 function payments(main) {

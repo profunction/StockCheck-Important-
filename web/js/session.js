@@ -24,8 +24,10 @@ export const DEFAULT_SETTINGS = {
   paymentMethods: ['CASH', 'QR', 'CARD', 'EWALLET'],
   paperWidth: 80,
   autoPrint: true,
-  // RETAIL: scan and pay. FNB: tables and kitchen tickets. BOTH: either.
-  mode: 'BOTH',
+  // FNB, SUPERMARKET or RETAIL (see modes.js). Empty until the owner picks
+  // one, which the register asks the first time it opens. BOTH is what shops
+  // set up before there was a choice have: restaurant with counter sales.
+  mode: '',
   tables: ['1', '2', '3', '4', '5', '6', '7', '8'],
   kitchenTicket: true,
   // Loyalty: off until the shop turns it on. 1 point per ringgit, a point
@@ -49,6 +51,8 @@ export const session = {
   /** The branch this till sells for; '' is the main shop. */
   branchId: '',
   settings: { ...DEFAULT_SETTINGS },
+  /** False until the shop's own settings have been read once. */
+  settingsLoaded: false,
   products: [],
   /** Lists kept as one document each under pos/: categories, modifiers, discounts. */
   categories: [],
@@ -152,9 +156,12 @@ export async function loadSession(user) {
 
   subscriptions.push(onSnapshot(doc(db, ws('pos/settings')), (snap) => {
     session.settings = { ...DEFAULT_SETTINGS, ...(snap.data() || {}) };
+    session.settingsLoaded = true;
     emit();
   }, () => {
     // No settings yet, or not readable: the defaults print a working receipt.
+    session.settingsLoaded = true;
+    emit();
   }));
 }
 
@@ -162,6 +169,7 @@ export function endSession() {
   while (subscriptions.length) subscriptions.pop()();
   session.uid = '';
   session.ws = '';
+  session.settingsLoaded = false;
   session.products = [];
   session.byCode = new Map();
   session.categories = [];

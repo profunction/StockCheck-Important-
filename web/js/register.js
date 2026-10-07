@@ -1,31 +1,46 @@
 /**
- * The cash register.
+ * The cash register, laid out for the kind of shop (Settings -> Features):
  *
- * Retail: scan with a USB scanner (it types the barcode and presses Enter),
- * or tap a product; pay; the receipt prints. Restaurant: pick a table, add
- * dishes with their modifiers, send to the kitchen, add more, pay at the end.
- * Both work on the same screen; Settings -> Features hides what a shop does
- * not use.
+ * - Restaurant: product grid, tables, dine-in / take-away, modifiers, the
+ *   kitchen ticket, pay at the end.
+ * - Supermarket: scan after scan. A big scan box, the bill as a list, a large
+ *   total and function keys -- quantity times, price check, quick items for
+ *   things without a barcode, hold and recall.
+ * - Retail shop: product grid with photos by category, scan or tap.
+ *
+ * The bill, payment, receipt and stock are the same in all three. A USB
+ * scanner types the barcode and presses Enter; "3*" before a scan sells 3.
  */
 import { collection, db, doc, deleteDoc, onSnapshot, query, setDoc, where } from './fb.js';
 import { confirmBox, h, modal, mount, toast } from './dom.js';
 import { t, paymentLabel } from './i18n.js';
 import { billTotals, formatQty, formatSen, lineAmount, lineTotal, parseQty, parseSen, productTaxIds, rm, taxList, UNIT } from './money.js';
-import { onChange, session, ws } from './session.js';
+import { DEFAULT_SETTINGS, onChange, session, ws } from './session.js';
 import { kitchenView, printView } from './receipt.js';
 import { openPayment } from './pay.js';
 import { freshCustomer, loadCustomers, pickCustomer } from './customers.js';
 import { listenForTags, nfcSupported, normalizeTag } from './nfc.js';
 import { scanWithCamera } from './camera.js';
 import { menuButton } from './main.js';
+import { icon } from './icons.js';
+import { layoutFor, modeCards } from './modes.js';
 
 const WEIGHED_UNITS = ['kg', 'g', 'l', 'ml', 'm'];
+const isWeighed = (unit) => WEIGHED_UNITS.includes((unit || '').toLowerCase());
 
 /** The bill being built. */
 let cart = newCart();
 let category = '';
 let search = '';
 let openOrders = [];
+/** "3*" typed before a scan: how many the next item is. */
+let pendingQty = null;
+/** The last thing added, shown big on the supermarket screen. */
+let lastAdded = null;
+let flashKey = '';
+/** Which screen is on: 'picker', 'fnb', 'market' or 'retail'. */
+let built = '';
+let stopNfc = null;
 
 function newCart(extra = {}) {
   return { orderId: '', table: '', orderType: defaultOrderType(), lines: [], discountIds: [], note: '', customer: null, ...extra };
@@ -35,6 +50,10 @@ function defaultOrderType() {
   return session.settings.mode === 'FNB' ? 'DINE_IN' : 'RETAIL';
 }
 
+const layout = () => layoutFor(session.settings);
+const isFnb = () => layout() === 'fnb';
+const kitchenOn = () => isFnb() && session.settings.kitchenTicket !== false;
+
 let root;
 let els = {};
 
@@ -43,72 +62,14 @@ export function render(main) {
   cart = newCart();
   category = '';
   search = '';
-
-  els.search = h('input', { type: 'search', placeholder: t('searchProducts'), oninput: (e) => { search = e.target.value; drawTiles(); } });
-  els.scan = h('input', {
-    class: 'scan', placeholder: t('scanHere'), autocomplete: 'off', autofocus: true,
-    onkeydown: (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const code = els.scan.value.trim();
-        els.scan.value = '';
-        if (code) addByCode(code);
-      }
-    },
-  });
-  els.online = h('div', { class: `offline${navigator.onLine ? ' hidden' : ''}` }, t('offlineNote'));
-  els.chips = h('div', { class: 'chips' });
-  els.tiles = h('div', { class: 'tiles' });
-  els.orderInfo = h('div', { class: 'row' });
-  els.lines = h('div', { class: 'lines' });
-  els.sums = h('div', { class: 'sums' });
-  els.buttons = h('div', { class: 'buttons' });
-  els.openCount = h('span', { class: 'pill' }, '0');
-  // Chrome on Android reads NFC tags and member cards; it has to be started
-  // from a tap, so it is a button that stays on until tapped again.
-  let stopNfc = null;
-  els.nfc = h('button', {
-    onclick: async () => {
-      if (stopNfc) { stopNfc(); stopNfc = null; els.nfc.classList.remove('primary'); return; }
-      try {
-        stopNfc = await listenForTags((id) => addByCode(id));
-        els.nfc.classList.add('primary');
-        toast(t('nfcOn'), 'ok');
-      } catch (err) {
-        toast(`${t('nfcError')}: ${err.message || err}`, 'error');
-      }
-    },
-  }, '📶 NFC');
-
-  // Shown or hidden as the shop's settings arrive and change.
-  els.tablesBtn = h('button', { onclick: openTables }, `🍽 ${t('tables')}`);
-  const bar = h('div', { class: 'bar' },
-    menuButton(),
-    els.search,
-    h('span', { class: 'grow' }),
-    els.tablesBtn,
-    h('button', { onclick: openTicketsList }, `🧾 ${t('openTickets')} `, els.openCount),
-    nfcSupported() ? els.nfc : null);
-
-  mount(root,
-    h('div', { class: 'register' },
-      h('section', { class: 'catalog' }, els.online, bar, els.chips, els.tiles),
-      h('section', { class: 'ticket' },
-        h('div', { class: 'head' },
-          h('div', { class: 'row', style: { flexWrap: 'nowrap' } },
-            h('div', { class: 'grow', style: { flex: 1 } }, els.scan),
-            h('button', {
-              title: t('scanCamera'),
-              onclick: async () => { const code = await scanWithCamera(); if (code) addByCode(code); else els.scan.focus(); },
-            }, '📷')),
-          els.orderInfo),
-        els.lines, els.sums, els.buttons)));
-
-  drawAll();
+  pendingQty = null;
+  lastAdded = null;
+  built = '';
 
   // A USB scanner is a keyboard. Whatever is focused, a scan should land in
   // the scan box -- unless somebody is typing in another field or a dialog.
   const onKey = (e) => {
+    if (!els.scan || built === 'picker') return;
     const open = document.querySelector('.backdrop');
     if (open) {
       // The "change: RM 12.20" box after a sale: a scanner starting the next
@@ -126,7 +87,7 @@ export function render(main) {
     }
   };
   document.addEventListener('keydown', onKey);
-  const goOnline = () => els.online.classList.toggle('hidden', navigator.onLine);
+  const goOnline = () => els.online?.classList.toggle('hidden', navigator.onLine);
   window.addEventListener('online', goOnline);
   window.addEventListener('offline', goOnline);
   const stopChange = onChange(() => drawAll());
@@ -136,17 +97,185 @@ export function render(main) {
     : collection(db, ws('orders'));
   const stopOrders = onSnapshot(ordersQuery, (snap) => {
     openOrders = snap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((o) => (o.branchId || '') === session.branchId);
-    els.openCount.textContent = String(openOrders.length);
+    drawOpenCount();
   }, (err) => console.warn('orders', err));
+
+  drawAll();
 
   return () => {
     stopNfc?.();
+    stopNfc = null;
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('online', goOnline);
     window.removeEventListener('offline', goOnline);
     stopChange();
     stopOrders();
+    els = {};
   };
+}
+
+// ------------------------------------------------------- choosing a mode
+
+/** The owner opening the till for the first time picks what kind of shop it is. */
+function needsPicker() {
+  return session.settingsLoaded && !session.settings.mode && session.can('POS_MANAGE');
+}
+
+function drawPicker() {
+  built = 'picker';
+  els = {};
+  mount(root, h('div', { class: 'modepick' },
+    h('header', {},
+      h('div', { class: 'row', style: { justifyContent: 'center' } }, menuButton()),
+      h('h1', {}, t('modeTitle')),
+      h('p', { class: 'muted', style: { margin: 0 } }, t('modeSub'))),
+    modeCards(null, async (mode) => {
+      const next = { ...DEFAULT_SETTINGS, ...session.settings, mode, updatedAt: Date.now() };
+      if (mode === 'FNB') next.kitchenTicket = true;
+      session.settings = next;
+      setDoc(doc(db, ws('pos/settings')), next).catch((err) => toast(err.message || String(err), 'error'));
+      toast(t('modeSaved'), 'ok');
+      cart = newCart();
+      drawAll();
+    })));
+}
+
+// ------------------------------------------------------------------ screens
+
+function drawAll() {
+  if (needsPicker()) {
+    if (built !== 'picker') drawPicker();
+    return;
+  }
+  const want = layout();
+  if (built !== want) build(want);
+  // A sale started before the settings loaded took the default order type.
+  if (!cart.lines.length && !cart.orderId && !cart.table) cart.orderType = defaultOrderType();
+  if (want !== 'market') {
+    els.tablesBtn.classList.toggle('hidden', !isFnb());
+    drawChips();
+    drawTiles();
+  }
+  drawTicket();
+}
+
+/** The scan box, the "×3" flag beside it, the camera and NFC buttons. */
+function scanParts(big) {
+  els.scan = h('input', {
+    class: 'scan', placeholder: t('scanHere'), autocomplete: 'off', autofocus: true, 'aria-label': t('scanHere'),
+    onkeydown: (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const raw = els.scan.value.trim();
+      els.scan.value = '';
+      // "3*" then a scan sells three; "3*" alone waits for the scan.
+      const times = /^(\d+(?:\.\d+)?)\s*[*xX×]\s*(.*)$/.exec(raw);
+      if (times && parseQty(times[1])) {
+        pendingQty = parseQty(times[1]);
+        drawQtyFlag();
+        if (times[2]) addByCode(times[2]);
+        return;
+      }
+      if (raw) addByCode(raw);
+    },
+  });
+  els.qtyFlag = h('span', { class: 'qtyflag hidden', title: t('qtyX') });
+  els.nfc = nfcSupported() ? h('button', {
+    class: 'icon-btn', title: 'NFC',
+    onclick: async () => {
+      if (stopNfc) { stopNfc(); stopNfc = null; els.nfc.classList.remove('primary'); return; }
+      try {
+        // Chrome on Android reads NFC tags and member cards; it has to be
+        // started from a tap, so it stays on until tapped again.
+        stopNfc = await listenForTags((id) => addByCode(id));
+        els.nfc.classList.add('primary');
+        toast(t('nfcOn'), 'ok');
+      } catch (err) {
+        toast(`${t('nfcError')}: ${err.message || err}`, 'error');
+      }
+    },
+  }, icon('nfc', 20)) : null;
+  return [
+    h('div', { class: 'search-box' }, icon('barcode', big ? 22 : 18), els.scan),
+    els.qtyFlag,
+    h('button', {
+      class: 'icon-btn', title: t('scanCamera'), style: big ? { width: '56px' } : {},
+      onclick: async () => { const code = await scanWithCamera(); if (code) addByCode(code); else els.scan.focus(); },
+    }, icon('camera', 20)),
+    els.nfc,
+  ];
+}
+
+function drawQtyFlag() {
+  if (!els.qtyFlag) return;
+  els.qtyFlag.textContent = pendingQty ? `× ${formatQty(pendingQty)}` : '';
+  els.qtyFlag.classList.toggle('hidden', !pendingQty);
+  els.qtyKey?.classList.toggle('on', !!pendingQty);
+}
+
+function drawOpenCount() {
+  if (els.openCount) els.openCount.textContent = String(openOrders.length);
+}
+
+function build(kind) {
+  built = kind;
+  stopNfc?.();
+  stopNfc = null;
+  els = {};
+  els.online = h('div', { class: `offline${navigator.onLine ? ' hidden' : ''}` }, icon('wifiOff', 16), t('offlineNote'));
+  els.orderInfo = h('div', { class: 'orderinfo' });
+  els.lines = h('div', { class: kind === 'market' ? 'mlines' : 'lines' });
+  els.sums = h('div', { class: 'sums' });
+  els.openCount = h('span', { class: 'count' }, String(openOrders.length));
+
+  if (kind === 'market') {
+    els.last = h('div', { class: 'lastitem' });
+    els.total = h('div', { class: 'big' });
+    els.totalLabel = h('div', { class: 'k' });
+    els.pay = h('button', { class: 'primary pay' });
+    els.qtyKey = h('button', { onclick: askNextQty }, icon('times', 22), t('qtyX'));
+    els.recallKey = h('button', { onclick: openTicketsList }, icon('receipt', 22), h('span', {}, t('recall'), ' ', els.openCount));
+    els.holdKey = h('button', { onclick: () => saveTicket() }, icon('pause', 22), t('hold'));
+    els.discKey = h('button', { onclick: chooseDiscounts }, icon('percent', 22), t('discount'));
+    els.clearKey = h('button', { class: 'danger', onclick: clearTicket }, icon('trash', 22), t('clear'));
+    mount(root, h('div', { class: 'market' },
+      h('section', { class: 'left' },
+        els.online,
+        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true)),
+        els.orderInfo,
+        els.lines),
+      h('aside', { class: 'mpanel' },
+        els.last,
+        h('div', { class: 'totalcard' }, els.totalLabel, els.total, els.sums),
+        h('div', { class: 'fkeys' },
+          els.qtyKey,
+          h('button', { onclick: priceCheck }, icon('barcode', 22), t('priceCheck')),
+          h('button', { onclick: quickItems }, icon('grid', 22), t('quickKeys')),
+          h('button', { onclick: chooseCustomer }, icon('user', 22), t('member')),
+          els.discKey, els.holdKey, els.recallKey, els.clearKey),
+        els.pay)));
+  } else {
+    els.search = h('input', { type: 'search', placeholder: t('searchProducts'), value: search, oninput: (e) => { search = e.target.value; drawTiles(); } });
+    els.chips = h('div', { class: 'chips' });
+    els.tiles = h('div', { class: 'tiles' });
+    els.buttons = h('div', { class: 'buttons' });
+    els.tablesBtn = h('button', { onclick: openTables }, icon('dining', 18), t('tables'));
+    mount(root, h('div', { class: 'register' },
+      h('section', { class: 'catalog' },
+        els.online,
+        h('div', { class: 'reg-bar' },
+          menuButton(),
+          h('div', { class: 'search-box' }, icon('search', 18), els.search),
+          h('span', { class: 'grow' }),
+          els.tablesBtn,
+          h('button', { onclick: openTicketsList }, icon('receipt', 18), t('openTickets'), els.openCount)),
+        els.chips,
+        els.tiles),
+      h('section', { class: 'ticket' },
+        h('div', { class: 'head' }, h('div', { class: 'scanwrap' }, ...scanParts(false)), els.orderInfo),
+        els.lines, els.sums, els.buttons)));
+  }
+  drawQtyFlag();
 }
 
 // ------------------------------------------------------------------ catalog
@@ -155,48 +284,43 @@ function sellable() {
   return session.products.filter((p) => p.active !== false);
 }
 
-function drawAll() {
-  const fnb = session.settings.mode !== 'RETAIL';
-  els.tablesBtn.classList.toggle('hidden', !fnb);
-  // A sale started before the settings loaded took the default order type.
-  if (!cart.lines.length && !cart.orderId && !cart.table) cart.orderType = defaultOrderType();
-  drawChips();
-  drawTiles();
-  drawTicket();
-}
-
-function drawChips() {
+function drawChips(target = els.chips, redraw = () => { drawChips(); drawTiles(); }) {
   const cats = session.categories;
-  const chip = (id, label) => h('button', {
+  const chip = (id, label, color) => h('button', {
     class: category === id ? 'on' : '',
-    onclick: () => { category = id; drawChips(); drawTiles(); },
-  }, label);
-  mount(els.chips, chip('', t('all')), cats.map((c) => chip(c.id, c.name)));
-  els.chips.classList.toggle('hidden', cats.length === 0);
+    onclick: () => { category = id; redraw(); },
+  }, color ? h('span', { class: 'dot', style: { background: color } }) : null, label);
+  mount(target, chip('', t('all')), cats.map((c) => chip(c.id, c.name, c.color)));
+  target.classList.toggle('hidden', cats.length === 0);
 }
 
-function drawTiles() {
-  const q = search.trim().toLowerCase();
-  const list = sellable()
+function tileList(q) {
+  return sellable()
     .filter((p) => !category || p.category === category)
     .filter((p) => !q || (p.name || '').toLowerCase().includes(q) || p.barcode.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q))
     .sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode))
     .slice(0, 300);
+}
+
+function tileFor(p, onPick) {
+  const cat = session.categories.find((c) => c.id === p.category);
+  const style = p.photoUrl
+    ? { backgroundImage: `url("${p.photoUrl}")` }
+    : cat?.color ? { background: `linear-gradient(135deg, ${cat.color}, color-mix(in srgb, ${cat.color} 70%, #000))` } : {};
+  return h('button', { class: 'tile', onclick: () => onPick(p) },
+    h('div', { class: `pic${p.photoUrl || cat?.color ? '' : ' plain'}`, style }, p.photoUrl ? '' : (p.name || p.barcode).slice(0, 2)),
+    h('div', { class: 'info' },
+      h('span', { class: 'n' }, p.name || p.barcode),
+      h('span', { class: 'p' }, p.priceSen != null ? rm(p.priceSen) : t('noPrice'))));
+}
+
+function drawTiles(target = els.tiles, q = search.trim().toLowerCase(), onPick = addProduct) {
+  const list = tileList(q);
   if (!list.length) {
-    mount(els.tiles, h('p', { class: 'muted' }, session.products.length ? t('noMatch') : t('noProductsYet')));
+    mount(target, h('p', { class: 'empty-note' }, session.products.length ? t('noMatch') : t('noProductsYet')));
     return;
   }
-  mount(els.tiles, list.map((p) => {
-    const cat = session.categories.find((c) => c.id === p.category);
-    return h('button', { class: 'tile', onclick: () => addProduct(p) },
-      h('div', {
-        class: 'pic',
-        style: p.photoUrl ? { backgroundImage: `url("${p.photoUrl}")` } : { background: cat?.color || '' },
-      }, p.photoUrl ? '' : (p.name || p.barcode).slice(0, 2)),
-      h('div', { class: 'info' },
-        h('span', { class: 'n' }, p.name || p.barcode),
-        h('span', { class: 'p' }, p.priceSen != null ? rm(p.priceSen) : t('noPrice'))));
-  }));
+  mount(target, list.map((p) => tileFor(p, onPick)));
 }
 
 // ---------------------------------------------------------------- adding
@@ -215,7 +339,7 @@ async function addByCode(raw) {
     const member = found && await freshCustomer(found);
     if (member) {
       cart.customer = { id: member.id, name: member.name, phone: member.phone || '', points: member.points || 0 };
-      toast(`👤 ${member.name}`, 'ok');
+      toast(`${member.name}`, 'ok');
       drawTicket();
       return;
     }
@@ -232,11 +356,16 @@ async function addProduct(product) {
     price = await askAmount(t('enterPrice'), product.name || product.barcode);
     if (price == null) return;
   }
+  const weighed = isWeighed(product.unit);
   let qty = UNIT;
-  if (WEIGHED_UNITS.includes((product.unit || '').toLowerCase())) {
+  if (weighed) {
     qty = await askQty(product);
     if (qty == null) return;
+  } else if (pendingQty) {
+    qty = pendingQty;
   }
+  pendingQty = null;
+  drawQtyFlag();
   let modifiers = [];
   const groups = (product.modifierIds || []).map((id) => session.modifiers.find((m) => m.id === id)).filter(Boolean);
   if (groups.length) {
@@ -247,7 +376,7 @@ async function addProduct(product) {
 
   // Same product, same options, not yet sent to the kitchen: one line, more of it.
   const sameKey = `${product.barcode}|${modifiers.map((m) => m.name).join(',')}|${unitPriceSen}`;
-  const existing = cart.lines.find((l) => l.key === sameKey && !l.sent && !l.note && !WEIGHED_UNITS.includes((product.unit || '').toLowerCase()));
+  const existing = cart.lines.find((l) => l.key === sameKey && !l.sent && !l.note && !weighed);
   if (existing) existing.qtyMilli += qty;
   else {
     cart.lines.push({
@@ -268,8 +397,95 @@ async function addProduct(product) {
       sent: false,
     });
   }
+  lastAdded = { name: product.name || product.barcode, qtyMilli: qty, unit: weighed ? product.unit : '', amountSen: lineAmount(qty, unitPriceSen) };
+  flashKey = sameKey;
   drawTicket();
-  els.scan.focus();
+  els.scan?.focus();
+}
+
+// ------------------------------------------------- supermarket function keys
+
+function askNextQty() {
+  if (pendingQty) { pendingQty = null; drawQtyFlag(); els.scan.focus(); return; }
+  const input = h('input', { inputmode: 'decimal', autofocus: true, placeholder: '2' });
+  modal((close) => h('form', {
+    style: { display: 'grid', gap: '14px' },
+    onsubmit: (e) => {
+      e.preventDefault();
+      const q = parseQty(input.value);
+      if (!q) return toast(t('errQty'), 'error');
+      pendingQty = q;
+      drawQtyFlag();
+      close();
+    },
+  },
+  h('h2', {}, t('qtyPrompt')),
+  h('p', { class: 'muted', style: { margin: 0 } }, t('qtyHint')),
+  input,
+  h('div', { class: 'actions' }, h('button', { type: 'button', onclick: close }, t('cancel')), h('button', { class: 'primary' }, t('ok')))),
+  { onClose: () => els.scan?.focus() });
+}
+
+/** Scan anything to see its price, without selling it. */
+function priceCheck() {
+  const out = h('div', { class: 'pricecheck' }, h('span', { class: 'muted' }, t('scanToCheck')));
+  const input = h('input', {
+    autofocus: true, placeholder: t('scanHere'), autocomplete: 'off',
+    onkeydown: (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const code = input.value.trim();
+      input.value = '';
+      const p = code && (session.find(code) || session.find(normalizeTag(code)));
+      if (!p) { mount(out, h('span', { class: 'muted' }, `${t('notFound')}: ${code}`)); beep(); return; }
+      const taxes = taxList(session.settings).filter((x) => productTaxIds(p, taxList(session.settings)).includes(x.id));
+      mount(out,
+        h('strong', { style: { fontSize: '18px' } }, p.name || p.barcode),
+        h('span', { class: 'p' }, p.priceSen != null ? rm(p.priceSen) : t('noPrice')),
+        h('span', { class: 'muted' }, `${p.barcode}${isWeighed(p.unit) ? ` · / ${p.unit}` : ''}`),
+        h('span', { class: 'muted' }, taxes.length ? taxes.map((x) => `${x.name} ${x.pct}%`).join(', ') : taxList(session.settings).length ? t('taxFree') : ''),
+        h('div', { class: 'actions', style: { justifyContent: 'center' } },
+          h('button', { class: 'primary', onclick: () => { closeIt(); addProduct(p); } }, icon('plus', 18), t('add'))));
+    },
+  });
+  let closeIt = () => {};
+  modal((close) => {
+    closeIt = close;
+    return [
+      h('h2', {}, t('priceCheck')),
+      h('div', { class: 'search-box' }, icon('barcode', 18), input),
+      out,
+      h('div', { class: 'actions' }, h('button', { onclick: close }, t('close'))),
+    ];
+  }, { onClose: () => els.scan?.focus() });
+}
+
+/** Things without a barcode -- loose vegetables, bread, a plastic bag. */
+function quickItems() {
+  let q = '';
+  const chips = h('div', { class: 'chips', style: { padding: '0', border: '0', background: 'none' } });
+  const grid = h('div', { class: 'tiles', style: { padding: '2px', maxHeight: '56vh' } });
+  let closeIt = () => {};
+  const pick = (p) => { closeIt(); addProduct(p); };
+  const redraw = () => { drawChips(chips, redraw); drawTiles(grid, q, pick); };
+  modal((close) => {
+    closeIt = close;
+    return [
+      h('h2', {}, t('quickKeys')),
+      h('div', { class: 'search-box' }, icon('search', 18), h('input', { type: 'search', autofocus: true, placeholder: t('searchProducts'), oninput: (e) => { q = e.target.value.trim().toLowerCase(); drawTiles(grid, q, pick); } })),
+      chips,
+      grid,
+      h('div', { class: 'actions' }, h('button', { onclick: close }, t('close'))),
+    ];
+  }, { wide: true, onClose: () => els.scan?.focus() });
+  redraw();
+}
+
+async function chooseCustomer() {
+  if (cart.customer) { cart.customer = null; drawTicket(); return; }
+  const c = await pickCustomer();
+  if (c) { cart.customer = { id: c.id, name: c.name, phone: c.phone || '', points: c.points || 0 }; drawTicket(); }
+  els.scan?.focus();
 }
 
 function beep() {
@@ -406,66 +622,115 @@ export function totalsFor(c) {
   return { ...totals, discounts: named, lineTaxIds: lines.map((l) => l.taxIds) };
 }
 
-function drawTicket() {
-  const fnb = session.settings.mode !== 'RETAIL';
-  mount(els.orderInfo,
-    fnb ? h('select', {
-      style: { width: 'auto' },
-      onchange: (e) => { cart.orderType = e.target.value; drawTicket(); },
-    }, ['RETAIL', 'DINE_IN', 'TAKEAWAY', 'DELIVERY'].filter((k) => k !== 'RETAIL' || session.settings.mode === 'BOTH')
-      .map((k) => h('option', { value: k, selected: cart.orderType === k }, t(`order_${k}`)))) : null,
-    cart.table ? h('span', { class: 'pill good' }, `${t('table')} ${cart.table}`) : null,
-    h('button', {
-      style: { minHeight: '32px', padding: '4px 10px' },
-      onclick: async () => {
-        if (cart.customer) { cart.customer = null; drawTicket(); return; }
-        const c = await pickCustomer();
-        if (c) { cart.customer = { id: c.id, name: c.name, phone: c.phone || '', points: c.points || 0 }; drawTicket(); }
-        els.scan.focus();
-      },
-    }, cart.customer ? `👤 ${cart.customer.name} · ${cart.customer.points} ${t('points')} ✕` : `👤 ${t('customer')}`),
-    cart.orderId ? h('span', { class: 'pill' }, t('savedTicket')) : null,
-    h('span', { class: 'grow' }),
-    h('span', { class: 'muted', style: { fontSize: '13px' } }, session.branchName()));
+function orderTypes() {
+  // Shops set up before modes existed sold over the counter too.
+  return ['DINE_IN', 'TAKEAWAY', 'DELIVERY', ...(session.settings.mode === 'FNB' ? [] : ['RETAIL'])];
+}
 
-  if (!cart.lines.length) {
-    mount(els.lines, h('div', { class: 'empty' }, t('emptyTicket')));
-  } else {
-    mount(els.lines, cart.lines.map((line, index) => h('div', { class: 'line', onclick: () => editLine(index) },
-      h('span', { class: 'name' }, line.name, line.sent ? h('span', { class: 'muted' }, ' ✓') : ''),
-      h('span', { class: 'num' }, formatSen(lineTotal(line))),
-      h('span', { class: 'muted' }, `${formatQty(line.qtyMilli)}${line.unit && WEIGHED_UNITS.includes(line.unit.toLowerCase()) ? ` ${line.unit}` : ''} × ${formatSen(line.unitPriceSen)}`,
+function drawOrderInfo() {
+  const fnb = isFnb();
+  mount(els.orderInfo,
+    fnb ? h('div', { class: 'seg', role: 'group', 'aria-label': t('orderType') }, orderTypes().map((k) => h('button', {
+      class: cart.orderType === k ? 'on' : '',
+      onclick: () => { cart.orderType = k; drawTicket(); },
+    }, t(`order_${k}`)))) : null,
+    cart.table ? h('span', { class: 'tablechip' }, icon('dining', 15), `${t('table')} ${cart.table}`) : null,
+    built !== 'market' || cart.customer ? h('button', { onclick: chooseCustomer },
+      icon('user', 16), cart.customer ? `${cart.customer.name} · ${cart.customer.points} ${t('points')} ✕` : t('customer')) : null,
+    cart.orderId ? h('span', { class: 'pill warn' }, t('savedTicket')) : null,
+    h('span', { class: 'branch' }, session.branchName()));
+}
+
+/** − 2 + on a line; weighed lines show their weight instead. */
+function stepper(line) {
+  if (isWeighed(line.unit)) return h('span', {}, `${formatQty(line.qtyMilli)} ${line.unit}`);
+  const stop = (fn) => (e) => { e.stopPropagation(); fn(); drawTicket(); };
+  return h('span', { class: 'stepper' },
+    h('button', { type: 'button', 'aria-label': '−', onclick: stop(() => { if (line.qtyMilli > UNIT) line.qtyMilli -= UNIT; }) }, icon('minus', 14)),
+    h('span', {}, formatQty(line.qtyMilli)),
+    h('button', { type: 'button', 'aria-label': '+', onclick: stop(() => { line.qtyMilli += UNIT; }) }, icon('plus', 14)));
+}
+
+function sumRows(totals, r) {
+  return [
+    r(t('subtotal'), formatSen(totals.subtotalSen)),
+    totals.discounts.map((d) => r(d.name, `-${formatSen(d.amountSen)}`)),
+    totals.serviceChargeSen ? r(`${t('serviceCharge')} ${session.settings.serviceChargePct}%`, formatSen(totals.serviceChargeSen)) : null,
+    totals.taxes.map((x) => r(`${x.name} ${x.pct}%${totals.taxIncluded ? ` (${t('included')})` : ''}`, formatSen(x.taxSen))),
+  ];
+}
+
+function pay() {
+  openPayment(cart, totalsFor(cart), {
+    onPaid: () => { cart = newCart(); lastAdded = null; drawTicket(); els.scan?.focus(); },
+  });
+}
+
+function drawTicket() {
+  if (!els.lines) return;
+  drawOrderInfo();
+  const totals = totalsFor(cart);
+  const empty = !cart.lines.length;
+  const flash = flashKey;
+  flashKey = '';
+  const r = (label, value, cls = '') => h('div', { class: `r ${cls}` }, h('span', {}, label), h('span', { class: 'num' }, value));
+
+  if (built === 'market') {
+    const count = cart.lines.reduce((n, l) => n + (isWeighed(l.unit) ? 1 : l.qtyMilli / UNIT), 0);
+    mount(els.lines, empty
+      ? h('div', { class: 'empty' }, icon('barcode', 40), h('strong', {}, t('emptyTicket')), h('span', {}, t('qtyHint')))
+      : h('table', {},
+        h('thead', {}, h('tr', {}, h('th', {}, '#'), h('th', {}, t('name')), h('th', {}, t('quantity')), h('th', { class: 'num' }, t('unitPrice')), h('th', { class: 'num' }, t('amount')))),
+        h('tbody', {}, cart.lines.map((line, i) => h('tr', { class: `line${line.key === flash ? ' flash' : ''}`, onclick: () => editLine(i) },
+          h('td', { class: 'idx' }, String(i + 1)),
+          h('td', {}, h('div', { class: 'n' }, line.name), h('div', { class: 'code' }, line.barcode,
+            line.discountSen ? ` · -${formatSen(line.discountSen)}` : '', line.note ? ` · ${line.note}` : '')),
+          h('td', {}, stepper(line)),
+          h('td', { class: 'num' }, formatSen(line.unitPriceSen)),
+          h('td', { class: 'num amt' }, formatSen(lineTotal(line))))))));
+    mount(els.last,
+      h('span', { class: 'k' }, t('lastScanned')),
+      lastAdded
+        ? h('div', { class: 'v' }, h('span', {}, lastAdded.name, h('span', { class: 'muted', style: { fontWeight: 500 } },
+          `  × ${formatQty(lastAdded.qtyMilli)}${lastAdded.unit ? ` ${lastAdded.unit}` : ''}`)), h('span', { class: 'num' }, formatSen(lastAdded.amountSen)))
+        : h('div', { class: 'v muted' }, '—'));
+    mount(els.totalLabel, h('span', {}, t('total')), h('span', {}, `${formatQty(Math.round(count * UNIT))} ${t('itemsShort')}`));
+    els.total.textContent = rm(totals.totalSen);
+    mount(els.sums, sumRows(totals, r));
+    mount(els.pay, `${t('charge')} ${rm(totals.totalSen)}`);
+    els.pay.disabled = empty;
+    els.pay.onclick = pay;
+    els.holdKey.disabled = empty;
+    els.discKey.disabled = empty || !session.discounts.length;
+    els.clearKey.disabled = empty && !cart.orderId;
+    els.lines.scrollTop = els.lines.scrollHeight;
+    return;
+  }
+
+  mount(els.lines, empty
+    ? h('div', { class: 'empty' }, icon(isFnb() ? 'dining' : 'cart', 34), h('span', {}, t('emptyTicket')))
+    : cart.lines.map((line, index) => h('div', { class: `line${line.key === flash ? ' flash' : ''}`, onclick: () => editLine(index) },
+      h('span', { class: 'name' }, line.name, line.sent ? h('span', { class: 'sent', title: t('alreadySent') }, ' ✓') : ''),
+      h('span', { class: 'num', style: { fontWeight: 700 } }, formatSen(lineTotal(line))),
+      h('span', { class: 'sub' }, stepper(line), `× ${formatSen(line.unitPriceSen)}`,
         line.discountSen ? ` · -${formatSen(line.discountSen)}` : ''),
       h('span', {}),
       line.modifiers.length || line.note
         ? h('span', { class: 'mods' }, line.modifiers.map((m) => m.name).join(', '), line.note ? ` · ${line.note}` : '')
         : null)));
-  }
 
-  const totals = totalsFor(cart);
-  const r = (label, value, cls = '') => h('div', { class: `r ${cls}` }, h('span', {}, label), h('span', { class: 'num' }, value));
-  mount(els.sums,
-    r(t('subtotal'), formatSen(totals.subtotalSen)),
-    totals.discounts.map((d) => r(d.name, `-${formatSen(d.amountSen)}`)),
-    totals.serviceChargeSen ? r(`${t('serviceCharge')} ${session.settings.serviceChargePct}%`, formatSen(totals.serviceChargeSen)) : null,
-    totals.taxes.map((x) => r(`${x.name} ${x.pct}%${totals.taxIncluded ? ` (${t('included')})` : ''}`, formatSen(x.taxSen))),
-    r(t('total'), rm(totals.totalSen), 'total'));
+  mount(els.sums, sumRows(totals, r), r(t('total'), rm(totals.totalSen), 'total'));
 
-  const empty = !cart.lines.length;
   const unsent = cart.lines.some((l) => !l.sent);
   mount(els.buttons,
-    h('button', { onclick: chooseDiscounts, disabled: empty || !session.discounts.length }, `🏷 ${t('discount')}`),
-    fnb && session.settings.kitchenTicket !== false
-      ? h('button', { onclick: sendToKitchen, disabled: empty || !unsent }, `🍳 ${t('sendKitchen')}`)
-      : h('button', { onclick: saveTicket, disabled: empty }, `💾 ${t('saveTicket')}`),
-    h('button', { class: 'danger', onclick: clearTicket, disabled: empty && !cart.orderId }, t('clear')),
-    fnb && session.settings.kitchenTicket !== false ? h('button', { onclick: saveTicket, disabled: empty, style: { gridColumn: '1 / -1' } }, `💾 ${t('saveTicket')}`) : null,
-    h('button', {
-      class: 'primary pay', disabled: empty,
-      onclick: () => openPayment(cart, totalsFor(cart), {
-        onPaid: () => { cart = newCart(); drawTicket(); els.scan.focus(); },
-      }),
-    }, `${t('charge')} ${rm(totals.totalSen)}`));
+    h('button', { onclick: chooseDiscounts, disabled: empty || !session.discounts.length }, icon('percent', 17), t('discount')),
+    kitchenOn()
+      ? h('button', { onclick: sendToKitchen, disabled: empty || !unsent }, icon('chef', 17), t('sendKitchen'))
+      : h('button', { onclick: () => saveTicket(), disabled: empty }, icon('pause', 17), t('saveTicket')),
+    h('button', { class: 'danger', onclick: clearTicket, disabled: empty && !cart.orderId }, icon('trash', 17), t('clear')),
+    kitchenOn() ? h('button', { onclick: () => saveTicket(), disabled: empty, style: { gridColumn: '1 / -1' } }, icon('pause', 17), t('saveTicket')) : null,
+    h('button', { class: 'primary pay', disabled: empty, onclick: pay }, `${t('charge')} ${rm(totals.totalSen)}`));
+  if (flash) els.lines.querySelector('.flash')?.scrollIntoView({ block: 'nearest' });
 }
 
 function editLine(index) {

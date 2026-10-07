@@ -7,6 +7,7 @@
  */
 import { auth, initFirebase, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from './fb.js';
 import { h, mount, toast } from './dom.js';
+import { icon } from './icons.js';
 import { getLang, LANGS, setLang, t } from './i18n.js';
 import { endSession, loadSession, onChange, session } from './session.js';
 
@@ -14,33 +15,33 @@ const app = document.getElementById('app');
 
 /** The menu, Loyverse-style: groups with pages under them. */
 const MENU = [
-  { id: 'pos', icon: '🛒', label: 'navRegister', perm: 'POS_SELL', page: () => import('./register.js') },
+  { id: 'pos', icon: 'cart', label: 'navRegister', perm: 'POS_SELL', page: () => import('./register.js') },
   {
-    id: 'reports', icon: '📊', label: 'navReports', perm: ['POS_REPORTS', 'POS_SELL'], children: [
+    id: 'reports', icon: 'chart', label: 'navReports', perm: ['POS_REPORTS', 'POS_SELL'], children: [
       ['summary', 'repSummary'], ['items', 'repItems'], ['categories', 'repCategories'],
       ['employees', 'repEmployees'], ['payments', 'repPayments'], ['receipts', 'repReceipts'],
       ['modifiers', 'repModifiers'], ['discounts', 'repDiscounts'], ['taxes', 'repTaxes'],
     ], page: () => import('./reports.js'),
   },
   {
-    id: 'items', icon: '🧺', label: 'navItems', perm: 'POS_MANAGE', children: [
+    id: 'items', icon: 'tag', label: 'navItems', perm: 'POS_MANAGE', children: [
       ['list', 'itemList'], ['categories', 'itemCategories'], ['modifiers', 'itemModifiers'], ['discounts', 'itemDiscounts'],
     ], page: () => import('./items.js'),
   },
   {
-    id: 'inventory', icon: '📦', label: 'navInventory', perm: ['RECORD_STOCK_MOVEMENTS', 'POS_MANAGE'], children: [
+    id: 'inventory', icon: 'box', label: 'navInventory', perm: ['RECORD_STOCK_MOVEMENTS', 'POS_MANAGE'], children: [
       ['levels', 'invLevels'], ['adjust', 'invAdjust'], ['purchase', 'invPurchase'], ['transfers', 'invTransfers'], ['suppliers', 'invSuppliers'],
     ], page: () => import('./inventory.js'),
   },
-  { id: 'employees', icon: '🪪', label: 'navEmployees', perm: 'VIEW_USERS', page: () => import('./employees.js') },
-  { id: 'customers', icon: '👥', label: 'navCustomers', perm: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'], page: () => import('./customers.js') },
+  { id: 'employees', icon: 'idcard', label: 'navEmployees', perm: 'VIEW_USERS', page: () => import('./employees.js') },
+  { id: 'customers', icon: 'users', label: 'navCustomers', perm: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'], page: () => import('./customers.js') },
   {
-    id: 'integrations', icon: '🧩', label: 'navIntegrations', perm: 'CHANGE_PERMISSION', children: [
+    id: 'integrations', icon: 'plug', label: 'navIntegrations', perm: 'CHANGE_PERMISSION', children: [
       ['tokens', 'intTokens'], ['api', 'intApi'],
     ], page: () => import('./integrations.js'),
   },
   {
-    id: 'settings', icon: '⚙️', label: 'navSettings', perm: null, children: [
+    id: 'settings', icon: 'sliders', label: 'navSettings', perm: null, children: [
       ['features', 'setFeatures'], ['payments', 'setPayments'], ['taxes', 'setTaxes'], ['loyalty', 'setLoyalty'],
       ['receipt', 'setReceipt'], ['stores', 'setStores'], ['device', 'setDevice'],
     ], page: () => import('./settings.js'),
@@ -79,6 +80,7 @@ function renderSignIn(message = '') {
     },
   },
   h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 40, height: 40 }), 'Pos Stock Check'),
+  h('h2', { style: { margin: '6px 0 0' } }, t('signIn')),
   h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')),
   h('label', { class: 'field' }, t('email'), email),
   h('label', { class: 'field' }, t('password'), password),
@@ -97,7 +99,17 @@ function renderSignIn(message = '') {
     },
   }, t('forgotPassword')),
   langPicker());
-  mount(app, h('div', { class: 'signin' }, form));
+  mount(app, h('div', { class: 'signin-split' },
+    h('section', { class: 'signin-brand' },
+      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/icon-192.png', alt: '', width: 36, height: 36 }), 'Pos Stock Check'),
+      h('div', { style: { display: 'grid', gap: '22px' } },
+        h('h1', {}, t('signInTagline')),
+        h('ul', {},
+          h('li', {}, icon('barcode', 18), t('signFeat1')),
+          h('li', {}, icon('store', 18), t('signFeat2')),
+          h('li', {}, icon('wifiOff', 18), t('signFeat3')))),
+      h('div', { class: 'foot' }, t('signFoot'))),
+    h('section', { class: 'signin-form signin' }, form)));
 }
 
 function friendlyAuthError(err) {
@@ -138,7 +150,7 @@ function renderSide() {
     if (!item.children) {
       nav.append(h('div', { class: 'group' },
         h('a', { class: `top${group === item.id ? ' current' : ''}`, href: `#/${item.id}` },
-          h('span', { class: 'icon' }, item.icon), t(item.label))));
+          icon(item.icon, 19), t(item.label))));
       continue;
     }
     const open = group === item.id;
@@ -148,21 +160,22 @@ function renderSide() {
         href: `#/${item.id}/${id}`, class: open && sub === id ? 'current' : '',
       }, t(label))));
     box.append(
-      h('button', { onclick: () => subs.classList.toggle('hidden') },
-        h('span', { class: 'icon' }, item.icon), h('span', { class: 'grow' }, t(item.label)), '▾'),
+      h('button', { onclick: () => { subs.classList.toggle('hidden'); box.classList.toggle('open', !subs.classList.contains('hidden')); } },
+        icon(item.icon, 19), h('span', { class: 'grow' }, t(item.label)), h('span', { class: 'chev' }, icon('chevron', 16))),
       subs);
     nav.append(box);
   }
   mount(sideEl,
+    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png', alt: '', width: 28, height: 28 }), 'Pos Stock Check'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
-      h('div', { class: 'muted', style: { fontSize: '13px' } }, session.companyName || session.email),
-      h('div', { class: 'muted', style: { fontSize: '13px' } }, `${t('branch')}: ${session.branchName()}`)),
+      h('div', { class: 'sm' }, session.companyName || session.email),
+      h('div', { class: 'sm' }, `${t('branch')}: ${session.branchName()}`)),
     nav,
     h('div', { class: 'foot' },
-      installPrompt ? h('button', { class: 'primary', onclick: install }, `⬇ ${t('installApp')}`) : null,
+      installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
       langPicker(),
-      h('button', { onclick: () => signOut(auth) }, t('signOut'))));
+      h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));
 }
 
 async function route() {
@@ -197,7 +210,7 @@ async function route() {
 
 /** A "☰" button pages put in their header, for narrow screens. */
 export function menuButton() {
-  return h('button', { class: 'menu-toggle ghost', onclick: () => shell?.classList.add('menu') }, '☰');
+  return h('button', { class: 'menu-toggle ghost icon-btn', 'aria-label': 'Menu', onclick: () => shell?.classList.add('menu') }, icon('menu', 20));
 }
 
 // ------------------------------------------------------------ install as app

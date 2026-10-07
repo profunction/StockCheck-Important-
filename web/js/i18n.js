@@ -317,6 +317,57 @@ Object.assign(ms, {
   taxesApplied: 'Cukai dikemas kini', taxCol: 'Cukai',
 });
 
+
+// Till modes, the supermarket screen and the sign-in page.
+Object.assign(en, {
+  modeTitle: 'What kind of shop is this?', modeSub: 'Pick the one closest to how you sell. The till is laid out for it; change it any time under Settings → Features.',
+  modeName_FNB: 'Restaurant & café', modeName_SUPERMARKET: 'Supermarket & mini market', modeName_RETAIL: 'Retail shop',
+  modeDesc_FNB: 'Restaurants, cafés, kopitiam, drinks stalls.', modeDesc_SUPERMARKET: 'Supermarkets, mini markets, grocery shops: scan after scan, fast checkout.', modeDesc_RETAIL: 'Clothing, hardware, stationery, phone shops: tap items by picture.',
+  modePts_FNB: 'Tables and saved bills|Modifiers: sugar level, extra egg|Kitchen tickets|Dine-in / take-away / delivery|Service charge',
+  modePts_SUPERMARKET: 'Big scan box, keep scanning|Type 3* then scan = 3 pieces|Price check, quick items (veg, bread)|Weighed items|Hold and recall bills',
+  modePts_RETAIL: 'Item pictures by category|Members and points|Discounts|Saved bills|Barcode and NFC',
+  modeCurrent: 'In use', modeSaved: 'Till mode set.', businessType: 'Till mode',
+  modeHelp: 'All three share the same items, stock, receipts and reports; only the till screen changes.',
+  qtyX: 'Qty ×', priceCheck: 'Price check', quickKeys: 'Quick items', hold: 'Hold', recall: 'Recall', member: 'Member',
+  itemsShort: 'pcs', lastScanned: 'LAST SCANNED', scanToCheck: 'Scan an item to see its price.',
+  qtyPrompt: 'How many of the next item?', qtyHint: 'Tip: type 3* in the scan box, then scan, to sell 3.',
+  signInTagline: 'Count stock on your phone. Sell at the counter. One set of numbers.',
+  signFeat1: 'Scan to sell; stock updates at once', signFeat2: 'For restaurants, supermarkets and shops', signFeat3: 'Keeps selling without internet',
+  signFoot: 'Pos Stock Check · Malaysia',
+});
+Object.assign(zh, {
+  modeTitle: '你的店是哪一种？', modeSub: '选一个最像你做生意的方式，收银画面会照它排好。之后随时可以在「设置 → 功能」改。',
+  modeName_FNB: '餐饮', modeName_SUPERMARKET: '超市 / 迷你市场', modeName_RETAIL: '店面零售',
+  modeDesc_FNB: '餐厅、咖啡店、kopitiam、饮料店。', modeDesc_SUPERMARKET: '超市、迷你市场、杂货店：一直扫码，结账快。', modeDesc_RETAIL: '服装、五金、文具、手机店：看图片点商品。',
+  modePts_FNB: '桌位和存单|加料：甜度、加蛋|送厨房单|堂食 / 外带 / 外送|服务费',
+  modePts_SUPERMARKET: '大扫码框，一直扫|输入 3* 再扫 = 3 件|查价、快捷商品（菜、面包）|称重商品|挂单 / 取单',
+  modePts_RETAIL: '商品图片和分类|会员和积分|折扣|存单|条码和 NFC',
+  modeCurrent: '使用中', modeSaved: '收银模式已设定。', businessType: '收银模式',
+  modeHelp: '三种模式用同一套商品、库存、收据和报表，只是收银画面不一样。',
+  qtyX: '数量 ×', priceCheck: '查价', quickKeys: '快捷商品', hold: '挂单', recall: '取单', member: '会员',
+  itemsShort: '件', lastScanned: '刚扫的', scanToCheck: '扫一下商品，看价钱。',
+  qtyPrompt: '下一件要几个？', qtyHint: '小技巧：在扫码框输入 3* 再扫，就是 3 件。',
+  signInTagline: '手机盘点，柜台收银，同一套库存。',
+  signFeat1: '扫码收银，库存马上更新', signFeat2: '餐饮、超市、店面都适用', signFeat3: '没网络照样收银',
+  signFoot: 'Pos Stock Check · 马来西亚',
+});
+Object.assign(ms, {
+  modeTitle: 'Kedai jenis apa?', modeSub: 'Pilih yang paling sesuai dengan cara anda menjual. Boleh ditukar bila-bila masa di Tetapan → Ciri.',
+  modeName_FNB: 'Restoran & kafe', modeName_SUPERMARKET: 'Pasar raya & pasar mini', modeName_RETAIL: 'Kedai runcit',
+  modeDesc_FNB: 'Restoran, kafe, kopitiam, gerai minuman.', modeDesc_SUPERMARKET: 'Pasar raya, pasar mini, kedai runcit: imbas terus, bayar cepat.', modeDesc_RETAIL: 'Pakaian, perkakasan, alat tulis, kedai telefon: tekan gambar barang.',
+  modePts_FNB: 'Meja dan bil disimpan|Pilihan: tahap gula, tambah telur|Tiket dapur|Makan sini / bungkus / hantar|Caj perkhidmatan',
+  modePts_SUPERMARKET: 'Kotak imbas besar|Taip 3* kemudian imbas = 3 unit|Semak harga, barang pantas|Barang ditimbang|Tahan dan panggil bil',
+  modePts_RETAIL: 'Gambar barang ikut kategori|Ahli dan mata|Diskaun|Bil disimpan|Kod bar dan NFC',
+  modeCurrent: 'Sedang diguna', modeSaved: 'Mod kaunter ditetapkan.', businessType: 'Mod kaunter',
+  modeHelp: 'Ketiga-tiga mod berkongsi barang, stok, resit dan laporan yang sama; hanya skrin kaunter berbeza.',
+  qtyX: 'Kuantiti ×', priceCheck: 'Semak harga', quickKeys: 'Barang pantas', hold: 'Tahan', recall: 'Panggil', member: 'Ahli',
+  itemsShort: 'unit', lastScanned: 'TERAKHIR DIIMBAS', scanToCheck: 'Imbas barang untuk lihat harga.',
+  qtyPrompt: 'Berapa unit barang seterusnya?', qtyHint: 'Tip: taip 3* di kotak imbas, kemudian imbas, untuk jual 3.',
+  signInTagline: 'Kira stok di telefon. Jual di kaunter. Satu set angka.',
+  signFeat1: 'Imbas untuk jual; stok dikemas kini serta-merta', signFeat2: 'Untuk restoran, pasar raya dan kedai', signFeat3: 'Terus menjual tanpa internet',
+  signFoot: 'Pos Stock Check · Malaysia',
+});
+
 const DICTS = { en, zh, ms };
 
 function detect() {
