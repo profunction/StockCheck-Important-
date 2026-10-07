@@ -162,6 +162,30 @@ fun PosConnectScreen(
             message?.let { text -> item { NoticeBar(text = text, tone = NoticeTone.ERROR) } }
             if (busy) item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
 
+            // Our own till: the same products and stock, nothing to connect.
+            item {
+                Card {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.pos_web_title), style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(6.dp))
+                        Text(stringResource(R.string.pos_web_body), style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.height(8.dp))
+                        Text(POS_WEBSITE, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                runCatching {
+                                    context.startActivity(
+                                        android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(POS_WEBSITE)),
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.pos_web_open)) }
+                    }
+                }
+            }
+
             item {
                 Card {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -289,3 +313,6 @@ fun PosConnectScreen(
         }
     }
 }
+
+/** The POS website, served by Firebase Hosting from web/ in this repository. */
+private const val POS_WEBSITE = "https://stockcheck-fb58e.web.app"

@@ -44,6 +44,10 @@ export const session = {
   branchId: '',
   settings: { ...DEFAULT_SETTINGS },
   products: [],
+  /** Lists kept as one document each under pos/: categories, modifiers, discounts. */
+  categories: [],
+  modifiers: [],
+  discounts: [],
   /** Every barcode, alternate barcodes included, lower-cased -> product. */
   byCode: new Map(),
   can(permission) {
@@ -132,6 +136,13 @@ export async function loadSession(user) {
     emit();
   }));
 
+  for (const name of ['categories', 'modifiers', 'discounts']) {
+    subscriptions.push(onSnapshot(doc(db, ws(`pos/${name}`)), (snap) => {
+      session[name] = snap.data()?.list || [];
+      emit();
+    }, () => {}));
+  }
+
   subscriptions.push(onSnapshot(doc(db, ws('pos/settings')), (snap) => {
     session.settings = { ...DEFAULT_SETTINGS, ...(snap.data() || {}) };
     emit();
@@ -146,4 +157,7 @@ export function endSession() {
   session.ws = '';
   session.products = [];
   session.byCode = new Map();
+  session.categories = [];
+  session.modifiers = [];
+  session.discounts = [];
 }

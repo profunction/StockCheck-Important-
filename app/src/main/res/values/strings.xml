@@ -213,6 +213,9 @@
     <string name="role_unit">Unit</string>
     <string name="role_expiry">Expiry date</string>
     <string name="pos_title">Connect your till (POS)</string>
+    <string name="pos_web_title">Stock Check POS (website)</string>
+    <string name="pos_web_body">Our own cash register for shops, supermarkets, warehouses and restaurants. Open it on the counter computer, sign in with this same account, plug in a USB barcode scanner and a receipt printer. Products, photos, prices and stock are shared with this app — nothing to connect.</string>
+    <string name="pos_web_open">Open the POS website</string>
     <string name="pos_admin_only">Only a company admin can connect a till.</string>
     <string name="pos_loyverse_intro">Products, stock and sales come over from Loyverse each time you sync. In Loyverse Back Office go to Settings → Access tokens → Add access token, then paste the token here.</string>
     <string name="pos_token">Access token</string>
