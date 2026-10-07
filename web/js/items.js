@@ -12,6 +12,7 @@ import { t } from './i18n.js';
 import { formatSen, inStoreBarcode, parseSen, rm } from './money.js';
 import { onChange, session, ws } from './session.js';
 import { menuButton } from './main.js';
+import { scanWithCamera } from './camera.js';
 
 export function render(main, sub) {
   const pages = { list: itemList, categories: categoryList, modifiers: modifierList, discounts: discountList };
@@ -176,6 +177,7 @@ function editProduct(product) {
         h('div', { class: 'grow', style: { display: 'grid', gap: '10px', minWidth: '240px' } },
           h('label', { class: 'field' }, t('barcode'),
             h('div', { class: 'row' }, h('div', { class: 'grow' }, barcode),
+              isNew ? h('button', { type: 'button', title: t('scanCamera'), onclick: async () => { const c = await scanWithCamera(); if (c) barcode.value = c; } }, '📷') : null,
               isNew ? h('button', { type: 'button', onclick: () => { barcode.value = inStoreBarcode(); } }, t('generate')) : null)),
           h('label', { class: 'field' }, t('name'), name))),
       h('div', { class: 'grid2' },

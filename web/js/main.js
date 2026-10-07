@@ -27,11 +27,21 @@ const MENU = [
       ['list', 'itemList'], ['categories', 'itemCategories'], ['modifiers', 'itemModifiers'], ['discounts', 'itemDiscounts'],
     ], page: () => import('./items.js'),
   },
-  { id: 'inventory', icon: '📦', label: 'navInventory', perm: ['RECORD_STOCK_MOVEMENTS', 'POS_MANAGE'], page: () => import('./inventory.js') },
+  {
+    id: 'inventory', icon: '📦', label: 'navInventory', perm: ['RECORD_STOCK_MOVEMENTS', 'POS_MANAGE'], children: [
+      ['levels', 'invLevels'], ['adjust', 'invAdjust'], ['purchase', 'invPurchase'], ['transfers', 'invTransfers'], ['suppliers', 'invSuppliers'],
+    ], page: () => import('./inventory.js'),
+  },
   { id: 'employees', icon: '🪪', label: 'navEmployees', perm: 'VIEW_USERS', page: () => import('./employees.js') },
+  { id: 'customers', icon: '👥', label: 'navCustomers', perm: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'], page: () => import('./customers.js') },
+  {
+    id: 'integrations', icon: '🧩', label: 'navIntegrations', perm: 'CHANGE_PERMISSION', children: [
+      ['tokens', 'intTokens'], ['api', 'intApi'],
+    ], page: () => import('./integrations.js'),
+  },
   {
     id: 'settings', icon: '⚙️', label: 'navSettings', perm: null, children: [
-      ['features', 'setFeatures'], ['payments', 'setPayments'], ['taxes', 'setTaxes'],
+      ['features', 'setFeatures'], ['payments', 'setPayments'], ['taxes', 'setTaxes'], ['loyalty', 'setLoyalty'],
       ['receipt', 'setReceipt'], ['stores', 'setStores'], ['device', 'setDevice'],
     ], page: () => import('./settings.js'),
   },

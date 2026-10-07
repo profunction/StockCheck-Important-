@@ -9,7 +9,7 @@ import { DEFAULT_SETTINGS, session, ws } from './session.js';
 import { menuButton } from './main.js';
 
 export function render(main, sub) {
-  const pages = { features, payments, taxes, receipt, stores, device };
+  const pages = { features, payments, taxes, loyalty, receipt, stores, device };
   (pages[sub] || features)(main);
   return null;
 }
@@ -89,6 +89,28 @@ function taxes(main) {
     const sc = Number(service.value);
     if (!(tax >= 0 && tax <= 100) || !(sc >= 0 && sc <= 100)) { toast(t('errPercent'), 'error'); return null; }
     return { taxName: name.value.trim() || 'SST', taxPct: tax, pricesIncludeTax: incl.value === 'yes', serviceChargePct: sc };
+  });
+}
+
+function loyalty(main) {
+  const s = session.settings;
+  const on = h('input', { type: 'checkbox', checked: !!s.loyaltyEnabled });
+  const earn = h('input', { inputmode: 'decimal', value: String(s.pointsPerRinggit ?? 1) });
+  const worth = h('input', { inputmode: 'decimal', value: String(s.pointValueSen ?? 1) });
+  const min = h('input', { inputmode: 'numeric', value: String(s.minRedeemPoints ?? 100) });
+  page(main, t('setLoyalty'), [
+    h('label', { class: 'check' }, on, t('loyaltyOn')),
+    h('div', { class: 'grid2' },
+      h('label', { class: 'field' }, t('pointsPerRinggit'), earn),
+      h('label', { class: 'field' }, t('pointValueSen'), worth)),
+    h('label', { class: 'field' }, t('minRedeemPoints'), min),
+    h('p', { class: 'muted', style: { margin: 0 } }, t('loyaltyHelp')),
+  ], () => {
+    const e = Number(earn.value);
+    const w = Number(worth.value);
+    const m = parseInt(min.value, 10);
+    if (!(e >= 0) || !(w >= 0) || !(m >= 0)) { toast(t('errAmount'), 'error'); return null; }
+    return { loyaltyEnabled: on.checked, pointsPerRinggit: e, pointValueSen: w, minRedeemPoints: m };
   });
 }
 

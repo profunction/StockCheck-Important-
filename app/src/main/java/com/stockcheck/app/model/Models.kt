@@ -384,7 +384,11 @@ enum class MovementType(val sign: Int) {
     /** Brought back by a customer. */
     REFUND(+1),
     /** Off the shelf for any other reason: damaged, expired, used in-house. */
-    WRITE_OFF(-1);
+    WRITE_OFF(-1),
+    /** Sent to another branch: off this branch's shelf. */
+    TRANSFER_OUT(-1),
+    /** Arrived from another branch. */
+    TRANSFER_IN(+1);
 
     companion object {
         fun parse(raw: String?): MovementType? = entries.firstOrNull { it.name == raw }

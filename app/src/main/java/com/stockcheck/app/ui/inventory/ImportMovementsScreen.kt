@@ -371,6 +371,8 @@ internal fun movementLabel(type: com.stockcheck.app.model.MovementType): Int = w
     com.stockcheck.app.model.MovementType.SALE -> R.string.movement_sale
     com.stockcheck.app.model.MovementType.REFUND -> R.string.movement_refund
     com.stockcheck.app.model.MovementType.WRITE_OFF -> R.string.movement_write_off
+    com.stockcheck.app.model.MovementType.TRANSFER_OUT -> R.string.movement_transfer_out
+    com.stockcheck.app.model.MovementType.TRANSFER_IN -> R.string.movement_transfer_in
 }
 
 /** The file's own name, so the import's record says which report it was. */

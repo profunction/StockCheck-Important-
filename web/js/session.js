@@ -28,6 +28,12 @@ export const DEFAULT_SETTINGS = {
   mode: 'BOTH',
   tables: ['1', '2', '3', '4', '5', '6', '7', '8'],
   kitchenTicket: true,
+  // Loyalty: off until the shop turns it on. 1 point per ringgit, a point
+  // worth 1 sen, usable from 100 points -- the usual 1% back.
+  loyaltyEnabled: false,
+  pointsPerRinggit: 1,
+  pointValueSen: 1,
+  minRedeemPoints: 100,
 };
 
 export const session = {
@@ -48,6 +54,7 @@ export const session = {
   categories: [],
   modifiers: [],
   discounts: [],
+  suppliers: [],
   /** Every barcode, alternate barcodes included, lower-cased -> product. */
   byCode: new Map(),
   can(permission) {
@@ -136,7 +143,7 @@ export async function loadSession(user) {
     emit();
   }));
 
-  for (const name of ['categories', 'modifiers', 'discounts']) {
+  for (const name of ['categories', 'modifiers', 'discounts', 'suppliers']) {
     subscriptions.push(onSnapshot(doc(db, ws(`pos/${name}`)), (snap) => {
       session[name] = snap.data()?.list || [];
       emit();

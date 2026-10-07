@@ -48,6 +48,7 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
     shiftLead: { name: 'Shift lead', permissions: ['POS_SELL', 'POS_VOID', 'POS_REPORTS'], builtIn: false },
     posManager: { name: 'POS manager', permissions: ['POS_MANAGE', 'POS_REPORTS'], builtIn: false },
     worker: { name: 'Worker', permissions: ['CREATE_STOCK_CHECK'], builtIn: true },
+    keeper: { name: 'Keeper', permissions: ['RECORD_STOCK_MOVEMENTS'], builtIn: false },
   };
   for (const [id, data] of Object.entries(roles)) await setDoc(doc(db, ws(`roles/${id}`)), data);
 
@@ -62,6 +63,10 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, ws('users/ipohLead')), user('shiftLead', ['ipoh']));
   await setDoc(doc(db, ws('users/mgr')), user('posManager'));
   await setDoc(doc(db, ws('users/worker1')), user('worker'));
+  await setDoc(doc(db, ws('users/ipohKeeper')), user('keeper', ['ipoh']));
+  await setDoc(doc(db, ws('customers/c1')), { name: 'Ah Seng', points: 500 });
+  await setDoc(doc(db, 'workspaces/other/users/admin2'), user('admin'));
+  await setDoc(doc(db, 'apiTokens/' + 'a'.repeat(64)), { workspaceId: WS, name: 'Shop', createdByUid: 'admin1', createdAt: 1 });
 
   await setDoc(doc(db, ws('products/9555')), { name: 'Milo', unit: 'pcs', active: true, priceSen: 1590 });
   await setDoc(doc(db, ws('sales/old1')), sale('cashier2', ''));
@@ -192,6 +197,43 @@ await expect('ipoh cashier: every branch\'s tables refused', false,
   () => getDocs(collection(as('ipohCashier'), ws('orders'))));
 await expect('worker without POS: open tables refused', false,
   () => getDocs(collection(as('worker1'), ws('orders'))));
+
+// Customers and points ------------------------------------------------------
+await expect('cashier: look up customers', true, () => getDocs(collection(as('cashier1'), ws('customers'))));
+await expect('cashier: add points after a sale', true,
+  () => updateDoc(doc(as('cashier1'), ws('customers/c1')), { points: 510, visits: 1 }));
+await expect('cashier: delete a customer refused', false, () => deleteDoc(doc(as('cashier1'), ws('customers/c1'))));
+await expect('worker without POS: customers refused', false, () => getDocs(collection(as('worker1'), ws('customers'))));
+
+// Purchase orders and transfers ---------------------------------------------
+const po = (branchId, status = 'DRAFT') => ({ poNo: 'PO-1', branchId, status, lines: [], createdAt: 1 });
+await expect('POS manager: create a purchase order', true, () => setDoc(doc(as('mgr'), ws('purchaseOrders/p1')), po('')));
+await expect('cashier: purchase order refused', false, () => setDoc(doc(as('cashier1'), ws('purchaseOrders/p2')), po('')));
+await expect('Ipoh keeper: Ipoh purchase orders', true,
+  () => getDocs(query(collection(as('ipohKeeper'), ws('purchaseOrders')), where('branchId', 'in', ['ipoh', '']))));
+await expect('Ipoh keeper: KL purchase order refused', false, () => setDoc(doc(as('ipohKeeper'), ws('purchaseOrders/p3')), po('kl')));
+const tr = (fromBranch, toBranch, status = 'DRAFT') => ({ transferNo: 'TR-1', fromBranch, toBranch, status, lines: [], createdAt: 1 });
+await expect('Ipoh keeper: transfer out of Ipoh', true, () => setDoc(doc(as('ipohKeeper'), ws('transfers/t1')), tr('ipoh', 'kl', 'SENT')));
+await expect('Ipoh keeper: transfer between two other branches refused', false, () => setDoc(doc(as('ipohKeeper'), ws('transfers/t2')), tr('kl', 'penang')));
+await expect('Ipoh keeper: stock out of Ipoh', true,
+  () => setDoc(doc(as('ipohKeeper'), ws('movements/tr-out')), sold('ipohKeeper', 'ipoh', { type: 'TRANSFER_OUT', source: 'MANUAL' })));
+await expect('Ipoh keeper: stock into KL refused (KL receives it)', false,
+  () => setDoc(doc(as('ipohKeeper'), ws('movements/tr-in')), sold('ipohKeeper', 'kl', { type: 'TRANSFER_IN', source: 'MANUAL' })));
+
+// API tokens ----------------------------------------------------------------
+const hash = 'b'.repeat(64);
+await expect('admin: make an API token', true,
+  () => setDoc(doc(as('admin1'), `apiTokens/${hash}`), { workspaceId: WS, name: 'Acc', createdByUid: 'admin1', createdAt: 1 }));
+await expect('admin: list own company tokens', true,
+  () => getDocs(query(collection(as('admin1'), 'apiTokens'), where('workspaceId', '==', WS))));
+await expect('admin: list every token refused', false, () => getDocs(collection(as('admin1'), 'apiTokens')));
+await expect('POS manager: make an API token refused', false,
+  () => setDoc(doc(as('mgr'), `apiTokens/${'c'.repeat(64)}`), { workspaceId: WS, name: 'x', createdByUid: 'mgr', createdAt: 1 }));
+await expect('other company admin: token for this company refused', false,
+  () => setDoc(doc(as('admin2'), `apiTokens/${'d'.repeat(64)}`), { workspaceId: WS, name: 'x', createdByUid: 'admin2', createdAt: 1 }));
+await expect('admin: token id that is not a hash refused', false,
+  () => setDoc(doc(as('admin1'), 'apiTokens/short'), { workspaceId: WS, name: 'x', createdByUid: 'admin1', createdAt: 1 }));
+await expect('admin: revoke a token', true, () => deleteDoc(doc(as('admin1'), `apiTokens/${hash}`)));
 
 const width = Math.max(...results.map((r) => r.name.length));
 let failed = 0;

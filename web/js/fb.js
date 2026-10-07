@@ -9,7 +9,7 @@
  * website is exactly the files in web/.
  */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { createUserWithEmailAndPassword, getAuth, signOut as signOutOf } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -29,6 +29,8 @@ export {
   doc,
   getDoc,
   getDocs,
+  increment,
+  limit,
   onSnapshot,
   orderBy,
   query,
@@ -43,10 +45,13 @@ export let auth;
 export let db;
 export let storage;
 
+let config;
+
 export async function initFirebase() {
   const response = await fetch('/__/firebase/init.json');
   if (!response.ok) throw new Error('Firebase settings not found (/__/firebase/init.json).');
-  const app = initializeApp(await response.json());
+  config = await response.json();
+  const app = initializeApp(config);
   auth = getAuth(app);
   // Cached on the computer, so a sale goes through when the shop's internet
   // drops and is sent when it comes back. Several tabs share one cache.
@@ -54,4 +59,28 @@ export async function initFirebase() {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
   });
   storage = getStorage(app);
+}
+
+/**
+ * Creates a sign-in for a member of staff without signing the owner out.
+ *
+ * Creating an account signs it in on whatever Firebase app made it, so it is
+ * done on a second app with the same settings, then signed out again -- the
+ * same way the Stock Check app does it.
+ */
+let staffApp;
+export async function createStaffAccount(email, password) {
+  staffApp ??= initializeApp(config, 'staff');
+  const staffAuth = getAuth(staffApp);
+  try {
+    const result = await createUserWithEmailAndPassword(staffAuth, email, password);
+    return {
+      uid: result.user.uid,
+      // Taking it back out if the rest of the setup fails, so the email can be used again.
+      undo: () => result.user.delete().catch(() => {}),
+    };
+  } finally {
+    // Signed out after the caller's undo has had its chance; see addEmployee.
+    setTimeout(() => signOutOf(staffAuth).catch(() => {}), 5000);
+  }
 }

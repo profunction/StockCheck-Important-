@@ -9,7 +9,8 @@
  * open order are one batch: all of it is written or none of it, and with the
  * internet down it is kept on this computer and sent when it is back.
  */
-import { collection, db, doc, writeBatch } from './fb.js';
+import { collection, db, doc, increment, writeBatch } from './fb.js';
+import { pointsEarned, pointsValueSen } from './customers.js';
 import { h, modal, mount, toast } from './dom.js';
 import { paymentLabel, t } from './i18n.js';
 import { formatSen, parseSen, receiptNo, rm, settle, lineTotal } from './money.js';
@@ -18,7 +19,14 @@ import { printView, receiptView } from './receipt.js';
 
 export function openPayment(cart, totals, { onPaid }) {
   const payments = [];
-  const methods = session.settings.paymentMethods?.length ? session.settings.paymentMethods : ['CASH'];
+  const methods = [...(session.settings.paymentMethods?.length ? session.settings.paymentMethods : ['CASH'])];
+  // Points pay for part of a bill when the shop runs a loyalty scheme and
+  // the customer has enough to use.
+  const loyalty = session.settings.loyaltyEnabled && cart.customer;
+  const pointsCap = () => (loyalty && cart.customer.points >= (Number(session.settings.minRedeemPoints) || 0)
+    ? pointsValueSen(cart.customer.points) - payments.filter((p) => p.method === 'POINTS').reduce((s, p) => s + p.amountSen, 0)
+    : 0);
+  if (pointsCap() > 0) methods.push('POINTS');
   let method = methods[0];
 
   const amount = h('input', { inputmode: 'decimal', autofocus: true, class: 'bigsum', style: { fontSize: '26px' } });
@@ -32,7 +40,7 @@ export function openPayment(cart, totals, { onPaid }) {
   // What the amount box should start at: what is still owed, rounded if cash.
   const suggested = () => {
     const s = settle(totals.totalSen, [...payments, { method, amountSen: 0 }]);
-    return s.dueSen;
+    return method === 'POINTS' ? Math.min(s.dueSen, pointsCap()) : s.dueSen;
   };
 
   function draw() {
@@ -54,6 +62,10 @@ export function openPayment(cart, totals, { onPaid }) {
       h('button', { class: 'ghost', type: 'button', onclick: () => { payments.splice(i, 1); amount.value = formatSen(suggested()); draw(); } }, '✕'))));
 
     const s = current();
+    if (loyalty) {
+      list.append(h('p', { class: 'muted', style: { margin: 0 } },
+        `👤 ${cart.customer.name} · ${cart.customer.points} ${t('points')} (${rm(pointsValueSen(cart.customer.points))})`));
+    }
     mount(status,
       h('div', { class: 'bigsum' }, s.dueSen > 0 ? `${t('due')} ${rm(s.dueSen)}` : `${t('change')} ${rm(s.changeSen)}`),
       s.roundingSen ? h('div', { class: 'muted', style: { textAlign: 'center' } }, `${t('rounding')} ${formatSen(s.roundingSen)}`) : null);
@@ -66,6 +78,7 @@ export function openPayment(cart, totals, { onPaid }) {
     // Only cash can be more than is owed -- that is what change is.
     const owed = suggested();
     if (method !== 'CASH' && sen > owed) return toast(t('errOverpay'), 'error');
+    if (method === 'POINTS' && sen > pointsCap()) return toast(t('errNotEnoughPoints'), 'error');
     payments.push({ method, amountSen: sen });
     amount.value = formatSen(suggested());
     draw();
@@ -148,6 +161,20 @@ async function recordSale(cart, totals, payments) {
     paidSen: s.paidSen,
     changeSen: s.changeSen,
   };
+  if (cart.customer) {
+    const pointsPaid = payments.filter((p) => p.method === 'POINTS').reduce((sum, p) => sum + p.amountSen, 0);
+    const value = Number(session.settings.pointValueSen) || 1;
+    const redeemed = Math.ceil(pointsPaid / value);
+    const earned = session.settings.loyaltyEnabled ? pointsEarned(totals.totalSen - pointsPaid) : 0;
+    Object.assign(sale, {
+      customerId: cart.customer.id,
+      customerName: cart.customer.name,
+      customerPhone: cart.customer.phone || '',
+      pointsEarned: earned,
+      pointsRedeemed: redeemed,
+      pointsBalance: Math.max(0, cart.customer.points - redeemed + earned),
+    });
+  }
 
   const batch = writeBatch(db);
   batch.set(saleRef, sale);
@@ -171,6 +198,15 @@ async function recordSale(cart, totals, payments) {
     });
   });
   if (cart.orderId) batch.delete(doc(db, ws(`orders/${cart.orderId}`)));
+  if (cart.customer) {
+    batch.update(doc(db, ws(`customers/${cart.customer.id}`)), {
+      points: increment((sale.pointsEarned || 0) - (sale.pointsRedeemed || 0)),
+      visits: increment(1),
+      totalSpentSen: increment(sale.totalSen),
+      lastVisitAt: now,
+      updatedAt: now,
+    });
+  }
 
   // Not awaited: offline, commit() only settles once the server has it, and
   // the next customer should not wait for the internet. The local copy is

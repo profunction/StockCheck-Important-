@@ -175,6 +175,8 @@
     <string name="movement_sale">Sold</string>
     <string name="movement_refund">Refunded</string>
     <string name="movement_write_off">Written off</string>
+    <string name="movement_transfer_out">Sent to branch</string>
+    <string name="movement_transfer_in">From branch</string>
     <string name="movement_source_file">File</string>
     <string name="movement_source_manual">By hand</string>
     <string name="record_title">Record goods</string>

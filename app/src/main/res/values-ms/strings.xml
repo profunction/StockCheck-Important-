@@ -164,6 +164,8 @@
     <string name="movement_sale">Dijual</string>
     <string name="movement_refund">Dipulangkan</string>
     <string name="movement_write_off">Dihapus kira</string>
+    <string name="movement_transfer_out">Dihantar ke cawangan</string>
+    <string name="movement_transfer_in">Dari cawangan</string>
     <string name="movement_source_file">Fail</string>
     <string name="movement_source_manual">Manual</string>
     <string name="record_title">Rekod barang</string>

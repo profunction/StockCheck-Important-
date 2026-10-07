@@ -110,7 +110,8 @@ jobs:
 
       - name: Where it is
         if: steps.setup.outputs.ready == 'true'
-        run: echo "::notice::POS website: https://${PROJECT}.web.app"
+        run: |
+          echo "::notice::POS website https://${PROJECT}.web.app"
 
       - name: Forget the key
         if: always() && steps.setup.outputs.ready == 'true'

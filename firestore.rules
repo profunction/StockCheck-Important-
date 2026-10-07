@@ -130,6 +130,22 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // --------------------------------------------------------- API tokens
+    //
+    // Keys for the POS API, so another system can read and write a
+    // company's items, stock and receipts. Only the SHA-256 of a token is
+    // stored -- the document id -- and the token itself is shown once. The
+    // API server finds a company by hashing what it is sent. Only that
+    // company's admin may make, list or revoke them.
+    match /apiTokens/{hash} {
+      allow read, delete: if request.auth != null && isAdminOf(resource.data.workspaceId);
+      allow create: if request.auth != null
+                    && isAdminOf(request.resource.data.workspaceId)
+                    && request.resource.data.createdByUid == request.auth.uid
+                    && hash.size() == 64;
+      allow update: if false;
+    }
+
     match /workspaces/{ws} {
 
       // ------------------------------------------------------------ helpers
@@ -376,7 +392,7 @@ service cloud.firestore {
       // whereIn(branchId, its branches + "").
       match /movements/{movementId} {
         function wellFormed(data) {
-          return data.type in ['RECEIVE', 'SALE', 'REFUND', 'WRITE_OFF']
+          return data.type in ['RECEIVE', 'SALE', 'REFUND', 'WRITE_OFF', 'TRANSFER_OUT', 'TRANSFER_IN']
                  && data.quantityMilli is int
                  && data.quantityMilli >= 0
                  && data.barcode is string
@@ -441,6 +457,48 @@ service cloud.firestore {
         allow read: if can('POS_SELL') && inMyBranch(resource.data);
         allow create, update: if can('POS_SELL') && inMyBranch(request.resource.data);
         allow delete: if can('POS_SELL') && inMyBranch(resource.data);
+      }
+
+      // ------------------------------------------------- POS: customers
+      //
+      // Names, phone numbers and loyalty points. Anyone at the till looks a
+      // customer up and adds one; points move with each sale.
+      match /customers/{customerId} {
+        function posStaff() {
+          return can('POS_SELL') || can('POS_MANAGE') || can('POS_REPORTS');
+        }
+        allow read: if posStaff();
+        allow create, update: if can('POS_SELL') || can('POS_MANAGE');
+        allow delete: if can('POS_MANAGE');
+      }
+
+      // ------------------------------------------ POS: purchase orders
+      //
+      // What was ordered from a supplier and what of it has arrived. Arrival
+      // itself is recorded as RECEIVE movements, under that permission.
+      match /purchaseOrders/{poId} {
+        function buyer() {
+          return can('POS_MANAGE') || can('RECORD_STOCK_MOVEMENTS');
+        }
+        allow read: if buyer() && inMyBranch(resource.data);
+        allow create, update: if buyer() && inMyBranch(request.resource.data);
+        allow delete: if buyer() && inMyBranch(resource.data) && resource.data.status == 'DRAFT';
+      }
+
+      // ------------------------------------------------- POS: transfers
+      //
+      // Stock sent from one branch to another. The sender records it going
+      // out, the receiving branch records it arriving -- each only at a
+      // branch it belongs to, through the movement rules above.
+      match /transfers/{transferId} {
+        function eitherEnd(d) {
+          return myBranches().size() == 0
+                 || d.fromBranch in myBranches()
+                 || d.toBranch in myBranches();
+        }
+        allow read: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(resource.data);
+        allow create, update: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data);
+        allow delete: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(resource.data) && resource.data.status == 'DRAFT';
       }
 
       // -------------------------------------------- POS: register settings

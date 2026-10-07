@@ -14,6 +14,8 @@ import { billTotals, formatQty, formatSen, lineAmount, lineTotal, parseQty, pars
 import { onChange, session, ws } from './session.js';
 import { kitchenView, printView } from './receipt.js';
 import { openPayment } from './pay.js';
+import { pickCustomer } from './customers.js';
+import { scanWithCamera } from './camera.js';
 import { menuButton } from './main.js';
 
 const WEIGHED_UNITS = ['kg', 'g', 'l', 'ml', 'm'];
@@ -25,7 +27,7 @@ let search = '';
 let openOrders = [];
 
 function newCart(extra = {}) {
-  return { orderId: '', table: '', orderType: defaultOrderType(), lines: [], discountIds: [], note: '', ...extra };
+  return { orderId: '', table: '', orderType: defaultOrderType(), lines: [], discountIds: [], note: '', customer: null, ...extra };
 }
 
 function defaultOrderType() {
@@ -74,7 +76,14 @@ export function render(main) {
     h('div', { class: 'register' },
       h('section', { class: 'catalog' }, els.online, bar, els.chips, els.tiles),
       h('section', { class: 'ticket' },
-        h('div', { class: 'head' }, els.scan, els.orderInfo),
+        h('div', { class: 'head' },
+          h('div', { class: 'row', style: { flexWrap: 'nowrap' } },
+            h('div', { class: 'grow', style: { flex: 1 } }, els.scan),
+            h('button', {
+              title: t('scanCamera'),
+              onclick: async () => { const code = await scanWithCamera(); if (code) addByCode(code); else els.scan.focus(); },
+            }, '📷')),
+          els.orderInfo),
         els.lines, els.sums, els.buttons)));
 
   drawAll();
@@ -354,6 +363,15 @@ function drawTicket() {
     }, ['RETAIL', 'DINE_IN', 'TAKEAWAY', 'DELIVERY'].filter((k) => k !== 'RETAIL' || session.settings.mode === 'BOTH')
       .map((k) => h('option', { value: k, selected: cart.orderType === k }, t(`order_${k}`)))) : null,
     cart.table ? h('span', { class: 'pill good' }, `${t('table')} ${cart.table}`) : null,
+    h('button', {
+      style: { minHeight: '32px', padding: '4px 10px' },
+      onclick: async () => {
+        if (cart.customer) { cart.customer = null; drawTicket(); return; }
+        const c = await pickCustomer();
+        if (c) { cart.customer = { id: c.id, name: c.name, phone: c.phone || '', points: c.points || 0 }; drawTicket(); }
+        els.scan.focus();
+      },
+    }, cart.customer ? `👤 ${cart.customer.name} · ${cart.customer.points} ${t('points')} ✕` : `👤 ${t('customer')}`),
     cart.orderId ? h('span', { class: 'pill' }, t('savedTicket')) : null,
     h('span', { class: 'grow' }),
     h('span', { class: 'muted', style: { fontSize: '13px' } }, session.branchName()));
@@ -479,6 +497,7 @@ function orderDoc() {
     lines: cart.lines,
     discountIds: cart.discountIds,
     note: cart.note,
+    customer: cart.customer,
     openedByUid: session.uid,
     openedByName: session.name,
     updatedAt: Date.now(),
@@ -514,6 +533,7 @@ function loadOrder(order) {
     lines: order.lines || [],
     discountIds: order.discountIds || [],
     note: order.note || '',
+    customer: order.customer || null,
   });
   drawTicket();
 }

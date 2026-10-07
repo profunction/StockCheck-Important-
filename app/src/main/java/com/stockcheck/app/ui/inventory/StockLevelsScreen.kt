@@ -438,6 +438,8 @@ private fun typeLabel(type: MovementType?): String = stringResource(
         MovementType.RECEIVE -> R.string.movement_receive
         MovementType.SALE -> R.string.movement_sale
         MovementType.REFUND -> R.string.movement_refund
+        MovementType.TRANSFER_OUT -> R.string.movement_transfer_out
+        MovementType.TRANSFER_IN -> R.string.movement_transfer_in
         MovementType.WRITE_OFF, null -> R.string.movement_write_off
     },
 )

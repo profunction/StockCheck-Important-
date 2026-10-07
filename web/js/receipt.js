@@ -51,6 +51,12 @@ export function receiptView(sale) {
     (sale.payments || []).map((p) => row(paymentLabel(p.method), formatSen(p.amountSen))),
     sale.changeSen ? row(t('change'), formatSen(sale.changeSen)) : null,
     h('div', { class: 'hr' }),
+    sale.customerId && (sale.pointsEarned || sale.pointsRedeemed) ? [
+      sale.pointsEarned ? row(t('pointsEarned'), String(sale.pointsEarned)) : null,
+      sale.pointsRedeemed ? row(t('pointsUsed'), String(sale.pointsRedeemed)) : null,
+      row(t('pointsBalance'), String(sale.pointsBalance ?? '')),
+      h('div', { class: 'hr' }),
+    ] : null,
     s.footer ? h('div', { class: 'c' }, s.footer) : null,
     h('div', { class: 'c', style: { marginTop: '6px' } }, sale.receiptNo));
 }

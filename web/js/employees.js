@@ -1,12 +1,12 @@
 /**
  * Employees and what each role may do at the till.
  *
- * Accounts are the Stock Check app's own: new staff are still added in the
- * app (Profile -> Users), which is where their sign-in is created. Here an
- * owner sees who works where and switches the POS permissions on per role.
+ * Accounts are shared with the Stock Check app: someone added here signs in
+ * to the app and the website alike. An owner sees who works where, adds
+ * staff, and switches the POS permissions on per role.
  */
-import { collection, db, doc, getDocs, updateDoc } from './fb.js';
-import { h, mount, toast } from './dom.js';
+import { collection, createStaffAccount, db, doc, getDocs, setDoc, updateDoc } from './fb.js';
+import { h, modal, mount, toast } from './dom.js';
 import { t } from './i18n.js';
 import { session, ws } from './session.js';
 import { menuButton } from './main.js';
@@ -17,7 +17,8 @@ export function render(main) {
   const usersBox = h('div', {}, h('p', { class: 'muted' }, t('loading')));
   const rolesBox = h('div');
   mount(main,
-    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, t('navEmployees'))),
+    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, t('navEmployees')), h('span', { class: 'grow' }),
+      session.isAdmin ? h('button', { class: 'primary', onclick: () => addEmployee(() => load(usersBox, rolesBox)) }, `+ ${t('addEmployee')}`) : null),
     h('p', { class: 'muted' }, t('employeesHelp')),
     h('h2', {}, t('employeeList')), usersBox,
     h('h2', { style: { marginTop: '24px' } }, t('accessRights')), rolesBox);
@@ -66,4 +67,68 @@ async function load(usersBox, rolesBox) {
   } catch (err) {
     mount(usersBox, h('p', { class: 'muted' }, `${t('errLoad')}: ${err.message || err}`));
   }
+}
+
+/**
+ * A new member of staff: their sign-in, their profile with a role and
+ * branch, and the directory entry that tells every app which company they
+ * belong to -- in that order, and taken back out if a later step fails.
+ */
+async function addEmployee(onDone) {
+  let roles = [];
+  try {
+    roles = (await getDocs(collection(db, ws('roles')))).docs.map((d) => ({ ...d.data(), id: d.id }));
+  } catch (err) {
+    return toast(err.message, 'error');
+  }
+  const name = h('input', { autofocus: true });
+  const email = h('input', { type: 'email', autocomplete: 'off' });
+  const password = h('input', { type: 'text', autocomplete: 'new-password', value: Math.random().toString(36).slice(2, 10) });
+  const role = h('select', {}, roles.filter((r) => r.id !== 'admin').map((r) => h('option', { value: r.id }, r.name || r.id)));
+  const branch = h('select', {}, h('option', { value: '' }, t('allBranches')),
+    session.branches.filter((b) => b.active !== false).map((b) => h('option', { value: b.id }, b.name)));
+  modal((close) => {
+    const save = h('button', { class: 'primary' }, t('create'));
+    save.onclick = async () => {
+      const mail = email.value.trim();
+      if (!name.value.trim() || !mail.includes('@')) return toast(t('errNameEmail'), 'error');
+      if (password.value.length < 6) return toast(t('errPassword6'), 'error');
+      save.disabled = true;
+      let account;
+      try {
+        account = await createStaffAccount(mail, password.value);
+        const chosen = roles.find((r) => r.id === role.value);
+        const now = Date.now();
+        await setDoc(doc(db, ws(`users/${account.uid}`)), {
+          email: mail, displayName: name.value.trim(), roleId: role.value, roleName: chosen?.name || role.value,
+          active: true, createdAt: now, lastSeenAt: 0, branchIds: branch.value ? [branch.value] : [],
+        });
+        // Linked last: the app reads this as "the account is ready".
+        await setDoc(doc(db, 'userIndex', account.uid), { workspaceId: session.ws });
+        toast(t('employeeCreated'), 'ok');
+        close();
+        modal((c2) => [
+          h('h2', {}, t('employeeCreated')),
+          h('p', {}, t('giveTheseDetails')),
+          h('div', { class: 'card' }, h('div', {}, `${t('email')}: ${mail}`), h('div', {}, `${t('password')}: ${password.value}`)),
+          h('p', { class: 'muted' }, t('canChangePassword')),
+          h('div', { class: 'actions' }, h('button', { class: 'primary', onclick: c2 }, t('ok'))),
+        ]);
+        onDone();
+      } catch (err) {
+        await account?.undo();
+        save.disabled = false;
+        const code = err?.code || '';
+        toast(code.includes('email-already-in-use') ? t('errEmailUsed') : (err.message || String(err)), 'error');
+      }
+    };
+    return [
+      h('h2', {}, t('addEmployee')),
+      h('label', { class: 'field' }, t('name'), name),
+      h('label', { class: 'field' }, t('email'), email),
+      h('label', { class: 'field' }, t('password'), password),
+      h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('role'), role), h('label', { class: 'field' }, t('branch'), branch)),
+      h('div', { class: 'actions' }, h('button', { onclick: close }, t('cancel')), save),
+    ];
+  });
 }
