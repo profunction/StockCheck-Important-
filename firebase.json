@@ -10,7 +10,8 @@
     "public": "web",
     "ignore": [
       "firebase.json",
-      "**/.*",
+      "**/.git*",
+      "**/.DS_Store",
       "**/*.test.mjs",
       "**/node_modules/**"
     ],

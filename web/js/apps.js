@@ -22,7 +22,7 @@ import { checkForm, createCompany, joinCompany, resetPassword, signupError } fro
 
 addStrings({
   en: {
-    appCentre: 'JEXO apps', appSwitch: 'Switch app', appAll: 'All apps', appOpen: 'Open',
+    appCentre: 'JEXO apps', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
     appLocked: 'Not in your plan', appBuy: 'See plans', appDenied: 'Ask your admin for access',
     appCentreLead: 'One sign-in for everything. Open what your plan includes; the rest can be added any time.',
     appPlan: 'Your plan', appNoPlan: 'Trial / no plan yet', appAddMore: 'Add more',
@@ -43,7 +43,7 @@ addStrings({
     suErrTaken: 'This email already has an account. Sign in, or use Forgot password.',
   },
   zh: {
-    appCentre: 'JEXO 应用', appSwitch: '切换应用', appAll: '全部应用', appOpen: '打开',
+    appCentre: 'JEXO 应用', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
     appLocked: '你的配套没有包括', appBuy: '看配套', appDenied: '没有权限，请问管理员',
     appCentreLead: '一个账号用全部。配套包括的就能打开；没有的，随时可以增加。',
     appPlan: '你的配套', appNoPlan: '试用 / 还没有配套', appAddMore: '增加功能',
@@ -64,7 +64,7 @@ addStrings({
     suErrTaken: '这个 email 已经有账号了。请直接登录，或按「忘记密码」。',
   },
   ms: {
-    appCentre: 'Aplikasi JEXO', appSwitch: 'Tukar aplikasi', appAll: 'Semua aplikasi', appOpen: 'Buka',
+    appCentre: 'Aplikasi JEXO', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
     appLocked: 'Tiada dalam pelan anda', appBuy: 'Lihat pelan', appDenied: 'Minta akses daripada admin',
     appCentreLead: 'Satu log masuk untuk semua. Buka apa yang ada dalam pelan; yang lain boleh ditambah bila-bila masa.',
     appPlan: 'Pelan anda', appNoPlan: 'Percubaan / belum ada pelan', appAddMore: 'Tambah fungsi',

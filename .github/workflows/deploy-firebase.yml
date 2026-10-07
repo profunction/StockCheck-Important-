@@ -122,7 +122,10 @@ jobs:
         run: |
           mkdir -p web/download
           if gh release download build-main --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir /tmp/apk --clobber; then
-            mv /tmp/apk/*.apk web/download/StockCheck.apk
+            # JEXO Count (the native app) keeps its old address too.
+            for f in /tmp/apk/StockCheck-*.apk; do cp "$f" web/download/JEXO-Count.apk; mv "$f" web/download/StockCheck.apk; done
+            # JEXO, JEXO POS, JEXO Warehouse, JEXO Cloud.
+            mv /tmp/apk/JEXO*.apk web/download/ 2>/dev/null || echo "::warning::No website-app APKs in the release yet."
             ls -l web/download
           else
             echo "::warning::No APK release found; the download link will not work until Build APK has run."

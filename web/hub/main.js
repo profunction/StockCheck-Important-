@@ -28,7 +28,8 @@ function render() {
       h('h1', {}, t('appCentre')),
       h('p', { class: 'muted' }, `${session.name} · ${session.companyName || ''}`),
       h('p', { class: 'hub-plan' }, h('span', { class: 'muted' }, `${t('appPlan')}: `), h('b', {}, plan || t('appNoPlan'))),
-      h('p', { class: 'muted', style: { maxWidth: '60ch' } }, t('appCentreLead')),
+      h('p', { class: 'muted', style: { maxWidth: '60ch' } }, t('appCentreLead'),
+        ' ', h('a', { href: '/download/', 'data-act': 'download' }, `${t('appDownload')} →`)),
       h('div', { class: 'hub-grid' }, APPS.map((a) => {
         const state = appState(session, a);
         const open = state === 'open';

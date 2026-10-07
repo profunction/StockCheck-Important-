@@ -39,19 +39,33 @@ jobs:
       # The APK first. A failing test still leaves something installable, and
       # an APK in hand beats a red tick and nothing to try.
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew :app:assembleDebug --stacktrace
 
       - name: Rename the APK
         run: |
           mv app/build/outputs/apk/debug/app-debug.apk \
              "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}"
 
+      # JEXO, JEXO POS, JEXO Warehouse and JEXO Cloud: the website's apps as
+      # Android apps (webapps/), signed with their own fixed key so an
+      # installed copy takes the next one as an update.
+      - name: Build the website apps
+        run: |
+          ./gradlew :webapps:assembleRelease --stacktrace
+          mkdir -p webapps-out
+          for f in hub:JEXO pos:JEXO-POS warehouse:JEXO-Warehouse cloud:JEXO-Cloud; do
+            cp "webapps/build/outputs/apk/${f%%:*}/release/webapps-${f%%:*}-release.apk" "webapps-out/${f##*:}.apk"
+          done
+          ls -l webapps-out
+
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ steps.name.outputs.apk }}
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            webapps-out/*.apk
           if-no-files-found: warn
           retention-days: 30
 
@@ -75,11 +89,12 @@ jobs:
           browser to install it.
 
           Not for release. Rebuilt on every push to this branch." \
-            "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}"
+            "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}" \
+            webapps-out/*.apk
 
       # Last, so its failure never costs the APK above.
       - name: Unit tests
-        run: ./gradlew test --stacktrace
+        run: ./gradlew :app:test --stacktrace
 
       - name: Test report
         if: always()

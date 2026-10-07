@@ -64,11 +64,16 @@ export function render(main, id) {
       const now = Date.now();
       const ref = doc(itemsCol);
       const barcode = product?.barcode || code;
-      setDoc(ref, {
+      const data = {
         barcode, productName: product?.name || '', sku: product?.sku || '', quantity: 0, quantityMilli: qty,
         expected: 0, expectedMilli: null, expiresAt: null, onList: false, unit: product?.unit || 'pcs', remark: '',
         fieldValues: {}, source: 'SCAN', createdByUid: session.uid, createdAt: now, updatedAt: now,
-      }).catch((err) => toast(err.message || String(err), 'error'));
+      };
+      setDoc(ref, data).catch((err) => toast(err.message || String(err), 'error'));
+      // Known at once, not when the database answers: a scanner fires the
+      // same code again faster than that, and must add to this line rather
+      // than start a second one.
+      lines = [...lines, { ...data, id: ref.id }];
       bump(1, qty);
       lastKey = barcode;
     }

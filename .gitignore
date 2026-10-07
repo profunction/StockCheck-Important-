@@ -42,3 +42,7 @@ service-account*.json
 platform/service-account.json
 platform/.env
 platform/node_modules/
+
+# APKs are put on the website by the deploy, never committed.
+web/download/*.apk
+webapps-out/

@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "StockCheck"
 include(":app")
+include(":webapps")
