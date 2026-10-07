@@ -54,7 +54,8 @@ await step('closing the shift: expected cash, short, slip printed', async () => 
   await page.waitForFunction(() => !document.querySelector('.shift-btn.open'));
   const shift = (await docs('workspaces/w1/shifts/'))[0];
   if (shift.status !== 'CLOSED' || shift.shortOverSen !== -100 || shift.summary.salesCount !== 1) throw new Error(JSON.stringify(shift));
-  if (!(await page.evaluate(() => window.__printed))) throw new Error('slip not printed');
+  // printView prints on the next animation frame.
+  await page.waitForFunction(() => window.__printed > 0, null, { timeout: 5000 }).catch(() => { throw new Error('slip not printed'); });
   await shot('pro-1-shift');
 });
 
