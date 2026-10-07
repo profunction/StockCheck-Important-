@@ -73,7 +73,7 @@ export function where(field, op, value) { return { kind: 'where', field, op, val
 export function orderBy(field, dir = 'asc') { return { kind: 'order', field, dir }; }
 export function query(col, ...cs) { return { type: 'query', path: col.path, cs }; }
 
-const snapDoc = (path) => ({ id: path.split('/').pop(), exists: () => store.has(path), data: () => structuredClone(store.get(path)) });
+const snapDoc = (path) => ({ id: path.split('/').pop(), ref: { type: 'doc', path }, exists: () => store.has(path), data: () => structuredClone(store.get(path)) });
 function run(q) {
   const path = q.path;
   const depth = path.split('/').length + 1;
@@ -86,6 +86,8 @@ function run(q) {
         case '==': return v === c.value;
         case '>=': return v >= c.value;
         case '<': return v < c.value;
+        case '<=': return v <= c.value;
+        case '>': return v > c.value;
         case 'in': return c.value.includes(v);
         default: throw new Error('op ' + c.op);
       }

@@ -9,6 +9,7 @@
 import { collection, db, doc, getDoc, onSnapshot } from './fb.js';
 import { local } from './dom.js';
 import { t } from './i18n.js';
+import { entitlements } from './plans.js';
 
 export const DEFAULT_SETTINGS = {
   shopName: '',
@@ -81,6 +82,20 @@ export const session = {
   find(code) {
     return this.byCode.get(String(code).trim().toLowerCase()) || null;
   },
+  /** The company's licence, and what its plan switches on (plans.js); null when it has none. */
+  licence: null,
+  plan: null,
+  /**
+   * Whether the plan includes [module] (app, pos, warehouse, api). The same
+   * test as moduleOff() in firestore.rules: only a licence that says so
+   * leaves a part out, so shops from before plans keep everything.
+   */
+  allows(module) {
+    const m = this.licence?.modules;
+    return !(m && typeof m === 'object' && m[module] === false);
+  },
+  /** This cashier's open shift (shifts.js), or null. */
+  shift: null,
 };
 
 const listeners = new Set();
@@ -132,6 +147,14 @@ export async function loadSession(user) {
     companyName: config.companyName || '',
   });
 
+  try {
+    const lic = await getDoc(doc(db, 'licences', wsId));
+    session.licence = lic.exists() ? lic.data() : null;
+  } catch {
+    session.licence = null;
+  }
+  session.plan = session.licence ? entitlements(session.licence) : null;
+
   const sellable = session.sellableBranches().map((b) => b.id);
   const remembered = local.get(`pos.branch.${wsId}`, null);
   session.branchId = sellable.includes(remembered) ? remembered : (sellable[0] ?? '');
@@ -175,4 +198,7 @@ export function endSession() {
   session.categories = [];
   session.modifiers = [];
   session.discounts = [];
+  session.licence = null;
+  session.plan = null;
+  session.shift = null;
 }

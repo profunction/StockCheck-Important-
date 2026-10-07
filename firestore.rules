@@ -285,6 +285,16 @@ service cloud.firestore {
                    || get(licencePath()).data.expiresAt > request.time.toMillis());
       }
 
+      // A part of the product the company's plan leaves out (PLANS in
+      // platform/plans.mjs): the till on the app-only pack, counting on the
+      // till-only pack. A licence from before plans had modules has none,
+      // and keeps everything it had.
+      function moduleOff(name) {
+        return exists(licencePath())
+               && ('modules' in get(licencePath()).data)
+               && get(licencePath()).data.modules.get(name, true) == false;
+      }
+
       function joinCodeAccepted() {
         return !exists(configPath())
                || get(configPath()).data.joinCode == ''
@@ -443,15 +453,63 @@ service cloud.firestore {
         allow read: if active()
                     && ((can('POS_SELL') && resource.data.cashierUid == request.auth.uid)
                         || (can('POS_REPORTS') && inMyBranch(resource.data)));
-        allow create: if can('POS_SELL') && saleShape(request.resource.data);
-        allow update: if can('POS_VOID')
-                      && inMyBranch(resource.data)
-                      && resource.data.status == 'COMPLETED'
-                      && request.resource.data.status == 'VOIDED'
-                      && request.resource.data.voidedByUid == request.auth.uid
-                      && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['status', 'voidedAt', 'voidedByUid', 'voidedByName', 'voidReason']);
+        allow create: if can('POS_SELL') && saleShape(request.resource.data) && !moduleOff('pos');
+        allow update: if (can('POS_VOID')
+                         && inMyBranch(resource.data)
+                         && resource.data.status == 'COMPLETED'
+                         && request.resource.data.status == 'VOIDED'
+                         && request.resource.data.voidedByUid == request.auth.uid
+                         && request.resource.data.diff(resource.data).affectedKeys()
+                              .hasOnly(['status', 'voidedAt', 'voidedByUid', 'voidedByName', 'voidReason']))
+                      // PDPA: a customer erased after their 90 days leaves
+                      // their receipts, with the amounts, but not their name.
+                      // Blanking is all this allows.
+                      || (can('POS_MANAGE')
+                          && inMyBranch(resource.data)
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                               .hasOnly(['customerId', 'customerName', 'customerPhone', 'customerErased'])
+                          && request.resource.data.customerId == ''
+                          && request.resource.data.customerName == ''
+                          && request.resource.data.customerPhone == ''
+                          && request.resource.data.customerErased == true);
         allow delete: if false;
+      }
+
+      // ------------------------------------------------------ POS: shifts
+      //
+      // A cashier's shift: the float they start with, then the counted cash
+      // against what should be in the drawer. Opened by the cashier
+      // themselves; closed by them or a manager. A closed shift is history
+      // and never changes again.
+      match /shifts/{shiftId} {
+        allow read: if active()
+                    && (resource.data.operatorId == request.auth.uid
+                        || ((can('POS_REPORTS') || can('POS_MANAGE')) && inMyBranch(resource.data)));
+        allow create: if can('POS_SELL')
+                      && request.resource.data.operatorId == request.auth.uid
+                      && request.resource.data.status == 'OPEN'
+                      && request.resource.data.floatSen is int
+                      && request.resource.data.floatSen >= 0
+                      && request.resource.data.openedAt is int
+                      && inMyBranch(request.resource.data);
+        allow update: if resource.data.status == 'OPEN'
+                      && ((can('POS_SELL') && resource.data.operatorId == request.auth.uid)
+                          || (can('POS_MANAGE') && inMyBranch(resource.data)))
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'cashMoves', 'updatedAt', 'closedAt', 'closedByUid', 'closedByName',
+                                     'summary', 'expectedCashSen', 'actualCashSen', 'shortOverSen'])
+                      && request.resource.data.status in ['OPEN', 'CLOSED']
+                      && (request.resource.data.status == 'OPEN'
+                          || (request.resource.data.actualCashSen is int
+                              && request.resource.data.shortOverSen is int
+                              && request.resource.data.closedByUid == request.auth.uid));
+        allow delete: if false;
+      }
+
+      // The computers a company sells on, for the till limit of its plan.
+      match /tills/{tillId} {
+        allow read, create, update: if can('POS_SELL') || can('POS_MANAGE');
+        allow delete: if can('POS_MANAGE');
       }
 
       // ---------------------------------------------- POS: open orders
@@ -607,7 +665,8 @@ service cloud.firestore {
         allow create: if can('CREATE_STOCK_CHECK')
                       && request.resource.data.createdByUid == request.auth.uid
                       && inMyBranch(request.resource.data)
-                      && licenceAllowsNewWork();
+                      && licenceAllowsNewWork()
+                      && !moduleOff('app');
 
         // A locked record moves only for someone who can unlock it.
         allow update: if keepsAuthor(existing())

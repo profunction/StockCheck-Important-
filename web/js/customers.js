@@ -5,8 +5,10 @@
  * have spent and to their points, and points can pay for part of a bill.
  * The rate is set under Settings -> Loyalty.
  */
-import { collection, db, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from './fb.js';
-import { confirmBox, dateTime, h, modal, mount, toast } from './dom.js';
+import { collection, db, doc, getDoc, getDocs, query, setDoc, updateDoc, deleteDoc, where, writeBatch } from './fb.js';
+import { confirmBox, dateTime, download, h, modal, mount, toast } from './dom.js';
+import { SALE_SCRUB, customerRows, daysLeft, duePurge, isLocked, maskCustomer, restoreFields, unsubscribeFields } from './pdpa.js';
+import { XLSX_TYPE, xlsx } from './xlsx.js';
 import { t } from './i18n.js';
 import { formatSen, rm } from './money.js';
 import { session, ws } from './session.js';
@@ -38,16 +40,27 @@ export function render(main) {
   const draw = (list) => mount(box, list.length
     ? h('div', { class: 'table-wrap' }, h('table', { class: 'list' },
       h('thead', {}, h('tr', {}, [[t('name')], [t('phone')], [t('points'), 1], [t('visits'), 1], [t('totalSpent'), 1], [t('lastVisit')]].map(([x, n]) => h('th', { class: n ? 'num' : '' }, x)))),
-      h('tbody', {}, list.filter((c) => matches(c, q)).sort((a, b) => (a.name || '').localeCompare(b.name || '')).map((c) => h('tr', { class: 'click', onclick: () => editCustomer(c, () => refresh()) },
-        h('td', {}, c.name), h('td', {}, c.phone || ''), h('td', { class: 'num' }, String(c.points || 0)), h('td', { class: 'num' }, String(c.visits || 0)),
-        h('td', { class: 'num' }, formatSen(c.totalSpentSen || 0)), h('td', {}, c.lastVisitAt ? dateTime(c.lastVisitAt) : ''))))))
+      h('tbody', {}, list.filter((c) => (isLocked(c) ? !q : matches(c, q))).sort((a, b) => isLocked(a) - isLocked(b) || (a.name || '').localeCompare(b.name || '')).map((c) => (isLocked(c)
+        // Removed customers: shown masked, only so the removal can be undone.
+        ? h('tr', { class: 'click', style: { opacity: 0.6 }, onclick: () => lockedCustomer(c, refresh) },
+          h('td', {}, maskCustomer(c)), h('td', { colspan: 5 }, h('span', { class: 'pill bad' }, `${t('pdpaLocked')} ${daysLeft(c)} ${t('days')}`)))
+        : h('tr', { class: 'click', onclick: () => editCustomer(c, () => refresh()) },
+          h('td', {}, c.name), h('td', {}, c.phone || ''), h('td', { class: 'num' }, String(c.points || 0)), h('td', { class: 'num' }, String(c.visits || 0)),
+          h('td', { class: 'num' }, formatSen(c.totalSpentSen || 0)), h('td', {}, c.lastVisitAt ? dateTime(c.lastVisitAt) : '')))))))
     : h('p', { class: 'muted' }, t('noCustomersYet')));
   const refresh = async () => {
-    try { draw(await loadCustomers(true)); } catch (err) { mount(box, h('p', { class: 'muted' }, `${t('errLoad')}: ${err.message}`)); }
+    try {
+      let list = await loadCustomers(true);
+      const erased = await purgeDue(list);
+      if (erased) { toast(`${erased} ${t('pdpaPurged')}`, 'ok'); list = await loadCustomers(true); }
+      draw(list);
+    } catch (err) { mount(box, h('p', { class: 'muted' }, `${t('errLoad')}: ${err.message}`)); }
   };
   mount(main,
     h('div', { class: 'page-head' }, menuButton(), h('h1', {}, t('navCustomers')), h('span', { class: 'grow' }),
+      session.can('POS_MANAGE') || session.can('POS_REPORTS') ? h('button', { onclick: exportCustomers }, `⬇ ${t('exportExcel')}`) : null,
       h('button', { class: 'primary', onclick: () => editCustomer(null, refresh) }, `+ ${t('addCustomer')}`)),
+    h('p', { class: 'muted', style: { marginTop: 0 } }, t('pdpaHelp')),
     !session.settings.loyaltyEnabled ? h('p', { class: 'muted' }, t('loyaltyOffNote')) : null,
     h('input', { type: 'search', placeholder: t('searchCustomers'), style: { maxWidth: '320px', marginBottom: '12px' }, oninput: (e) => { q = e.target.value; draw(cache || []); } }),
     box);
@@ -84,10 +97,11 @@ export function editCustomer(existing, onSaved, prefill = {}) {
         !isNew && session.can('POS_MANAGE') ? h('button', {
           class: 'danger',
           onclick: async () => {
-            if (!await confirmBox(t('deleteCustomerQ'), t('delete'), t('cancel'))) return;
-            try { await deleteDoc(doc(db, ws(`customers/${c.id}`))); close(); onSaved?.(); } catch (err) { toast(err.message, 'error'); }
+            // Removed at once from the till and from marketing; erased for good after 90 days.
+            if (!await confirmBox(t('pdpaUnsubscribeQ'), t('pdpaUnsubscribe'), t('cancel'))) return;
+            try { await updateDoc(doc(db, ws(`customers/${c.id}`)), unsubscribeFields(Date.now(), session.uid)); cache = null; close(); onSaved?.(); } catch (err) { toast(err.message, 'error'); }
           },
-        }, t('delete')) : null,
+        }, t('pdpaUnsubscribe')) : null,
         h('span', { class: 'grow' }),
         h('button', { onclick: close }, t('cancel')),
         h('button', {
@@ -150,7 +164,8 @@ export async function pickCustomer() {
     const results = h('div', { style: { display: 'grid', gap: '6px', maxHeight: '50vh', overflowY: 'auto' } });
     const search = h('input', { type: 'search', placeholder: t('searchCustomers'), autofocus: true });
     const draw = () => {
-      const hits = search.value.trim() ? list.filter((c) => matches(c, search.value)).slice(0, 30) : list.slice(0, 30);
+      const live = list.filter((c) => !isLocked(c));
+      const hits = search.value.trim() ? live.filter((c) => matches(c, search.value)).slice(0, 30) : live.slice(0, 30);
       mount(results, hits.map((c) => h('button', {
         style: { textAlign: 'left', display: 'flex', justifyContent: 'space-between' },
         onclick: () => { chosen = c; closeFn(); },
@@ -180,6 +195,62 @@ export async function pickCustomer() {
     }, { onClose: () => (chosen ? freshCustomer(chosen).then(resolve) : resolve(null)) });
     draw();
   });
+}
+
+// ------------------------------------------------------------------- PDPA
+
+/** A removed customer: undo the removal (within the 90 days), or leave it. */
+function lockedCustomer(c, onDone) {
+  if (!session.can('POS_MANAGE')) return;
+  modal((close) => [
+    h('h2', {}, maskCustomer(c)),
+    h('p', {}, `${t('pdpaLocked')} ${daysLeft(c)} ${t('days')}`),
+    h('div', { class: 'actions' },
+      h('button', { onclick: close }, t('cancel')),
+      h('button', {
+        class: 'primary', onclick: async () => {
+          try { await updateDoc(doc(db, ws(`customers/${c.id}`)), restoreFields()); cache = null; close(); onDone(); } catch (err) { toast(err.message, 'error'); }
+        },
+      }, t('pdpaRestore'))),
+  ]);
+}
+
+/**
+ * Erases customers whose 90 days are over: blanks them on their receipts,
+ * deletes them, notes it in the audit log. Done by an owner who can see
+ * every receipt; the nightly job (platform/pdpa-purge.mjs) does the same
+ * for shops where nobody opens this page.
+ */
+async function purgeDue(list) {
+  if (!session.can('POS_MANAGE') || !session.can('POS_REPORTS') || session.branchIds.length) return 0;
+  const due = duePurge(list);
+  for (const c of due) {
+    const sales = await getDocs(query(collection(db, ws('sales')), where('customerId', '==', c.id)));
+    for (let i = 0; i < sales.docs.length; i += 400) {
+      const batch = writeBatch(db);
+      sales.docs.slice(i, i + 400).forEach((d) => batch.update(d.ref, SALE_SCRUB));
+      await batch.commit();
+    }
+    const batch = writeBatch(db);
+    batch.delete(doc(db, ws(`customers/${c.id}`)));
+    batch.set(doc(collection(db, ws('auditLog'))), {
+      stockCheckId: '', entity: 'Customer', entityId: c.id, entityLabel: 'PDPA', action: 'DELETE', field: 'pdpa',
+      oldValue: 'UNSUBSCRIBED', newValue: `erased; ${sales.docs.length} receipts anonymised`,
+      actorUid: session.uid, actorName: session.name, at: Date.now(),
+    });
+    await batch.commit();
+  }
+  return due.length;
+}
+
+/** Every customer, as an Excel file. */
+async function exportCustomers() {
+  try {
+    const list = await loadCustomers(true);
+    download(`customers-${new Date().toISOString().slice(0, 10)}.xlsx`, xlsx([{ name: 'Customers', rows: customerRows(list) }]), XLSX_TYPE);
+  } catch (err) {
+    toast(err.message || String(err), 'error');
+  }
 }
 
 /** Points a sale earns: whole ringgit actually paid (not with points) x the rate. */

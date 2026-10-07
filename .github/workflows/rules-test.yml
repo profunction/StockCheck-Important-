@@ -11,6 +11,8 @@ on:
       - 'rules-test/**'
       - 'api/**'
       - 'web/js/ledger.js'
+      - 'web/js/offline.js'
+      - 'platform/plans.mjs'
       - '.github/workflows/rules-test.yml'
 
 jobs:
@@ -52,8 +54,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: The API's stock maths is the website's
-        run: diff -u web/js/ledger.js api/ledger.js
+      - name: The API's stock maths, plans and offline merge are the website's
+        run: |
+          diff -u web/js/ledger.js api/ledger.js
+          diff -u platform/plans.mjs api/plans.js
+          diff -u web/js/offline.js api/offline.js
       - run: npm ci || npm install
         working-directory: rules-test
       - run: npm install --no-audit --no-fund

@@ -10,6 +10,7 @@ import { addStrings, getLang, LANGS, setLang, t } from '../js/i18n.js';
 import { icon } from '../js/icons.js';
 import { endSession, loadSession, onChange, session } from '../js/session.js';
 import { STRINGS } from './strings.js';
+import '../js/strings-pro.js';
 
 addStrings(STRINGS);
 const app = document.getElementById('app');
@@ -161,6 +162,11 @@ async function route() {
   stopPage?.();
   stopPage = null;
   mainEl.scrollTop = 0;
+  // The guide is open to everyone; the rest needs a plan with the warehouse in it.
+  if (!session.allows('warehouse') && group !== 'guide') {
+    mount(mainEl, h('div', { class: 'card' }, menuButton(), h('p', {}, t('planNoWarehouse'))));
+    return;
+  }
   try {
     const module = await item.page();
     stopPage = module.render(mainEl, sub) || null;

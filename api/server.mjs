@@ -16,13 +16,18 @@ import { initializeApp } from 'firebase-admin/app';
 import { FieldPath, getFirestore } from 'firebase-admin/firestore';
 import { levels as ledgerLevels, merge } from './ledger.js';
 import {
-  ApiError, bearer, customerIn, customerOut, itemIn, itemOut, pageSize, receiptOut, sha256, stockChange,
+  ApiError, bearer, customerIn, customerOut, itemIn, itemOut, offlineOpIn, pageSize, receiptOut, sha256, stockChange,
 } from './lib.mjs';
+import { mergeOfflineTransactions } from './offline.js';
+import { entitlements } from './plans.js';
+import { createRateLimiterMiddleware } from './ratelimit.mjs';
 
 initializeApp();
 const db = getFirestore();
 const app = express();
 app.disable('x-powered-by');
+// Cloud Run's front end is one hop: the caller's own address is the one it adds.
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '2mb' }));
 
 // Any website may call this with a token; the token is the permission.
@@ -46,27 +51,39 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 // ------------------------------------------------------------------- auth
 
 const lastTouched = new Map();
-const hits = new Map();
-const RATE_PER_MINUTE = 120;
+const plans = new Map();
+
+// Before the token is even looked up, so guessing tokens is slow too.
+app.use('/v1', createRateLimiterMiddleware());
+
+/** The company's licence, read at most once a minute per instance. */
+async function licenceOf(ws) {
+  const hit = plans.get(ws);
+  if (hit && Date.now() - hit.at < 60_000) return hit.licence;
+  const snap = await db.doc(`licences/${ws}`).get();
+  const licence = snap.exists ? snap.data() : null;
+  plans.set(ws, { licence, at: Date.now() });
+  if (plans.size > 5000) plans.clear();
+  return licence;
+}
 
 app.use('/v1', wrap(async (req, res, next) => {
   const token = bearer(req.get('authorization'));
   if (!token) throw new ApiError(401, 'Send an access token: Authorization: Bearer sck_...');
   const hash = sha256(token);
 
-  // A plain per-token limit, per instance: enough to stop a runaway script.
-  const minute = Math.floor(Date.now() / 60000);
-  const key = `${hash}:${minute}`;
-  const count = (hits.get(key) || 0) + 1;
-  hits.set(key, count);
-  if (hits.size > 10000) hits.clear();
-  if (count > RATE_PER_MINUTE) throw new ApiError(429, 'Too many requests. Wait a minute.');
-
   const snap = await db.doc(`apiTokens/${hash}`).get();
   if (!snap.exists) throw new ApiError(401, 'This access token is not valid, or was revoked.');
   const data = snap.data();
   req.ws = data.workspaceId;
   req.tokenName = data.name || 'API';
+  req.tokenKey = hash.slice(0, 10);
+  const plan = entitlements(await licenceOf(req.ws));
+  if (!plan.modules.api) {
+    throw new ApiError(403, plan.active
+      ? 'Your plan does not include the API. It comes with Unlimited, or the API pack on its own.'
+      : 'This company has no active plan. Renew it to use the API.');
+  }
   if (Date.now() - (lastTouched.get(hash) || 0) > 10 * 60 * 1000) {
     lastTouched.set(hash, Date.now());
     snap.ref.update({ lastUsedAt: Date.now() }).catch(() => {});
@@ -135,6 +152,7 @@ async function stockByBranch(req) {
   const catalogue = new Map(productsSnap.docs.map((d) => [d.id, { ...d.data(), barcode: d.id }]));
   const branches = new Set([...checks.map((c) => c.branchId || ''), ...moves.map((m) => m.branchId || '')]);
   const out = {};
+  Object.defineProperty(out, 'moves', { value: moves, enumerable: false });
   for (const b of branches) {
     out[b] = ledgerLevels(
       checks.filter((c) => (c.branchId || '') === b), (c) => items.get(c.id) || [],
@@ -197,6 +215,98 @@ app.post('/v1/inventory', wrap(async (req, res) => {
   }
   await batch.commit();
   res.json({ inventory_levels: results });
+}));
+
+// ----------------------------------------------------------- offline sync
+
+/**
+ * { transactions: [ ... ] } -- what a till did while it was offline, sent
+ * in one go when it is back (see offlineOpIn in lib.mjs for the shape).
+ *
+ * Merged by offline.js, strictly by time: a sale or movement is added once
+ * (sending the same id again is safe), and a stock count taken offline only
+ * corrects the stock as it stood at that moment -- sales recorded online
+ * after it still count, so nothing newer is overwritten.
+ */
+app.post('/v1/sync', wrap(async (req, res) => {
+  const list = req.body?.transactions;
+  if (!Array.isArray(list) || !list.length) throw new ApiError(400, 'Send { "transactions": [ ... ] }');
+  if (list.length > 200) throw new ApiError(400, 'At most 200 transactions per request.');
+  const ops = list.map(offlineOpIn);
+  // One till's ids never collide with another's.
+  const prefix = `off-${req.tokenKey}-`;
+  const docId = (op) => `${prefix}${op.id}`;
+  const saleRefs = ops.filter((o) => o.kind === 'SALE' && o.id).map((o) => col(req, 'sales').doc(docId(o)));
+  const moveRefs = ops.filter((o) => o.kind === 'MOVEMENT' && o.id).map((o) => col(req, 'movements').doc(docId(o)));
+  const [sales, moves] = await Promise.all([
+    saleRefs.length ? db.getAll(...saleRefs) : [],
+    moveRefs.length ? db.getAll(...moveRefs) : [],
+  ]);
+  const byBranch = ops.some((o) => o.kind === 'COUNT') ? await stockByBranch(req) : {};
+  const counts = {};
+  for (const [b, levels] of Object.entries(byBranch)) for (const l of levels) if (l.countedAt) counts[`${l.key}|${b}`] = l.countedAt;
+  const result = mergeOfflineTransactions(ops, {
+    saleIds: sales.filter((d) => d.exists).map((d) => d.id.slice(prefix.length)),
+    movementIds: moves.filter((d) => d.exists).map((d) => d.id.slice(prefix.length)),
+    counts,
+  });
+
+  const now = Date.now();
+  const who = { createdByUid: `api:${req.tokenName}`, createdByName: `API · ${req.tokenName}`, createdAt: now };
+  const writes = [];
+  const batch = { set: (ref, data) => writes.push([ref, data]) };
+  for (const op of result.accepted) {
+    if (op.kind === 'SALE') {
+      const lines = op.data.lines.map((l) => {
+        const qtyMilli = Math.max(0, Math.round(Number(l.quantity || 0) * 1000));
+        const unitPriceSen = Number.isInteger(l.price_sen) ? l.price_sen : 0;
+        return { barcode: String(l.barcode || ''), name: String(l.name || ''), qtyMilli, unitPriceSen, discountSen: 0,
+          lineTotalSen: Math.round((qtyMilli * unitPriceSen) / 1000), taxIds: [] };
+      });
+      const total = op.data.totalSen ?? lines.reduce((t, l) => t + l.lineTotalSen, 0);
+      batch.set(col(req, 'sales').doc(docId(op)), {
+        receiptNo: op.data.receiptNo, branchId: op.branchId, cashierUid: who.createdByUid, cashierName: who.createdByName,
+        createdAt: op.at, syncedAt: now, status: 'COMPLETED', orderType: 'RETAIL', lines, subtotalSen: total, discountSen: 0,
+        serviceChargeSen: 0, taxSen: 0, taxes: [], totalSen: total, roundingSen: 0, payments: [], paidSen: total, changeSen: 0, source: 'API',
+      });
+      lines.forEach((l, i) => {
+        if (!l.barcode || l.qtyMilli <= 0) return;
+        batch.set(col(req, 'movements').doc(`${docId(op)}-${i}`), {
+          barcode: l.barcode, productName: l.name, branchId: op.branchId, type: 'SALE', quantityMilli: l.qtyMilli,
+          at: op.at, source: 'API', reference: op.data.receiptNo, note: 'offline', ...who,
+        });
+      });
+    } else if (op.kind === 'MOVEMENT') {
+      const type = ['RECEIVE', 'SALE', 'REFUND', 'WRITE_OFF'].includes(op.data.movementType) ? op.data.movementType : 'SALE';
+      batch.set(col(req, 'movements').doc(docId(op)), {
+        barcode: op.barcode, productName: '', branchId: op.branchId, type, quantityMilli: op.data.quantityMilli,
+        at: op.at, source: 'API', reference: req.tokenName, note: 'offline', ...who,
+      });
+    } else if (op.kind === 'COUNT') {
+      // What the ledger held at the moment of the count: now, less what moved since.
+      const level = (byBranch[op.branchId] || []).find((l) => l.key === op.barcode);
+      const since = (byBranch.moves || []).filter((m) => (m.branchId || '') === op.branchId && m.barcode === op.barcode && m.at > op.at);
+      const SIGN = { RECEIVE: 1, REFUND: 1, TRANSFER_IN: 1, SALE: -1, WRITE_OFF: -1, TRANSFER_OUT: -1 };
+      const atThen = (level?.onHand || 0) - since.reduce((t, m) => t + (SIGN[m.type] || 0) * (m.quantityMilli || 0), 0);
+      const diff = op.data.quantityMilli - atThen;
+      if (diff) {
+        batch.set(col(req, 'movements').doc(docId(op)), {
+          barcode: op.barcode, productName: level?.name || '', branchId: op.branchId, type: diff > 0 ? 'RECEIVE' : 'WRITE_OFF',
+          quantityMilli: Math.abs(diff), at: op.at, source: 'API', reference: req.tokenName, note: 'offline count', ...who,
+        });
+      }
+    }
+  }
+  // A batch holds 500 writes; a long offline day is sent in several.
+  for (let i = 0; i < writes.length; i += 450) {
+    const b = db.batch();
+    writes.slice(i, i + 450).forEach(([ref, data]) => b.set(ref, data));
+    await b.commit();
+  }
+  res.json({
+    accepted: result.accepted.map((o) => ({ id: o.id, type: o.kind.toLowerCase() })),
+    skipped: result.skipped.map((x) => ({ id: x.id, reason: x.reason.toLowerCase() })),
+  });
 }));
 
 // --------------------------------------------------------------- receipts

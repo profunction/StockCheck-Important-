@@ -1,6 +1,6 @@
 // node api/lib.test.mjs
 import assert from 'node:assert/strict';
-import { bearer, customerIn, itemIn, itemOut, pageSize, receiptOut, sha256, stockChange } from './lib.mjs';
+import { bearer, customerIn, itemIn, itemOut, offlineOpIn, pageSize, rateKey, rateLimitOptions, receiptOut, sha256, stockChange } from './lib.mjs';
 
 const tests = [];
 const test = (n, f) => tests.push([n, f]);
@@ -63,6 +63,23 @@ test('item taxes: null follows the default, [] is tax-free', () => {
 test('a new customer needs a name', () => {
   assert.throws(() => customerIn({ phone: '1' }), /name/);
   assert.equal(customerIn({ id: 'c1', points: 9999, phone: '1' }).fields.points, undefined);
+});
+
+test('rate limit keys: by token hash, else by address', () => {
+  const req = (auth, ip) => ({ get: (h) => (h === 'authorization' ? auth : undefined), ip });
+  const k = rateKey(req('Bearer sck_abcdefghijklmnopqrstuvwxyz', '1.2.3.4'));
+  if (!k.startsWith('t:') || k.includes('sck_')) throw new Error(k);
+  if (rateKey(req('', '::ffff:1.2.3.4')) !== 'ip:1.2.3.4') throw new Error('v4');
+  if (rateKey(req('', '2001:db8:1:2:3:4:5:6')) !== 'ip6:2001:db8:1:2') throw new Error('v6 /64');
+  const o = rateLimitOptions({ perMinute: 100, anonymousPerMinute: 5 });
+  if (o.limit(req('', '1.1.1.1')) !== 5 || o.limit(req('Bearer sck_abcdefghijklmnopqrstuvwxyz', '1.1.1.1')) !== 100) throw new Error('limits');
+});
+
+test('offline transactions in API shape', () => {
+  const op = offlineOpIn({ id: 'a/b 1', type: 'count', at: '2026-10-07T00:00:00Z', store_id: 'ipoh', barcode: ' 955 ', quantity: 1.25 });
+  if (op.id !== 'a_b_1' || op.kind !== 'COUNT' || op.branchId !== 'ipoh' || op.barcode !== '955' || op.data.quantityMilli !== 1250) throw new Error(JSON.stringify(op));
+  if (op.at !== Date.UTC(2026, 9, 7)) throw new Error('time');
+  if (offlineOpIn({ type: 'nope' }).kind !== undefined) throw new Error('kind');
 });
 
 let failed = 0;

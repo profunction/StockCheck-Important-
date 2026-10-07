@@ -277,6 +277,43 @@ await expect('admin: token id that is not a hash refused', false,
   () => setDoc(doc(as('admin1'), 'apiTokens/short'), { workspaceId: WS, name: 'x', createdByUid: 'admin1', createdAt: 1 }));
 await expect('admin: revoke a token', true, () => deleteDoc(doc(as('admin1'), `apiTokens/${hash}`)));
 
+// Shifts -----------------------------------------------------------------------
+const shift = (uid, extra = {}) => ({ operatorId: uid, operatorName: 'C', branchId: '', status: 'OPEN', openedAt: 5, floatSen: 20000, cashMoves: [], updatedAt: 5, ...extra });
+await expect('cashier: open own shift', true, () => setDoc(doc(as('cashier1'), ws('shifts/sh1')), shift('cashier1')));
+await expect('cashier: open a shift for someone else refused', false, () => setDoc(doc(as('cashier1'), ws('shifts/sh2')), shift('cashier2')));
+await expect('cashier: a float that is not whole sen refused', false, () => setDoc(doc(as('cashier1'), ws('shifts/sh3')), shift('cashier1', { floatSen: 200.5 })));
+await expect('cashier: change the opening float refused', false, () => updateDoc(doc(as('cashier1'), ws('shifts/sh1')), { floatSen: 50000 }));
+await expect('cashier: pay out during the shift', true, () => updateDoc(doc(as('cashier1'), ws('shifts/sh1')), { cashMoves: [{ type: 'OUT', amountSen: 500, reason: 'ice', at: 6 }], updatedAt: 6 }));
+await expect('another cashier: close my shift refused', false, () => updateDoc(doc(as('cashier2'), ws('shifts/sh1')), { status: 'CLOSED', closedAt: 9, closedByUid: 'cashier2', actualCashSen: 1, shortOverSen: 0, expectedCashSen: 1, summary: {}, updatedAt: 9 }));
+await expect('cashier: close without counting refused', false, () => updateDoc(doc(as('cashier1'), ws('shifts/sh1')), { status: 'CLOSED', closedAt: 9, closedByUid: 'cashier1', updatedAt: 9 }));
+await expect('cashier: close own shift with counted cash', true, () => updateDoc(doc(as('cashier1'), ws('shifts/sh1')), { status: 'CLOSED', closedAt: 9, closedByUid: 'cashier1', closedByName: 'C', actualCashSen: 19400, expectedCashSen: 19500, shortOverSen: -100, summary: { salesCount: 0 }, updatedAt: 9 }));
+await expect('cashier: reopen a closed shift refused', false, () => updateDoc(doc(as('cashier1'), ws('shifts/sh1')), { status: 'OPEN', updatedAt: 10 }));
+await expect('cashier: read own shifts', true, () => getDocs(query(collection(as('cashier1'), ws('shifts')), where('operatorId', '==', 'cashier1'))));
+await expect('cashier: read everyone\'s shifts refused', false, () => getDocs(collection(as('cashier1'), ws('shifts'))));
+await expect('cashier: open another shift', true, () => setDoc(doc(as('cashier2'), ws('shifts/sh4')), shift('cashier2')));
+await expect('POS manager: close a cashier\'s shift', true, () => updateDoc(doc(as('mgr'), ws('shifts/sh4')), { status: 'CLOSED', closedAt: 9, closedByUid: 'mgr', closedByName: 'M', actualCashSen: 20000, expectedCashSen: 20000, shortOverSen: 0, summary: {}, updatedAt: 9 }));
+await expect('admin: delete a shift refused', false, () => deleteDoc(doc(as('admin1'), ws('shifts/sh4'))));
+await expect('cashier: register this till', true, () => setDoc(doc(as('cashier1'), ws('tills/t-abc')), { name: 'Counter 1', lastSeenAt: 1 }));
+await expect('cashier: remove a till refused', false, () => deleteDoc(doc(as('cashier1'), ws('tills/t-abc'))));
+await expect('POS manager: remove a till', true, () => deleteDoc(doc(as('mgr'), ws('tills/t-abc'))));
+
+// PDPA ---------------------------------------------------------------------------
+await expect('POS manager: blank an erased customer on a receipt', true,
+  () => updateDoc(doc(as('mgr'), ws('sales/old1')), { customerId: '', customerName: '', customerPhone: '', customerErased: true }));
+await expect('POS manager: change a receipt\'s amount refused', false, () => updateDoc(doc(as('mgr'), ws('sales/old1')), { totalSen: 1 }));
+await expect('POS manager: put another name on a receipt refused', false,
+  () => updateDoc(doc(as('mgr'), ws('sales/old1')), { customerId: '', customerName: 'Someone', customerPhone: '', customerErased: true }));
+await expect('cashier: blank a receipt\'s customer refused', false,
+  () => updateDoc(doc(as('cashier1'), ws('sales/old1')), { customerId: '', customerName: '', customerPhone: '', customerErased: true }));
+
+// Plans: a part the plan leaves out ------------------------------------------------
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), `licences/${WS}`), { plan: 'APP_ONLY', status: 'ACTIVE', expiresAt: 0, modules: { app: true, pos: false, warehouse: false, api: false } }));
+await expect('app-only plan: a sale refused', false, () => setDoc(doc(as('cashier1'), ws('sales/s-app')), sale('cashier1', '')));
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), `licences/${WS}`), { plan: 'POS_ONLY', status: 'ACTIVE', expiresAt: 0, modules: { app: false, pos: true, warehouse: true, api: false } }));
+await expect('till-only plan: a sale', true, () => setDoc(doc(as('cashier1'), ws('sales/s-pos')), sale('cashier1', '')));
+await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), `licences/${WS}`)));
+await expect('no licence (older shops): a sale still goes through', true, () => setDoc(doc(as('cashier1'), ws('sales/s-nolic')), sale('cashier1', '')));
+
 const width = Math.max(...results.map((r) => r.name.length));
 let failed = 0;
 for (const r of results) {

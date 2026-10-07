@@ -177,3 +177,48 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
+
+// ------------------------------------------------------------ rate limits
+
+/**
+ * Whose requests count together: an access token's (by its hash, never the
+ * token itself), or else the caller's address -- an IPv6 address by its
+ * /64, which is what one customer is usually given.
+ */
+export function rateKey(req) {
+  const token = bearer(typeof req.get === 'function' ? req.get('authorization') : req.headers?.authorization);
+  if (token) return `t:${sha256(token).slice(0, 32)}`;
+  const ip = String(req.ip || req.socket?.remoteAddress || '').replace(/^::ffff:/, '');
+  return ip.includes(':') ? `ip6:${ip.split(':').slice(0, 4).join(':')}` : `ip:${ip}`;
+}
+
+/** express-rate-limit options: per token per minute, fewer for callers with no token. */
+export function rateLimitOptions({ perMinute = 120, anonymousPerMinute = 20 } = {}) {
+  return {
+    windowMs: 60_000,
+    limit: (req) => (rateKey(req).startsWith('t:') ? perMinute : anonymousPerMinute),
+    keyGenerator: rateKey,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    handler: (_req, res) => res.status(429).json({ error: { message: 'Too many requests. Wait a minute.' } }),
+  };
+}
+
+// ----------------------------------------------------------- offline sync
+
+/**
+ * One offline transaction from a till, in API shape, as offline.js takes it:
+ *   { id, type: 'sale' | 'movement' | 'count', at (ISO or ms), store_id,
+ *     barcode, quantity, movement_type, receipt_no, total_sen, lines }
+ */
+export function offlineOpIn(x) {
+  const at = typeof x?.at === 'number' ? x.at : Date.parse(x?.at || '');
+  const kind = { sale: 'SALE', movement: 'MOVEMENT', count: 'COUNT' }[x?.type];
+  const id = String(x?.id ?? '').trim().replace(/[/\s]/g, '_').slice(0, 120);
+  const branchId = x?.store_id == null ? '' : String(x.store_id);
+  const quantityMilli = x?.quantity == null ? null : Math.round(Number(x.quantity) * 1000);
+  const data = kind === 'SALE'
+    ? { receiptNo: String(x.receipt_no || id), totalSen: Number.isInteger(x.total_sen) ? x.total_sen : null, lines: Array.isArray(x.lines) ? x.lines : [] }
+    : { quantityMilli, movementType: String(x?.movement_type || 'SALE').toUpperCase() };
+  return { id, kind, at: Number.isFinite(at) ? Math.round(at) : 0, barcode: String(x?.barcode ?? '').trim(), branchId, data };
+}

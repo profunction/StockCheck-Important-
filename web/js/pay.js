@@ -16,6 +16,7 @@ import { paymentLabel, t } from './i18n.js';
 import { formatSen, parseSen, receiptNo, rm, settle, lineTotal } from './money.js';
 import { session, ws } from './session.js';
 import { printView, receiptView } from './receipt.js';
+import { directReady, printDirect } from './rawprint.js';
 
 export function openPayment(cart, totals, { onPaid }) {
   const payments = [];
@@ -145,6 +146,7 @@ async function recordSale(cart, totals, payments) {
     branchName: session.branchName(),
     cashierUid: session.uid,
     cashierName: session.name,
+    shiftId: session.shift?.id || '',
     createdAt: now,
     status: 'COMPLETED',
     orderType: cart.orderType || 'RETAIL',
@@ -220,8 +222,24 @@ async function recordSale(cart, totals, payments) {
   return sale;
 }
 
+/**
+ * The receipt: straight to the printer when one is connected (the cash
+ * drawer opens for cash), through the browser's print box otherwise.
+ */
+function printReceipt(sale, { first = false } = {}) {
+  const cash = sale.payments.some((p) => p.method === 'CASH');
+  const drawer = first && cash && session.settings.drawerOnCash !== false;
+  if (directReady()) {
+    return printDirect(sale, { openDrawer: drawer }).catch((err) => { toast(err.message || String(err), 'error'); printView(receiptView(sale)); });
+  }
+  return printView(receiptView(sale));
+}
+
 function afterSale(sale) {
-  if (session.settings.autoPrint !== false) printView(receiptView(sale));
+  if (session.settings.autoPrint !== false) printReceipt(sale, { first: true });
+  else if (directReady() && sale.payments.some((p) => p.method === 'CASH') && session.settings.drawerOnCash !== false) {
+    import('./rawprint.js').then((m) => m.openDrawer()).catch(() => {});
+  }
   // data-after-sale: the register closes this box when the next scan
   // starts, so the next customer's first item is not lost behind it.
   modal((close) => [
@@ -229,7 +247,7 @@ function afterSale(sale) {
     h('div', { class: 'bigsum' }, sale.changeSen ? `${t('change')} ${rm(sale.changeSen)}` : t('paid')),
     h('p', { class: 'muted', style: { textAlign: 'center', margin: 0 } }, sale.receiptNo),
     h('div', { class: 'actions' },
-      h('button', { onclick: () => printView(receiptView(sale)) }, `🖨 ${t('printReceipt')}`),
+      h('button', { onclick: () => printReceipt(sale) }, `🖨 ${t('printReceipt')}`),
       h('button', { class: 'primary', autofocus: true, onclick: close }, t('newSale'))),
   ]);
 }

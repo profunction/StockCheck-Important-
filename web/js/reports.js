@@ -12,6 +12,7 @@ import { formatQty, formatSen, lineAmount, rm } from './money.js';
 import { session, ws } from './session.js';
 import { printView, receiptView } from './receipt.js';
 import { menuButton } from './main.js';
+import { renderShiftsReport } from './shifts.js';
 
 let range = { from: isoDay(), to: isoDay() };
 let branchFilter = 'ALL';
@@ -20,11 +21,12 @@ let sales = [];
 let loadedKey = '';
 
 export function render(main, sub) {
+  if (sub === 'einvoice') { import('./einvoice.js').then((m) => m.render(main)); return null; }
   const box = h('div');
   const controls = h('div', { class: 'row', style: { marginBottom: '16px' } });
   const titleKey = {
     summary: 'repSummary', items: 'repItems', categories: 'repCategories', employees: 'repEmployees', payments: 'repPayments',
-    receipts: 'repReceipts', modifiers: 'repModifiers', discounts: 'repDiscounts', taxes: 'repTaxes',
+    receipts: 'repReceipts', modifiers: 'repModifiers', discounts: 'repDiscounts', taxes: 'repTaxes', shifts: 'repShifts',
   }[sub] || 'repSummary';
   let exportRows = null;
 
@@ -36,6 +38,17 @@ export function render(main, sub) {
   };
 
   const load = async () => {
+    if (sub === 'shifts') {
+      mount(box, h('p', { class: 'muted' }, t('loading')));
+      try {
+        const start = new Date(`${range.from}T00:00:00`).getTime();
+        const rows = await renderShiftsReport(box, { from: start, to: new Date(`${range.to}T00:00:00`).getTime() + 24 * 3600 * 1000 - 1 });
+        exportRows = () => [[t('operator'), t('opened'), t('closedAtLabel'), t('grossSales'), t('expectedCash'), t('countedCash'), t('shortOver')], ...rows];
+      } catch (err) {
+        mount(box, h('div', { class: 'card' }, `${t('errLoad')}: ${err.message || err}`));
+      }
+      return;
+    }
     const key = `${range.from}|${range.to}`;
     if (key === loadedKey) return draw();
     mount(box, h('p', { class: 'muted' }, t('loading')));
@@ -67,7 +80,7 @@ export function render(main, sub) {
   }, h('option', { value: 'ALL' }, t('allBranches')),
   [{ id: '', name: t('mainShop') }, ...session.branches].map((b) => h('option', { value: b.id, selected: branchFilter === b.id }, b.name))) : null;
   const empSel = h('select', {
-    style: { width: 'auto' }, onchange: (e) => { employeeFilter = e.target.value; draw(); },
+    style: { width: 'auto' }, onchange: (e) => { employeeFilter = e.target.value; if (sub !== 'shifts') draw(); },
     onfocus: (e) => {
       const names = [...new Map(sales.map((s) => [s.cashierUid, s.cashierName])).entries()];
       mount(e.target, h('option', { value: 'ALL' }, t('allEmployees')), names.map(([uid, name]) => h('option', { value: uid, selected: employeeFilter === uid }, name || uid)));

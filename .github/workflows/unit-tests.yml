@@ -1,0 +1,44 @@
+name: Unit tests
+
+# The pure functions under everything money, tax, stock, shifts, printing,
+# labels, plans, payments, offline merging and PDPA -- fast, no browser, no
+# database. Also checks the files that are copied between folders still
+# match, and that the Excel files the website makes open in a real reader.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'web/js/**'
+      - 'platform/**'
+      - 'api/**'
+      - 'tests/xlsx_check.py'
+      - '.github/workflows/unit-tests.yml'
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Copies match their originals
+        run: |
+          diff -u platform/plans.mjs web/js/plans.js
+          diff -u platform/plans.mjs api/plans.js
+          diff -u web/js/offline.js api/offline.js
+          diff -u web/js/ledger.js api/ledger.js
+      - name: Website (money, tax, stock, shifts, ESC/POS, labels, plans, offline, PDPA)
+        run: for f in web/js/*.test.mjs; do echo "== $f"; node "$f" || exit 1; done
+      - name: Payments and licences
+        run: node platform/billing.test.mjs
+      - name: API shapes
+        run: node api/lib.test.mjs
+      - name: Excel files open
+        run: |
+          pip install --quiet openpyxl
+          node --input-type=module -e "
+            import { xlsx } from './web/js/xlsx.js';
+            import { writeFileSync } from 'node:fs';
+            writeFileSync('/tmp/t.xlsx', xlsx([{ name: 'Customers', rows: [['Name', 'Points', 'Spent'], ['Ah Seng 阿成', 12, 123.45]] }, { name: 'Second', rows: [['x']] }]));"
+          python3 tests/xlsx_check.py /tmp/t.xlsx

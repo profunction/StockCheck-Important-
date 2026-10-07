@@ -13,6 +13,7 @@ import { t } from './i18n.js';
 import { formatSen, inStoreBarcode, parseSen, productTaxIds, rm, taxList } from './money.js';
 import { onChange, session, ws } from './session.js';
 import { menuButton } from './main.js';
+import { LABEL_SIZES, exportLabelBatch } from './labels.js';
 import { scanWithCamera } from './camera.js';
 import { nfcSupported, readOneTag } from './nfc.js';
 
@@ -67,12 +68,60 @@ function itemList(main) {
     head(t('itemList'),
       sampleButton(),
       taxList(session.settings).length && session.can('POS_MANAGE') ? h('button', { onclick: bulkTaxes }, t('bulkTaxes')) : null,
+      h('button', { onclick: labelsDialog }, t('labels')),
       h('button', { class: 'primary', onclick: () => editProduct(null) }, `+ ${t('addItem')}`)),
     h('div', { class: 'row', style: { marginBottom: '12px' } }, searchBox, catSelect,
       h('span', { class: 'muted' }, `${session.products.length} ${t('itemsCount')}`)),
     h('div', { class: 'table-wrap' }, h('table', { class: 'list' },
       h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, t('name')), h('th', {}, t('category')), h('th', { class: 'num' }, t('price')), h('th', { class: 'num' }, t('cost')), h('th', {}, t('taxCol')), h('th', {}, ''))),
       body)));
+}
+
+/** Price labels: tick items, pick a size, print on the label printer. */
+function labelsDialog() {
+  const ticked = new Set();
+  let q = '';
+  let cat = itemCategory;
+  const list = h('div', { style: { display: 'grid', gap: '2px', maxHeight: '46vh', overflow: 'auto', border: '1px solid var(--line, #ddd)', borderRadius: '8px', padding: '6px' } });
+  const size = h('select', { style: { width: 'auto' } }, Object.keys(LABEL_SIZES).map((k) => h('option', { value: k, selected: k === '40x30' }, `${k.replace('x', ' × ')} mm`)));
+  const copies = h('input', { type: 'number', min: 1, max: 100, value: 1, style: { width: '90px' } });
+  const go = h('button', { class: 'primary' });
+  const shown = () => session.products
+    .filter((p) => !cat || (cat === '-' ? !p.category : p.category === cat))
+    .filter((p) => !q || (p.name || '').toLowerCase().includes(q) || p.barcode.toLowerCase().includes(q))
+    .sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
+  const drawCount = () => { go.textContent = `${t('printLabels')} (${ticked.size})`; go.disabled = !ticked.size; };
+  const drawList = () => {
+    mount(list, shown().slice(0, 1000).map((p) => h('label', { class: 'check' },
+      h('input', { type: 'checkbox', checked: ticked.has(p.barcode), onchange: (e) => { if (e.target.checked) ticked.add(p.barcode); else ticked.delete(p.barcode); drawCount(); } }),
+      h('span', { class: 'grow' }, p.name || p.barcode),
+      h('span', { class: 'muted', style: { fontSize: '12px' } }, p.priceSen != null ? rm(p.priceSen) : ''))));
+    drawCount();
+  };
+  modal((close) => {
+    go.onclick = () => {
+      try {
+        exportLabelBatch([...ticked], { size: size.value, copies: Number(copies.value) || 1, products: session.products, settings: session.settings });
+        close();
+      } catch (err) { toast(err.message || String(err), 'error'); }
+    };
+    return [
+      h('h2', {}, t('labels')),
+      h('p', { class: 'muted', style: { margin: 0 } }, t('labelsHelp')),
+      h('div', { class: 'row' }, h('label', {}, `${t('labelSize')} `, size), h('label', {}, `${t('copies')} `, copies)),
+      h('div', { class: 'row' },
+        h('input', { type: 'search', placeholder: t('searchProducts'), style: { maxWidth: '240px' }, oninput: (e) => { q = e.target.value.trim().toLowerCase(); drawList(); } }),
+        h('select', { style: { width: 'auto' }, onchange: (e) => { cat = e.target.value; drawList(); } },
+          h('option', { value: '' }, t('allCategories')),
+          session.categories.map((c) => h('option', { value: c.id, selected: cat === c.id }, c.name)),
+          h('option', { value: '-', selected: cat === '-' }, t('noCategory'))),
+        h('button', { type: 'button', onclick: () => { shown().forEach((p) => ticked.add(p.barcode)); drawList(); } }, t('selectShown')),
+        h('button', { type: 'button', onclick: () => { ticked.clear(); drawList(); } }, t('clearTicks'))),
+      list,
+      h('div', { class: 'actions' }, h('button', { onclick: close }, t('cancel')), go),
+    ];
+  }, { wide: true });
+  drawList();
 }
 
 /**

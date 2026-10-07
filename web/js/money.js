@@ -93,76 +93,136 @@ export function productTaxIds(product, taxes) {
   return taxes.filter((x) => x.byDefault).map((x) => x.id);
 }
 
+/** A percentage as whole hundredths of a percent: 6 -> 600, 6.5 -> 650. */
+export const pctBp = (pct) => Math.round((Number(pct) || 0) * 100);
+
+/** [num] / [den] rounded half up, for whole numbers (BigInt), as a Number. */
+function roundDiv(num, den) {
+  const n = BigInt(num); const d = BigInt(den);
+  const sign = (n < 0n) !== (d < 0n) ? -1n : 1n;
+  const a = n < 0n ? -n : n; const b = d < 0n ? -d : d;
+  return Number(sign * ((2n * a + b) / (2n * b)));
+}
+
 /**
- * Everything on a bill, worked out once.
+ * Shares [totalSen] out over [weights] in whole sen, in proportion, so the
+ * shares add up to the total exactly (largest remainder). Used for a bill
+ * discount, a service charge or a tax spread over the lines of one bill.
+ */
+export function allocate(totalSen, weights) {
+  const ws = weights.map((w) => BigInt(Math.max(0, Math.round(w))));
+  const sum = ws.reduce((a, b) => a + b, 0n);
+  if (sum === 0n || !totalSen) return weights.map(() => 0);
+  const total = BigInt(totalSen);
+  const raw = ws.map((w) => total * w);
+  const out = raw.map((r) => r / sum);
+  let left = total - out.reduce((a, b) => a + b, 0n);
+  const order = raw.map((r, i) => [r % sum, i]).sort((a, b) => (a[0] === b[0] ? a[1] - b[1] : a[0] > b[0] ? -1 : 1));
+  for (let k = 0; left > 0n; k = (k + 1) % order.length, left -= 1n) out[order[k][1]] += 1n;
+  return out.map(Number);
+}
+
+/**
+ * Everything on a bill, worked out once, in whole sen throughout.
  *
  * - Line totals add up to the subtotal.
- * - The bill discount comes off that (an amount, or a percentage of it).
+ * - The bill discount comes off that (an amount, or a percentage of it),
+ *   before any tax.
  * - Service charge, when set, is a percentage of what is left. A restaurant
  *   charges it on dine-in only; the caller decides by passing 0 otherwise.
  * - Each line is taxed by its own taxes (line.taxIds): rice and sugar can be
- *   tax-free on the same bill as a taxed soft drink. The bill discount and
- *   the service charge are shared out over the lines by their amounts, so a
- *   discount on a mixed bill lowers each tax in proportion.
+ *   tax-free on the same bill as a taxed soft drink. The bill discount is
+ *   shared out over the lines by their amounts, in whole sen, so a discount
+ *   on a mixed bill lowers each tax in proportion. The service charge is
+ *   shared out the same way and taxed with each line -- or, given
+ *   [serviceChargeTaxIds], taxed as one line of its own by those taxes.
  * - Tax is either already inside the prices, in which case it is only shown,
  *   or added on top.
  *
- * Each tax is rounded to the sen once, over the whole bill, so the receipt's
- * own lines add up.
+ * Each tax is rounded to the sen once, over the whole bill (exact fractions,
+ * no floating point), and then shared back over the lines, so the receipt
+ * and the per-line figures of an e-invoice add up to the same sen.
  */
-export function billTotals(lines, opts = {}) {
+export function taxEngine(lines, opts = {}) {
   const {
     discountSen = 0,
     discountPct = 0,
     serviceChargePct = 0,
     pricesIncludeTax = true,
+    serviceChargeTaxIds = null,
   } = opts;
   // A single rate for every line, as callers passed before taxes were per item.
-  const taxes = opts.taxes || (opts.taxPct > 0 ? [{ id: 'tax', name: 'SST', pct: Number(opts.taxPct) }] : []);
+  const taxes = (opts.taxes || (opts.taxPct > 0 ? [{ id: 'tax', name: 'SST', pct: Number(opts.taxPct) }] : []))
+    .map((x) => ({ ...x, bp: pctBp(x.pct) }));
   const idsOf = (line) => (Array.isArray(line.taxIds) ? line.taxIds : opts.taxes ? [] : taxes.map((x) => x.id));
 
-  const subtotalSen = lines.reduce((sum, l) => sum + lineTotal(l), 0);
-  const pctOff = Math.round((subtotalSen * discountPct) / 100);
-  const billDiscountSen = Math.min(subtotalSen, Math.max(0, discountSen) + Math.max(0, pctOff));
+  const nets = lines.map(lineTotal);
+  const subtotalSen = nets.reduce((a, b) => a + b, 0);
+  const pctOff = roundDiv(subtotalSen * pctBp(discountPct), 10000);
+  const billDiscountSen = Math.min(subtotalSen, Math.max(0, Math.round(discountSen)) + Math.max(0, pctOff));
+  const discShares = allocate(billDiscountSen, nets);
+  const afterLines = nets.map((n, i) => n - discShares[i]);
   const afterDiscount = subtotalSen - billDiscountSen;
-  const serviceChargeSen = Math.round((afterDiscount * serviceChargePct) / 100);
-  const taxable = afterDiscount + serviceChargeSen;
+  const serviceChargeSen = roundDiv(afterDiscount * pctBp(serviceChargePct), 10000);
+  const ownLine = Array.isArray(serviceChargeTaxIds);
+  const scShares = ownLine ? lines.map(() => 0) : allocate(serviceChargeSen, afterLines);
 
-  // Each line's share of what is charged before tax.
-  const share = subtotalSen > 0 ? taxable / subtotalSen : 0;
-  const perTax = new Map(taxes.map((x) => [x.id, { base: 0, tax: 0 }]));
-  let untaxed = 0;
-  for (const line of lines) {
-    const gross = lineTotal(line) * share;
-    const own = taxes.filter((x) => idsOf(line).includes(x.id));
-    if (!own.length) { untaxed += gross; continue; }
-    const rates = own.reduce((sum, x) => sum + x.pct, 0);
-    for (const x of own) {
-      const acc = perTax.get(x.id);
-      if (pricesIncludeTax) {
-        acc.base += (gross * 100) / (100 + rates);
-        acc.tax += (gross * x.pct) / (100 + rates);
-      } else {
-        acc.base += gross;
-        acc.tax += (gross * x.pct) / 100;
-      }
-    }
-  }
-  const taxLines = taxes
-    .map((x) => ({ id: x.id, name: x.name, pct: x.pct, baseSen: Math.round(perTax.get(x.id).base), taxSen: Math.round(perTax.get(x.id).tax) }))
-    .filter((x) => x.taxSen > 0);
-  const taxSen = taxLines.reduce((sum, x) => sum + x.taxSen, 0);
-  const totalSen = pricesIncludeTax ? taxable : taxable + taxSen;
+  // What each tax is charged on: the lines, then the service charge when it is its own line.
+  const parts = lines.map((l, i) => ({ gross: afterLines[i] + scShares[i], sc: scShares[i], ids: idsOf(l) }));
+  if (ownLine) parts.push({ gross: serviceChargeSen, sc: serviceChargeSen, ids: serviceChargeTaxIds, isServiceCharge: true });
+  parts.forEach((p) => {
+    p.own = taxes.filter((x) => p.ids.includes(x.id));
+    p.rateBp = p.own.reduce((a, x) => a + x.bp, 0);
+  });
+
+  // Sums of fractions kept exact (BigInt), rounded to the sen once at the end.
+  const exactSum = (terms) => {
+    let num = 0n; let den = 1n;
+    for (const [n, d] of terms) { num = num * BigInt(d) + BigInt(n) * den; den *= BigInt(d); }
+    return num === 0n ? 0 : roundDiv(num, den);
+  };
+  const lineTax = parts.map(() => ({}));
+  const taxLines = taxes.map((x) => {
+    const mine = parts.filter((p) => p.gross && p.own.includes(x));
+    const per = (p) => (pricesIncludeTax ? 10000 + p.rateBp : 10000);
+    const taxSen = exactSum(mine.map((p) => [p.gross * x.bp, per(p)]));
+    // Shared back over the lines by their exact (unrounded) shares.
+    const weights = parts.map((p) => (mine.includes(p) ? (p.gross * x.bp * 1e6) / per(p) : 0));
+    allocate(taxSen, weights).forEach((v, i) => { if (v) lineTax[i][x.id] = v; });
+    // What the tax is charged on: the amounts, less every tax inside them.
+    const baseSen = pricesIncludeTax
+      ? exactSum(mine.map((p) => [p.gross * 10000, 10000 + p.rateBp]))
+      : mine.reduce((sum, p) => sum + p.gross, 0);
+    return { id: x.id, name: x.name, pct: x.pct, baseSen, taxSen };
+  });
+  const taxSen = taxLines.reduce((a, x) => a + x.taxSen, 0);
+  const untaxedSen = parts.filter((p) => !p.own.length).reduce((a, p) => a + p.gross, 0);
+  const goodsAndCharge = afterDiscount + serviceChargeSen;
   return {
     subtotalSen,
     discountSen: billDiscountSen,
     serviceChargeSen,
     taxSen,
-    taxes: taxLines,
-    untaxedSen: Math.round(untaxed),
-    totalSen,
+    taxes: taxLines.filter((x) => x.taxSen > 0),
+    untaxedSen,
+    totalSen: pricesIncludeTax ? goodsAndCharge : goodsAndCharge + taxSen,
     taxIncluded: pricesIncludeTax,
+    parts: parts.map((p, i) => ({
+      grossSen: p.gross,
+      discountSen: p.isServiceCharge ? 0 : discShares[i],
+      serviceChargeSen: p.sc,
+      taxIds: p.own.map((x) => x.id),
+      taxes: lineTax[i],
+      taxSen: Object.values(lineTax[i]).reduce((a, v) => a + v, 0),
+      isServiceCharge: Boolean(p.isServiceCharge),
+    })),
   };
+}
+
+/** The bill's totals (see taxEngine), without the per-line detail. */
+export function billTotals(lines, opts = {}) {
+  const { parts, ...totals } = taxEngine(lines, opts);
+  return totals;
 }
 
 /** A cart line's amount after its own discount, never below zero. */

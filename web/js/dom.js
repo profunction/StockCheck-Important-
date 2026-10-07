@@ -130,3 +130,15 @@ export const local = {
     }
   },
 };
+
+/** Saves [data] (text, bytes or a Blob) as a file called [name]. */
+export function download(name, data, type = 'application/octet-stream') {
+  const blob = data instanceof Blob ? data : new Blob(Array.isArray(data) ? data : [data], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}

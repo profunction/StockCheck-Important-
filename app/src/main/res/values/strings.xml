@@ -278,4 +278,5 @@
         <item>Profile → Roles: who may count, see everything, change stock, use the till and the warehouse.</item>
         <item>Branches and warehouses are kept apart; the audit log keeps every change.</item>
     </string-array>
+    <string name="pos_loyverse_plan">Loyverse sync comes with the Business and Unlimited plans, and with the Stock Check App plan.</string>
 </resources>

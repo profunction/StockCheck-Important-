@@ -51,6 +51,19 @@ data class Licence(
     /** Why this licence looks the way it does. Written by the platform only. */
     val note: String = "",
     val updatedAt: Long = 0L,
+    /** Tills the plan allows (the POS pack: 2); zero when the licence does not say. */
+    val tills: Int = 0,
+    /**
+     * Which parts of the product the plan switches on: app, pos, warehouse,
+     * api. Null on a licence from before plans had parts, which keeps
+     * everything -- the same test as moduleOff() in firestore.rules.
+     */
+    val modules: Map<String, Boolean>? = null,
+    val multiBranch: Boolean? = null,
+    val loyverse: Boolean? = null,
+    val term: String = "",
+    /** Which of the LIFETIME_CAP lifetime licences this is; zero for any other. */
+    val lifetimeSlot: Int = 0,
 ) {
     @get:Exclude val planEnum: Plan get() = Plan.parse(plan)
 
@@ -84,9 +97,28 @@ data class Licence(
 
     fun supportEndedAt(now: Long): Boolean = supportUntil != 0L && supportUntil <= now
 
+    /** Whether the plan includes [module]: only a licence that says false leaves it out. */
+    fun allows(module: String): Boolean = modules?.get(module) != false
+
+    /** Counting in the app: new work allowed, and a plan with the app in it. */
+    fun allowsCounting(now: Long): Boolean = allowsNewWork(now) && allows(MODULE_APP)
+
+    /** Loyverse sync: the licence's own say, else the price list's. */
+    @get:Exclude val hasLoyverse: Boolean get() = loyverse ?: planEnum.loyverse
+
+    @get:Exclude val hasMultiBranch: Boolean get() = multiBranch ?: planEnum.multiBranch
+
     companion object {
         /** How early the countdown starts showing. */
         const val WARN_DAYS = 14
+
+        const val MODULE_APP = "app"
+        const val MODULE_POS = "pos"
+        const val MODULE_WAREHOUSE = "warehouse"
+        const val MODULE_API = "api"
+
+        /** How many lifetime licences are ever sold, all plans together. */
+        const val LIFETIME_CAP = 50
 
         // There was a `unprovisioned()` here that built an ACTIVE TRIAL with
         // no expiry. Nothing called it, and anything that did would have had
@@ -110,25 +142,32 @@ enum class Plan(
     /** Monthly price in sen, so no arithmetic ever happens in floating point. */
     val monthlySen: Int,
     val yearlySen: Int,
-    val lifetimeSen: Int,
+    /** Null for a plan not sold for life (the standalone packs). */
+    val lifetimeSen: Int?,
+    /** ALL_IN_ONE (pack A), STANDALONE (pack B) or TRIAL. */
+    val pack: String,
+    val app: Boolean,
+    val pos: Boolean,
+    val warehouse: Boolean,
+    val api: Boolean,
+    val multiBranch: Boolean,
+    val loyverse: Boolean,
+    /** Tills; Int.MAX_VALUE for no limit. */
+    val tills: Int,
 ) {
-    // Launch pricing: roughly 30% below the original list price, to get the
-    // first customers in rather than to be what this app charges forever.
-    // Raising it later is changing these six numbers and the matching six in
-    // platform/plans.mjs -- nothing else has to move, because everything
-    // downstream (the export, the paywall, Play's own product prices once
-    // they are entered in the Console) reads the plan, not a price baked in
-    // anywhere else.
-    TRIAL("Trial", seats = 5, monthlySen = 0, yearlySen = 0, lifetimeSen = 0),
-    STARTER("Starter", seats = 5, monthlySen = 4_800, yearlySen = 48_000, lifetimeSen = 168_000),
-    BUSINESS("Business", seats = 20, monthlySen = 11_800, yearlySen = 118_000, lifetimeSen = 418_000),
-    UNLIMITED(
-        "Unlimited",
-        seats = Int.MAX_VALUE,
-        monthlySen = 22_800,
-        yearlySen = 228_000,
-        lifetimeSen = 798_000,
-    );
+    // The price list, as in platform/plans.mjs (the copy CI checks the web
+    // and API against). Change both together.
+    //
+    // Pack A, All-in-One: app + till + warehouse on one stock, priced by
+    // accounts; Business adds branches and Loyverse, Unlimited the open API.
+    // Pack B, Standalone: one piece alone, no lifetime.
+    TRIAL("Trial", 5, 0, 0, 0, "TRIAL", true, true, true, true, true, true, 2),
+    STARTER("Starter", 5, 4_800, 48_000, 168_000, "ALL_IN_ONE", true, true, true, false, false, false, Int.MAX_VALUE),
+    BUSINESS("Business", 20, 11_800, 118_000, 418_000, "ALL_IN_ONE", true, true, true, false, true, true, Int.MAX_VALUE),
+    UNLIMITED("Unlimited", Int.MAX_VALUE, 22_800, 228_000, 798_000, "ALL_IN_ONE", true, true, true, true, true, true, Int.MAX_VALUE),
+    APP_ONLY("Stock Check App", 3, 2_800, 28_000, null, "STANDALONE", true, false, false, false, false, true, 0),
+    POS_ONLY("POS", 5, 3_800, 38_000, null, "STANDALONE", false, true, true, false, false, false, 2),
+    API_ONLY("API", 1, 6_800, 68_000, null, "STANDALONE", false, false, false, true, false, false, 0);
 
     val seatsLabel: String get() = if (seats == Int.MAX_VALUE) "Unlimited" else "$seats accounts"
 

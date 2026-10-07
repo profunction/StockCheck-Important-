@@ -13,7 +13,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { PLANS, TERMS, TRIAL_DAYS, LIFETIME_SUPPORT_MONTHS, addMonths, addDays } from './plans.mjs';
+import { LIFETIME_CAP, PLANS, TERMS, TRIAL_DAYS, addDays } from './plans.mjs';
+import { licenceFields, planConfigFor } from './billing.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -96,41 +97,73 @@ export async function startTrial(workspaceId, { companyName = '', contactEmail =
 }
 
 /**
- * Puts a company on a paid plan.
+ * Puts a company on a paid plan, by hand (licence-cli). Payments go through
+ * billing.mjs updateTenantSubscription, which writes the same fields.
  *
  * Extends from whichever is later: today, or the expiry it already has.
  * Renewing three days early must not throw away those three days -- that is a
  * refund request waiting to happen, and the customer is right.
  */
 export async function grant(workspaceId, plan, term, { months, companyName, contactEmail, stripe, note } = {}) {
-  const spec = PLANS[plan];
-  const termSpec = TERMS[term];
-  if (!spec) throw new Error(`Unknown plan: ${plan}`);
-  if (!termSpec) throw new Error(`Unknown term: ${term}`);
-
-  const now = Date.now();
+  const config = planConfigFor(plan, term, months ? { months } : {});
   const existing = await get(workspaceId);
-  const from = existing?.expiresAt && existing.expiresAt > now ? existing.expiresAt : now;
-
-  const lifetime = term === 'lifetime';
-  const span = months ?? termSpec.months;
-
-  const fields = {
-    plan,
-    status: 'ACTIVE',
-    seats: spec.seats,
-    startedAt: existing?.startedAt || now,
-    // Zero is what makes a lifetime licence lifetime. A far-future date is a
-    // date that eventually arrives, on a phone whose clock nobody checks.
-    expiresAt: lifetime ? 0 : addMonths(from, span),
-    supportUntil: lifetime ? addMonths(now, LIFETIME_SUPPORT_MONTHS) : 0,
-  };
+  const fields = licenceFields(existing, config, Date.now());
+  if (term === 'lifetime' && !existing?.lifetimeSlot) {
+    const slot = await claimLifetimeSlot(workspaceId);
+    if (slot == null) throw new Error(`All ${LIFETIME_CAP} lifetime licences are sold`);
+    fields.lifetimeSlot = slot;
+  }
   if (companyName !== undefined) fields.companyName = companyName;
   if (contactEmail !== undefined) fields.contactEmail = contactEmail;
   if (stripe?.customerId) fields.stripeCustomerId = stripe.customerId;
   if (stripe?.subscriptionId) fields.stripeSubscriptionId = stripe.subscriptionId;
+  return write(workspaceId, fields, note ?? `${PLANS[plan].label} ${TERMS[term].label}`);
+}
 
-  return write(workspaceId, fields, note ?? `${spec.label} ${termSpec.label}`);
+/**
+ * Numbers a lifetime licence, LIFETIME_CAP in all: a counter in
+ * platform/lifetime, moved in a transaction so two payments at once cannot
+ * both take the fiftieth.
+ */
+export async function claimLifetimeSlot(workspaceId) {
+  const counter = db().collection('platform').doc('lifetime');
+  return db().runTransaction(async (tx) => {
+    const snap = await tx.get(counter);
+    const sold = snap.exists ? snap.data().sold || 0 : 0;
+    if (sold >= LIFETIME_CAP) return null;
+    tx.set(counter, { sold: sold + 1, [`slots.${sold + 1}`]: workspaceId, updatedAt: Date.now() }, { merge: true });
+    return sold + 1;
+  });
+}
+
+/** How many lifetime licences are left to sell. */
+export async function lifetimeLeft() {
+  const snap = await db().collection('platform').doc('lifetime').get();
+  return Math.max(0, LIFETIME_CAP - (snap.exists ? snap.data().sold || 0 : 0));
+}
+
+/**
+ * The database side of billing.mjs: claims each payment once (a document
+ * per payment id, created only if absent), numbers lifetime licences,
+ * reads and merges licences.
+ */
+export function firestoreStore() {
+  return {
+    getLicence: get,
+    async claimPayment(paymentId, record) {
+      const ref = db().collection('payments').doc(paymentId.replace(/\//g, '_'));
+      try {
+        await ref.create({ ...record, paymentId });
+        return true;
+      } catch (error) {
+        // ALREADY_EXISTS: this payment was counted before.
+        if (error.code === 6 || /already exists/i.test(error.message)) return false;
+        throw error;
+      }
+    },
+    claimLifetimeSlot,
+    async writeLicence(id, fields) { await ref(id).set(fields, { merge: true }); },
+  };
 }
 
 /** Adds time without changing the plan. Goodwill, or a payment that bounced and cleared. */

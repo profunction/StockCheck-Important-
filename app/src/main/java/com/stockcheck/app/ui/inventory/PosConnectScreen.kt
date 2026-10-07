@@ -79,6 +79,12 @@ class PosViewModel(private val session: Session) : ViewModel() {
         .catch { emit(null) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** Whether the plan includes the Loyverse sync (Business and up, or the app pack). */
+    val loyverseIncluded: StateFlow<Boolean> = ServiceLocator.licences.observeLicence()
+        .map { it?.hasLoyverse ?: true }
+        .catch { emit(true) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
     val branches: StateFlow<List<Branch>> = ServiceLocator.users.observeConfig()
         .map { it?.branches.orEmpty() }
         .catch { emit(emptyList()) }
@@ -136,6 +142,7 @@ fun PosConnectScreen(
 ) {
     val viewModel: PosViewModel = viewModel(factory = PosViewModel.factory(session))
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val loyverseIncluded by viewModel.loyverseIncluded.collectAsStateWithLifecycle()
     val branches by viewModel.branches.collectAsStateWithLifecycle()
     val busy by viewModel.busy.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
@@ -218,6 +225,11 @@ fun PosConnectScreen(
                         Spacer(Modifier.height(6.dp))
                         val connected = settings?.takeIf { it.token.isNotBlank() }
                         when {
+                            !loyverseIncluded && connected == null -> Text(
+                                stringResource(R.string.pos_loyverse_plan),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+
                             !viewModel.canConnect -> Text(
                                 stringResource(R.string.pos_admin_only),
                                 style = MaterialTheme.typography.bodyMedium,

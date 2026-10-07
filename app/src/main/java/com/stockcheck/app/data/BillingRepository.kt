@@ -263,7 +263,7 @@ class BillingRepository(appContext: Context) {
          * issued by the platform CLI, and a trial somebody can buy is not a
          * trial.
          */
-        private fun paidPlans() = Plan.entries.filter { it != Plan.TRIAL }
+        private fun paidPlans() = Plan.entries.filter { it != Plan.TRIAL && it.app }
 
         /** Monthly and yearly, which Play sells as subscriptions. */
         fun subscriptionIds(): List<String> = paidPlans().flatMap { plan ->
@@ -279,7 +279,7 @@ class BillingRepository(appContext: Context) {
          * appear -- no error, no empty state, just a missing row.
          */
         fun oneTimeIds(): List<String> =
-            paidPlans().map { "${it.name.lowercase()}_lifetime" }
+            paidPlans().filter { it.lifetimeSen != null }.map { "${it.name.lowercase()}_lifetime" }
 
         fun productIds(): List<String> = subscriptionIds() + oneTimeIds()
 

@@ -267,4 +267,5 @@
         <item>「我的」→ 角色：设定谁能盘点、看全部、改库存、用收银和仓库。</item>
         <item>分店和仓库分开算；操作记录保留每一次修改。</item>
     </string-array>
+    <string name="pos_loyverse_plan">Loyverse 同步包含在 Business、Unlimited 配套，以及「Stock Check App 单独配套」。</string>
 </resources>

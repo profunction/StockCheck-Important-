@@ -26,6 +26,11 @@ await ws.collection('stockChecks').doc('c1').set({ status: 'COMPLETED', createdA
 await ws.collection('stockChecks').doc('c1').collection('items').doc('i1').set({ barcode: '9555', productName: 'Milo', quantityMilli: 20000 });
 await ws.collection('movements').doc('m1').set({ barcode: '9555', type: 'SALE', quantityMilli: 2000, at: Date.now(), branchId: '' });
 await ws.collection('sales').doc('s1').set({ receiptNo: 'R1', status: 'COMPLETED', createdAt: Date.now(), branchId: '', totalSen: 3180, lines: [], payments: [] });
+await db.doc('licences/w1').set({ plan: 'UNLIMITED', status: 'ACTIVE', expiresAt: 0 });
+// A company on a plan without the API.
+const STARTER_TOKEN = 'sck_test_token_for_a_starter_plan_0002';
+await db.doc(`apiTokens/${sha256(STARTER_TOKEN)}`).set({ workspaceId: 'w3', name: 'Starter', createdAt: 1 });
+await db.doc('licences/w3').set({ plan: 'STARTER', status: 'ACTIVE', expiresAt: 0 });
 // Another company's item, which this token must never see.
 await db.collection('workspaces').doc('w2').collection('products').doc('secret').set({ name: 'Not yours' });
 
@@ -86,6 +91,32 @@ await check('customers: create, then update without touching points', async () =
   eq([updated.json.phone, updated.json.points], ['013', 0], 'update');
 });
 await check('stores', async () => eq((await call('GET', '/v1/stores')).json.stores.map((s) => s.id), ['', 'ipoh'], 'stores'));
+await check('a plan without the API is refused', async () => {
+  const r = await call('GET', '/v1/items', null, STARTER_TOKEN);
+  eq(r.status, 403, 'status');
+  if (!/Unlimited/.test(r.json.error.message)) throw new Error(r.json.error.message);
+});
+await check('offline sync: added once, and an old count does not undo newer sales', async () => {
+  const t0 = Date.now() - 60 * 60 * 1000;
+  const body = { transactions: [
+    { id: 'sale-1', type: 'sale', at: t0, store_id: '', receipt_no: 'OFF-1', lines: [{ barcode: '9555', name: 'Milo', quantity: 1, price_sen: 1690 }] },
+    { id: 'count-1', type: 'count', at: t0 - 1000, store_id: '', barcode: '9555', quantity: 30 },
+  ] };
+  const first = await call('POST', '/v1/sync', body);
+  eq(first.status, 200, 'status');
+  eq(first.json.accepted.map((a) => a.id).sort(), ['count-1', 'sale-1'], 'accepted');
+  const again = await call('POST', '/v1/sync', body);
+  eq(again.json.skipped.map((x) => [x.id, x.reason]), [['sale-1', 'already_synced']], 'second time');
+  // The count said 30 an hour ago; one sale after it (and the earlier ones,
+  // all dated after the count) still come off.
+  const level = (await call('GET', '/v1/inventory?store_id=&barcode=9555')).json.inventory_levels[0].in_stock;
+  if (!(level < 30)) throw new Error(`in_stock ${level} should be below the old count`);
+});
+await check('too many calls without a token get 429', async () => {
+  let last = 0;
+  for (let i = 0; i < 25; i++) last = (await call('GET', '/v1/items', null, null)).status;
+  eq(last, 429, 'status');
+});
 await check('unknown endpoint is a 404 in JSON', async () => eq((await call('GET', '/v1/nope')).status, 404, 'status'));
 
 server.kill();

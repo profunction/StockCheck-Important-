@@ -10,6 +10,7 @@ import { h, mount, toast } from './dom.js';
 import { icon } from './icons.js';
 import { getLang, LANGS, setLang, t } from './i18n.js';
 import { endSession, loadSession, onChange, session } from './session.js';
+import './strings-pro.js';
 
 const app = document.getElementById('app');
 
@@ -21,6 +22,7 @@ const MENU = [
       ['summary', 'repSummary'], ['items', 'repItems'], ['categories', 'repCategories'],
       ['employees', 'repEmployees'], ['payments', 'repPayments'], ['receipts', 'repReceipts'],
       ['modifiers', 'repModifiers'], ['discounts', 'repDiscounts'], ['taxes', 'repTaxes'],
+      ['shifts', 'repShifts'], ['einvoice', 'repEinvoice'],
     ], page: () => import('./reports.js'),
   },
   {
@@ -267,6 +269,10 @@ onChange(() => {
     mount(app, h('div', { class: 'signin' }, h('p', { class: 'muted' }, t('loading'))));
     try {
       await loadSession(user);
+      // The cashier's open shift, if any; the till asks before the first sale.
+      await import('./shifts.js').then((m) => m.loadOpenShift()).catch(() => {});
+      // A receipt printer chosen before on this computer, without asking again.
+      import('./rawprint.js').then((m) => m.reconnect()).catch(() => {});
       renderShell();
     } catch (err) {
       await signOut(auth);

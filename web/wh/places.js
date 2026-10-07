@@ -57,6 +57,8 @@ export function render(main) {
   }
 
   const add = () => {
+    // Starter and the standalone packs are one place: the shop itself.
+    if (session.plan && !session.plan.multiBranch) return toast(t('planNoBranches'), 'error');
     const name = h('input', { autofocus: true, placeholder: t('whPlaceNameHint') });
     let kind = 'WAREHOUSE';
     const seg = h('div', { class: 'seg' });

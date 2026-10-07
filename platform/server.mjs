@@ -24,8 +24,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import express from 'express';
 import Stripe from 'stripe';
-import { grant, expire, get, findByCode, write } from './licences.mjs';
+import { grant, expire, get, findByCode, write, firestoreStore, lifetimeLeft } from './licences.mjs';
 import { PLANS, TERMS, priceSen, ringgit, CURRENCY } from './plans.mjs';
+import { BillingError, handleStripeWebhook, handleToyyibPayWebhook, readToyyibBill, validPlanTerm } from './billing.mjs';
 
 const {
   PORT = 8787,
@@ -74,9 +75,7 @@ async function resolveWorkspace(codeOrId) {
   return byCode?.workspaceId ?? codeOrId;
 }
 
-function validPlanTerm(plan, term) {
-  return Boolean(PLANS[plan]) && Boolean(TERMS[term]) && plan !== 'TRIAL';
-}
+const store = firestoreStore();
 
 // --------------------------------------------------------------- Stripe in
 //
@@ -85,126 +84,59 @@ function validPlanTerm(plan, term) {
 // this route takes the raw buffer and is registered BEFORE express.json().
 
 app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  if (!stripe || !STRIPE_WEBHOOK_SECRET) return res.status(503).send('Stripe not configured');
-
-  let event;
+  if (!STRIPE_WEBHOOK_SECRET) return res.status(503).send('Stripe not configured');
   try {
-    event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET);
+    // Verified inside: anyone on the internet can POST here, and without the
+    // signature check they could grant themselves a lifetime licence.
+    const result = await handleStripeWebhook({ rawBody: req.body, signature: req.headers['stripe-signature'] }, {
+      secret: STRIPE_WEBHOOK_SECRET,
+      store,
+      retrieveSubscription: (id) => stripe.subscriptions.retrieve(id),
+      expire,
+    });
+    log('stripe', result.status, result.reason || '', result.licence?.plan || '');
+    res.json({ received: true, status: result.status });
   } catch (error) {
-    // Anyone on the internet can POST here. Without this check they could
-    // grant themselves a lifetime licence with a curl command.
-    log('stripe signature rejected:', error.message);
-    return res.status(400).send(`Signature check failed: ${error.message}`);
-  }
-
-  try {
-    await handleStripeEvent(event);
-  } catch (error) {
-    log('stripe handler failed:', event.type, error.message);
+    if (error instanceof BillingError && error.code === 'BAD_SIGNATURE') {
+      log('stripe signature rejected:', error.message);
+      return res.status(400).send(`Signature check failed: ${error.message}`);
+    }
+    log('stripe handler failed:', error.message);
     // A 500 makes Stripe retry, which is what should happen when Firestore
-    // was briefly unreachable. Returning 200 here would lose the payment.
-    return res.status(500).send(error.message);
+    // was briefly unreachable; the payment is claimed once, so a retry
+    // after a success is harmless.
+    res.status(500).send(error.message);
   }
-  res.json({ received: true });
 });
-
-async function handleStripeEvent(event) {
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      const { workspaceId, plan, term } = session.metadata ?? {};
-      if (!workspaceId || !validPlanTerm(plan, term)) {
-        log('checkout completed with unusable metadata', session.id, session.metadata);
-        return;
-      }
-      const licence = await grant(workspaceId, plan, term, {
-        contactEmail: session.customer_details?.email ?? undefined,
-        stripe: { customerId: session.customer ?? '', subscriptionId: session.subscription ?? '' },
-        note: `Stripe ${session.id}`,
-      });
-      log(`granted ${plan} ${term} to ${workspaceId} (${ringgit(priceSen(plan, term))})`, licence.expiresAt);
-      return;
-    }
-
-    case 'invoice.paid': {
-      // A renewal. The subscription id is the only link back, because the
-      // metadata lives on the checkout session, not on later invoices.
-      const invoice = event.data.object;
-      const subscriptionId = invoice.subscription;
-      if (!subscriptionId) return;
-      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-      const { workspaceId, plan, term } = subscription.metadata ?? {};
-      if (!workspaceId || !validPlanTerm(plan, term)) {
-        log('invoice.paid for a subscription with no usable metadata', subscriptionId);
-        return;
-      }
-      // grant() extends from the later of today and the current expiry, so a
-      // renewal that arrives early keeps the days already paid for.
-      await grant(workspaceId, plan, term, {
-        stripe: { customerId: invoice.customer ?? '', subscriptionId },
-        note: `Stripe renewal ${invoice.id}`,
-      });
-      log(`renewed ${plan} ${term} for ${workspaceId}`);
-      return;
-    }
-
-    case 'customer.subscription.deleted': {
-      const subscription = event.data.object;
-      const { workspaceId } = subscription.metadata ?? {};
-      if (!workspaceId) return;
-      await expire(workspaceId, `Stripe subscription ended ${subscription.id}`);
-      log(`expired ${workspaceId}`);
-      return;
-    }
-
-    default:
-      log('ignored', event.type);
-  }
-}
 
 // ------------------------------------------------------------ ToyyibPay in
 //
 // Local companies pay by bank transfer, not card. ToyyibPay fronts FPX and
 // costs about RM 1 a transaction, against Stripe's percentage. It posts a
 // form, not JSON, and it has no signature scheme -- so nothing it says is
-// believed until the bill is read back from ToyyibPay's own API.
+// believed until the bill is read back from ToyyibPay's own API, paid in
+// full. Each bill counts once, however often ToyyibPay calls.
 
 app.post('/webhook/toyyibpay', express.urlencoded({ extended: false }), async (req, res) => {
-  // Answer immediately: ToyyibPay retries anything slow, and a duplicate
-  // grant is harmless but a duplicate charge conversation is not.
+  // Answer immediately: ToyyibPay retries anything slow.
   res.send('OK');
-
-  const { billcode, order_id: orderId, status_id: statusId } = req.body ?? {};
-  log('toyyibpay callback', billcode, orderId, statusId);
-  if (!billcode) return;
-
   try {
-    const confirmed = await toyyibpayVerify(billcode);
-    if (!confirmed) return log('toyyibpay bill not paid on verification', billcode);
-
-    // order_id carries what was bought: "WORKSPACE|PLAN|TERM".
-    const [workspaceId, plan, term] = String(orderId ?? '').split('|');
-    if (!workspaceId || !validPlanTerm(plan, term)) {
-      return log('toyyibpay order_id unusable', orderId);
-    }
-    await grant(workspaceId, plan, term, { note: `ToyyibPay ${billcode}` });
-    log(`granted ${plan} ${term} to ${workspaceId} via ToyyibPay`);
+    const result = await handleToyyibPayWebhook(req.body ?? {}, { store, verifyBill: toyyibpayBill });
+    log('toyyibpay', req.body?.billcode, result.status, result.reason || '');
   } catch (error) {
     log('toyyibpay handling failed', error.message);
   }
 });
 
-/** Asks ToyyibPay directly whether the bill was actually paid. */
-async function toyyibpayVerify(billCode) {
+/** Reads a bill back from ToyyibPay: { paid, amountSen, orderId }. */
+async function toyyibpayBill(billCode) {
   const response = await fetch('https://toyyibpay.com/index.php/api/getBillTransactions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ billCode }),
   });
-  if (!response.ok) return false;
-  const rows = await response.json();
-  // billpaymentStatus 1 = success.
-  return Array.isArray(rows) && rows.some((row) => String(row.billpaymentStatus) === '1');
+  if (!response.ok) return { paid: false };
+  return readToyyibBill(await response.json());
 }
 
 // ------------------------------------------------------- everything else
@@ -244,6 +176,7 @@ app.post('/checkout', async (req, res) => {
   const workspaceId = await resolveWorkspace(company);
   if (!workspaceId) return res.status(400).json({ error: 'Unknown company code' });
   if (!stripe) return res.status(503).json({ error: 'Stripe not configured' });
+  if (term === 'lifetime' && (await lifetimeLeft()) <= 0) return res.status(409).json({ error: 'Lifetime licences are sold out' });
 
   const sen = priceSen(plan, term);
   const recurring = TERMS[term].recurring;
@@ -329,7 +262,7 @@ app.post('/play/verify', express.json(), async (req, res) => {
   const underscore = productId.lastIndexOf('_');
   const plan = productId.slice(0, underscore).toUpperCase();
   const term = productId.slice(underscore + 1);
-  if (!PLANS[plan] || plan === 'TRIAL' || !TERMS[term]) {
+  if (!validPlanTerm(plan, term)) {
     return res.status(400).json({ error: `unrecognised product ${productId}` });
   }
 
@@ -405,6 +338,10 @@ app.post('/play/verify', express.json(), async (req, res) => {
       plan,
       status: 'ACTIVE',
       seats: PLANS[plan].seats,
+      tills: PLANS[plan].tills,
+      modules: { ...PLANS[plan].modules },
+      multiBranch: PLANS[plan].multiBranch,
+      loyverse: PLANS[plan].loyverse,
       expiresAt: expiry,
       playPurchaseToken: purchaseToken,
       playProductId: productId,
@@ -457,15 +394,13 @@ app.post('/toyyibpay/create', express.json(), async (req, res) => {
   if (!TOYYIBPAY_SECRET_KEY || !TOYYIBPAY_CATEGORY_CODE) {
     return res.status(503).json({ error: 'ToyyibPay not configured' });
   }
-  if (TERMS[term].recurring) {
-    // FPX and the wallets settle once and do not come back next month. A
-    // "subscription" paid this way would quietly lapse, which is a worse
-    // outcome than refusing it here.
-    return res.status(400).json({ error: 'ToyyibPay can only take a one-off payment' });
-  }
+  // FPX and the wallets settle once and do not come back next month, so a
+  // monthly or yearly term bought here is prepaid: it runs its course and
+  // the app counts down to it like any other, without renewing itself.
 
   const workspaceId = await resolveWorkspace(company);
   if (!workspaceId) return res.status(400).json({ error: 'Unknown company code' });
+  if (term === 'lifetime' && (await lifetimeLeft()) <= 0) return res.status(409).json({ error: 'Lifetime licences are sold out' });
 
   const form = new URLSearchParams({
     userSecretKey: TOYYIBPAY_SECRET_KEY,
@@ -525,13 +460,16 @@ app.get('/buy', async (req, res) => {
   for (const plan of paid) {
     const cells = [];
     for (const term of Object.keys(TERMS)) {
+      if (!validPlanTerm(plan, term)) continue;
       const sen = priceSen(plan, term);
       if (!sen) continue;
       const recurring = TERMS[term].recurring;
       const buttons = [
         `<button data-plan="${plan}" data-term="${term}" data-route="checkout" data-method="card">Card / Google Pay</button>`,
       ];
-      if (!recurring) {
+      if (recurring) {
+        buttons.push(`<button data-plan="${plan}" data-term="${term}" data-route="toyyibpay">FPX via ToyyibPay (prepaid, no auto-renew)</button>`);
+      } else {
         buttons.push(
           `<button data-plan="${plan}" data-term="${term}" data-route="checkout" data-method="fpx">Online banking (FPX)</button>`,
           `<button data-plan="${plan}" data-term="${term}" data-route="checkout" data-method="grabpay">GrabPay</button>`,
@@ -540,13 +478,16 @@ app.get('/buy', async (req, res) => {
       }
       cells.push(
         `<div class="term"><h3>${TERMS[term].label} — ${ringgit(sen)}</h3>` +
-        (recurring ? '<p class="note">Renews automatically. Card only.</p>' : '') +
+        (recurring ? '<p class="note">By card it renews automatically; by FPX it is prepaid.</p>' : '') +
         `<div class="buttons">${buttons.join('')}</div></div>`,
       );
     }
     rows.push(
-      `<section class="plan"><h2>${PLANS[plan].label}</h2>` +
-      `<p class="seats">${PLANS[plan].seats >= 1e9 ? 'Unlimited accounts' : `Up to ${PLANS[plan].seats} accounts`}</p>` +
+      `<section class="plan"><h2>${PLANS[plan].label}${PLANS[plan].pack === 'STANDALONE' ? ' <small>(standalone)</small>' : ''}</h2>` +
+      `<p class="seats">${PLANS[plan].seats >= 1e9 ? 'Unlimited accounts' : `Up to ${PLANS[plan].seats} accounts`}` +
+      `${PLANS[plan].modules.pos && PLANS[plan].tills < 1e9 ? ` · ${PLANS[plan].tills} tills` : ''} · ` +
+      `${Object.entries(PLANS[plan].modules).filter(([, on]) => on).map(([m]) => ({ app: 'phone app', pos: 'POS', warehouse: 'warehouse', api: 'API' }[m])).join(', ')}` +
+      `${PLANS[plan].multiBranch ? ', branches' : ''}${PLANS[plan].loyverse ? ', Loyverse sync' : ''}</p>` +
       cells.join('') + '</section>',
     );
   }

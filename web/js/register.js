@@ -19,11 +19,15 @@ import { DEFAULT_SETTINGS, onChange, session, ws } from './session.js';
 import { kitchenView, printView } from './receipt.js';
 import { openPayment } from './pay.js';
 import { freshCustomer, loadCustomers, pickCustomer } from './customers.js';
+import { isLocked } from './pdpa.js';
 import { listenForTags, nfcSupported, normalizeTag } from './nfc.js';
 import { scanWithCamera } from './camera.js';
 import { menuButton } from './main.js';
 import { icon } from './icons.js';
 import { layoutFor, modeCards } from './modes.js';
+import { shiftButton, shiftReady } from './shifts.js';
+import { tillAllowed } from './tills.js';
+import { directReady, openDrawer } from './rawprint.js';
 
 const WEIGHED_UNITS = ['kg', 'g', 'l', 'ml', 'm'];
 const isWeighed = (unit) => WEIGHED_UNITS.includes((unit || '').toLowerCase());
@@ -57,7 +61,16 @@ const kitchenOn = () => isFnb() && session.settings.kitchenTicket !== false;
 let root;
 let els = {};
 
+/** A full-page notice in place of the till: the plan leaves it out, or its tills are all in use. */
+function lockedView(main, message) {
+  mount(main, h('div', { class: 'modepick' },
+    h('header', {}, h('div', { class: 'row', style: { justifyContent: 'center' } }, menuButton()),
+      h('h1', {}, t('navRegister')), h('p', { class: 'card', style: { maxWidth: '560px' } }, message),
+      h('p', {}, h('a', { href: '#/settings/device' }, t('setDevice'))))));
+}
+
 export function render(main) {
+  if (!session.allows('pos')) { lockedView(main, t('planNoPos')); return null; }
   root = main;
   cart = newCart();
   category = '';
@@ -101,8 +114,13 @@ export function render(main) {
   }, (err) => console.warn('orders', err));
 
   drawAll();
+  let gone = false;
+  tillAllowed().then((ok) => {
+    if (!ok && !gone) lockedView(main, t('tillLimit').replace('{n}', String(session.plan?.tills)));
+  }).catch((err) => console.warn('tills', err));
 
   return () => {
+    gone = true;
     stopNfc?.();
     stopNfc = null;
     document.removeEventListener('keydown', onKey);
@@ -241,7 +259,7 @@ function build(kind) {
     mount(root, h('div', { class: 'market' },
       h('section', { class: 'left' },
         els.online,
-        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true)),
+        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), shiftButton(() => els.scan?.focus())),
         els.orderInfo,
         els.lines),
       h('aside', { class: 'mpanel' },
@@ -252,7 +270,9 @@ function build(kind) {
           h('button', { onclick: priceCheck }, icon('barcode', 22), t('priceCheck')),
           h('button', { onclick: quickItems }, icon('grid', 22), t('quickKeys')),
           h('button', { onclick: chooseCustomer }, icon('user', 22), t('member')),
-          els.discKey, els.holdKey, els.recallKey, els.clearKey),
+          els.discKey, els.holdKey, els.recallKey,
+          directReady() ? h('button', { onclick: () => openDrawer().catch((e) => toast(e.message, 'error')) }, icon('box', 22), t('openDrawer')) : null,
+          els.clearKey),
         els.pay)));
   } else {
     els.search = h('input', { type: 'search', placeholder: t('searchProducts'), value: search, oninput: (e) => { search = e.target.value; drawTiles(); } });
@@ -267,6 +287,7 @@ function build(kind) {
           menuButton(),
           h('div', { class: 'search-box' }, icon('search', 18), els.search),
           h('span', { class: 'grow' }),
+          shiftButton(() => els.scan?.focus()),
           els.tablesBtn,
           h('button', { onclick: openTicketsList }, icon('receipt', 18), t('openTickets'), els.openCount)),
         els.chips,
@@ -335,7 +356,7 @@ async function addByCode(raw) {
   if (product) return addProduct(product);
   try {
     const tag = normalizeTag(code);
-    const found = (await loadCustomers()).find((c) => (c.cardIds || []).some((id) => id === code || id === tag));
+    const found = (await loadCustomers()).find((c) => !isLocked(c) && (c.cardIds || []).some((id) => id === code || id === tag));
     const member = found && await freshCustomer(found);
     if (member) {
       cart.customer = { id: member.id, name: member.name, phone: member.phone || '', points: member.points || 0 };
@@ -660,7 +681,8 @@ function sumRows(totals, r) {
   ];
 }
 
-function pay() {
+async function pay() {
+  if (!await shiftReady()) return;
   openPayment(cart, totalsFor(cart), {
     onPaid: () => { cart = newCart(); lastAdded = null; drawTicket(); els.scan?.focus(); },
   });

@@ -19,6 +19,7 @@ import {
   list, get, grant, extend, suspend, resume, startTrial, findByCode, seatsUsed,
 } from './licences.mjs';
 import { PLANS, TERMS, TRIAL_DAYS, priceSen, ringgit } from './plans.mjs';
+import { validPlanTerm } from './billing.mjs';
 
 const [, , command, target, ...rest] = process.argv;
 
@@ -113,7 +114,7 @@ switch (command) {
     const { workspaceId, companyName } = await resolve(target);
     const plan = (positional[0] || '').toUpperCase();
     const term = (positional[1] || '').toLowerCase();
-    if (!PLANS[plan] || !TERMS[term]) {
+    if (!validPlanTerm(plan, term)) {
       console.error(`Usage: grant <code> <${Object.keys(PLANS).join('|')}> <${Object.keys(TERMS).join('|')}>`);
       process.exit(1);
     }
@@ -192,10 +193,10 @@ Price list:`);
       if (name === 'TRIAL') continue;
       const seats = plan.seats >= 1_000_000_000 ? 'unlimited' : `${plan.seats} accounts`;
       console.log(
-        `  ${plan.label.padEnd(10)} ${seats.padEnd(16)}` +
+        `  ${name.padEnd(10)} ${seats.padEnd(16)}` +
           `${ringgit(plan.monthlySen).padEnd(10)}/mo   ` +
           `${ringgit(plan.yearlySen).padEnd(11)}/yr   ` +
-          `${ringgit(plan.lifetimeSen)} lifetime`,
+          `${plan.lifetimeSen == null ? '(no lifetime)' : `${ringgit(plan.lifetimeSen)} lifetime`}`,
       );
     }
     console.log();

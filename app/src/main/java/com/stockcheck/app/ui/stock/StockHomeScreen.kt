@@ -276,7 +276,7 @@ fun StockHomeScreen(
     // a modified client can delete, and the rule alone refuses a write the
     // app has already told somebody would work.
     val now = System.currentTimeMillis()
-    val mayStart = licence?.allowsNewWork(now) == true
+    val mayStart = licence?.allowsCounting(now) == true
 
     // Anything not yet reviewed is still "on the floor" and belongs here; the
     // finished ones live on the History tab.
@@ -588,6 +588,13 @@ private fun LicenceBanner(licence: Licence, now: Long) {
             tone = NoticeTone.ERROR,
         )
 
+        !licence.allows(Licence.MODULE_APP) -> NoticeBar(
+            text = "The ${licence.planEnum.label} plan does not include counting in this app. " +
+                "Your records stay readable here; counting comes with the All-in-One plans " +
+                "or the Stock Check App plan.",
+            tone = NoticeTone.WARNING,
+        )
+
         licence.isExpiredAt(now) -> NoticeBar(
             text = "The ${licence.planEnum.label} plan has ended. Everything already " +
                 "counted stays here and exports still work \u2014 new stock checks " +
@@ -735,7 +742,7 @@ private fun LicenceBlockedDialog(
                         }
                     }
                 } else {
-                    Plan.entries.filter { it != Plan.TRIAL }.forEach { plan ->
+                    Plan.entries.filter { it != Plan.TRIAL && it.app }.forEach { plan ->
                         Text(
                             text = "${plan.label} · " +
                                 stringResource(R.string.paywall_per_month, plan.monthlySen / 100),

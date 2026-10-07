@@ -267,4 +267,5 @@
         <item>Profil → Peranan: siapa boleh kira, lihat semua, ubah stok, guna POS dan gudang.</item>
         <item>Cawangan dan gudang berasingan; log audit menyimpan setiap perubahan.</item>
     </string-array>
+    <string name="pos_loyverse_plan">Penyegerakan Loyverse ada dalam pelan Business dan Unlimited, serta pelan Stock Check App.</string>
 </resources>

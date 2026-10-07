@@ -387,3 +387,11 @@ table.list .thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: c
 .receipt .r span:last-child { white-space: nowrap; }
 .receipt .sub { padding-left: 10px; }
 @media (min-width: 961px) { .signin-form .brandmark { display: none; } }
+
+/* Shifts */
+.shift-btn { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.shift-btn .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted, #8a948d); }
+.shift-btn.open .dot { background: var(--good, #1f9d55); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good, #1f9d55) 25%, transparent); }
+.shift-sum { display: grid; gap: 4px; max-width: 420px; }
+.shift-sum .r { display: flex; justify-content: space-between; gap: 16px; padding: 2px 0; border-bottom: 1px dashed var(--line, #e3e7e3); }
+.shift-sum .r span { color: var(--muted, #5d6a61); }

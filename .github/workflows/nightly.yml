@@ -1,0 +1,59 @@
+name: Nightly backup and PDPA
+
+# Every night at 03:00 Malaysian time:
+#   1. a full Firestore export to Cloud Storage (platform/backup.mjs)
+#   2. customers who asked to be removed 90+ days ago are erased
+#      (platform/pdpa-purge.mjs)
+#
+# Needs the FIREBASE_SERVICE_ACCOUNT secret (the same one the deploy uses),
+# the Blaze plan, and a bucket -- `bash platform/setup-backup.sh` makes
+# it. The bucket name is the repository variable BACKUP_BUCKET, or
+# <project-id>-backups when that is not set. Without the secret this does
+# nothing and says so.
+on:
+  schedule:
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Key
+        id: key
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then
+            echo "::notice::FIREBASE_SERVICE_ACCOUNT is not set, so no backup was made."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          umask 077
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Install
+        if: steps.key.outputs.ready == 'true'
+        working-directory: platform
+        run: npm install --no-audit --no-fund
+      - name: Back up Firestore
+        if: steps.key.outputs.ready == 'true'
+        working-directory: platform
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+          SERVICE_ACCOUNT_PATH: ${{ runner.temp }}/sa.json
+          BACKUP_BUCKET: ${{ vars.BACKUP_BUCKET }}
+        run: node backup.mjs
+      - name: PDPA erasures
+        if: always() && steps.key.outputs.ready == 'true'
+        working-directory: platform
+        env:
+          SERVICE_ACCOUNT_PATH: ${{ runner.temp }}/sa.json
+        run: node pdpa-purge.mjs
+      - name: Remove the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa.json"
