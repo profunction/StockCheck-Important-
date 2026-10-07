@@ -22,7 +22,7 @@ import { freshCustomer, loadCustomers, pickCustomer } from './customers.js';
 import { isLocked } from './pdpa.js';
 import { listenForTags, nfcSupported, normalizeTag } from './nfc.js';
 import { scanWithCamera } from './camera.js';
-import { menuButton } from './main.js';
+import { menuButton, tillButton } from './main.js';
 import { icon } from './icons.js';
 import { layoutFor, modeCards } from './modes.js';
 import { shiftButton, shiftReady } from './shifts.js';
@@ -146,7 +146,8 @@ function drawPicker() {
     h('header', {},
       h('div', { class: 'row', style: { justifyContent: 'center' } }, menuButton()),
       h('h1', {}, t('modeTitle')),
-      h('p', { class: 'muted', style: { margin: 0 } }, t('modeSub'))),
+      h('p', { class: 'muted', style: { margin: 0 } }, t('modeSub')),
+      h('p', { class: 'notice mode-lock' }, icon('lock', 17), h('span', {}, t('modeLockFirst')))),
     modeCards(null, async (mode) => {
       const next = { ...DEFAULT_SETTINGS, ...session.settings, mode, updatedAt: Date.now() };
       if (mode === 'FNB') next.kitchenTicket = true;
@@ -259,7 +260,7 @@ function build(kind) {
     mount(root, h('div', { class: 'market' },
       h('section', { class: 'left' },
         els.online,
-        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), shiftButton(() => els.scan?.focus())),
+        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), shiftButton(() => els.scan?.focus()), tillButton()),
         els.orderInfo,
         els.lines),
       h('aside', { class: 'mpanel' },
@@ -289,7 +290,8 @@ function build(kind) {
           h('span', { class: 'grow' }),
           shiftButton(() => els.scan?.focus()),
           els.tablesBtn,
-          h('button', { onclick: openTicketsList }, icon('receipt', 18), t('openTickets'), els.openCount)),
+          h('button', { onclick: openTicketsList }, icon('receipt', 18), t('openTickets'), els.openCount),
+          tillButton()),
         els.chips,
         els.tiles),
       h('section', { class: 'ticket' },

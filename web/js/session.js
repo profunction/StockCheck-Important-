@@ -153,6 +153,8 @@ export async function loadSession(user) {
     branchIds: profile.branchIds || [],
     branches: config.branches || [],
     companyName: config.companyName || '',
+    // Staff join with it; shown to admins on Profile so they can hand it out.
+    joinCode: config.joinCode || '',
   });
 
   try {

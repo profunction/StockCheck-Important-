@@ -322,6 +322,46 @@ await expect('till-only plan (warehouse included): a purchase order', true,
 await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), `licences/${WS}`)));
 await expect('no licence (older shops): a sale still goes through', true, () => setDoc(doc(as('cashier1'), ws('sales/s-nolic')), sale('cashier1', '')));
 
+// POS mode: chosen once; only an admin changes it -------------------------
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), ws('pos/settings')), { shopName: 'Kedai', mode: '' }));
+await expect('POS manager: first choice of the till mode', true,
+  () => setDoc(doc(as('mgr'), ws('pos/settings')), { shopName: 'Kedai', mode: 'RETAIL' }));
+await expect('POS manager: other settings, same mode', true,
+  () => setDoc(doc(as('mgr'), ws('pos/settings')), { shopName: 'Kedai 2', mode: 'RETAIL' }));
+await expect('POS manager: changing the mode afterwards refused', false,
+  () => setDoc(doc(as('mgr'), ws('pos/settings')), { shopName: 'Kedai 2', mode: 'FNB' }));
+await expect('admin: changing the mode', true,
+  () => setDoc(doc(as('admin1'), ws('pos/settings')), { shopName: 'Kedai 2', mode: 'FNB' }));
+await expect('POS manager: other pos documents still writable', true,
+  () => setDoc(doc(as('mgr'), ws('pos/categories')), { list: [] }));
+
+// Signing up: staff join with the company code; only the founder is admin --
+const reg = (roleId, joinCode) => ({ email: 'n@x.my', displayName: 'New', roleId, roleName: roleId, active: true, createdAt: 1, lastSeenAt: 1, joinCode });
+await testEnv.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), ws('meta/config')), { companyName: 'Kedai', joinCode: 'KEDAI1' });
+  await setDoc(doc(ctx.firestore(), 'workspaceCodes/KEDAI1'), { workspaceId: WS, companyName: 'Kedai', createdAt: 1, createdByUid: 'admin1' });
+});
+await expect('sign-up: join with the right code as staff', true, () => setDoc(doc(as('newbie1'), ws('users/newbie1')), reg('worker', 'KEDAI1')));
+await expect('sign-up: wrong code refused', false, () => setDoc(doc(as('newbie2'), ws('users/newbie2')), reg('worker', 'NOPE')));
+await expect('sign-up: knowing the code is not enough to be admin', false, () => setDoc(doc(as('newbie3'), ws('users/newbie3')), reg('admin', 'KEDAI1')));
+// A new company: claim the code, roles, then the founder's own admin profile, then its settings.
+const NEW = 'newco';
+const nws = (p) => `workspaces/${NEW}/${p}`;
+await expect('new company: claim its code', true,
+  () => setDoc(doc(as('founder'), 'workspaceCodes/NEWCO'), { workspaceId: NEW, companyName: 'New Co', createdAt: 1, createdByUid: 'founder' }));
+await expect('new company: built-in roles', true,
+  () => setDoc(doc(as('founder'), nws('roles/admin')), { name: 'Admin', permissions: [], builtIn: true }));
+await expect('new company: settings before the founder is admin refused', false,
+  () => setDoc(doc(as('founder'), nws('meta/config')), { companyName: 'New Co', joinCode: 'NEWCO' }));
+await expect('new company: someone else cannot be its admin', false,
+  () => setDoc(doc(as('stranger'), nws('users/stranger')), reg('admin', 'NEWCO')));
+await expect('new company: the founder is its admin', true,
+  () => setDoc(doc(as('founder'), nws('users/founder')), reg('admin', 'NEWCO')));
+await expect('new company: then its settings', true,
+  () => setDoc(doc(as('founder'), nws('meta/config')), { companyName: 'New Co', joinCode: 'NEWCO' }));
+await expect('new company: and its trial', true,
+  () => setDoc(doc(as('founder'), `licences/${NEW}`), { plan: 'TRIAL', status: 'ACTIVE', seats: 5, startedAt: Date.now(), expiresAt: Date.now() + 14 * 86400000 }));
+
 const width = Math.max(...results.map((r) => r.name.length));
 let failed = 0;
 for (const r of results) {

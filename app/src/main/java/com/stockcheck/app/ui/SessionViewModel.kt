@@ -86,8 +86,9 @@ class SessionViewModel : ViewModel() {
             onDone()
         }
 
-    fun resetPassword(email: String) = runForm {
+    fun resetPassword(email: String, companyCode: String) = runForm {
         require(email.isNotBlank()) { "Enter your email address first." }
+        require(companyCode.isNotBlank()) { "Enter your company code too." }
         auth.sendPasswordReset(email)
         _formError.value = "A reset link has been sent to $email."
     }

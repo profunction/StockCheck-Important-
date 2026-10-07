@@ -410,3 +410,76 @@ table.list .thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: c
 a.card.stat:hover { border-color: var(--brand); }
 .dash-more { display: block; text-decoration: none; color: inherit; border-style: dashed; }
 .dash-more:hover { border-color: var(--brand); }
+
+/* App centre, app switcher, sign-up tabs (apps.js) */
+a.btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 14px; border-radius: var(--radius-sm, 6px); text-decoration: none; color: var(--brand); font-weight: 600; }
+a.btn:hover { background: var(--surface-2); }
+.auth-card { display: grid; gap: 16px; width: 100%; max-width: 420px; }
+.auth-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+.auth-tabs button { justify-content: center; }
+.auth-card form { display: grid; gap: 12px; }
+.hub { min-height: 100%; background: var(--bg); }
+.hub-top { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); flex-wrap: wrap; }
+.hub-top select { width: auto; }
+.hub-main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 48px; }
+.hub-main h1 { margin: 0 0 4px; }
+.hub-plan { margin: 4px 0 6px; }
+.hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 18px; }
+.hub-app { display: grid; gap: 6px; align-content: start; padding: 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; color: var(--text); box-shadow: var(--shadow-1); transition: transform .15s, border-color .15s; }
+a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(-2px); }
+.hub-ic { width: 52px; height: 52px; border-radius: 13px; display: grid; place-items: center; background: var(--app, var(--brand)); color: #fff; margin-bottom: 4px; }
+.hub-app b { font-size: 18px; }
+.hub-go { color: var(--app, var(--brand)); font-weight: 700; margin-top: 4px; }
+.hub-app.locked { background: var(--surface-2); box-shadow: none; }
+.hub-app.locked .hub-ic { background: var(--surface-3); color: var(--muted); }
+.hub-lock { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.appswitch { border-radius: 10px; }
+.appswitch > summary { list-style: none; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(127, 127, 127, .3); }
+.appswitch > summary::-webkit-details-marker { display: none; }
+.appswitch-list { display: grid; gap: 2px; padding: 6px 0; }
+.appswitch-list a { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; text-decoration: none; color: inherit; }
+.appswitch-list a:hover { background: rgba(127, 127, 127, .14); }
+.appswitch-list a.on { font-weight: 700; }
+.appswitch-list a.locked { opacity: .55; }
+.appswitch-list a.all { border-top: 1px solid rgba(127, 127, 127, .25); margin-top: 4px; padding-top: 10px; }
+
+/* JEXO Count on the web */
+.cnt { min-height: 100%; background: var(--bg); }
+.cnt-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #0f4c4a; color: #fff; flex-wrap: wrap; }
+.cnt-top .brandmark { color: #fff; text-decoration: none; font-size: 18px; }
+.cnt-top select { width: auto; color: var(--text); background: var(--surface); }
+.cnt-top .appswitch { position: relative; }
+.cnt-top .appswitch[open] .appswitch-list { position: absolute; right: 0; top: 44px; min-width: 220px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: var(--shadow-2); }
+.cnt-top button.ghost { color: #fff; }
+.cnt-main { max-width: 860px; margin: 0 auto; padding: 18px 16px 60px; display: grid; gap: 12px; align-content: start; }
+.cnt-list { display: grid; gap: 10px; }
+.cnt-card { display: grid; gap: 4px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; color: inherit; }
+.cnt-card:hover { border-color: var(--brand); }
+.cnt-head { display: grid; gap: 4px; }
+.cnt-scan { display: grid; gap: 8px; }
+.cnt-qtyrow { display: flex; align-items: center; gap: 10px; }
+.cnt-qty { width: 110px; text-align: center; font-size: 20px; font-weight: 700; }
+.cnt-lines { display: grid; gap: 8px; }
+.cnt-line { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.cnt-line.last { border-color: var(--brand); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 20%, transparent); }
+.cnt-n { min-width: 70px; text-align: center; font-size: 22px; font-weight: 750; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { .cnt-top { padding: 8px 12px; } .cnt-top select { display: none; } }
+
+/* Profile and the mode lock */
+.prof { display: grid; gap: 10px; max-width: 760px; margin-bottom: 14px; }
+.prof-ic { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-soft, var(--surface-3)); color: var(--brand); }
+.prof-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.mode-lock { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn, #b54708) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--warn, #b54708) 35%, transparent); margin: 0; }
+
+/* The menu put away, and the till lock */
+@media (min-width: 961px) {
+  .shell.collapsed { grid-template-columns: minmax(0, 1fr); }
+  .shell.collapsed .side { display: none; }
+  .shell.collapsed .menu-toggle { display: inline-flex !important; }
+}
+.side .brand .side-collapse { color: var(--side-muted); border: 0; min-height: 32px; padding: 4px; }
+.side .brand .side-collapse .ic { transform: rotate(90deg); }
+.side .brand .side-collapse:hover { color: #fff; background: var(--side-hover); }
+.till-lock { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.till-lock.on { background: color-mix(in srgb, var(--warn, #b54708) 14%, var(--surface)); border-color: var(--warn, #b54708); color: var(--warn, #b54708); font-weight: 650; }
+.till-locked-note { margin: 0 12px 8px; padding: 8px 10px; border-radius: 9px; background: rgba(245, 158, 11, .15); color: #fcd34d; font-size: 13px; display: flex; gap: 8px; align-items: center; }

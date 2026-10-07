@@ -29,6 +29,9 @@ const write = (rel, text) => {
 };
 
 const PAID = ['STARTER', 'BUSINESS', 'UNLIMITED'];
+/** Signing up a company and signing in: the app centre, with the forms beside it. */
+const SIGNUP = '/app/#create';
+const SIGNIN = '/app/';
 /** The language switcher in the top bar, kept short so the bar fits one line. */
 const SHORT = { zh: '中文', en: 'EN', ms: 'BM' };
 
@@ -174,8 +177,8 @@ function navLinks(lang) {
   return `<nav class="main" aria-label="${esc(t.langName)}"><a href="${t.path}">${esc(P.nav.home)}</a><a href="${t.path}#industries">${esc(P.nav.industries)}</a><a href="${t.path}#products">${esc(P.nav.products)}</a><a href="${t.path}#addons">${esc(P.nav.addons)}</a><a href="${t.path}#pricing">${esc(P.nav.pricing)}</a><a href="/guide/">${esc(P.nav.guide)}</a></nav>
 <span class="spacer"></span>
 <div class="langs">${Object.entries(LANGS).map(([k, o]) => `<a href="${o.path}" hreflang="${o.htmlLang}" title="${esc(o.label)}"${k === lang ? ' aria-current="page"' : ''}>${esc(SHORT[k])}</a>`).join('')}</div>
-<a class="btn ghost" href="/pos/" rel="nofollow">${esc(P.nav.login)}</a>
-<a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.nav.trial)}</a>`;
+<a class="btn ghost" href="${SIGNIN}" rel="nofollow">${esc(P.nav.login)}</a>
+<a class="btn primary" href="${SIGNUP}">${esc(P.nav.trial)}</a>`;
 }
 
 /** Where each product's button goes. */
@@ -188,7 +191,7 @@ function productLinks(lang, id, here = '') {
   if (id === 'stocktake') return `<a href="${APP_DOWNLOAD}">${esc(x.cta)} →</a>`;
   if (id === 'pos') return `<a href="${t.path}retail/">${esc(x.cta)} →</a><a href="${t.path}fnb/">${esc(x.cta2)} →</a>`;
   if (id === 'warehouse') return `<a href="${t.path}wholesale/">${esc(x.cta)} →</a>`;
-  return `<a href="/pos/" rel="nofollow">${esc(x.cta)} →</a>`;
+  return `<a href="${SIGNIN}" rel="nofollow">${esc(x.cta)} →</a>`;
 }
 
 function productCards(lang, ids = ['stocktake', 'pos', 'warehouse', 'backoffice'], here = '') {
@@ -266,7 +269,7 @@ ${navLinks(lang)}
 <h1>${esc(P.hero.h1)}</h1>
 <p class="sub">${esc(P.hero.sub)}</p>
 <p class="lead">${esc(P.hero.lead)}</p>
-<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.hero.cta)}</a><a class="btn ghost" href="#products">${esc(P.hero.cta2)}</a></div>
+<div class="ctas"><a class="btn primary" href="${SIGNUP}">${esc(P.hero.cta)}</a><a class="btn ghost" href="#products">${esc(P.hero.cta2)}</a></div>
 <p class="small">${esc(P.hero.note)}</p>
 </div>
 <img class="shot hero-img" src="${shot}" width="1400" height="900" alt="${esc(P.products.pos.name)} · ${esc(P.products.warehouse.name)}">
@@ -288,7 +291,7 @@ ${standalone}
 ${t.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n')}</div></section>
 ${contact}
 <section class="final"><div class="wrap"><h2>${esc(t.finalTitle)}</h2><p class="lead" style="margin-inline:auto">${esc(t.finalLead)}</p>
-<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(t.hero.cta)}</a></div></div></section>
+<div class="ctas"><a class="btn primary" href="${SIGNUP}">${esc(t.hero.cta)}</a></div></div></section>
 </main>
 <footer><div class="wrap"><span>© ${new Date().getFullYear()} ${BRAND.name} · ${esc(BRAND.tagline)} · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
 </body>
@@ -336,7 +339,7 @@ ${navLinks(lang)}
 <div class="eyebrow">${icon(x.icon)} ${esc(x.name)}</div>
 <h1>${esc(x.h1)}</h1>
 <p class="lead">${esc(x.lead)}</p>
-<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.ctaPage)}</a><a class="btn ghost" href="${t.path}#pricing">${esc(P.ctaTalk)}</a></div>
+<div class="ctas"><a class="btn primary" href="${SIGNUP}">${esc(P.ctaPage)}</a><a class="btn ghost" href="${t.path}#pricing">${esc(P.ctaTalk)}</a></div>
 </div>
 </div>
 <section><div class="wrap">
@@ -346,7 +349,7 @@ ${x.soon ? `<p class="soonnote">${esc(x.soon)}</p>` : ''}
 <section><div class="wrap"><h2>${esc(P.usesTitle)}</h2>
 <div class="prods">${productCards(lang, x.products, id)}</div></div></section>
 <section><div class="wrap"><h2>${esc(P.planTitle)}</h2><p class="lead">${esc(x.plan)}</p>
-<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.ctaPage)}</a><a class="btn ghost" href="${t.path}#pricing">${esc(P.ctaTalk)}</a></div></div></section>
+<div class="ctas"><a class="btn primary" href="${SIGNUP}">${esc(P.ctaPage)}</a><a class="btn ghost" href="${t.path}#pricing">${esc(P.ctaTalk)}</a></div></div></section>
 </main>
 <footer><div class="wrap"><span>© ${new Date().getFullYear()} ${BRAND.name} · ${esc(BRAND.tagline)} · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}${id}/" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
 </body>
@@ -402,6 +405,8 @@ ${en.faq.map(([q, a]) => `### ${q}\n${a}`).join('\n\n')}
 - Website (中文): ${SITE}/
 - Website (English): ${SITE}/en/
 - Website (Bahasa Melayu): ${SITE}/ms/
+- Sign in or sign up (all apps): ${SITE}/app/
+- JEXO Count on the web: ${SITE}/count/
 - POS sign-in: ${POS_URL}
 - Android app download: ${APP_DOWNLOAD}
 - Warehouse system (web, works on phones): ${WAREHOUSE_URL}

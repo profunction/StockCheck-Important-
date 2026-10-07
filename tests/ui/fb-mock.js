@@ -53,7 +53,29 @@ export function onAuthStateChanged(_a, cb) {
 }
 export async function signInWithEmailAndPassword() { window.__signedOut = false; authCb?.({ uid: 'u1', email: 'j@x.com' }); }
 export async function signOut() { window.__signedOut = true; authCb?.(null); }
-export async function sendPasswordResetEmail() {}
+export async function sendPasswordResetEmail(_a, email) { window.__resetMails.push(email); }
+// Registering: taken@x.com already has an account.
+export async function createUserWithEmailAndPassword(_a, email) {
+  if (email === 'taken@x.com') { const e = new Error('taken'); e.code = 'auth/email-already-in-use'; throw e; }
+  const user = { uid: 'new' + (++auto), email };
+  window.__signedOut = false;
+  auth.currentUser = user;
+  authCb?.(user);
+  return { user };
+}
+export async function deleteUser() { window.__deletedUser = (window.__deletedUser || 0) + 1; }
+window.__resetMails = [];
+// An admin's password at the till: j@x.com (u1, admin) with anything but "wrong".
+export async function verifyAdmin(email, password) {
+  if (password === 'wrong') { const e = new Error('wrong'); e.code = 'auth/wrong-password'; throw e; }
+  if (email !== 'j@x.com') { const e = new Error('not admin'); e.code = 'not-admin'; throw e; }
+}
+// Re-entering the password: "wrong" is the wrong one.
+export const EmailAuthProvider = { credential: (email, password) => ({ email, password }) };
+export async function reauthenticateWithCredential(_user, cred) {
+  if (cred.password === 'wrong') { const e = new Error('wrong password'); e.code = 'auth/wrong-password'; throw e; }
+  window.__reauthed = (window.__reauthed || 0) + 1;
+}
 
 const join = (parts) => parts.flat().join('/').split('/').filter(Boolean).join('/');
 let auto = 0;
@@ -125,6 +147,18 @@ export function writeBatch() {
     delete: (r) => ops.push(() => store.delete(r.path)),
     commit: async () => { ops.forEach((o) => o()); changed(); },
   };
+}
+export async function runTransaction(_db, fn) {
+  const ops = [];
+  const tx = {
+    get: async (r) => snapDoc(r.path),
+    set: (r, d, o) => { ops.push(() => store.set(r.path, o?.merge ? applyPatch(store.get(r.path), d) : structuredClone(d))); return tx; },
+    update: (r, d) => { ops.push(() => store.set(r.path, applyPatch(store.get(r.path), d))); return tx; },
+  };
+  const out = await fn(tx);
+  ops.forEach((o) => o());
+  changed();
+  return out;
 }
 export function ref(_s, path) { return { path }; }
 export async function uploadBytes() {}

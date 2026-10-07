@@ -6,6 +6,13 @@
 import { addStrings } from './i18n.js';
 
 const en = {
+  // Profile and the till mode lock
+  sideHide: 'Hide menu', navProfile: 'Profile', profCompany: 'Company', profRole: 'Role', profStaff: 'Staff', profCode: 'Company code',
+  profCodeHelp: 'Staff join with this code: on the sign-in page, Join company.', profMode: 'Till mode', profNoMode: 'Not chosen yet: the first time the till is opened it asks.',
+  profChangeMode: 'Change mode', profAdminOnly: 'Only an admin can change the till mode.', profPassword: 'Your password, to confirm it is you',
+  profWrongPw: 'That password is not right.', profModeChanged: 'Till mode changed', profPickNew: 'Choose the new till mode',
+  modeLocked: 'The till mode is set. To change it, an admin goes to Profile and enters their password.',
+  modeLockFirst: 'Choose carefully: once set, only an admin can change it, on Profile, with their password.',
   // JEXO Cloud dashboard
   navCloud: 'JEXO Cloud', dashLead: 'Your business today, in one place. What shows here follows the products you have.',
   dashToday: 'Today', dashSales: 'Sales today', dashReceipts: 'Receipts', dashAverage: 'Average bill', dashVoided: 'Voided',
@@ -63,6 +70,13 @@ const en = {
 };
 
 const zh = {
+  // Profile 和收银模式锁定
+  sideHide: '收起菜单', navProfile: '我的 Profile', profCompany: '公司', profRole: '角色', profStaff: '员工', profCode: '公司代码',
+  profCodeHelp: '员工用这个代码加入：在登录页按「加入公司」。', profMode: '收银模式', profNoMode: '还没选：第一次打开收银时会问。',
+  profChangeMode: '更换模式', profAdminOnly: '只有管理员可以更换收银模式。', profPassword: '输入你的密码，确认是你本人',
+  profWrongPw: '密码不对。', profModeChanged: '收银模式已更换', profPickNew: '选新的收银模式',
+  modeLocked: '收银模式已经选定。要更换：管理员到「我的 Profile」输入密码才可以换。',
+  modeLockFirst: '请想清楚再选：选了以后，只有管理员到「我的 Profile」输入密码才可以换。',
   // JEXO Cloud dashboard
   navCloud: 'JEXO Cloud 云后台', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
   dashToday: '今天', dashSales: '今天销售', dashReceipts: '收据', dashAverage: '平均每单', dashVoided: '已作废',
@@ -114,6 +128,13 @@ const zh = {
 };
 
 const ms = {
+  // Profil dan kunci mod kaunter
+  sideHide: 'Sembunyi menu', navProfile: 'Profil', profCompany: 'Syarikat', profRole: 'Peranan', profStaff: 'Pekerja', profCode: 'Kod syarikat',
+  profCodeHelp: 'Pekerja sertai dengan kod ini: di halaman log masuk, Sertai syarikat.', profMode: 'Mod kaunter', profNoMode: 'Belum dipilih: kali pertama kaunter dibuka ia akan bertanya.',
+  profChangeMode: 'Tukar mod', profAdminOnly: 'Hanya admin boleh menukar mod kaunter.', profPassword: 'Kata laluan anda, untuk mengesahkan diri',
+  profWrongPw: 'Kata laluan itu salah.', profModeChanged: 'Mod kaunter ditukar', profPickNew: 'Pilih mod kaunter baharu',
+  modeLocked: 'Mod kaunter sudah ditetapkan. Untuk menukar, admin pergi ke Profil dan masukkan kata laluan.',
+  modeLockFirst: 'Pilih dengan teliti: selepas ditetapkan, hanya admin boleh menukarnya di Profil dengan kata laluan.',
   // JEXO Cloud dashboard
   navCloud: 'JEXO Cloud', dashLead: 'Perniagaan anda hari ini, di satu tempat. Apa yang dipaparkan ikut produk yang anda ada.',
   dashToday: 'Hari ini', dashSales: 'Jualan hari ini', dashReceipts: 'Resit', dashAverage: 'Purata bil', dashVoided: 'Dibatalkan',

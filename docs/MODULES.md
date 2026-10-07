@@ -88,3 +88,22 @@ as text and read; the person checks it before saving. The order keeps
 keeps `sourceTitle`, which is how a product is matched again next time. Stock
 changes only when the parcel is received (scan its tracking number on
 Receive). Part of the procurement module: `may: 'procurement.purchase'`.
+
+## Apps, sign-up and locks
+
+- **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then JEXO Count,
+  POS, Cloud and Warehouse. An app the plan does not include is shown locked with where to add
+  it; every app's sidebar carries the same switcher.
+- **JEXO Count on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
+  the Android app (reference numbers from `meta/counters`, increments for edits), so a count can
+  be started on one and finished on the other.
+- **Sign-up** (`web/js/signup.js`): a new company (founder is admin: code claimed, built-in roles
+  from `web/js/roles.js` — checked against `BuiltInRoles.kt` — profile, then settings, trial and
+  the user index) or joining with the company code as a Worker. Forgotten password: email and
+  company code; Firebase mails the link to that email. The rules allow the admin role only to
+  the person who claimed the company's code.
+- **Till mode** is chosen once; afterwards only an admin changes it, on Profile, after typing
+  their password (`web/js/profile.js`; the rules refuse a mode change by anyone but an admin).
+- **Till lock** (`web/js/tilllock.js`): a counter computer can be locked to the register; an
+  admin's email and password lock and unlock it. The other apps send a locked computer back to
+  the till. It locks screens; roles and rules still decide what each person may do.

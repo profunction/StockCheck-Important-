@@ -9,8 +9,11 @@
  * website is exactly the files in web/.
  */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import { createUserWithEmailAndPassword, getAuth, signOut as signOutOf } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword as signInOn, signOut as signOutOf } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
+  doc as docOn,
+  getDoc as getDocOn,
+  getFirestore,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
@@ -18,7 +21,11 @@ import {
 import { getStorage } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
 
 export {
+  EmailAuthProvider,
+  createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
@@ -34,6 +41,7 @@ export {
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   setDoc,
   updateDoc,
   where,
@@ -82,5 +90,29 @@ export async function createStaffAccount(email, password) {
   } finally {
     // Signed out after the caller's undo has had its chance; see addEmployee.
     setTimeout(() => signOutOf(staffAuth).catch(() => {}), 5000);
+  }
+}
+
+/**
+ * Whether [email]/[password] belong to an active admin of company [wsId] --
+ * checked on a second app, so whoever is signed in at the till (often a
+ * cashier) stays signed in. Throws when the password is wrong or the
+ * account is not that company's admin.
+ */
+let checkApp;
+export async function verifyAdmin(email, password, wsId) {
+  checkApp ??= initializeApp(config, 'check');
+  const checkAuth = getAuth(checkApp);
+  const result = await signInOn(checkAuth, email, password);
+  try {
+    const snap = await getDocOn(docOn(getFirestore(checkApp), 'workspaces', wsId, 'users', result.user.uid));
+    const p = snap.exists() ? snap.data() : null;
+    if (!p || p.roleId !== 'admin' || p.active !== true) {
+      const err = new Error('not an admin');
+      err.code = 'not-admin';
+      throw err;
+    }
+  } finally {
+    await signOutOf(checkAuth).catch(() => {});
   }
 }

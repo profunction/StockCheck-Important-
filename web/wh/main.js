@@ -4,13 +4,15 @@
  * app and the till. Laid out for a phone in a worker's hand (big buttons,
  * a bar along the bottom) and for a manager at a computer (a sidebar).
  */
-import { auth, initFirebase, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from '../js/fb.js';
+import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from '../js/fb.js';
 import { h, mount, toast } from '../js/dom.js';
 import { addStrings, getLang, LANGS, setLang, t } from '../js/i18n.js';
 import { icon } from '../js/icons.js';
 import { endSession, loadSession, onChange, session } from '../js/session.js';
 import { STRINGS } from './strings.js';
 import '../js/strings-pro.js';
+import { appSwitcher } from '../js/apps.js';
+import { guardTillLock } from '../js/tilllock.js';
 
 addStrings(STRINGS);
 const app = document.getElementById('app');
@@ -82,13 +84,11 @@ function renderSignIn(message = '') {
   h('label', { class: 'field' }, t('email'), email),
   h('label', { class: 'field' }, t('password'), password),
   error, submit,
-  h('button', {
-    type: 'button', class: 'ghost',
-    onclick: async () => {
-      if (!email.value.trim()) return toast(t('enterEmailFirst'));
-      try { await sendPasswordResetEmail(auth, email.value.trim()); toast(t('resetSent'), 'ok'); } catch (err) { toast(friendlyAuthError(err), 'error'); }
-    },
-  }, t('forgotPassword')),
+  // Forgotten password (email + company code) and registering live on the
+  // shared sign-in screen of the app centre.
+  h('a', { class: 'btn ghost', href: '/app/#reset', 'data-link': 'reset' }, t('forgotPassword')),
+  h('p', { class: 'muted', style: { margin: 0, textAlign: 'center' } }, `${t('suNoAccount')} `,
+    h('a', { href: '/app/#join', 'data-link': 'join' }, t('suJoin')), ' · ', h('a', { href: '/app/#create', 'data-link': 'create' }, t('suCreate'))),
   langPicker());
   mount(app, h('div', { class: 'signin-split' },
     h('section', { class: 'signin-brand wh-brand' },
@@ -112,6 +112,8 @@ let bottomEl;
 let stopPage = null;
 
 function renderShell() {
+  // A counter computer locked to the till does not open the warehouse.
+  if (guardTillLock()) return;
   sideEl = h('aside', { class: 'side' });
   mainEl = h('main', { class: 'main' });
   bottomEl = h('nav', { class: 'wh-bottom', 'aria-label': t('whMenu') });
@@ -144,6 +146,7 @@ function renderSide() {
     h('div', { class: 'foot' },
       placePicker(),
       h('a', { class: 'side-link', href: '/pos/' }, icon('cart', 17), t('whOpenPos')),
+      appSwitcher('warehouse'),
       installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
       langPicker(),
       h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));

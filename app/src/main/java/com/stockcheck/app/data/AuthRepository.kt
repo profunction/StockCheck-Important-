@@ -204,8 +204,10 @@ class AuthRepository(
     /**
      * Joins an existing company using the code its admin handed out.
      *
-     * The code is resolved to a company BEFORE the account is created, so an
-     * unknown code costs nothing and leaves nothing behind.
+     * The account is created first and the code resolved after: company
+     * codes can only be read by a signed-in account (the rules refuse
+     * everyone else, so a code cannot be probed from outside). An unknown
+     * code removes the account again, so it still leaves nothing behind.
      */
     suspend fun joinCompany(
         email: String,
@@ -213,14 +215,17 @@ class AuthRepository(
         displayName: String,
         joinCode: String,
     ) {
+        val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
+        val uid = result.user?.uid ?: error("Registration returned no user")
+
         val target = workspaces.resolveCode(joinCode)
-            ?: throw IllegalStateException(
+        if (target == null) {
+            rollbackAccount()
+            throw IllegalStateException(
                 "That company code was not recognised. Check it with your " +
                     "administrator — codes are not case sensitive.",
             )
-
-        val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
-        val uid = result.user?.uid ?: error("Registration returned no user")
+        }
         Db.workspaceId = target.workspaceId
 
         runCatching {
@@ -266,6 +271,8 @@ class AuthRepository(
                 roleId = BuiltInRoles.ADMIN_ID,
                 joinCode = joinCode,
             )
+            // Now that this account administers the company, its settings.
+            workspaces.writeConfig(uid, companyName, joinCode)
             // After the profile, not before: the rule this write has to pass
             // checks that this account already administers this workspace.
             //

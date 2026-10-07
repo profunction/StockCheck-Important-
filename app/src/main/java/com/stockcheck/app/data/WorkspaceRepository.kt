@@ -126,16 +126,27 @@ class WorkspaceRepository {
         }
         batch.commit().awaitAck()
 
+        return workspaceId
+    }
+
+    /**
+     * The new company's name and code, in meta/config.
+     *
+     * Written after the founder's own admin profile, not before: only an
+     * admin of the company may write its settings, and until the profile
+     * exists nobody is. Written earlier, the rules refused it -- quietly,
+     * since a refused write only shows as a missing acknowledgement -- and
+     * the company was left with no name and no code to check staff against.
+     */
+    suspend fun writeConfig(uid: String, companyName: String, rawCode: String) {
         Db.config().set(
             WorkspaceConfig(
                 companyName = companyName.trim(),
-                joinCode = code,
-                updatedAt = now,
+                joinCode = WorkspaceConfig.normalise(rawCode),
+                updatedAt = System.currentTimeMillis(),
                 updatedByUid = uid,
             ),
         ).awaitAck()
-
-        return workspaceId
     }
 
     /** Forgets the current company, so the next sign-in resolves its own. */

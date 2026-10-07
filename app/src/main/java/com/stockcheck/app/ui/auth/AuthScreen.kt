@@ -49,6 +49,7 @@ import com.stockcheck.app.ui.common.NoticeTone
 /** Which of the three things the form is currently doing. */
 private enum class AuthMode(val label: String, val title: String, val action: String) {
     SIGN_IN("Sign in", "Sign in to continue counting", "Sign in"),
+    JOIN("Join", "Join your company with its code", "Join company"),
     CREATE("New company", "Set up a new company on JEXO", "Create company"),
 }
 
@@ -71,7 +72,13 @@ fun AuthScreen(
         companyName: String,
         code: String,
     ) -> Unit,
-    onResetPassword: (email: String) -> Unit,
+    onJoinCompany: (
+        email: String,
+        password: String,
+        name: String,
+        code: String,
+    ) -> Unit,
+    onResetPassword: (email: String, companyCode: String) -> Unit,
     onClearError: () -> Unit,
 ) {
     var mode by remember { mutableStateOf(AuthMode.SIGN_IN) }
@@ -264,8 +271,8 @@ fun AuthScreen(
             if (mode == AuthMode.CREATE) {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Staff do not sign up here. Once your company exists you add " +
-                        "them from Profile, and give each person their password.",
+                    text = "Staff join with this code (Join), or you add them from " +
+                        "Profile and give each person their password.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -279,6 +286,7 @@ fun AuthScreen(
                 onClick = {
                     when (mode) {
                         AuthMode.SIGN_IN -> onSignIn(email, password, joinCode)
+                        AuthMode.JOIN -> onJoinCompany(email, password, displayName, joinCode)
                         AuthMode.CREATE ->
                             onCreateCompany(email, password, displayName, companyName, joinCode)
                     }
@@ -301,7 +309,7 @@ fun AuthScreen(
             }
 
             if (mode == AuthMode.SIGN_IN) {
-                TextButton(onClick = { onResetPassword(email) }, enabled = !busy) {
+                TextButton(onClick = { onResetPassword(email, joinCode) }, enabled = !busy) {
                     Text("Forgot password")
                 }
             }

@@ -39,7 +39,7 @@ On hand = the last finished count + goods received since − sales and goods out
 - **Open API**: Online shops and accounting software read and update items, stock, receipts and customers with an access token.
 
 ## The four products (one shared stock)
-- **JEXO Count** (Android app): Count your stock quickly with a phone. Phone barcode scanning; Say the quantity; Counts offline; Shows what is short; Photos; Loyverse sync.
+- **JEXO Count** (Android app and web): Count your stock quickly with a phone. Phone barcode scanning; Say the quantity; Counts offline; Shows what is short; Photos; Loyverse sync.
 - **JEXO POS** (Web, installable): Faster, simpler checkout at the counter. Retail: barcode, SST, cash rounding, receipts, offline; Restaurant: dine-in, modifiers, kitchen tickets, service charge.
 - **JEXO Warehouse** (Web and phone): Warehouse stock, goods in and out, transfers to shops. Purchase orders and approval; Receiving by scan; Transfers in transit; Adjustments; Reorder suggestions.
 - **JEXO Cloud** (Web): For the owner: the business at a glance, staff, and adding more. Sales and shift reports; Staff and permissions; Items, prices, taxes; Monthly LHDN e-invoice; A dashboard that fits your business.
@@ -100,6 +100,8 @@ Yes. Every part has step-by-step guides with videos on the website's Guide page,
 - Website (中文): https://stockcheck-fb58e.web.app/
 - Website (English): https://stockcheck-fb58e.web.app/en/
 - Website (Bahasa Melayu): https://stockcheck-fb58e.web.app/ms/
+- Sign in or sign up (all apps): https://stockcheck-fb58e.web.app/app/
+- JEXO Count on the web: https://stockcheck-fb58e.web.app/count/
 - POS sign-in: https://stockcheck-fb58e.web.app/pos/
 - Android app download: https://stockcheck-fb58e.web.app/download/StockCheck.apk
 - Warehouse system (web, works on phones): https://stockcheck-fb58e.web.app/warehouse/

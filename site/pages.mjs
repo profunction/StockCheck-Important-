@@ -43,7 +43,7 @@ export const PAGES = {
     },
     productsTitle: 'JEXO 产品：四个产品，一份库存',
     products: {
-      stocktake: { name: 'JEXO Count', kind: '盘点通 · Android App', line: '用手机快速完成库存盘点。', points: ['手机扫码', '语音输入数量', '离线盘点', '库存核对：短少多少', '照片记录', 'Loyverse 同步'], cta: '我要开始盘点' },
+      stocktake: { name: 'JEXO Count', kind: '盘点通 · Android App + 网页', line: '用手机快速完成库存盘点。', points: ['手机扫码', '语音输入数量', '离线盘点', '库存核对：短少多少', '照片记录', 'Loyverse 同步'], cta: '我要开始盘点' },
       pos: { name: 'JEXO POS', kind: '收银通 · 网页 / 可安装', line: '让柜台收银更快、更简单。', points: ['零售：扫码、SST、现金四舍五入、收据、离线', '餐饮：堂食外带、加料、厨房单、服务费'], cta: '我是零售店', cta2: '我是餐饮店' },
       warehouse: { name: 'JEXO Warehouse', kind: '仓管通 · 网页 / 手机', line: '管理仓库、进出货和门店调货。', points: ['采购单和批准', '扫码收货', '调货（在途）', '库存调整', '补货建议'], cta: '看仓库方案' },
       backoffice: { name: 'JEXO Cloud', kind: '云后台 · 网页', line: '老板查看生意、管理员工、开启扩展功能。', points: ['销售和交班报表', '员工和权限', '商品、价格、税', '每月 LHDN 电子发票', '按生意显示的仪表板'], cta: '登录后台' },
@@ -88,7 +88,7 @@ export const PAGES = {
     },
     productsTitle: 'Four products, one stock',
     products: {
-      stocktake: { name: 'JEXO Count', kind: 'Android app', line: 'Count your stock quickly with a phone.', points: ['Phone barcode scanning', 'Say the quantity', 'Counts offline', 'Shows what is short', 'Photos', 'Loyverse sync'], cta: 'Start counting' },
+      stocktake: { name: 'JEXO Count', kind: 'Android app and web', line: 'Count your stock quickly with a phone.', points: ['Phone barcode scanning', 'Say the quantity', 'Counts offline', 'Shows what is short', 'Photos', 'Loyverse sync'], cta: 'Start counting' },
       pos: { name: 'JEXO POS', kind: 'Web, installable', line: 'Faster, simpler checkout at the counter.', points: ['Retail: barcode, SST, cash rounding, receipts, offline', 'Restaurant: dine-in, modifiers, kitchen tickets, service charge'], cta: 'I run a shop', cta2: 'I run a restaurant' },
       warehouse: { name: 'JEXO Warehouse', kind: 'Web and phone', line: 'Warehouse stock, goods in and out, transfers to shops.', points: ['Purchase orders and approval', 'Receiving by scan', 'Transfers in transit', 'Adjustments', 'Reorder suggestions'], cta: 'See the warehouse setup' },
       backoffice: { name: 'JEXO Cloud', kind: 'Web', line: 'For the owner: the business at a glance, staff, and adding more.', points: ['Sales and shift reports', 'Staff and permissions', 'Items, prices, taxes', 'Monthly LHDN e-invoice', 'A dashboard that fits your business'], cta: 'Sign in' },
@@ -133,7 +133,7 @@ export const PAGES = {
     },
     productsTitle: 'Empat produk, satu stok',
     products: {
-      stocktake: { name: 'JEXO Count', kind: 'Aplikasi Android', line: 'Kira stok dengan cepat guna telefon.', points: ['Imbas kod bar dengan telefon', 'Sebut kuantiti', 'Kira tanpa internet', 'Tunjuk apa yang kurang', 'Foto', 'Segerak Loyverse'], cta: 'Mula kira stok' },
+      stocktake: { name: 'JEXO Count', kind: 'Aplikasi Android dan web', line: 'Kira stok dengan cepat guna telefon.', points: ['Imbas kod bar dengan telefon', 'Sebut kuantiti', 'Kira tanpa internet', 'Tunjuk apa yang kurang', 'Foto', 'Segerak Loyverse'], cta: 'Mula kira stok' },
       pos: { name: 'JEXO POS', kind: 'Web, boleh dipasang', line: 'Bayaran di kaunter lebih cepat dan mudah.', points: ['Runcit: kod bar, SST, bundar tunai, resit, luar talian', 'Restoran: makan sini, pengubah, tiket dapur, caj perkhidmatan'], cta: 'Saya ada kedai', cta2: 'Saya ada restoran' },
       warehouse: { name: 'JEXO Warehouse', kind: 'Web dan telefon', line: 'Stok gudang, barang masuk dan keluar, pindahan ke kedai.', points: ['Pesanan belian dan kelulusan', 'Terima dengan imbasan', 'Pindahan dalam transit', 'Pelarasan', 'Cadangan tambah stok'], cta: 'Lihat pelan gudang' },
       backoffice: { name: 'JEXO Cloud', kind: 'Web', line: 'Untuk pemilik: perniagaan sekali pandang, pekerja, dan tambah fungsi.', points: ['Laporan jualan dan syif', 'Pekerja dan kebenaran', 'Barang, harga, cukai', 'e-Invois LHDN bulanan', 'Papan pemuka ikut perniagaan'], cta: 'Log masuk' },

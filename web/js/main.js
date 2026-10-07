@@ -5,12 +5,14 @@
  * JEXO Count app -- both read and write one database, so there is nothing to
  * connect or sync.
  */
-import { auth, initFirebase, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from './fb.js';
-import { h, mount, toast } from './dom.js';
+import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from './fb.js';
+import { h, local, mount, toast } from './dom.js';
 import { icon } from './icons.js';
 import { getLang, LANGS, setLang, t } from './i18n.js';
 import { endSession, loadSession, onChange, session } from './session.js';
 import './strings-pro.js';
+import { appSwitcher } from './apps.js';
+import { isTillLocked, tillLockButton, toggleTillLock } from './tilllock.js';
 
 const app = document.getElementById('app');
 
@@ -45,6 +47,7 @@ const MENU = [
     ], page: () => import('./integrations.js'),
   },
   { id: 'guide', icon: 'check', label: 'posGuide', perm: null, page: () => import('./posguide.js') },
+  { id: 'profile', icon: 'user', label: 'navProfile', perm: null, page: () => import('./profile.js') },
   {
     id: 'settings', icon: 'sliders', label: 'navSettings', perm: null, children: [
       ['features', 'setFeatures'], ['payments', 'setPayments'], ['taxes', 'setTaxes'], ['loyalty', 'setLoyalty'],
@@ -59,6 +62,8 @@ const MENU = [
  * pages that belong to every plan.
  */
 function allowed(item) {
+  // A till locked to the register (tilllock.js) shows the register only.
+  if (isTillLocked() && item.id !== 'pos') return false;
   if (item.may) return session.may(item.may);
   if (!item.perm) return true;
   const perms = Array.isArray(item.perm) ? item.perm : [item.perm];
@@ -97,18 +102,11 @@ function renderSignIn(message = '') {
   h('label', { class: 'field' }, t('password'), password),
   error,
   submit,
-  h('button', {
-    type: 'button', class: 'ghost',
-    onclick: async () => {
-      if (!email.value.trim()) return toast(t('enterEmailFirst'));
-      try {
-        await sendPasswordResetEmail(auth, email.value.trim());
-        toast(t('resetSent'), 'ok');
-      } catch (err) {
-        toast(friendlyAuthError(err), 'error');
-      }
-    },
-  }, t('forgotPassword')),
+  // Forgotten password (email + company code) and registering live on the
+  // shared sign-in screen of the app centre.
+  h('a', { class: 'btn ghost', href: '/app/#reset', 'data-link': 'reset' }, t('forgotPassword')),
+  h('p', { class: 'muted', style: { margin: 0, textAlign: 'center' } }, `${t('suNoAccount')} `,
+    h('a', { href: '/app/#join', 'data-link': 'join' }, t('suJoin')), ' · ', h('a', { href: '/app/#create', 'data-link': 'create' }, t('suCreate'))),
   langPicker());
   mount(app, h('div', { class: 'signin-split' },
     h('section', { class: 'signin-brand' },
@@ -148,7 +146,7 @@ let stopPage = null;
 function renderShell() {
   sideEl = h('aside', { class: 'side' });
   mainEl = h('main', { class: 'main' });
-  shell = h('div', { class: 'shell' }, sideEl, mainEl);
+  shell = h('div', { class: `shell${local.get('pos.sideCollapsed', false) ? ' collapsed' : ''}` }, sideEl, mainEl);
   mount(app, shell);
   renderSide();
   route();
@@ -177,17 +175,21 @@ function renderSide() {
     nav.append(box);
   }
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png', alt: '', width: 28, height: 28 }), 'JEXO POS'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png', alt: '', width: 28, height: 28 }), h('span', { class: 'grow' }, 'JEXO POS'),
+      h('button', { class: 'ghost icon-btn side-collapse', title: t('sideHide'), 'aria-label': t('sideHide'), onclick: () => setCollapsed(true) }, icon('chevron', 18))),
+    isTillLocked() ? h('div', { class: 'till-locked-note' }, icon('lock', 16), t('tlOnlyTill')) : null,
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email),
       h('div', { class: 'sm' }, `${t('branch')}: ${session.branchName()}`)),
     nav,
     h('div', { class: 'foot' },
-      session.has('warehouse') ? h('a', { class: 'side-link', href: '/warehouse/' }, icon('box', 17), t('whApp')) : null,
+      session.has('warehouse') && !isTillLocked() ? h('a', { class: 'side-link', href: '/warehouse/' }, icon('box', 17), t('whApp')) : null,
+      isTillLocked() ? null : appSwitcher('pos'),
       installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
+      h('button', { 'data-act': 'side-till-lock', onclick: () => toggleTillLock(afterLock) }, icon('lock', 17), isTillLocked() ? t('tlUnlock') : t('tlLock')),
       langPicker(),
-      h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));
+      isTillLocked() ? null : h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));
 }
 
 async function route() {
@@ -222,8 +224,28 @@ async function route() {
 
 /** A "☰" button pages put in their header, for narrow screens. */
 export function menuButton() {
-  return h('button', { class: 'menu-toggle ghost icon-btn', 'aria-label': 'Menu', onclick: () => shell?.classList.add('menu') }, icon('menu', 20));
+  return h('button', {
+    class: 'menu-toggle ghost icon-btn', 'aria-label': 'Menu',
+    // On a wide screen with the menu put away, this brings it back; on a narrow one it slides over.
+    onclick: () => (shell?.classList.contains('collapsed') && window.innerWidth > 960 ? setCollapsed(false) : shell?.classList.add('menu')),
+  }, icon('menu', 20));
 }
+
+/** The left menu put away (more room for the till) or back; remembered on this computer. */
+function setCollapsed(on) {
+  local.set('pos.sideCollapsed', on);
+  shell?.classList.toggle('collapsed', on);
+  shell?.classList.remove('menu');
+}
+
+/** After locking or unlocking the till: the menu and the page follow. */
+function afterLock(locked) {
+  if (locked && !location.hash.startsWith('#/pos')) location.hash = '#/pos';
+  else route();
+}
+
+/** The lock button, top right of the register. */
+export const tillButton = () => tillLockButton(afterLock);
 
 // ------------------------------------------------------------ install as app
 

@@ -22,6 +22,14 @@
       {
         "source": "/warehouse/**",
         "destination": "/warehouse/index.html"
+      },
+      {
+        "source": "/count/**",
+        "destination": "/count/index.html"
+      },
+      {
+        "source": "/app/**",
+        "destination": "/app/index.html"
       }
     ],
     "headers": [
@@ -45,6 +53,24 @@
       },
       {
         "source": "/warehouse/**",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex"
+          }
+        ]
+      },
+      {
+        "source": "/app/**",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex"
+          }
+        ]
+      },
+      {
+        "source": "/count/**",
         "headers": [
           {
             "key": "X-Robots-Tag",

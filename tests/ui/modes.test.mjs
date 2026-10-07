@@ -1,10 +1,19 @@
 // Till modes: the first-run picker, the supermarket screen and its keys,
-// switching modes in settings, and the phone layout.
+// switching modes on Profile (admin, password), and the phone layout.
 import { start } from './harness.mjs';
 
 const { page, base, step, shot, done } = await start({ seedPatch: { merge: { 'workspaces/w1/pos/settings': { mode: '' } } } });
 const scan = async (code) => { await page.keyboard.type(code); await page.keyboard.press('Enter'); };
 const settings = () => page.evaluate(() => window.__store.get('workspaces/w1/pos/settings'));
+// Once chosen, the mode changes only on Profile, by an admin, with the password.
+const changeMode = async (mode) => {
+  await page.goto(base + '/pos/#/profile');
+  await page.click('button[data-act="change-mode"]');
+  await page.click(`.dialog .modecard[data-mode="${mode}"]`);
+  await page.fill('.dialog input[type=password]', 'secret');
+  await page.click('.dialog .actions button.primary');
+  await page.waitForFunction((m) => window.__store.get('workspaces/w1/pos/settings').mode === m, mode);
+};
 
 await page.goto(base + '/pos/');
 await step('a new shop is asked which kind of till it wants', async () => {
@@ -68,22 +77,18 @@ await step('pay from the supermarket screen', async () => {
   const sales = await page.evaluate(() => [...window.__store].filter(([k]) => k.includes('/sales/')).length);
   if (sales !== 1) throw new Error('sales ' + sales);
 });
-await step('settings switch to restaurant; the till follows', async () => {
+await step('settings show the mode locked; Profile switches to restaurant; the till follows', async () => {
   await page.goto(base + '/pos/#/settings/features');
   await page.waitForSelector('.modecard.on[data-mode="SUPERMARKET"]');
+  await page.waitForSelector('.mode-lock');
   if (!(await page.$('textarea.hidden, .hidden textarea'))) throw new Error('table names shown for supermarket');
-  await page.click('.modecard[data-mode="FNB"]');
-  await page.waitForSelector('textarea:visible');
-  await page.click('.card .actions button.primary');
-  await page.waitForFunction(() => window.__store.get('workspaces/w1/pos/settings').mode === 'FNB');
+  await changeMode('FNB');
   await page.goto(base + '/pos/#/pos');
   await page.waitForSelector('.register .reg-bar button:has-text("桌位")');
   await page.waitForSelector('.ticket .seg button.on:has-text("堂食")');
 });
 await step('retail shop: product grid, no tables', async () => {
-  await page.goto(base + '/pos/#/settings/features');
-  await page.click('.modecard[data-mode="RETAIL"]');
-  await page.click('.card .actions button.primary');
+  await changeMode('RETAIL');
   await page.goto(base + '/pos/#/pos');
   await page.waitForSelector('.register .tile');
   if (await page.isVisible('.reg-bar button:has-text("桌位")')) throw new Error('tables shown');
@@ -91,9 +96,7 @@ await step('retail shop: product grid, no tables', async () => {
   if ((await settings()).mode !== 'RETAIL') throw new Error('not saved');
 });
 await step('phone width has no sideways scroll on the supermarket screen', async () => {
-  await page.goto(base + '/pos/#/settings/features');
-  await page.click('.modecard[data-mode="SUPERMARKET"]');
-  await page.click('.card .actions button.primary');
+  await changeMode('SUPERMARKET');
   await page.setViewportSize({ width: 400, height: 800 });
   await page.goto(base + '/pos/#/pos');
   await page.waitForSelector('.market');

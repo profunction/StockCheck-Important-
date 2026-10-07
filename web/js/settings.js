@@ -4,6 +4,7 @@
  */
 import { db, doc, setDoc } from './fb.js';
 import { h, local, mount, toast } from './dom.js';
+import { icon } from './icons.js';
 import { getLang, paymentLabel, t } from './i18n.js';
 import { DEFAULT_SETTINGS, session, ws } from './session.js';
 import { menuButton } from './main.js';
@@ -53,13 +54,18 @@ function features(main) {
     h('label', { class: 'check' }, kitchen, t('kitchenTicketOpt')),
     h('label', { class: 'field' }, t('tableNames'), tables),
     h('p', { class: 'muted', style: { margin: 0 } }, t('tableNamesHelp')));
+  // Once chosen, the mode is locked here: an admin changes it on Profile,
+  // with their password (profile.js). Before that it is picked as before.
+  const locked = !!chosenMode(s);
   const drawCards = () => {
-    mount(cards, modeCards(mode, (m) => { mode = m; drawCards(); }));
+    mount(cards, modeCards(mode, locked ? () => toast(t('modeLocked')) : (m) => { mode = m; drawCards(); }));
     fnbOnly.classList.toggle('hidden', mode === 'SUPERMARKET' || mode === 'RETAIL');
   };
   drawCards();
   page(main, t('setFeatures'), [
     h('h3', { style: { margin: 0 } }, t('businessType')),
+    h('div', { class: 'notice mode-lock' }, icon('lock', 17), h('span', {}, locked ? t('modeLocked') : t('modeLockFirst'), ' ',
+      h('a', { href: '#/profile' }, `${t('navProfile')} →`))),
     cards,
     h('p', { class: 'muted', style: { margin: 0 } }, t('modeHelp')),
     fnbOnly,

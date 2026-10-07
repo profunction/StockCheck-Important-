@@ -296,6 +296,15 @@ service cloud.firestore {
                && get(licencePath()).data.modules.get(name, true) == false;
       }
 
+      // Whether the caller claimed company code [code] for this workspace --
+      // i.e. is the person who created the company.
+      function foundedBy(code) {
+        return code is string && code != ''
+               && exists(/databases/$(database)/documents/workspaceCodes/$(code))
+               && get(/databases/$(database)/documents/workspaceCodes/$(code)).data.workspaceId == ws
+               && get(/databases/$(database)/documents/workspaceCodes/$(code)).data.createdByUid == request.auth.uid;
+      }
+
       function joinCodeAccepted() {
         return !exists(configPath())
                || get(configPath()).data.joinCode == ''
@@ -321,8 +330,15 @@ service cloud.firestore {
                            // Creating a company: you write your own profile,
                            // and only an unclaimed workspace may hand out the
                            // admin role that way.
+                           //
+                           // The admin role only for the person who claimed
+                           // this company's code (workspaceCodes/{code}
+                           // records who did): knowing a company's code is
+                           // how staff join it, and must never be enough to
+                           // join it as its admin.
                            (request.auth.uid == uid
-                            && (request.resource.data.roleId != 'admin' || !profileExists())
+                            && (request.resource.data.roleId != 'admin'
+                                || (!profileExists() && foundedBy(request.resource.data.get('joinCode', ''))))
                             && joinCodeAccepted())
                            // Or an admin is issuing an account for a
                            // colleague, in which case the code is irrelevant:
@@ -624,7 +640,19 @@ service cloud.firestore {
 
       match /pos/{docId} {
         allow read: if active();
-        allow write: if can('POS_MANAGE');
+        allow write: if can('POS_MANAGE') && docId != 'settings';
+      }
+
+      // The till's settings. Its mode (restaurant, supermarket, retail) is
+      // chosen once by whoever sets the till up; changing it afterwards is
+      // an admin's decision (the website asks for their password again).
+      match /pos/settings {
+        function modeKept() {
+          return resource == null
+                 || resource.data.get('mode', '') in ['', 'BOTH']
+                 || request.resource.data.get('mode', '') == resource.data.get('mode', '');
+        }
+        allow write: if can('POS_MANAGE') && (modeKept() || isAdmin());
       }
 
       // -------------------------------------------------- POS connections

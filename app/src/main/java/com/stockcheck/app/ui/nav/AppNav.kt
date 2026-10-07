@@ -166,6 +166,7 @@ fun StockCheckRoot() {
             error = error,
             onSignIn = sessionViewModel::signIn,
             onCreateCompany = sessionViewModel::createCompany,
+            onJoinCompany = sessionViewModel::joinCompany,
             onResetPassword = sessionViewModel::resetPassword,
             onClearError = sessionViewModel::clearError,
         )

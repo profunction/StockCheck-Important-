@@ -1,5 +1,6 @@
 /**
- * Makes the POS and the warehouse system open with the internet down.
+ * Makes the POS, the warehouse system, JEXO Count and the app centre open
+ * with the internet down.
  *
  * The website's own files: network first, so a new version is used as soon
  * as it is online, the cached copy when it is not. Firebase's SDK from
@@ -7,10 +8,10 @@
  * copy is never out of date. Data is not touched here; Firestore keeps its
  * own offline copy and sends queued sales when the connection returns.
  */
-const CACHE = 'stockcheck-pos-v5';
+const CACHE = 'stockcheck-pos-v6';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/pos/', '/pos/index.html', '/css/pos.css', '/js/main.js', '/warehouse/', '/warehouse/index.html', '/css/wh.css', '/wh/main.js'])).catch(() => {}));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/pos/', '/pos/index.html', '/css/pos.css', '/js/main.js', '/warehouse/', '/warehouse/index.html', '/css/wh.css', '/wh/main.js', '/count/', '/count/index.html', '/cnt/main.js', '/app/', '/app/index.html', '/hub/main.js'])).catch(() => {}));
   self.skipWaiting();
 });
 
@@ -44,5 +45,7 @@ self.addEventListener('fetch', (event) => {
     }
     return res;
   }).catch(() => caches.match(request).then((hit) => hit || (url.pathname.startsWith('/pos') ? caches.match('/pos/index.html')
-    : url.pathname.startsWith('/warehouse') ? caches.match('/warehouse/index.html') : undefined))));
+    : url.pathname.startsWith('/warehouse') ? caches.match('/warehouse/index.html')
+      : url.pathname.startsWith('/count') ? caches.match('/count/index.html')
+        : url.pathname.startsWith('/app') ? caches.match('/app/index.html') : undefined))));
 });
