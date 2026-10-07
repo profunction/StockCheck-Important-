@@ -51,6 +51,8 @@ data class SyncResult(
     val stockLevels: Int?,
     val newProducts: Int = 0,
     val renamedProducts: Int = 0,
+    /** Loyverse items with neither a barcode nor a SKU, left out. */
+    val skipped: Int = 0,
 )
 
 /**
@@ -226,6 +228,7 @@ class LoyverseSync(private val audit: AuditRepository) {
             stockLevels = stock?.size,
             newProducts = plan.create.size,
             renamedProducts = plan.update.size,
+            skipped = plan.noBarcode,
         )
         Db.integration(NAME).update(
             mapOf(
@@ -233,7 +236,8 @@ class LoyverseSync(private val audit: AuditRepository) {
                 "lastResult" to "${result.receiptLines} receipt lines, ${result.productDays} product-days" +
                     " from $windowStart" +
                     (result.stockLevels?.let { ", stock for $it products" } ?: ", stock not shared") +
-                    ", ${result.newProducts} new products, ${result.renamedProducts} updated",
+                    ", ${variants.size} items in Loyverse, ${result.newProducts} new products, ${result.renamedProducts} updated" +
+                    (if (result.skipped > 0) ", ${result.skipped} without barcode or SKU skipped" else ""),
             ),
         ).awaitAck()
         audit.record(

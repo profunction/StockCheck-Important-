@@ -54,7 +54,7 @@ data class PosStock(
  * https://api.loyverse.com/v1.0 with `Authorization: Bearer <token>`:
  *
  * - /stores   -> { stores: [ { id, name } ] }
- * - /items    -> { items: [ { item_name, variants: [ { variant_id, sku, barcode } ] } ], cursor }
+ * - /items    -> { items: [ { item_name, variants: [ { variant_id, sku, barcode, default_price, cost } ] } ], cursor }
  * - /receipts -> { receipts: [ { receipt_number, receipt_type: SALE|REFUND,
  *                  cancelled_at, created_at, receipt_date, store_id,
  *                  line_items: [ { id, variant_id, item_name, sku, quantity } ] } ], cursor }
@@ -77,7 +77,17 @@ object Loyverse {
         val itemName: String,
         /** "Large", "Chocolate / 1kg": what tells one variant of an item from another. */
         val options: String = "",
+        /** Loyverse's selling price and cost, in sen; null where it has none (a variable price). */
+        val priceSen: Long? = null,
+        val costSen: Long? = null,
     ) {
+        /**
+         * What the product is filed under here: the barcode, or -- for the
+         * many Loyverse items that have none -- the SKU Loyverse gives every
+         * item. Blank only when it has neither.
+         */
+        val code: String get() = barcode.ifEmpty { sku }
+
         /** The name a product gets here: the item, and the variant if there are several. */
         val displayName: String get() = listOf(itemName, options).filter { it.isNotBlank() }.joinToString(" ")
     }
@@ -131,6 +141,8 @@ object Loyverse {
                             .map { variant.nonNullString(it).trim() }
                             .filter { it.isNotEmpty() }
                             .joinToString(" / "),
+                        priceSen = variant.sen("default_price"),
+                        costSen = variant.sen("cost"),
                     )
                 }
             }
@@ -185,7 +197,7 @@ object Loyverse {
         val create: List<Product>,
         /** Existing products whose name or SKU Loyverse now says differently: id -> (name, sku). */
         val update: Map<String, Pair<String, String>>,
-        /** Items with no barcode, which a scanner could never find. */
+        /** Items with neither a barcode nor a SKU, which nothing could find. */
         val noBarcode: Int,
     )
 
@@ -195,23 +207,30 @@ object Loyverse {
      * Loyverse is where the shop names things, so its name and SKU win. What
      * only this app knows -- other barcodes, the unit, the reorder level, a
      * product switched off -- is left alone. An item is matched by any of a
-     * product's barcodes; one with no barcode is skipped, because a product
-     * here is the thing a scan finds.
+     * product's barcodes, or by its SKU. One with no barcode is filed under
+     * its SKU: skipping those left most Loyverse shops with nothing synced,
+     * since Loyverse gives every item a SKU and few shops type barcodes in.
+     * A new product takes Loyverse's price and cost; an existing one keeps
+     * its own, which the till may have changed.
      */
     fun planProducts(variants: List<Variant>, catalogue: List<Product>, now: Long, uid: String): ProductPlan {
         val byCode = catalogue
             .flatMap { product -> product.allBarcodes.map { it.lowercase() to product } }
             .toMap()
+        val bySku = catalogue.filter { it.sku.isNotBlank() }.groupBy { it.sku.trim().lowercase() }
+            .filterValues { it.size == 1 }.mapValues { it.value.single() }
         val create = mutableMapOf<String, Product>()
         val update = mutableMapOf<String, Pair<String, String>>()
         var noBarcode = 0
         variants.forEach { variant ->
             val name = variant.displayName
-            if (variant.barcode.isEmpty()) {
+            val code = variant.code
+            if (code.isEmpty()) {
                 noBarcode++
                 return@forEach
             }
-            val existing = byCode[variant.barcode.lowercase()]
+            val existing = byCode[code.lowercase()]
+                ?: variant.sku.takeIf { variant.barcode.isEmpty() && it.isNotEmpty() }?.let { bySku[it.lowercase()] }
             when {
                 existing != null -> {
                     val newName = name.ifEmpty { existing.name }
@@ -220,11 +239,13 @@ object Loyverse {
                         update[existing.barcode] = newName to newSku
                     }
                 }
-                variant.barcode.lowercase() !in create.keys.map { it.lowercase() } -> {
-                    create[variant.barcode] = Product(
-                        barcode = variant.barcode,
-                        name = name.ifEmpty { variant.barcode },
+                code.lowercase() !in create.keys.map { it.lowercase() } -> {
+                    create[code] = Product(
+                        barcode = code,
+                        name = name.ifEmpty { code },
                         sku = variant.sku,
+                        priceSen = variant.priceSen,
+                        costSen = variant.costSen,
                         active = true,
                         createdAt = now,
                         createdByUid = uid,
@@ -390,6 +411,10 @@ object Loyverse {
     fun isoStartOf(day: LocalDate, zone: ZoneId): String = day.atStartOfDay(zone).toInstant().toString()
 
     private fun JSONObject.cursor(): String? = nonNullString("cursor").ifEmpty { null }
+
+    /** A money field (ringgit, as a number) in sen, or null when absent or null. */
+    private fun JSONObject.sen(name: String): Long? =
+        if (!has(name) || isNull(name)) null else optDouble(name, Double.NaN).takeIf { !it.isNaN() }?.let { (it * 100).roundToLong() }
 
     /** optString turns a JSON null into the text "null"; this does not. */
     private fun JSONObject.nonNullString(name: String): String =

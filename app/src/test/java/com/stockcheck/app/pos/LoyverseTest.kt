@@ -213,7 +213,8 @@ class LoyverseTest {
                 Loyverse.Variant("v2", barcode = "8889", sku = "SG", itemName = "Sugar"),
                 Loyverse.Variant("v3", barcode = "7777", sku = "S", itemName = "Same"),
                 Loyverse.Variant("v4", barcode = "1234", sku = "", itemName = "Eggs"),
-                Loyverse.Variant("v5", barcode = "", sku = "X", itemName = "Loose rice"),
+                Loyverse.Variant("v5", barcode = "", sku = "X", itemName = "Loose rice", priceSen = 450, costSen = 300),
+                Loyverse.Variant("v6", barcode = "", sku = "", itemName = "Nothing to find it by"),
             ),
             catalogue = catalogue,
             now = 1L,
@@ -224,8 +225,12 @@ class LoyverseTest {
         assertEquals("Sugar" to "SG", plan.update["8888"])
         // Nothing changed, nothing written.
         assertFalse("7777" in plan.update)
-        assertEquals(listOf("1234"), plan.create.map { it.barcode })
-        assertEquals("Eggs", plan.create.single().name)
+        // No barcode: filed under the SKU Loyverse gives every item, with its price and cost.
+        assertEquals(listOf("1234", "X"), plan.create.map { it.barcode })
+        assertEquals("Eggs", plan.create.first().name)
+        assertEquals(450L, plan.create.last().priceSen)
+        assertEquals(300L, plan.create.last().costSen)
+        // Only one with neither.
         assertEquals(1, plan.noBarcode)
     }
 
@@ -272,5 +277,30 @@ class LoyverseTest {
         assertEquals("v1", level.getString("variant_id"))
         assertEquals("s1", level.getString("store_id"))
         assertEquals(1.25, level.getDouble("stock_after"), 0.0)
+    }
+
+    @Test
+    fun `an item with no barcode is found again by its sku`() {
+        val catalogue = listOf(Product(barcode = "10001", name = "Old name", sku = "10001"))
+        val plan = Loyverse.planProducts(
+            variants = listOf(Loyverse.Variant("v1", barcode = "", sku = "10001", itemName = "Teh Tarik")),
+            catalogue = catalogue,
+            now = 1L,
+            uid = "u",
+        )
+        assertTrue(plan.create.isEmpty())
+        assertEquals("Teh Tarik" to "10001", plan.update["10001"])
+    }
+
+    @Test
+    fun `items carry the price and cost in sen`() {
+        val page = Loyverse.parseItems(
+            """{"items":[{"item_name":"Kopi","variants":[{"variant_id":"a","sku":"10002","barcode":null,"default_price":3.5,"cost":1.2}]},
+            {"item_name":"Ikan","variants":[{"variant_id":"b","sku":"10003","default_price":null}]}]}""",
+        )
+        assertEquals(350L, page.values[0].priceSen)
+        assertEquals(120L, page.values[0].costSen)
+        assertEquals("10002", page.values[0].code)
+        assertEquals(null, page.values[1].priceSen)
     }
 }
