@@ -188,7 +188,7 @@ const REPORTS = {
           stat(t('receiptsCount'), String(x.receipts)),
           stat(t('averageSale'), rm(x.receipts ? Math.round(x.net / x.receipts) : 0)),
           stat(t('serviceCharge'), rm(x.service)),
-          stat(session.settings.taxName || t('tax'), rm(x.tax)),
+          stat(t('tax'), rm(x.tax)),
           stat(t('voidedSales'), `${x.voided.length} · ${rm(x.voided.reduce((a, s) => a + s.totalSen, 0))}`)),
         !x.costKnown ? h('p', { class: 'muted' }, t('profitNote')) : null,
         table([[oneDay ? t('hour') : t('date')], [t('receiptsCount'), true], [t('netSales'), true], ['']],
@@ -293,8 +293,28 @@ const REPORTS = {
 
   taxes(list) {
     const x = totals(list);
+    // Each rate on its own row, and what was sold with no tax at all.
+    const byTax = new Map();
+    let untaxed = 0;
+    const add = (label, base, tax) => {
+      const r = byTax.get(label) || { base: 0, tax: 0 };
+      r.base += base; r.tax += tax;
+      byTax.set(label, r);
+    };
+    for (const sale of list.filter((s) => s.status !== 'VOIDED')) {
+      if (Array.isArray(sale.taxes)) {
+        sale.taxes.forEach((tx) => add(`${tx.name} ${tx.pct}%`, tx.baseSen || 0, tx.taxSen || 0));
+        untaxed += sale.untaxedSen || 0;
+      } else if (sale.taxSen) {
+        // Sold before taxes were per item: one rate on the whole bill.
+        add(session.settings.taxName || t('tax'), sale.totalSen - sale.taxSen, sale.taxSen);
+      } else {
+        untaxed += sale.totalSen;
+      }
+    }
     const rows = [
-      [session.settings.taxName || t('tax'), formatSen(x.net + x.service), formatSen(x.tax)],
+      ...[...byTax].map(([label, r]) => [label, formatSen(r.base), formatSen(r.tax)]),
+      [t('taxFreeSales'), formatSen(untaxed), formatSen(0)],
       [t('serviceCharge'), formatSen(x.net), formatSen(x.service)],
     ];
     return {

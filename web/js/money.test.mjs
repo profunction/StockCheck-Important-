@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {
   billTotals, ean13Check, formatQty, formatSen, inStoreBarcode, lineAmount, parseQty, parseSen,
-  receiptNo, rm, roundCash, settle,
+  productTaxIds, receiptNo, rm, roundCash, settle, taxList,
 } from './money.js';
 
 const tests = [];
@@ -71,6 +71,73 @@ test('restaurant: discount, then 10% service charge, then 6% SST on top', () => 
   assert.equal(t.serviceChargeSen, 900); // 9.00
   assert.equal(t.taxSen, 594); // 6% of 99.00
   assert.equal(t.totalSen, 10494);
+});
+
+const SST8 = { id: 'sst8', name: 'SST', pct: 8, byDefault: true };
+const SALES10 = { id: 'st10', name: 'Sales tax', pct: 10, byDefault: false };
+
+test('a tax-free item is not taxed on a mixed bill (tax added on top)', () => {
+  const t = billTotals([
+    { qtyMilli: 1000, unitPriceSen: 1000, taxIds: ['sst8'] }, // soft drink
+    { qtyMilli: 1000, unitPriceSen: 500, taxIds: [] }, // rice, exempt
+  ], { taxes: [SST8], pricesIncludeTax: false });
+  assert.equal(t.taxSen, 80);
+  assert.equal(t.totalSen, 1580);
+  assert.equal(t.untaxedSen, 500);
+  assert.deepEqual(t.taxes, [{ id: 'sst8', name: 'SST', pct: 8, baseSen: 1000, taxSen: 80 }]);
+});
+
+test('a tax-free item on a mixed bill, prices already include tax', () => {
+  const t = billTotals([
+    { qtyMilli: 1000, unitPriceSen: 1080, taxIds: ['sst8'] },
+    { qtyMilli: 2000, unitPriceSen: 500, taxIds: [] },
+  ], { taxes: [SST8], pricesIncludeTax: true });
+  assert.equal(t.totalSen, 2080);
+  assert.equal(t.taxSen, 80);
+  assert.equal(t.taxes[0].baseSen, 1000);
+  assert.equal(t.untaxedSen, 1000);
+});
+
+test('two rates on one bill are kept apart', () => {
+  const t = billTotals([
+    { qtyMilli: 1000, unitPriceSen: 1000, taxIds: ['sst8'] },
+    { qtyMilli: 1000, unitPriceSen: 2000, taxIds: ['st10'] },
+  ], { taxes: [SST8, SALES10], pricesIncludeTax: false });
+  assert.deepEqual(t.taxes.map((x) => [x.id, x.baseSen, x.taxSen]), [['sst8', 1000, 80], ['st10', 2000, 200]]);
+  assert.equal(t.totalSen, 3280);
+});
+
+test('a bill discount lowers the tax only on the taxed share', () => {
+  const t = billTotals([
+    { qtyMilli: 1000, unitPriceSen: 1000, taxIds: ['sst8'] },
+    { qtyMilli: 1000, unitPriceSen: 1000, taxIds: [] },
+  ], { taxes: [SST8], discountPct: 10, pricesIncludeTax: false });
+  assert.equal(t.discountSen, 200);
+  assert.equal(t.taxSen, 72); // 8% of 9.00
+  assert.equal(t.untaxedSen, 900);
+  assert.equal(t.totalSen, 1872);
+});
+
+test('a bill with only tax-free items has no tax', () => {
+  const t = billTotals([{ qtyMilli: 1000, unitPriceSen: 300, taxIds: [] }], { taxes: [SST8], pricesIncludeTax: false });
+  assert.equal(t.taxSen, 0);
+  assert.deepEqual(t.taxes, []);
+  assert.equal(t.totalSen, 300);
+});
+
+test('old single-tax settings read as one default tax', () => {
+  assert.deepEqual(taxList({ taxName: 'SST', taxPct: 6 }), [{ id: 'tax', name: 'SST', pct: 6, byDefault: true }]);
+  assert.deepEqual(taxList({ taxPct: 0 }), []);
+  assert.deepEqual(taxList({ taxes: [SST8, { id: 'zero', name: 'x', pct: 0 }] }).map((x) => x.id), ['sst8']);
+});
+
+test('an item nobody set gets the default taxes; an item set to none gets none', () => {
+  const taxes = [SST8, SALES10];
+  assert.deepEqual(productTaxIds({ name: 'Milo' }, taxes), ['sst8']);
+  assert.deepEqual(productTaxIds({ taxIds: null }, taxes), ['sst8']);
+  assert.deepEqual(productTaxIds({ taxIds: [] }, taxes), []);
+  assert.deepEqual(productTaxIds({ taxIds: ['st10', 'gone'] }, taxes), ['st10']);
+  assert.deepEqual(productTaxIds(undefined, taxes), ['sst8']);
 });
 
 test('a discount never makes a bill negative', () => {

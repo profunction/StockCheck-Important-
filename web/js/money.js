@@ -66,25 +66,60 @@ export function roundCash(sen) {
 }
 
 /**
+ * The shop's taxes, as a list: [{ id, name, pct, byDefault }].
+ *
+ * Shops set up before there could be more than one tax have a single
+ * taxName / taxPct; that reads as one tax charged on every item, which is
+ * what those shops have been charging all along.
+ */
+export function taxList(settings = {}) {
+  if (Array.isArray(settings.taxes)) {
+    return settings.taxes.filter((x) => x && x.id && Number(x.pct) > 0).map((x) => ({
+      id: String(x.id), name: x.name || 'SST', pct: Number(x.pct), byDefault: x.byDefault !== false,
+    }));
+  }
+  const pct = Number(settings.taxPct) || 0;
+  return pct > 0 ? [{ id: 'tax', name: settings.taxName || 'SST', pct, byDefault: true }] : [];
+}
+
+/**
+ * Which taxes an item is charged. An item someone has set says so itself --
+ * an empty list is a tax-free item. One nobody has set (made in the phone
+ * app, brought in from Loyverse or an import, or from before taxes were per
+ * item) gets the taxes marked as the default.
+ */
+export function productTaxIds(product, taxes) {
+  if (Array.isArray(product?.taxIds)) return product.taxIds.filter((id) => taxes.some((x) => x.id === id));
+  return taxes.filter((x) => x.byDefault).map((x) => x.id);
+}
+
+/**
  * Everything on a bill, worked out once.
  *
  * - Line totals add up to the subtotal.
  * - The bill discount comes off that (an amount, or a percentage of it).
  * - Service charge, when set, is a percentage of what is left. A restaurant
  *   charges it on dine-in only; the caller decides by passing 0 otherwise.
- * - Tax (SST) is either already inside the prices, in which case it is only
- *   shown, or added on top of the discounted subtotal plus service charge.
+ * - Each line is taxed by its own taxes (line.taxIds): rice and sugar can be
+ *   tax-free on the same bill as a taxed soft drink. The bill discount and
+ *   the service charge are shared out over the lines by their amounts, so a
+ *   discount on a mixed bill lowers each tax in proportion.
+ * - Tax is either already inside the prices, in which case it is only shown,
+ *   or added on top.
  *
- * Every step rounds to the sen once, so the receipt's own lines add up.
+ * Each tax is rounded to the sen once, over the whole bill, so the receipt's
+ * own lines add up.
  */
 export function billTotals(lines, opts = {}) {
   const {
     discountSen = 0,
     discountPct = 0,
     serviceChargePct = 0,
-    taxPct = 0,
     pricesIncludeTax = true,
   } = opts;
+  // A single rate for every line, as callers passed before taxes were per item.
+  const taxes = opts.taxes || (opts.taxPct > 0 ? [{ id: 'tax', name: 'SST', pct: Number(opts.taxPct) }] : []);
+  const idsOf = (line) => (Array.isArray(line.taxIds) ? line.taxIds : opts.taxes ? [] : taxes.map((x) => x.id));
 
   const subtotalSen = lines.reduce((sum, l) => sum + lineTotal(l), 0);
   const pctOff = Math.round((subtotalSen * discountPct) / 100);
@@ -93,20 +128,41 @@ export function billTotals(lines, opts = {}) {
   const serviceChargeSen = Math.round((afterDiscount * serviceChargePct) / 100);
   const taxable = afterDiscount + serviceChargeSen;
 
-  let taxSen;
-  let totalSen;
-  if (taxPct <= 0) {
-    taxSen = 0;
-    totalSen = taxable;
-  } else if (pricesIncludeTax) {
-    // The tax inside a price: price x rate / (100 + rate).
-    taxSen = Math.round((taxable * taxPct) / (100 + taxPct));
-    totalSen = taxable;
-  } else {
-    taxSen = Math.round((taxable * taxPct) / 100);
-    totalSen = taxable + taxSen;
+  // Each line's share of what is charged before tax.
+  const share = subtotalSen > 0 ? taxable / subtotalSen : 0;
+  const perTax = new Map(taxes.map((x) => [x.id, { base: 0, tax: 0 }]));
+  let untaxed = 0;
+  for (const line of lines) {
+    const gross = lineTotal(line) * share;
+    const own = taxes.filter((x) => idsOf(line).includes(x.id));
+    if (!own.length) { untaxed += gross; continue; }
+    const rates = own.reduce((sum, x) => sum + x.pct, 0);
+    for (const x of own) {
+      const acc = perTax.get(x.id);
+      if (pricesIncludeTax) {
+        acc.base += (gross * 100) / (100 + rates);
+        acc.tax += (gross * x.pct) / (100 + rates);
+      } else {
+        acc.base += gross;
+        acc.tax += (gross * x.pct) / 100;
+      }
+    }
   }
-  return { subtotalSen, discountSen: billDiscountSen, serviceChargeSen, taxSen, totalSen, taxIncluded: pricesIncludeTax };
+  const taxLines = taxes
+    .map((x) => ({ id: x.id, name: x.name, pct: x.pct, baseSen: Math.round(perTax.get(x.id).base), taxSen: Math.round(perTax.get(x.id).tax) }))
+    .filter((x) => x.taxSen > 0);
+  const taxSen = taxLines.reduce((sum, x) => sum + x.taxSen, 0);
+  const totalSen = pricesIncludeTax ? taxable : taxable + taxSen;
+  return {
+    subtotalSen,
+    discountSen: billDiscountSen,
+    serviceChargeSen,
+    taxSen,
+    taxes: taxLines,
+    untaxedSen: Math.round(untaxed),
+    totalSen,
+    taxIncluded: pricesIncludeTax,
+  };
 }
 
 /** A cart line's amount after its own discount, never below zero. */

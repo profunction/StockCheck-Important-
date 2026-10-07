@@ -10,7 +10,7 @@
 import { collection, db, doc, deleteDoc, onSnapshot, query, setDoc, where } from './fb.js';
 import { confirmBox, h, modal, mount, toast } from './dom.js';
 import { t, paymentLabel } from './i18n.js';
-import { billTotals, formatQty, formatSen, lineAmount, lineTotal, parseQty, parseSen, rm, UNIT } from './money.js';
+import { billTotals, formatQty, formatSen, lineAmount, lineTotal, parseQty, parseSen, productTaxIds, rm, taxList, UNIT } from './money.js';
 import { onChange, session, ws } from './session.js';
 import { kitchenView, printView } from './receipt.js';
 import { openPayment } from './pay.js';
@@ -264,6 +264,7 @@ async function addProduct(product) {
       discountSen: 0,
       note: '',
       trackStock: product.trackStock !== false,
+      taxIds: productTaxIds(product, taxList(session.settings)),
       sent: false,
     });
   }
@@ -381,11 +382,15 @@ function appliedDiscounts() {
 export function totalsFor(c) {
   const discounts = c.discountIds.map((id) => session.discounts.find((d) => d.id === id)).filter(Boolean);
   const s = session.settings;
-  const totals = billTotals(c.lines, {
+  const taxes = taxList(s);
+  // A line keeps the taxes its item had when it went on the bill; one from a
+  // ticket saved before taxes were per item looks its item up now.
+  const lines = c.lines.map((l) => (Array.isArray(l.taxIds) ? l : { ...l, taxIds: productTaxIds(session.find(l.barcode), taxes) }));
+  const totals = billTotals(lines, {
     discountSen: discounts.filter((d) => d.type === 'AMOUNT').reduce((sum, d) => sum + (d.valueSen || 0), 0),
     discountPct: discounts.filter((d) => d.type === 'PCT').reduce((sum, d) => sum + (Number(d.pct) || 0), 0),
     serviceChargePct: c.orderType === 'DINE_IN' ? Number(s.serviceChargePct) || 0 : 0,
-    taxPct: Number(s.taxPct) || 0,
+    taxes,
     pricesIncludeTax: s.pricesIncludeTax !== false,
   });
   // Each discount's share, for the receipt and the discounts report; the
@@ -398,7 +403,7 @@ export function totalsFor(c) {
     left -= amount;
     return { id: d.id, name: d.name, amountSen: amount };
   });
-  return { ...totals, discounts: named };
+  return { ...totals, discounts: named, lineTaxIds: lines.map((l) => l.taxIds) };
 }
 
 function drawTicket() {
@@ -443,7 +448,7 @@ function drawTicket() {
     r(t('subtotal'), formatSen(totals.subtotalSen)),
     totals.discounts.map((d) => r(d.name, `-${formatSen(d.amountSen)}`)),
     totals.serviceChargeSen ? r(`${t('serviceCharge')} ${session.settings.serviceChargePct}%`, formatSen(totals.serviceChargeSen)) : null,
-    totals.taxSen ? r(`${session.settings.taxName || t('tax')} ${session.settings.taxPct}%${totals.taxIncluded ? ` (${t('included')})` : ''}`, formatSen(totals.taxSen)) : null,
+    totals.taxes.map((x) => r(`${x.name} ${x.pct}%${totals.taxIncluded ? ` (${t('included')})` : ''}`, formatSen(x.taxSen))),
     r(t('total'), rm(totals.totalSen), 'total'));
 
   const empty = !cart.lines.length;

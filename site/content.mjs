@@ -50,7 +50,7 @@ export const LANGS = {
     perMonth: '/ 月', perYear: '/ 年', lifetime: '终身', users: '位用户', unlimitedUsers: '用户不限',
     faqTitle: '常见问题',
     faq: [
-      ['Pos Stock Check 支持 SST 吗？', '支持。可以设定 SST 税率（例如 6% 或 8%），选择价格已含税或另外加，收据和税务报表会分开显示。'],
+      ['Pos Stock Check 支持 SST 吗？', '支持。可以设定一种或几种税（例如 SST 6%、8%），每样商品自己选收哪种税；米、糖这类不收税的商品可以设成免税。价格可以选已含税或另外加，收据和税务报表按税率分开显示。'],
       ['可以收 DuitNow QR 和刷卡吗？', '可以记录 DuitNow QR、刷卡、电子钱包、现金和银行转账。系统记录付款方式和金额，钱照你平常的 QR 或刷卡机收，不经过系统。'],
       ['现金会四舍五入吗？', '会，按马来西亚的 5 仙规定：.01 和 .02 舍去，.03 和 .04 变 .05，.06 和 .07 变 .05，.08 和 .09 进位。刷卡和 QR 收到仙为止。'],
       ['没有网络还能收银吗？', '可以。没有网络时销售先存在电脑里，网络回来后自动上传。'],
@@ -100,7 +100,7 @@ export const LANGS = {
     perMonth: '/ month', perYear: '/ year', lifetime: 'lifetime', users: 'users', unlimitedUsers: 'Unlimited users',
     faqTitle: 'Frequently asked questions',
     faq: [
-      ['Does Pos Stock Check handle SST?', 'Yes. Set the SST rate (for example 6% or 8%) and whether prices already include it; receipts and the tax report show it separately.'],
+      ['Does Pos Stock Check handle SST?', 'Yes. Set one or more taxes (for example SST at 6% and 8%) and choose which each item carries; items with no tax, such as rice or sugar, can be set tax-free. Prices can include tax or have it added, and receipts and the tax report show each rate separately.'],
       ['Can I take DuitNow QR and card payments?', 'You can record DuitNow QR, card, e-wallet, cash and bank transfer. The system records the method and amount; the money goes through your usual QR or card terminal, not through the system.'],
       ['Is cash rounded?', 'Yes, to the nearest 5 sen as in Malaysia: .01 and .02 round down, .03 and .04 to .05, .06 and .07 to .05, .08 and .09 up. Card and QR are charged to the sen.'],
       ['Can I sell without internet?', 'Yes. Sales are kept on the computer while offline and sent automatically when the connection returns.'],
@@ -150,7 +150,7 @@ export const LANGS = {
     perMonth: '/ bulan', perYear: '/ tahun', lifetime: 'seumur hidup', users: 'pengguna', unlimitedUsers: 'Pengguna tanpa had',
     faqTitle: 'Soalan lazim',
     faq: [
-      ['Adakah Pos Stock Check menyokong SST?', 'Ya. Tetapkan kadar SST (contohnya 6% atau 8%) dan sama ada harga sudah termasuk cukai; resit dan laporan cukai menunjukkannya berasingan.'],
+      ['Adakah Pos Stock Check menyokong SST?', 'Ya. Tetapkan satu atau beberapa cukai (contohnya SST 6% dan 8%) dan pilih cukai untuk setiap barang; barang tanpa cukai seperti beras dan gula boleh ditetapkan bebas cukai. Harga boleh termasuk cukai atau ditambah, dan resit serta laporan cukai menunjukkan setiap kadar berasingan.'],
       ['Boleh terima DuitNow QR dan kad?', 'Boleh merekod DuitNow QR, kad, e-dompet, tunai dan pindahan bank. Wang melalui mesin QR atau kad biasa anda, bukan melalui sistem.'],
       ['Adakah tunai dibundarkan?', 'Ya, ke 5 sen terdekat mengikut peraturan Malaysia. Kad dan QR dicaj tepat ke sen.'],
       ['Boleh menjual tanpa internet?', 'Boleh. Jualan disimpan di komputer dan dihantar apabila internet kembali.'],

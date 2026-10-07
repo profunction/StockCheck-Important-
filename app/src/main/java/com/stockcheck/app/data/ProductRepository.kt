@@ -124,6 +124,7 @@ class ProductRepository(private val audit: AuditRepository) {
                 costSen = existing?.costSen,
                 modifierIds = existing?.modifierIds.orEmpty(),
                 trackStock = existing?.trackStock ?: true,
+                taxIds = existing?.taxIds,
                 active = true,
                 createdAt = existing?.createdAt ?: now,
                 createdByUid = existing?.createdByUid ?: session.uid,

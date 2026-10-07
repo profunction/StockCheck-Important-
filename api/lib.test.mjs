@@ -49,6 +49,17 @@ test('a receipt includes rounding in its total', () => {
   assert.equal(r.line_items[0].quantity, 2);
 });
 
+test('item taxes: null follows the default, [] is tax-free', () => {
+  assert.equal(itemOut('m', { name: 'Milo' }).tax_ids, null);
+  assert.deepEqual(itemOut('r', { name: 'Rice', taxIds: [] }).tax_ids, []);
+  assert.deepEqual(itemIn({ barcode: 'r', tax_ids: [] }).fields, { taxIds: [] });
+  assert.deepEqual(itemIn({ barcode: 'r', tax_ids: null }).fields, { taxIds: null });
+  assert.throws(() => itemIn({ barcode: 'r', tax_ids: 'sst' }), /tax_ids/);
+  const r = receiptOut('s2', { totalSen: 1580, taxSen: 80, untaxedSen: 500, taxes: [{ id: 'sst8', name: 'SST', pct: 8, baseSen: 1000, taxSen: 80 }], lines: [], payments: [] });
+  assert.deepEqual(r.taxes, [{ id: 'sst8', name: 'SST', rate: 8, taxable_sen: 1000, amount_sen: 80 }]);
+  assert.equal(r.tax_free_sen, 500);
+});
+
 test('a new customer needs a name', () => {
   assert.throws(() => customerIn({ phone: '1' }), /name/);
   assert.equal(customerIn({ id: 'c1', points: 9999, phone: '1' }).fields.points, undefined);

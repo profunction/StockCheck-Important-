@@ -40,6 +40,9 @@ export function itemOut(id, p) {
     price_sen: p.priceSen ?? null,
     cost_sen: p.costSen ?? null,
     track_stock: p.trackStock !== false,
+    // null: the item has no taxes of its own and is charged the shop's
+    // default ones. [] : tax-free.
+    tax_ids: Array.isArray(p.taxIds) ? p.taxIds : null,
     available_for_sale: p.active !== false,
     reorder_level: qty(p.reorderLevelMilli ?? null),
     photo_url: p.photoUrl || null,
@@ -72,6 +75,12 @@ export function itemIn(body) {
   sen('cost_sen', 'costSen');
   if (body.track_stock !== undefined) fields.trackStock = !!body.track_stock;
   if (body.available_for_sale !== undefined) fields.active = !!body.available_for_sale;
+  if (body.tax_ids !== undefined) {
+    if (body.tax_ids !== null && !(Array.isArray(body.tax_ids) && body.tax_ids.every((id) => typeof id === 'string'))) {
+      throw new ApiError(400, 'tax_ids must be a list of tax ids, or null for the default taxes');
+    }
+    fields.taxIds = body.tax_ids;
+  }
   if (Array.isArray(body.other_barcodes)) fields.altBarcodes = body.other_barcodes.map((c) => String(c).trim()).filter(Boolean);
   if (body.reorder_level !== undefined) fields.reorderLevelMilli = body.reorder_level === null ? null : milli(body.reorder_level);
   return { barcode, fields };
@@ -97,11 +106,14 @@ export function receiptOut(id, s) {
       total_sen: l.lineTotalSen,
       modifiers: (l.modifiers || []).map((m) => ({ group: m.group || '', name: m.name, price_sen: m.priceSen || 0 })),
       note: l.note || '',
+      tax_ids: Array.isArray(l.taxIds) ? l.taxIds : null,
     })),
     subtotal_sen: s.subtotalSen,
     discounts: (s.discounts || []).map((d) => ({ name: d.name, amount_sen: d.amountSen })),
     service_charge_sen: s.serviceChargeSen || 0,
     tax_sen: s.taxSen || 0,
+    taxes: (s.taxes || []).map((x) => ({ id: x.id, name: x.name, rate: x.pct, taxable_sen: x.baseSen, amount_sen: x.taxSen })),
+    tax_free_sen: s.untaxedSen ?? null,
     tax_included: !!s.taxIncluded,
     rounding_sen: s.roundingSen || 0,
     total_sen: s.totalSen + (s.roundingSen || 0),

@@ -7,6 +7,7 @@ import { h, mount, toast } from './dom.js';
 import { paymentLabel, t } from './i18n.js';
 import { DEFAULT_SETTINGS, session, ws } from './session.js';
 import { menuButton } from './main.js';
+import { taxList } from './money.js';
 
 export function render(main, sub) {
   const pages = { features, payments, taxes, loyalty, receipt, stores, device };
@@ -73,22 +74,46 @@ function payments(main) {
 
 function taxes(main) {
   const s = session.settings;
-  const name = h('input', { value: s.taxName || 'SST' });
-  const pct = h('input', { inputmode: 'decimal', value: String(s.taxPct ?? 0) });
+  // Editable copies; the first save turns an old single tax into this list.
+  const rows = taxList(s).map((x) => ({ ...x }));
+  const list = h('div', { style: { display: 'grid', gap: '10px' } });
+  const drawRows = () => mount(list,
+    rows.length ? rows.map((x, i) => h('div', { class: 'card', style: { display: 'grid', gap: '8px', padding: '12px' } },
+      h('div', { class: 'grid2' },
+        h('label', { class: 'field' }, t('taxName'), h('input', { value: x.name, oninput: (e) => { x.name = e.target.value; } })),
+        h('label', { class: 'field' }, t('taxRate'), h('input', { inputmode: 'decimal', value: String(x.pct), oninput: (e) => { x.pct = e.target.value; } }))),
+      h('div', { class: 'row' },
+        h('label', { class: 'check grow' }, h('input', { type: 'checkbox', checked: x.byDefault, onchange: (e) => { x.byDefault = e.target.checked; } }), t('taxDefault')),
+        h('button', { type: 'button', class: 'danger', onclick: () => { rows.splice(i, 1); drawRows(); } }, t('delete')))))
+      : h('p', { class: 'muted', style: { margin: 0 } }, t('noTaxes')));
+  drawRows();
+  const addBtn = h('button', { type: 'button', onclick: () => {
+    rows.push({ id: `tax-${Date.now().toString(36)}`, name: 'SST', pct: 8, byDefault: !rows.some((r) => r.byDefault) });
+    drawRows();
+  } }, t('addTax'));
   const incl = h('select', {},
     h('option', { value: 'yes', selected: s.pricesIncludeTax !== false }, t('pricesInclude')),
     h('option', { value: 'no', selected: s.pricesIncludeTax === false }, t('pricesExclude')));
   const service = h('input', { inputmode: 'decimal', value: String(s.serviceChargePct ?? 0) });
   page(main, t('setTaxes'), [
-    h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('taxName'), name), h('label', { class: 'field' }, t('taxRate'), pct)),
+    h('p', { class: 'muted', style: { margin: 0 } }, t('taxesHelp')),
+    list,
+    h('div', {}, addBtn),
     h('label', { class: 'field' }, t('taxMode'), incl),
     h('label', { class: 'field' }, t('serviceChargeRate'), service),
     h('p', { class: 'muted', style: { margin: 0 } }, t('serviceChargeHelp')),
   ], () => {
-    const tax = Number(pct.value);
     const sc = Number(service.value);
-    if (!(tax >= 0 && tax <= 100) || !(sc >= 0 && sc <= 100)) { toast(t('errPercent'), 'error'); return null; }
-    return { taxName: name.value.trim() || 'SST', taxPct: tax, pricesIncludeTax: incl.value === 'yes', serviceChargePct: sc };
+    const out = [];
+    for (const r of rows) {
+      const pct = Number(r.pct);
+      if (!String(r.name).trim()) { toast(t('errTaxName'), 'error'); return null; }
+      if (!(pct > 0 && pct <= 100)) { toast(t('errPercent'), 'error'); return null; }
+      out.push({ id: r.id, name: String(r.name).trim(), pct, byDefault: !!r.byDefault });
+    }
+    if (!(sc >= 0 && sc <= 100)) { toast(t('errPercent'), 'error'); return null; }
+    // taxPct stays at 0 so nothing still reading the old single rate charges it twice.
+    return { taxes: out, taxPct: 0, pricesIncludeTax: incl.value === 'yes', serviceChargePct: sc };
   });
 }
 

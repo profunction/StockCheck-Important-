@@ -6,10 +6,10 @@
  * This page adds what a till needs on top -- price, cost, photo, category,
  * modifiers -- and the app keeps those when it saves a product.
  */
-import { db, doc, getDownloadURL, ref, setDoc, storage, updateDoc, uploadBytes, deleteDoc } from './fb.js';
+import { db, doc, getDownloadURL, ref, setDoc, storage, updateDoc, uploadBytes, deleteDoc, writeBatch } from './fb.js';
 import { confirmBox, h, modal, mount, toast } from './dom.js';
 import { t } from './i18n.js';
-import { formatSen, inStoreBarcode, parseSen, rm } from './money.js';
+import { formatSen, inStoreBarcode, parseSen, productTaxIds, rm, taxList } from './money.js';
 import { onChange, session, ws } from './session.js';
 import { menuButton } from './main.js';
 import { scanWithCamera } from './camera.js';
@@ -56,18 +56,102 @@ function itemList(main) {
       h('td', {}, session.categories.find((c) => c.id === p.category)?.name || ''),
       h('td', { class: 'num' }, p.priceSen != null ? formatSen(p.priceSen) : '—'),
       h('td', { class: 'num' }, p.costSen != null ? formatSen(p.costSen) : '—'),
+      h('td', {}, taxLabel(p)),
       h('td', {}, p.active === false ? h('span', { class: 'pill bad' }, t('inactive')) : ''))));
-    if (rows.length > 500) body.append(h('tr', {}, h('td', { colspan: 6, class: 'muted' }, t('showingFirst500'))));
+    if (rows.length > 500) body.append(h('tr', {}, h('td', { colspan: 7, class: 'muted' }, t('showingFirst500'))));
   }
   drawRows();
 
   mount(main,
-    head(t('itemList'), h('button', { class: 'primary', onclick: () => editProduct(null) }, `+ ${t('addItem')}`)),
+    head(t('itemList'),
+      taxList(session.settings).length && session.can('POS_MANAGE') ? h('button', { onclick: bulkTaxes }, t('bulkTaxes')) : null,
+      h('button', { class: 'primary', onclick: () => editProduct(null) }, `+ ${t('addItem')}`)),
     h('div', { class: 'row', style: { marginBottom: '12px' } }, searchBox, catSelect,
       h('span', { class: 'muted' }, `${session.products.length} ${t('itemsCount')}`)),
     h('div', { class: 'table-wrap' }, h('table', { class: 'list' },
-      h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, t('name')), h('th', {}, t('category')), h('th', { class: 'num' }, t('price')), h('th', { class: 'num' }, t('cost')), h('th', {}, ''))),
+      h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, t('name')), h('th', {}, t('category')), h('th', { class: 'num' }, t('price')), h('th', { class: 'num' }, t('cost')), h('th', {}, t('taxCol')), h('th', {}, ''))),
       body)));
+}
+
+/** "SST 8%", or a tax-free pill, for the list. */
+function taxLabel(p) {
+  const taxes = taxList(session.settings);
+  if (!taxes.length) return '';
+  const ids = productTaxIds(p, taxes);
+  if (!ids.length) return h('span', { class: 'pill' }, t('taxFree'));
+  return taxes.filter((x) => ids.includes(x.id)).map((x) => `${x.name} ${x.pct}%`).join(', ');
+}
+
+/**
+ * Sets the taxes of many items at once -- the usual way to mark the rice,
+ * sugar and flour shelf tax-free in one go.
+ */
+function bulkTaxes() {
+  const taxes = taxList(session.settings);
+  const chosenTaxes = new Set();
+  const ticked = new Set();
+  let q = '';
+  let cat = itemCategory;
+  const list = h('div', { style: { display: 'grid', gap: '2px', maxHeight: '46vh', overflow: 'auto', border: '1px solid var(--line, #ddd)', borderRadius: '8px', padding: '6px' } });
+  const count = h('span', { class: 'muted' });
+  const apply = h('button', { class: 'primary' });
+  const shown = () => session.products
+    .filter((p) => !cat || (cat === '-' ? !p.category : p.category === cat))
+    .filter((p) => !q || (p.name || '').toLowerCase().includes(q) || p.barcode.toLowerCase().includes(q))
+    .sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
+  const drawCount = () => {
+    count.textContent = `${ticked.size} ${t('itemsTicked')}`;
+    apply.textContent = `${t('applyToN')} ${ticked.size}`;
+    apply.disabled = !ticked.size;
+  };
+  const drawList = () => {
+    mount(list, shown().slice(0, 1000).map((p) => h('label', { class: 'check' },
+      h('input', { type: 'checkbox', checked: ticked.has(p.barcode), onchange: (e) => { if (e.target.checked) ticked.add(p.barcode); else ticked.delete(p.barcode); drawCount(); } }),
+      h('span', { class: 'grow' }, p.name || p.barcode),
+      h('span', { class: 'muted', style: { fontSize: '12px' } }, taxLabel(p)))));
+    drawCount();
+  };
+
+  modal((close) => {
+    apply.onclick = async () => {
+      apply.disabled = true;
+      const ids = taxes.filter((x) => chosenTaxes.has(x.id)).map((x) => x.id);
+      const codes = [...ticked];
+      try {
+        for (let i = 0; i < codes.length; i += 400) {
+          const batch = writeBatch(db);
+          codes.slice(i, i + 400).forEach((code) => batch.update(doc(db, ws(`products/${code}`)), { taxIds: ids, updatedAt: Date.now() }));
+          await batch.commit();
+        }
+        toast(`${t('taxesApplied')}: ${codes.length}`, 'ok');
+        close();
+      } catch (err) {
+        apply.disabled = false;
+        toast(err.message || String(err), 'error');
+      }
+    };
+    return [
+      h('h2', {}, t('bulkTaxes')),
+      h('p', { class: 'muted', style: { margin: 0 } }, t('bulkTaxesHelp')),
+      h('div', { style: { display: 'grid', gap: '4px' } },
+        h('strong', {}, t('setTaxesTo')),
+        taxes.map((x) => h('label', { class: 'check' },
+          h('input', { type: 'checkbox', onchange: (e) => { if (e.target.checked) chosenTaxes.add(x.id); else chosenTaxes.delete(x.id); } }),
+          `${x.name} ${x.pct}%`)),
+        h('span', { class: 'muted' }, t('itemTaxesHelp'))),
+      h('div', { class: 'row' },
+        h('input', { type: 'search', placeholder: t('searchProducts'), style: { maxWidth: '240px' }, oninput: (e) => { q = e.target.value.trim().toLowerCase(); drawList(); } }),
+        h('select', { style: { width: 'auto' }, onchange: (e) => { cat = e.target.value; drawList(); } },
+          h('option', { value: '' }, t('allCategories')),
+          session.categories.map((c) => h('option', { value: c.id, selected: cat === c.id }, c.name)),
+          h('option', { value: '-', selected: cat === '-' }, t('noCategory'))),
+        h('button', { type: 'button', onclick: () => { shown().forEach((p) => ticked.add(p.barcode)); drawList(); } }, t('selectShown')),
+        h('button', { type: 'button', onclick: () => { ticked.clear(); drawList(); } }, t('clearTicks'))),
+      list,
+      h('div', { class: 'actions' }, count, h('span', { class: 'grow' }), h('button', { onclick: close }, t('cancel')), apply),
+    ];
+  }, { wide: true });
+  drawList();
 }
 
 /** Shrinks a photo to at most 800 px on its long side, as JPEG. */
@@ -99,6 +183,11 @@ function editProduct(product) {
   const track = h('input', { type: 'checkbox', checked: p.trackStock !== false });
   const active = h('input', { type: 'checkbox', checked: p.active !== false });
   const mods = new Set(p.modifierIds || []);
+  const taxes = taxList(session.settings);
+  const itemTaxes = new Set(productTaxIds(p, taxes));
+  const taxesChanged = () => Array.isArray(p.taxIds)
+    || productTaxIds(p, taxes).length !== itemTaxes.size
+    || productTaxIds(p, taxes).some((id) => !itemTaxes.has(id));
   const preview = h('div', { class: 'tile', style: { width: '140px' } });
   const drawPreview = () => mount(preview, h('div', {
     class: 'pic', style: photoUrl ? { backgroundImage: `url("${photoUrl}")` } : {},
@@ -155,6 +244,9 @@ function editProduct(product) {
           photoUrl: url,
           modifierIds: [...mods],
           trackStock: track.checked,
+          // Written only once someone sets this item's taxes; until then it
+          // follows the default, and keeps following it if the default changes.
+          ...(taxesChanged() ? { taxIds: taxes.filter((x) => itemTaxes.has(x.id)).map((x) => x.id) } : {}),
           active: active.checked,
           updatedAt: now,
         };
@@ -197,6 +289,12 @@ function editProduct(product) {
         session.modifiers.map((m) => h('label', { class: 'check' },
           h('input', { type: 'checkbox', checked: mods.has(m.id), onchange: (e) => (e.target.checked ? mods.add(m.id) : mods.delete(m.id)) }),
           m.name))) : null,
+      taxes.length ? h('div', { style: { display: 'grid', gap: '6px' } },
+        h('h3', { style: { margin: 0 } }, t('itemTaxes')),
+        taxes.map((x) => h('label', { class: 'check' },
+          h('input', { type: 'checkbox', checked: itemTaxes.has(x.id), onchange: (e) => (e.target.checked ? itemTaxes.add(x.id) : itemTaxes.delete(x.id)) }),
+          `${x.name} ${x.pct}%`)),
+        h('span', { class: 'muted' }, t('itemTaxesHelp'))) : null,
       h('label', { class: 'check' }, track, t('trackStock')),
       h('label', { class: 'check' }, active, t('activeForSale')),
       h('div', { class: 'actions' },

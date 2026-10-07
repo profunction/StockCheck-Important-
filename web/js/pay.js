@@ -126,7 +126,7 @@ async function recordSale(cart, totals, payments) {
   const s = settle(totals.totalSen, payments);
   const saleRef = doc(collection(db, ws('sales')));
   const now = Date.now();
-  const lines = cart.lines.map((l) => ({
+  const lines = cart.lines.map((l, i) => ({
     barcode: l.barcode,
     name: l.name,
     categoryId: l.categoryId || '',
@@ -137,6 +137,7 @@ async function recordSale(cart, totals, payments) {
     costSen: l.costSen ?? null,
     modifiers: l.modifiers || [],
     note: l.note || '',
+    taxIds: totals.lineTaxIds?.[i] ?? [],
   }));
   const sale = {
     receiptNo: receiptNo(new Date(now)),
@@ -154,6 +155,8 @@ async function recordSale(cart, totals, payments) {
     discountSen: totals.discountSen,
     serviceChargeSen: totals.serviceChargeSen,
     taxSen: totals.taxSen,
+    taxes: totals.taxes || [],
+    untaxedSen: totals.untaxedSen || 0,
     taxIncluded: totals.taxIncluded,
     totalSen: totals.totalSen,
     roundingSen: s.roundingSen,

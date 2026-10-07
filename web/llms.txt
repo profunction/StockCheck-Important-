@@ -38,7 +38,7 @@ On hand = the last finished count + goods received since − sales and goods out
 
 ## Frequently asked questions
 ### Does Pos Stock Check handle SST?
-Yes. Set the SST rate (for example 6% or 8%) and whether prices already include it; receipts and the tax report show it separately.
+Yes. Set one or more taxes (for example SST at 6% and 8%) and choose which each item carries; items with no tax, such as rice or sugar, can be set tax-free. Prices can include tax or have it added, and receipts and the tax report show each rate separately.
 
 ### Can I take DuitNow QR and card payments?
 You can record DuitNow QR, card, e-wallet, cash and bank transfer. The system records the method and amount; the money goes through your usual QR or card terminal, not through the system.

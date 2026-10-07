@@ -282,6 +282,41 @@ Object.assign(ms, {
   move_TRANSFER_OUT: 'Dihantar ke cawangan', move_TRANSFER_IN: 'Dari cawangan',
 });
 
+
+// Taxes per item.
+Object.assign(en, {
+  taxes: 'Taxes', addTax: '+ Add a tax', taxDefault: 'Charge on items not set one by one',
+  taxesHelp: 'Each item can carry its own taxes. Tick "Charge on items not set one by one" for the tax most items have; items made in the phone app, from Loyverse or an import get it. To make an item tax-free, open it under Items and untick every tax, or use "Set taxes for many items".',
+  noTaxes: 'No taxes set. Every item is sold tax-free.', errTaxName: 'Give each tax a name.',
+  itemTaxes: 'Taxes on this item', itemTaxesHelp: 'Untick all = this item is tax-free.',
+  taxFree: 'Tax-free', taxFreeItems: 'Tax-free items', taxFreeSales: 'Tax-free sales',
+  bulkTaxes: 'Set taxes for many items', bulkTaxesHelp: 'Choose the taxes, tick the items, then apply. Untick every tax to make the ticked items tax-free.',
+  setTaxesTo: 'Set these items to', selectShown: 'Tick all shown', clearTicks: 'Untick all', applyToN: 'Apply to', itemsTicked: 'items ticked',
+  taxesApplied: 'Taxes updated', taxCol: 'Tax',
+});
+
+Object.assign(zh, {
+  taxes: '税', addTax: '+ 加一个税', taxDefault: '没有单独设定的商品也收（默认）',
+  taxesHelp: '每个商品可以有自己的税。大部分商品都收的那个税，勾「默认」；手机 app、Loyverse、Excel 导入进来的商品会自动用默认的税。某样商品不收税：到「商品」打开它，把税全部取消勾选，或用「批量设定税」。',
+  noTaxes: '还没有设定税，全部商品都不收税。', errTaxName: '每个税都要有名称。',
+  itemTaxes: '这个商品收的税', itemTaxesHelp: '全部不勾 = 这个商品不收税。',
+  taxFree: '免税', taxFreeItems: '不收税的商品', taxFreeSales: '不收税的销售',
+  bulkTaxes: '批量设定税', bulkTaxesHelp: '先选税，再勾商品，然后按「套用」。税全部不勾 = 勾到的商品变成不收税。',
+  setTaxesTo: '把这些商品设成', selectShown: '全选（显示的）', clearTicks: '全部取消', applyToN: '套用到', itemsTicked: '样商品已勾',
+  taxesApplied: '税已更新', taxCol: '税',
+});
+
+Object.assign(ms, {
+  taxes: 'Cukai', addTax: '+ Tambah cukai', taxDefault: 'Kenakan pada barang yang tidak ditetapkan satu-satu',
+  taxesHelp: 'Setiap barang boleh ada cukai sendiri. Tandakan "lalai" untuk cukai yang dikenakan pada kebanyakan barang. Untuk barang tanpa cukai, buka barang itu dan nyahtanda semua cukai, atau guna "Tetapkan cukai beramai".',
+  noTaxes: 'Tiada cukai. Semua barang dijual tanpa cukai.', errTaxName: 'Beri nama untuk setiap cukai.',
+  itemTaxes: 'Cukai untuk barang ini', itemTaxesHelp: 'Nyahtanda semua = barang tanpa cukai.',
+  taxFree: 'Tanpa cukai', taxFreeItems: 'Barang tanpa cukai', taxFreeSales: 'Jualan tanpa cukai',
+  bulkTaxes: 'Tetapkan cukai beramai', bulkTaxesHelp: 'Pilih cukai, tandakan barang, kemudian guna. Nyahtanda semua cukai untuk jadikan barang tanpa cukai.',
+  setTaxesTo: 'Tetapkan barang ini kepada', selectShown: 'Tanda semua', clearTicks: 'Nyahtanda semua', applyToN: 'Guna pada', itemsTicked: 'barang ditanda',
+  taxesApplied: 'Cukai dikemas kini', taxCol: 'Cukai',
+});
+
 const DICTS = { en, zh, ms };
 
 function detect() {

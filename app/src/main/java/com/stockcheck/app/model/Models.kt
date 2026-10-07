@@ -357,6 +357,12 @@ data class Product(
      * so selling one does not show up as missing stock.
      */
     val trackStock: Boolean = true,
+    /**
+     * Which of the shop's taxes the POS website charges on it, by id. Null
+     * where nobody set it -- the shop's default taxes apply; empty for a
+     * tax-free item (rice, sugar, flour).
+     */
+    val taxIds: List<String>? = null,
     val active: Boolean = true,
     val createdAt: Long = 0L,
     val createdByUid: String = "",

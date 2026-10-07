@@ -19,6 +19,8 @@ function row(left, right, cls = '') {
 export function receiptView(sale) {
   const s = session.settings;
   const narrow = Number(s.paperWidth) === 58;
+  // Tax-free items are marked only on a bill that also has taxed ones.
+  const mixed = (sale.taxSen || 0) > 0 && (sale.untaxedSen || 0) > 0;
   return h('div', { class: `receipt${narrow ? ' w58' : ''}` },
     s.shopName ? h('div', { class: 'c b big' }, s.shopName) : null,
     s.regNo ? h('div', { class: 'c' }, s.regNo) : null,
@@ -35,7 +37,7 @@ export function receiptView(sale) {
     sale.customerName ? row(t('customer'), sale.customerName) : null,
     h('div', { class: 'hr' }),
     sale.lines.map((l) => [
-      h('div', {}, l.name),
+      h('div', {}, mixed && Array.isArray(l.taxIds) && !l.taxIds.length ? `${l.name} *` : l.name),
       row(`  ${formatQty(l.qtyMilli)} x ${formatSen(l.unitPriceSen)}`, formatSen(l.lineTotalSen + (l.discountSen || 0))),
       (l.modifiers || []).map((m) => row(`  + ${m.name}`, m.priceSen ? formatSen(m.priceSen) : '', 'sub')),
       l.discountSen ? row(`  ${t('discount')}`, `-${formatSen(l.discountSen)}`, 'sub') : null,
@@ -45,7 +47,10 @@ export function receiptView(sale) {
     row(t('subtotal'), formatSen(sale.subtotalSen)),
     (sale.discounts || []).map((d) => row(d.name, `-${formatSen(d.amountSen)}`)),
     sale.serviceChargeSen ? row(t('serviceCharge'), formatSen(sale.serviceChargeSen)) : null,
-    sale.taxSen ? row(`${s.taxName || t('tax')}${sale.taxIncluded ? ` (${t('included')})` : ''}`, formatSen(sale.taxSen)) : null,
+    Array.isArray(sale.taxes)
+      ? sale.taxes.map((x) => row(`${x.name} ${x.pct}%${sale.taxIncluded ? ` (${t('included')})` : ''}`, formatSen(x.taxSen)))
+      : sale.taxSen ? row(`${s.taxName || t('tax')}${sale.taxIncluded ? ` (${t('included')})` : ''}`, formatSen(sale.taxSen)) : null,
+    mixed ? row(`* ${t('taxFreeItems')}`, formatSen(sale.untaxedSen), 'sub') : null,
     sale.roundingSen ? row(t('rounding'), formatSen(sale.roundingSen)) : null,
     row(t('total'), `RM ${formatSen(sale.totalSen + (sale.roundingSen || 0))}`, 'b big'),
     (sale.payments || []).map((p) => row(paymentLabel(p.method), formatSen(p.amountSen))),
