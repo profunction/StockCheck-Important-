@@ -16,9 +16,9 @@ const app = document.getElementById('app');
 
 /** The menu, Loyverse-style: groups with pages under them. */
 const MENU = [
-  { id: 'pos', icon: 'cart', label: 'navRegister', perm: 'POS_SELL', page: () => import('./register.js') },
+  { id: 'pos', icon: 'cart', label: 'navRegister', may: 'pos.sell', page: () => import('./register.js') },
   {
-    id: 'reports', icon: 'chart', label: 'navReports', perm: ['POS_REPORTS', 'POS_SELL'], children: [
+    id: 'reports', icon: 'chart', label: 'navReports', may: 'pos.reports', children: [
       ['summary', 'repSummary'], ['items', 'repItems'], ['categories', 'repCategories'],
       ['employees', 'repEmployees'], ['payments', 'repPayments'], ['receipts', 'repReceipts'],
       ['modifiers', 'repModifiers'], ['discounts', 'repDiscounts'], ['taxes', 'repTaxes'],
@@ -36,9 +36,9 @@ const MENU = [
     ], page: () => import('./inventory.js'),
   },
   { id: 'employees', icon: 'idcard', label: 'navEmployees', perm: 'VIEW_USERS', page: () => import('./employees.js') },
-  { id: 'customers', icon: 'users', label: 'navCustomers', perm: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'], page: () => import('./customers.js') },
+  { id: 'customers', icon: 'users', label: 'navCustomers', may: 'pos.customers', page: () => import('./customers.js') },
   {
-    id: 'integrations', icon: 'plug', label: 'navIntegrations', perm: 'CHANGE_PERMISSION', children: [
+    id: 'integrations', icon: 'plug', label: 'navIntegrations', may: 'api.tokens', children: [
       ['tokens', 'intTokens'], ['api', 'intApi'],
     ], page: () => import('./integrations.js'),
   },
@@ -46,12 +46,18 @@ const MENU = [
   {
     id: 'settings', icon: 'sliders', label: 'navSettings', perm: null, children: [
       ['features', 'setFeatures'], ['payments', 'setPayments'], ['taxes', 'setTaxes'], ['loyalty', 'setLoyalty'],
-      ['receipt', 'setReceipt'], ['stores', 'setStores'], ['device', 'setDevice'],
+      ['receipt', 'setReceipt'], ['stores', 'setStores'], ['device', 'setDevice'], ['addons', 'setAddons'],
     ], page: () => import('./settings.js'),
   },
 ];
 
+/**
+ * Whether a menu entry shows: [may] asks the module registry (module on
+ * and permission held, see modules.js); [perm] is a plain permission for
+ * pages that belong to every plan.
+ */
 function allowed(item) {
+  if (item.may) return session.may(item.may);
   if (!item.perm) return true;
   const perms = Array.isArray(item.perm) ? item.perm : [item.perm];
   return perms.some((p) => session.can(p));
@@ -176,7 +182,7 @@ function renderSide() {
       h('div', { class: 'sm' }, `${t('branch')}: ${session.branchName()}`)),
     nav,
     h('div', { class: 'foot' },
-      h('a', { class: 'side-link', href: '/warehouse/' }, icon('box', 17), t('whApp')),
+      session.has('warehouse') ? h('a', { class: 'side-link', href: '/warehouse/' }, icon('box', 17), t('whApp')) : null,
       installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
       langPicker(),
       h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));

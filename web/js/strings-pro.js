@@ -6,6 +6,17 @@
 import { addStrings } from './i18n.js';
 
 const en = {
+  setAddons: 'Add more', addonOn: 'On', addonAvailable: 'Can be added', addonSoon: 'Coming soon',
+  addonsLead: 'Start with what you need today. When the business grows, add more -- nothing to install, the same account and the same stock.',
+  addonsYouHave: 'The basics', addonsGrow: 'Business growing? Add more',
+  addonsHow: 'To add one, ask us on WhatsApp or upgrade your plan. Your data stays as it is.',
+  addonAsk_stocktake: 'Count stock with the phone', addonWhat_stocktake: 'Scan or say the quantity, count by area, see what is short.',
+  addonAsk_pos: 'Sell at the counter', addonWhat_pos: 'Barcode checkout or restaurant ordering, SST, receipts, works offline.',
+  addonAsk_warehouse: 'Need a central warehouse?', addonWhat_warehouse: 'Purchase orders, receiving, transfers to shops, adjustments, reorder suggestions.',
+  addonAsk_api: 'Connect your own system?', addonWhat_api: 'Let an online shop or accounting program read and update items, stock and receipts.',
+  addonAsk_ecommerce: 'Selling on Shopee or TikTok?', addonWhat_ecommerce: 'One stock for the shop and online, so nothing is sold twice.',
+  addonAsk_accounting: 'Using accounting software?', addonWhat_accounting: 'Sales into SQL Account or AutoCount. (The monthly LHDN e-invoice is already in Reports.)',
+  addonAsk_delivery: 'Sending orders out?', addonWhat_delivery: 'Book Lalamove or GrabExpress from the order.',
   // shifts
   noData: 'Nothing in this period.', shift: 'Shift', shiftNone: 'No shift open', shiftOpenSince: 'Shift since', openShift: 'Open shift', closeShift: 'Close shift',
   openingFloat: 'Opening float (cash in the drawer now)', shiftOpened: 'Shift opened', shiftClosed: 'Shift closed',
@@ -43,6 +54,17 @@ const en = {
 };
 
 const zh = {
+  setAddons: '功能扩展', addonOn: '已开启', addonAvailable: '可以增加', addonSoon: '即将推出',
+  addonsLead: '先用今天需要的。生意扩大了，再增加功能：不用装新东西，同一个账号、同一份库存。',
+  addonsYouHave: '基本功能', addonsGrow: '生意扩大了？再增加功能',
+  addonsHow: '要增加功能，WhatsApp 我们或升级配套。你的资料全部保留。',
+  addonAsk_stocktake: '用手机盘点', addonWhat_stocktake: '扫码或说出数量，分区域盘点，马上看到短少。',
+  addonAsk_pos: '柜台收银', addonWhat_pos: '扫码收银或餐饮点单、SST、收据，没网络也能用。',
+  addonAsk_warehouse: '需要管理中央仓库？', addonWhat_warehouse: '采购单、收货、调货给门店、库存调整、补货建议。',
+  addonAsk_api: '要连接自己的系统？', addonWhat_api: '让网店或会计软件读写商品、库存和收据。',
+  addonAsk_ecommerce: '在 Shopee、TikTok 卖东西？', addonWhat_ecommerce: '店里和网上共用一份库存，不会卖超。',
+  addonAsk_accounting: '用会计软件？', addonWhat_accounting: '销售自动进 SQL Account 或 AutoCount。（每月 LHDN 电子发票现在已经在「报表」里。）',
+  addonAsk_delivery: '要送货？', addonWhat_delivery: '从订单直接叫 Lalamove 或 GrabExpress。',
   noData: '这段时间没有记录。', shift: '班次', shiftNone: '未开班', shiftOpenSince: '开班于', openShift: '开班', closeShift: '交班',
   openingFloat: '开班备用金（现在钱箱里的现金）', shiftOpened: '已开班', shiftClosed: '已交班',
   shiftNeeded: '请先开班：数一数钱箱里的现金。', countedCash: '钱箱实点现金',
@@ -74,6 +96,17 @@ const zh = {
 };
 
 const ms = {
+  setAddons: 'Tambah fungsi', addonOn: 'Hidup', addonAvailable: 'Boleh ditambah', addonSoon: 'Akan datang',
+  addonsLead: 'Mula dengan apa yang perlu hari ini. Bila perniagaan berkembang, tambah lagi -- tiada apa perlu dipasang, akaun dan stok yang sama.',
+  addonsYouHave: 'Asas', addonsGrow: 'Perniagaan berkembang? Tambah lagi',
+  addonsHow: 'Untuk menambah, WhatsApp kami atau naik taraf pelan. Data anda kekal.',
+  addonAsk_stocktake: 'Kira stok dengan telefon', addonWhat_stocktake: 'Imbas atau sebut kuantiti, kira ikut kawasan, nampak apa yang kurang.',
+  addonAsk_pos: 'Jual di kaunter', addonWhat_pos: 'Imbas & jual atau pesanan restoran, SST, resit, boleh tanpa internet.',
+  addonAsk_warehouse: 'Perlu gudang pusat?', addonWhat_warehouse: 'Pesanan belian, terima barang, pindahan ke kedai, pelarasan, cadangan tambah stok.',
+  addonAsk_api: 'Sambung sistem anda sendiri?', addonWhat_api: 'Biar kedai dalam talian atau perisian akaun baca dan kemas kini barang, stok dan resit.',
+  addonAsk_ecommerce: 'Jual di Shopee atau TikTok?', addonWhat_ecommerce: 'Satu stok untuk kedai dan dalam talian, tiada jualan berlebihan.',
+  addonAsk_accounting: 'Guna perisian akaun?', addonWhat_accounting: 'Jualan terus ke SQL Account atau AutoCount. (e-Invois LHDN bulanan sudah ada dalam Laporan.)',
+  addonAsk_delivery: 'Hantar pesanan?', addonWhat_delivery: 'Tempah Lalamove atau GrabExpress dari pesanan.',
   noData: 'Tiada rekod dalam tempoh ini.', shift: 'Syif', shiftNone: 'Tiada syif dibuka', shiftOpenSince: 'Syif sejak', openShift: 'Buka syif', closeShift: 'Tutup syif',
   openingFloat: 'Wang apungan (tunai dalam laci sekarang)', shiftOpened: 'Syif dibuka', shiftClosed: 'Syif ditutup',
   shiftNeeded: 'Buka syif dahulu: kira tunai dalam laci.', countedCash: 'Tunai dikira dalam laci',

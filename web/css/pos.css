@@ -395,3 +395,8 @@ table.list .thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: c
 .shift-sum { display: grid; gap: 4px; max-width: 420px; }
 .shift-sum .r { display: flex; justify-content: space-between; gap: 16px; padding: 2px 0; border-bottom: 1px dashed var(--line, #e3e7e3); }
 .shift-sum .r span { color: var(--muted, #5d6a61); }
+
+/* Settings -> Add more */
+.addons { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.addon { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.addon.on { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }

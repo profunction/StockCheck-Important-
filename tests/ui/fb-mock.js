@@ -8,6 +8,8 @@ window.__store = store;
 
 const seed = {
   'userIndex/u1': { workspaceId: 'w1' },
+  // Every company gets a trial licence when it registers.
+  'licences/w1': { plan: 'TRIAL', status: 'ACTIVE', expiresAt: 4102444800000, seats: 5 },
   'workspaces/w1/users/u1': { displayName: 'Jeffrey', email: 'j@x.com', roleId: 'admin', active: true, branchIds: [] },
   'workspaces/w1/meta/config': { companyName: 'Kedai Jeffrey', branches: [{ id: 'ipoh', name: 'Ipoh', active: true }] },
   'workspaces/w1/roles/admin': { name: 'Admin', permissions: [] },

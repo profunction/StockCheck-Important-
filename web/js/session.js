@@ -10,6 +10,7 @@ import { collection, db, doc, getDoc, onSnapshot } from './fb.js';
 import { local } from './dom.js';
 import { t } from './i18n.js';
 import { entitlements } from './plans.js';
+import { can, isEnabled } from './modules.js';
 
 export const DEFAULT_SETTINGS = {
   shopName: '',
@@ -86,13 +87,20 @@ export const session = {
   licence: null,
   plan: null,
   /**
-   * Whether the plan includes [module] (app, pos, warehouse, api). The same
-   * test as moduleOff() in firestore.rules: only a licence that says so
-   * leaves a part out, so shops from before plans keep everything.
+   * Whether the company has module [id] (modules.js: stocktake, pos,
+   * warehouse, api, ...). The one question every screen asks; the answer
+   * comes from the registry, never from plan fields read here.
    */
+  has(id) {
+    return isEnabled(this.licence, id);
+  },
+  /** Whether this person may do [what] ('pos.void'): module on AND permission held. */
+  may(what) {
+    return can({ licence: this.licence, isAdmin: this.isAdmin, permissions: this.permissions }, what);
+  },
+  /** Older name for has(), kept for the licence keys it was called with. */
   allows(module) {
-    const m = this.licence?.modules;
-    return !(m && typeof m === 'object' && m[module] === false);
+    return this.has({ app: 'stocktake' }[module] || module);
   },
   /** This cashier's open shift (shifts.js), or null. */
   shift: null,

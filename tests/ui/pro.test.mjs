@@ -124,9 +124,25 @@ const firstDone = await done();
 
 // ---------------------------------------------------------------- plans
 const plan = await start({ seedPatch: { set: { 'licences/w1': { plan: 'APP_ONLY', status: 'ACTIVE', expiresAt: 0, modules: { app: true, pos: false, warehouse: false, api: false } } } } });
-await plan.step('a plan without the POS: the till says so', async () => {
+await plan.step('a plan without the POS: the till address opens the back office instead', async () => {
   await plan.page.goto(plan.base + '/pos/#/pos');
-  await plan.page.waitForSelector('.card:has-text("你的配套没有收银系统")');
+  await plan.page.waitForFunction(() => !location.hash.startsWith('#/pos'));
+  if (await plan.page.$('.tile, .market, .scanwrap')) throw new Error('the till was shown');
+});
+await plan.step('a plan without the POS: its menus are hidden, the rest stay', async () => {
+  await plan.page.goto(plan.base + '/pos/#/items/list');
+  await plan.page.waitForSelector('.side nav, nav');
+  const menu = await plan.page.$$eval('nav a, nav button', (els) => els.map((e) => e.textContent.trim()).join('|'));
+  for (const hidden of ['收银', '报表', '顾客', '整合']) if (menu.split('|').some((x) => x === hidden)) throw new Error(`${hidden} still shown: ${menu}`);
+  for (const shown of ['商品', '员工', '设置']) if (!menu.includes(shown)) throw new Error(`${shown} missing: ${menu}`);
+  if (await plan.page.$('a.side-link[href="/warehouse/"]')) throw new Error('warehouse link shown');
+});
+await plan.step('Add more: what is on, what can be added, what is coming', async () => {
+  await plan.page.goto(plan.base + '/pos/#/settings/addons');
+  await plan.page.waitForSelector('.addon');
+  const text = await plan.page.$eval('main', (el) => el.innerText);
+  if (!/盘点通\s*已开启/.test(text) || !/收银通\s*可以增加/.test(text) || !/电商同步\s*即将推出/.test(text)) throw new Error(text.slice(0, 600));
+  if (/module|API scope|feature flag/i.test(text)) throw new Error('technical words shown to the customer');
 });
 await plan.step('a plan without the warehouse: the warehouse says so', async () => {
   await plan.page.goto(plan.base + '/warehouse/#/receive');

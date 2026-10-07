@@ -70,7 +70,7 @@ function lockedView(main, message) {
 }
 
 export function render(main) {
-  if (!session.allows('pos')) { lockedView(main, t('planNoPos')); return null; }
+  if (!session.has('pos')) { lockedView(main, t('planNoPos')); return null; }
   root = main;
   cart = newCart();
   category = '';

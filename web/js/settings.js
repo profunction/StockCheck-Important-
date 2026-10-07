@@ -4,16 +4,17 @@
  */
 import { db, doc, setDoc } from './fb.js';
 import { h, local, mount, toast } from './dom.js';
-import { paymentLabel, t } from './i18n.js';
+import { getLang, paymentLabel, t } from './i18n.js';
 import { DEFAULT_SETTINGS, session, ws } from './session.js';
 import { menuButton } from './main.js';
 import { taxList } from './money.js';
 import { chosenMode, modeCards } from './modes.js';
 import { choosePrinter, directName, directReady, directSupported, forget, openDrawer, printDirect } from './rawprint.js';
 import { listTills, removeTill, tillId } from './tills.js';
+import { MODULES } from './modules.js';
 
 export function render(main, sub) {
-  const pages = { features, payments, taxes, loyalty, receipt, stores, device };
+  const pages = { features, payments, taxes, loyalty, receipt, stores, device, addons };
   (pages[sub] || features)(main);
   return null;
 }
@@ -271,4 +272,35 @@ function tillsCard() {
   };
   draw().catch(() => card.classList.add('hidden'));
   return card;
+}
+
+/**
+ * Settings -> Add more: what the company has, what it can add as the
+ * business grows, and what is coming. Customer words only; switching a
+ * part on is a plan change, so it is asked for, not toggled here.
+ */
+function addons(main) {
+  const lang = getLang();
+  const order = ['stocktake', 'pos', 'warehouse', 'api', 'ecommerce', 'accounting', 'delivery'];
+  const card = (id) => {
+    const m = MODULES[id];
+    const on = session.has(id);
+    const state = m.status === 'planned' ? ['pill', t('addonSoon')] : on ? ['pill good', t('addonOn')] : ['pill warn', t('addonAvailable')];
+    return h('div', { class: `addon${on ? ' on' : ''}` },
+      h('div', { class: 'row', style: { justifyContent: 'space-between', alignItems: 'baseline' } },
+        h('strong', {}, m.name[lang] || m.name.en), h('span', { class: state[0] }, state[1])),
+      h('p', { class: 'muted', style: { margin: 0 } }, t(`addonAsk_${id}`)),
+      h('p', { style: { margin: 0 } }, t(`addonWhat_${id}`)));
+  };
+  const core = order.filter((id) => MODULES[id].kind === 'core');
+  const extra = order.filter((id) => MODULES[id].kind === 'addon');
+  mount(main,
+    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, t('setAddons'))),
+    h('p', { class: 'muted', style: { maxWidth: '62ch' } }, t('addonsLead')),
+    h('h2', {}, t('addonsYouHave')),
+    h('div', { class: 'addons' }, core.map(card)),
+    h('h2', { style: { marginTop: '22px' } }, t('addonsGrow')),
+    h('div', { class: 'addons' }, extra.map(card)),
+    h('p', { class: 'muted', style: { marginTop: '16px' } }, t('addonsHow')));
+  return null;
 }
