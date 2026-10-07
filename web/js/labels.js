@@ -103,8 +103,7 @@ export function labelPageHtml(images, size) {
   return `<!doctype html><meta charset="utf-8"><title>Labels</title>
 <style>@page{size:${w} ${h};margin:0}html,body{margin:0;padding:0}
 img{display:block;width:${w};height:${h};page-break-after:always;break-after:page;image-rendering:pixelated}</style>
-${images.map((src) => `<img src="${src}" alt="">`).join('')}
-<script>window.onload=function(){setTimeout(function(){print()},300)}</script>`;
+${images.map((src) => `<img src="${src}" alt="">`).join('')}`;
 }
 
 /**
@@ -124,5 +123,10 @@ export function exportLabelBatch(itemIds, labelFormat = {}) {
   if (!win) throw new Error('The browser blocked the label window: allow pop-ups for this site');
   win.document.write(labelPageHtml(images, size));
   win.document.close();
+  // Printed from here: the site's security policy forbids a script inside
+  // the label page itself. The pictures are data, so they are in at once.
+  const go = () => setTimeout(() => { try { win.focus?.(); win.print?.(); } catch { /* closed already */ } }, 300);
+  if (win.document.readyState === 'complete' || !win.addEventListener) go();
+  else win.addEventListener('load', go, { once: true });
   return images.length;
 }

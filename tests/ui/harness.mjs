@@ -15,6 +15,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 export const WEB = join(here, '..', '..', 'web');
 export const OUT = process.env.UI_SHOTS || join(here, 'shots');
 const MOCK = readFileSync(join(here, 'fb-mock.js'), 'utf8');
+// The live site's security headers (firebase.json, "source": "**"), sent here
+// too: a page the policy would break fails these tests, not the shop.
+const SECURITY = JSON.parse(readFileSync(join(here, '..', '..', 'firebase.json'), 'utf8'))
+  .hosting.headers.filter((h) => h.source === '**').flatMap((h) => h.headers);
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webm': 'video/webm', '.json': 'application/json' };
 
 async function playwright() {
@@ -48,6 +52,7 @@ export async function start({ seedPatch = {}, lang = 'zh', viewport = { width: 1
       else file = join(WEB, 'pos/index.html');
     }
     res.setHeader('Content-Type', types[extname(file)] || 'application/octet-stream');
+    for (const { key, value } of SECURITY) res.setHeader(key, value);
     res.end(readFileSync(file));
   });
   await new Promise((r) => server.listen(0, r));
@@ -62,6 +67,7 @@ export async function start({ seedPatch = {}, lang = 'zh', viewport = { width: 1
   await page.addInitScript(([l, patch]) => {
     localStorage.setItem('pos.lang', JSON.stringify(l));
     window.__seedPatch = patch;
+    document.addEventListener('securitypolicyviolation', (e) => console.error(`blocked by the security policy: ${e.violatedDirective} ${e.blockedURI}`));
     window.print = () => { window.__printed = (window.__printed || 0) + 1; };
     window.open = () => ({ document: { write() {}, close() {} } });
   }, [lang, seedPatch]);

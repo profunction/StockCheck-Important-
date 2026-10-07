@@ -51,6 +51,8 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
     keeper: { name: 'Keeper', permissions: ['RECORD_STOCK_MOVEMENTS'], builtIn: false },
     buyer: { name: 'Buyer', permissions: ['WH_PURCHASE'], builtIn: false },
     approver: { name: 'Approver', permissions: ['WH_APPROVE'], builtIn: false },
+    hr: { name: 'HR', permissions: ['VIEW_USERS', 'CREATE_USER', 'EDIT_USER', 'DELETE_USER', 'EDIT_ROLE', 'CHANGE_PERMISSION'], builtIn: false },
+    warehouse_manager: { name: 'Warehouse Manager', permissions: ['POS_MANAGE', 'WH_APPROVE'], builtIn: true },
   };
   for (const [id, data] of Object.entries(roles)) await setDoc(doc(db, ws(`roles/${id}`)), data);
 
@@ -69,6 +71,7 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, ws('users/keeper1')), user('keeper'));
   await setDoc(doc(db, ws('users/buyer1')), user('buyer'));
   await setDoc(doc(db, ws('users/approver1')), user('approver'));
+  await setDoc(doc(db, ws('users/hr1')), user('hr'));
   await setDoc(doc(db, ws('purchaseOrders/ordered')), { poNo: 'PO-9', branchId: '', status: 'ORDERED', lines: [{ barcode: '9555', qtyMilli: 10000, receivedMilli: 0, costSen: 1400 }], createdAt: 1 });
   await setDoc(doc(db, ws('purchaseOrders/submitted')), { poNo: 'PO-8', branchId: '', status: 'SUBMITTED', lines: [], createdAt: 1 });
   await setDoc(doc(db, ws('customers/c1')), { name: 'Ah Seng', points: 500 });
@@ -344,6 +347,20 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
 await expect('sign-up: join with the right code as staff', true, () => setDoc(doc(as('newbie1'), ws('users/newbie1')), reg('worker', 'KEDAI1')));
 await expect('sign-up: wrong code refused', false, () => setDoc(doc(as('newbie2'), ws('users/newbie2')), reg('worker', 'NOPE')));
 await expect('sign-up: knowing the code is not enough to be admin', false, () => setDoc(doc(as('newbie3'), ws('users/newbie3')), reg('admin', 'KEDAI1')));
+await expect('sign-up: nor to join as a manager', false, () => setDoc(doc(as('newbie4'), ws('users/newbie4')), reg('warehouse_manager', 'KEDAI1')));
+
+// User administration without being an admin: never up to admin ------------
+const staff = (roleId) => ({ email: 's@x.my', displayName: 'S', roleId, roleName: roleId, active: true, createdAt: 1, branchIds: [] });
+await expect('HR: adds a worker', true, () => setDoc(doc(as('hr1'), ws('users/hire1')), staff('worker')));
+await expect('HR: cannot add an admin', false, () => setDoc(doc(as('hr1'), ws('users/hire2')), staff('admin')));
+await expect('HR: moves a worker to another role', true, () => updateDoc(doc(as('hr1'), ws('users/worker1')), { roleId: 'cashier' }));
+await expect('HR: cannot make someone admin', false, () => updateDoc(doc(as('hr1'), ws('users/cashier1')), { roleId: 'admin' }));
+await expect('HR: cannot make themselves admin', false, () => updateDoc(doc(as('hr1'), ws('users/hr1')), { roleId: 'admin' }));
+await expect('HR: cannot switch off the admin', false, () => updateDoc(doc(as('hr1'), ws('users/admin1')), { active: false }));
+await expect('HR: cannot remove the admin', false, () => deleteDoc(doc(as('hr1'), ws('users/admin1'))));
+await expect('HR: cannot widen their own role', false, () => updateDoc(doc(as('hr1'), ws('roles/hr')), { permissions: ['POS_MANAGE'] }));
+await expect('HR: may edit another role', true, () => updateDoc(doc(as('hr1'), ws('roles/cashier')), { permissions: ['POS_SELL', 'POS_VOID'] }));
+await expect('admin: still makes another admin', true, () => updateDoc(doc(as('admin1'), ws('users/hire1')), { roleId: 'admin' }));
 // A new company: claim the code, roles, then the founder's own admin profile, then its settings.
 const NEW = 'newco';
 const nws = (p) => `workspaces/${NEW}/${p}`;

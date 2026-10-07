@@ -336,14 +336,22 @@ service cloud.firestore {
                            // records who did): knowing a company's code is
                            // how staff join it, and must never be enough to
                            // join it as its admin.
+                           //
+                           // Everyone else who signs up with the code starts
+                           // as a worker, the least a role can do; both apps
+                           // only ever ask for that. Choosing any other role
+                           // here would let a modified app join as a manager.
                            (request.auth.uid == uid
-                            && (request.resource.data.roleId != 'admin'
-                                || (!profileExists() && foundedBy(request.resource.data.get('joinCode', ''))))
+                            && (request.resource.data.roleId == 'worker'
+                                || (request.resource.data.roleId == 'admin'
+                                    && !profileExists() && foundedBy(request.resource.data.get('joinCode', ''))))
                             && joinCodeAccepted())
-                           // Or an admin is issuing an account for a
-                           // colleague, in which case the code is irrelevant:
-                           // staff never type one.
-                           || can('CREATE_USER')
+                           // Or someone allowed to add staff is issuing an
+                           // account for a colleague, in which case the code
+                           // is irrelevant: staff never type one. Only an
+                           // admin may make another admin.
+                           || (can('CREATE_USER')
+                               && (isAdmin() || request.resource.data.roleId != 'admin'))
                          );
 
         allow read: if isOwner(uid) || can('VIEW_USERS');
@@ -352,19 +360,29 @@ service cloud.firestore {
         // themselves: role, active and branches are reserved for user
         // administrators. A branch manager who could empty their own
         // branchIds would be head office the moment they thought of it.
+        //
+        // Someone given user administration without being an admin (a custom
+        // role with EDIT_USER, say, for whoever does HR) manages the others:
+        // never their own record past what anyone may change, never an admin,
+        // and never into the admin role. Otherwise they could promote
+        // themselves to admin, or demote the owner.
         allow update: if (isOwner(uid)
                           && request.resource.data.roleId == resource.data.roleId
                           && request.resource.data.active == resource.data.active
                           && request.resource.data.get('branchIds', [])
                                == resource.data.get('branchIds', []))
-                      || can('EDIT_USER')
-                      || can('CHANGE_PERMISSION');
+                      || isAdmin()
+                      || ((can('EDIT_USER') || can('CHANGE_PERMISSION'))
+                          && request.auth.uid != uid
+                          && resource.data.roleId != 'admin'
+                          && request.resource.data.roleId != 'admin');
 
         // An admin may remove somebody else, and anybody may remove
         // themselves -- the second is what Google Play requires of any app
         // that lets people create an account, and it is the only deletion
         // that works without the Admin SDK and a paid plan behind it.
-        allow delete: if (can('DELETE_USER') && request.auth.uid != uid)
+        allow delete: if (can('DELETE_USER') && request.auth.uid != uid
+                          && (isAdmin() || resource.data.roleId != 'admin'))
                       || isOwner(uid);
       }
 
@@ -382,7 +400,10 @@ service cloud.firestore {
         // asserts both orderings pass.
         allow create: if can('CREATE_ROLE')
                       || (signedIn() && !exists(/databases/$(database)/documents/workspaces/$(ws)/roles/admin));
-        allow update: if can('EDIT_ROLE') && roleId != 'admin';
+        // Not the role you hold yourself, unless you are an admin: whoever
+        // could edit their own role could hand themselves every permission.
+        allow update: if can('EDIT_ROLE') && roleId != 'admin'
+                      && (isAdmin() || roleId != profile().roleId);
         allow delete: if can('DELETE_ROLE') && resource.data.builtIn == false;
       }
 
