@@ -70,49 +70,67 @@ summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0;color:var(--mute
 .final{text-align:center}.final .ctas{justify-content:center}
 footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
 footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
-@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
+header.top .btn{padding:8px 14px}
+.hero h1{margin-bottom:4px}.hero .sub{font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--brand);margin:0 0 14px}
+.inds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+a.ind{display:grid;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
+a.ind:hover{border-color:var(--brand);transform:translateY(-2px)}a.ind .em{font-size:30px;line-height:1}a.ind b{font-size:18px}a.ind span{color:var(--muted);font-size:15px}a.ind i{font-style:normal;color:var(--brand);font-weight:700;font-size:14px;margin-top:6px}
+.prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.prod{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
+.prod h3{margin:0;font-size:20px}.prod .kind{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.04em}.prod .line{margin:0;font-weight:600}
+.prod ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}.prod .go{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.prod .go a{font-weight:700;font-size:15px}
+.addons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.addon{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.addon b{font-size:17px}.addon .ask{margin:0;font-weight:600}.addon .what{margin:0;color:var(--muted);font-size:15px}
+.st{justify-self:start;font-size:12px;font-weight:700;border-radius:99px;padding:1px 10px;background:var(--soft);color:var(--brand)}.st.soon{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.soonnote{margin-top:14px;padding:12px 16px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--ink);background:color-mix(in srgb,var(--accent) 8%,var(--paper))}
+.pts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.crumb{font-size:14px;margin:18px 0 0}.crumb a{text-decoration:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips span{background:var(--soft);color:var(--brand);font-weight:700;border-radius:99px;padding:4px 12px;font-size:15px}
+@media (max-width:860px){header.top{position:static}.langs a{padding:2px 4px}.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
 <a class="logo" href="/ms/"><img src="/icons/icon-192.png" alt="" width="34" height="34">Pos Stock Check</a>
-<nav class="main" aria-label="Bahasa"><a href="#features">Ciri</a><a href="#how">Cara guna</a><a href="#pricing">Harga</a><a href="#faq">Soalan lazim</a><a href="/guide/">Panduan</a></nav>
+<nav class="main" aria-label="Bahasa"><a href="/ms/#industries">Untuk perniagaan saya</a><a href="/ms/#products">Produk</a><a href="/ms/#addons">Tambah fungsi</a><a href="/ms/#pricing">Harga</a><a href="/guide/">Panduan</a></nav>
 <span class="spacer"></span>
 <div class="langs"><a href="/" hreflang="zh-Hans-MY">中文</a><a href="/en/" hreflang="en-MY">English</a><a href="/ms/" hreflang="ms-MY" aria-current="page">Bahasa Melayu</a></div>
-<a class="btn ghost" href="/pos/" rel="nofollow">Log masuk POS</a>
+<a class="btn ghost" href="/pos/" rel="nofollow">Log masuk</a>
+<a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Cuba percuma</a>
 </div></header>
 <main>
 <div class="wrap hero">
 <div>
-<div class="eyebrow">Kira stok dan POS untuk perniagaan Malaysia</div>
-<h1>Kira stok di telefon, jual di kaunter, dan angkanya sentiasa sepadan</h1>
-<p class="lead">Stock Check ialah aplikasi kira stok di telefon; Pos Stock Check ialah mesin kaunter di komputer. Kedua-duanya berkongsi satu pangkalan data: barang dijual di kaunter, stok di telefon terus berkurang.</p>
-<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Cuba percuma 14 hari</a><a class="btn ghost" href="/pos/" rel="nofollow">Buka POS</a></div>
-<p class="small">Tanpa kad kredit · Bahasa Melayu / English / 中文</p>
+<h1>Kira stok dengan telefon, jual di kaunter</h1>
+<p class="sub">Urus stok dan kedai jadi mudah</p>
+<p class="lead">Kira stok dengan cepat guna telefon, bayar dengan pantas di kaunter. Bila perniagaan berkembang, tambah gudang, jualan dalam talian dan lain-lain bila perlu.</p>
+<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Cuba percuma 14 hari</a><a class="btn ghost" href="#industries">Cari pelan yang sesuai</a></div>
+<p class="small">Tanpa kad kredit · 中文 / English / Bahasa Melayu · Malaysia</p>
 </div>
-<img class="shot" src="/img/pos-register.png" width="1366" height="800" alt="POS kaunter — Pos Stock Check">
+<img class="shot" src="/img/pos-register.png" width="1366" height="800" alt="POS — Pos Stock Check">
 </div>
 <div class="wrap facts"><div><b>14 hari</b><span>percubaan percuma</span></div><div><b>RM48</b><span>sebulan, dari</span></div><div><b>3 bahasa</b><span>Melayu, Inggeris, Cina</span></div><div><b>Luar talian</b><span>terus menjual tanpa internet</span></div></div>
-<section id="features"><div class="wrap"><h2>Kira stok, POS dan inventori dalam satu sistem</h2>
-<div class="grid"><article class="card"><h3>Kira stok dengan telefon</h3><p>Imbas kod bar dengan kamera, sebut &quot;lima telur&quot;, atau sentuh tag NFC. Kira ikut kawasan; jumlah dicampur sendiri.</p></article>
-<article class="card"><h3>POS kaunter</h3><p>Pengimbas kod bar USB, pencetak resit 58/80 mm, bayaran berpecah, tunai dibundarkan ke 5 sen, SST termasuk atau ditambah.</p></article>
-<article class="card"><h3>Stok yang tepat</h3><p>Stok = kiraan terakhir + barang masuk − jualan sejak itu. Setiap angka boleh dikesan, dan setiap kiraan menunjukkan barang yang hilang.</p></article>
-<article class="card"><h3>Restoran</h3><p>Meja, makan sini / bungkus, pilihan tambahan, tiket dapur, caj perkhidmatan.</p></article>
-<article class="card"><h3>Sistem gudang</h3><p>Pesanan belian dengan kelulusan, terima barang dengan imbasan, rekod rosak, pindahan gudang ke kedai (dalam transit), pelarasan dengan sebab, cadangan tambah stok, log audit.</p></article>
-<article class="card"><h3>Syif dan laci tunai</h3><p>Juruwang buka syif dengan wang apungan dan tutup dengan kiraan tunai; kurang atau lebih terus nampak, slip dicetak; laci terbuka untuk bayaran tunai.</p></article>
-<article class="card"><h3>Label harga</h3><p>Label 30×20 atau 40×30 mm: nama, harga, kod bar, tanda TANPA SST untuk barang dikecualikan.</p></article>
-<article class="card"><h3>e-Invois MyInvois</h3><p>Setiap bulan, e-invois disatukan LHDN (JSON / CSV) dalam satu klik, untuk dihantar ke MyInvois.</p></article>
-<article class="card"><h3>Ahli dan mata ganjaran</h3><p>Kad ahli (kod bar atau NFC); pelanggan kumpul mata dan guna untuk bayar.</p></article>
-<article class="card"><h3>Cawangan dan hak pekerja</h3><p>Stok setiap cawangan berasingan. Juruwang tidak boleh ubah harga atau padam resit.</p></article>
-<article class="card"><h3>Sambung dengan POS lain</h3><p>Loyverse menyegerakkan barang, stok dan jualan; POS lain diimport dengan Excel / CSV.</p></article>
-<article class="card"><h3>Laporan</h3><p>Ringkasan jualan, ikut barang, kategori, pekerja, cara bayaran, diskaun dan cukai; eksport ke Excel.</p></article>
-<article class="card"><h3>API terbuka</h3><p>Kedai dalam talian dan perisian perakaunan boleh membaca dan mengemas kini data dengan token akses.</p></article></div></div></section>
-<section id="for"><div class="wrap"><h2>Untuk siapa</h2>
-<div class="grid"><div class="card"><h3>Kedai runcit, pasar mini, pasar raya</h3><p>Kaunter kod bar, barang ditimbang, amaran stok rendah</p></div>
-<div class="card"><h3>Gudang dan pemborong</h3><p>Kira ikut kawasan, pesanan belian, pindahan cawangan, RFID</p></div>
-<div class="card"><h3>Restoran dan kafe</h3><p>Meja, tiket dapur, pilihan tambahan, caj perkhidmatan</p></div>
-<div class="card"><h3>Kedai perkakasan, alat tulis, farmasi</h3><p>Barang dengan banyak kod bar, mata ganjaran, hak pekerja</p></div></div></div></section>
+<section id="industries"><div class="wrap"><h2>Apa perniagaan anda?</h2><p class="lead" style="margin:-8px 0 20px">Pilih satu dan lihat yang berkaitan sahaja.</p>
+<div class="inds"><a class="ind" href="/ms/retail/"><span class="em" aria-hidden="true">🛒</span><b>Runcit / Pasar mini</b><span>Imbas &amp; jual, kira stok, SST</span><i>Lihat yang sesuai →</i></a>
+<a class="ind" href="/ms/fnb/"><span class="em" aria-hidden="true">🍜</span><b>Restoran / Kafe</b><span>Pesanan, tiket dapur, caj perkhidmatan</span><i>Lihat yang sesuai →</i></a>
+<a class="ind" href="/ms/wholesale/"><span class="em" aria-hidden="true">📦</span><b>Gudang / Borong</b><span>Terima barang, pindahan, stok</span><i>Lihat yang sesuai →</i></a>
+<a class="ind" href="/ms/ecommerce/"><span class="em" aria-hidden="true">🛍️</span><b>Penjual dalam talian</b><span>Satu stok untuk kedai dan dalam talian</span><i>Lihat yang sesuai →</i></a></div></div></section>
+<section id="products"><div class="wrap"><h2>Empat produk, satu stok</h2>
+<div class="prods"><article class="prod"><span class="kind">Aplikasi Android</span><h3>Kira Stok</h3><p class="line">Kira stok dengan cepat guna telefon.</p>
+<ul><li>Imbas kod bar dengan telefon</li><li>Sebut kuantiti</li><li>Kira tanpa internet</li><li>Tunjuk apa yang kurang</li><li>Foto</li><li>Segerak Loyverse</li></ul><div class="go"><a href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Mula kira stok →</a></div></article>
+<article class="prod"><span class="kind">Web, boleh dipasang</span><h3>POS</h3><p class="line">Bayaran di kaunter lebih cepat dan mudah.</p>
+<ul><li>Runcit: kod bar, SST, bundar tunai, resit, luar talian</li><li>Restoran: makan sini, pengubah, tiket dapur, caj perkhidmatan</li></ul><div class="go"><a href="/ms/retail/">Saya ada kedai →</a><a href="/ms/fnb/">Saya ada restoran →</a></div></article>
+<article class="prod"><span class="kind">Web dan telefon</span><h3>Gudang</h3><p class="line">Stok gudang, barang masuk dan keluar, pindahan ke kedai.</p>
+<ul><li>Pesanan belian dan kelulusan</li><li>Terima dengan imbasan</li><li>Pindahan dalam transit</li><li>Pelarasan</li><li>Cadangan tambah stok</li></ul><div class="go"><a href="/ms/wholesale/">Lihat pelan gudang →</a></div></article>
+<article class="prod"><span class="kind">Web</span><h3>Pejabat Belakang</h3><p class="line">Untuk pemilik: perniagaan sekali pandang, pekerja, dan tambah fungsi.</p>
+<ul><li>Laporan jualan dan syif</li><li>Pekerja dan kebenaran</li><li>Barang, harga, cukai</li><li>e-Invois LHDN bulanan</li><li>Tambah fungsi</li></ul><div class="go"><a href="/pos/" rel="nofollow">Log masuk →</a></div></article></div></div></section>
+<section id="addons"><div class="wrap"><h2>Perniagaan berkembang? Tambah lagi.</h2><p class="lead" style="margin:-8px 0 20px">Mula dengan kira stok dan kaunter. Tambah bila perlu — tiada sistem baharu, data anda kekal.</p>
+<div class="addons"><div class="addon"><b>📦 Gudang &amp; pesanan</b><span class="st">Ada sekarang</span><p class="ask">Perlu gudang pusat?</p><p class="what">Gudang, pesanan belian, pindahan, cadangan tambah stok.</p></div>
+<div class="addon"><b>🧾 Akaun &amp; e-Invois</b><span class="st">Sebahagian ada</span><p class="ask">Hantar e-Invois LHDN?</p><p class="what">e-Invois disatukan MyInvois bulanan sudah termasuk. Sambungan SQL Account dan AutoCount akan datang.</p></div>
+<div class="addon"><b>🌐 Segerak kedai dalam talian</b><span class="st soon">Akan datang</span><p class="ask">Jual di Shopee atau TikTok?</p><p class="what">Stok dan pesanan selari, tiada jualan berlebihan.</p></div>
+<div class="addon"><b>🚚 Penghantaran</b><span class="st soon">Akan datang</span><p class="ask">Hantar pesanan?</p><p class="what">Lalamove, GrabExpress.</p></div></div></div></section>
 <section id="how"><div class="wrap"><h2>Mula dalam tiga langkah</h2>
 <ol class="steps"><li><h3>Pasang aplikasi dan daftar</h3><p>Pasang Stock Check di telefon Android. Orang pertama yang mendaftar ialah admin, dengan percubaan 14 hari.</p></li>
 <li><h3>Buat kiraan pertama</h3><p>Imbas barang di kedai, atau import senarai barang dari Excel.</p></li>

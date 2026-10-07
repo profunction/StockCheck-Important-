@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hans-MY">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仓库和批发商 · Pos Stock Check</title>
+<meta name="description" content="仓库和门店一份库存：进了多少、在途多少、哪里少了，一查就知道。">
+<link rel="canonical" href="https://stockcheck-fb58e.web.app/wholesale/">
+<link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/wholesale/">
+<link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/wholesale/">
+<link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/wholesale/">
+<link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/wholesale/">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0f5132">
+<link rel="icon" type="image/png" href="/icons/icon-64.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="仓库和批发商 · Pos Stock Check">
+<meta property="og:description" content="仓库和门店一份库存：进了多少、在途多少、哪里少了，一查就知道。">
+<meta property="og:url" content="https://stockcheck-fb58e.web.app/wholesale/">
+<meta property="og:image" content="https://stockcheck-fb58e.web.app/img/og-image.png">
+<style>:root{--bg:#f6f8f5;--paper:#fff;--ink:#14201a;--muted:#55635a;--line:#d9e0d8;--brand:#0f5132;--brand-2:#1f7a4f;--soft:#e3f0e8;--accent:#c27a12;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#101612;--paper:#18201b;--ink:#e6ede7;--muted:#9fada4;--line:#2c3830;--brand:#5cc28e;--brand-2:#7fd3a8;--soft:#1c3226;--accent:#e9b04f;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
+a{color:var(--brand)}img{max-width:100%;height:auto}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
+header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:18px;min-height:60px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink);text-decoration:none;font-size:18px}
+.logo img{width:34px;height:34px;border-radius:8px}
+nav.main{display:flex;gap:16px;flex-wrap:wrap;font-size:15px}nav.main a{color:var(--muted);text-decoration:none}nav.main a:hover{color:var(--ink)}
+.spacer{flex:1}.langs{display:flex;gap:8px;font-size:14px}.langs a{color:var(--muted);text-decoration:none;padding:2px 6px;border-radius:6px}.langs a[aria-current]{background:var(--soft);color:var(--brand);font-weight:700}
+.btn{display:inline-block;padding:12px 20px;border-radius:10px;font-weight:700;text-decoration:none;border:2px solid var(--brand)}
+.btn.primary{background:var(--brand);color:#fff}.btn.ghost{color:var(--brand)}
+@media (prefers-color-scheme:dark){.btn.primary{color:#0b1a12}}
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:56px 40px}
+.eyebrow{color:var(--brand);font-weight:700;font-size:14px;letter-spacing:.06em}
+h1{font-size:clamp(30px,4.4vw,46px);line-height:1.2;margin:10px 0 16px;text-wrap:balance}
+.lead{color:var(--muted);font-size:18px;max-width:58ch}
+.ctas{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 10px}.small{color:var(--muted);font-size:14px}
+.shot{border-radius:14px;border:1px solid var(--line);box-shadow:0 20px 40px -24px rgba(0,0,0,.4);background:var(--paper)}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-block:8px 40px}
+.facts div{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px}.facts b{display:block;font-size:24px;color:var(--brand)}.facts span{color:var(--muted);font-size:14px}
+section{padding-block:48px;border-top:1px solid var(--line)}
+h2{font-size:clamp(24px,3vw,32px);line-height:1.3;margin:0 0 20px;text-wrap:balance}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
+.card h3{margin:0 0 6px;font-size:17px}.card p{margin:0;color:var(--muted);font-size:15px}
+ol.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;counter-reset:s}
+ol.steps li{counter-increment:s;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+ol.steps li::before{content:counter(s);display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;margin-bottom:8px}
+@media (prefers-color-scheme:dark){ol.steps li::before{color:#0b1a12}}
+ol.steps h3{margin:0 0 4px;font-size:17px}ol.steps p{margin:0;color:var(--muted);font-size:15px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.plan{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px}
+.plan.mid{border:2px solid var(--brand)}.plan h3{margin:0}.plan .price{font-size:34px;font-weight:800;margin:6px 0 0}.plan .price small{font-size:15px;color:var(--muted);font-weight:500}
+.plan ul{padding-left:18px;margin:10px 0 0;color:var(--muted);font-size:15px}
+details{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0;color:var(--muted)}
+.final{text-align:center}.final .ctas{justify-content:center}
+footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+header.top .btn{padding:8px 14px}
+.hero h1{margin-bottom:4px}.hero .sub{font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--brand);margin:0 0 14px}
+.inds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+a.ind{display:grid;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
+a.ind:hover{border-color:var(--brand);transform:translateY(-2px)}a.ind .em{font-size:30px;line-height:1}a.ind b{font-size:18px}a.ind span{color:var(--muted);font-size:15px}a.ind i{font-style:normal;color:var(--brand);font-weight:700;font-size:14px;margin-top:6px}
+.prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.prod{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
+.prod h3{margin:0;font-size:20px}.prod .kind{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.04em}.prod .line{margin:0;font-weight:600}
+.prod ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}.prod .go{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.prod .go a{font-weight:700;font-size:15px}
+.addons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.addon{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.addon b{font-size:17px}.addon .ask{margin:0;font-weight:600}.addon .what{margin:0;color:var(--muted);font-size:15px}
+.st{justify-self:start;font-size:12px;font-weight:700;border-radius:99px;padding:1px 10px;background:var(--soft);color:var(--brand)}.st.soon{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.soonnote{margin-top:14px;padding:12px 16px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--ink);background:color-mix(in srgb,var(--accent) 8%,var(--paper))}
+.pts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.crumb{font-size:14px;margin:18px 0 0}.crumb a{text-decoration:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips span{background:var(--soft);color:var(--brand);font-weight:700;border-radius:99px;padding:4px 12px;font-size:15px}
+@media (max-width:860px){header.top{position:static}.langs a{padding:2px 4px}.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+<a class="logo" href="/"><img src="/icons/icon-192.png" alt="" width="34" height="34">Pos Stock Check</a>
+<nav class="main" aria-label="语言"><a href="/#industries">适合我的生意</a><a href="/#products">产品</a><a href="/#addons">功能扩展</a><a href="/#pricing">价格</a><a href="/guide/">使用教程</a></nav>
+<span class="spacer"></span>
+<div class="langs"><a href="/" hreflang="zh-Hans-MY" aria-current="page">中文</a><a href="/en/" hreflang="en-MY">English</a><a href="/ms/" hreflang="ms-MY">Bahasa Melayu</a></div>
+<a class="btn ghost" href="/pos/" rel="nofollow">登录</a>
+<a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">免费试用</a>
+</div></header>
+<main>
+<div class="wrap"><p class="crumb"><a href="/">← 回首页</a> · <a href="/#industries">适合我的生意</a></p></div>
+<div class="wrap hero" style="grid-template-columns:minmax(0,1fr)">
+<div>
+<div class="eyebrow"><span aria-hidden="true">📦</span> 仓库 / 批发</div>
+<h1>仓库和批发商</h1>
+<p class="lead">仓库和门店一份库存：进了多少、在途多少、哪里少了，一查就知道。</p>
+<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">免费试用 14 天</a><a class="btn ghost" href="/#pricing">看全部价格</a></div>
+</div>
+</div>
+<section><div class="wrap">
+<div class="pts"><article class="card"><h3>仓库库存</h3><p>每个仓库、门店分开算；现有、在途、订购中、可用、价值。</p></article>
+<article class="card"><h3>进货</h3><p>采购单（老板批准）、扫码收货、记录损坏和短少。</p></article>
+<article class="card"><h3>调货给门店</h3><p>仓库发货马上扣，货在「在途」，门店收到再加；少了会记差异。</p></article>
+<article class="card"><h3>库存调整</h3><p>每次调整都要选原因：损坏、过期、丢失、找到。</p></article>
+<article class="card"><h3>补货建议</h3><p>低于补货点自动建议订多少，一键生成采购单。</p></article></div>
+<p class="soonnote">即将推出：门店订货单、拣货单。</p>
+</div></section>
+<section><div class="wrap"><h2>会用到</h2>
+<div class="prods"><article class="prod"><span class="kind">网页 / 手机</span><h3>仓管通</h3><p class="line">管理仓库、进出货和门店调货。</p>
+<ul><li>采购单和批准</li><li>扫码收货</li><li>调货（在途）</li><li>库存调整</li><li>补货建议</li></ul><div class="go"><a href="/guide/#warehouse">使用教程 →</a></div></article>
+<article class="prod"><span class="kind">Android App</span><h3>盘点通</h3><p class="line">用手机快速完成库存盘点。</p>
+<ul><li>手机扫码</li><li>语音输入数量</li><li>离线盘点</li><li>库存核对：短少多少</li><li>照片记录</li><li>Loyverse 同步</li></ul><div class="go"><a href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">我要开始盘点 →</a></div></article>
+<article class="prod"><span class="kind">网页</span><h3>云后台</h3><p class="line">老板查看生意、管理员工、开启扩展功能。</p>
+<ul><li>销售和交班报表</li><li>员工和权限</li><li>商品、价格、税</li><li>每月 LHDN 电子发票</li><li>功能扩展</li></ul><div class="go"><a href="/pos/" rel="nofollow">登录后台 →</a></div></article></div></div></section>
+<section><div class="wrap"><h2>建议的配套</h2><p class="lead">建议 Business（RM118/月，20 位用户、多分店）。</p>
+<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">免费试用 14 天</a><a class="btn ghost" href="/#pricing">看全部价格</a></div></div></section>
+</main>
+<footer><div class="wrap"><span>© 2026 Pos Stock Check · 马来西亚商店、超市、仓库和餐厅的盘点与收银系统。</span><span><a href="/wholesale/" hreflang="zh-Hans-MY">中文</a> · <a href="/en/wholesale/" hreflang="en-MY">English</a> · <a href="/ms/wholesale/" hreflang="ms-MY">Bahasa Melayu</a></span></div></footer>
+</body>
+</html>

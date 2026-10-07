@@ -15,6 +15,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PLANS, TRIAL_DAYS, LIFETIME_SUPPORT_MONTHS } from '../platform/plans.mjs';
 import { APP_DOWNLOAD, CONTACT, GUIDE_URL, LANGS, POS_URL, SITE, WAREHOUSE_URL } from './content.mjs';
+import { INDUSTRY_IDS, PAGES } from './pages.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'web');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -70,7 +71,24 @@ summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0;color:var(--mute
 .final{text-align:center}.final .ctas{justify-content:center}
 footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
 footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
-@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
+header.top .btn{padding:8px 14px}
+.hero h1{margin-bottom:4px}.hero .sub{font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--brand);margin:0 0 14px}
+.inds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+a.ind{display:grid;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
+a.ind:hover{border-color:var(--brand);transform:translateY(-2px)}a.ind .em{font-size:30px;line-height:1}a.ind b{font-size:18px}a.ind span{color:var(--muted);font-size:15px}a.ind i{font-style:normal;color:var(--brand);font-weight:700;font-size:14px;margin-top:6px}
+.prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.prod{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
+.prod h3{margin:0;font-size:20px}.prod .kind{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.04em}.prod .line{margin:0;font-weight:600}
+.prod ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}.prod .go{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.prod .go a{font-weight:700;font-size:15px}
+.addons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.addon{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.addon b{font-size:17px}.addon .ask{margin:0;font-weight:600}.addon .what{margin:0;color:var(--muted);font-size:15px}
+.st{justify-self:start;font-size:12px;font-weight:700;border-radius:99px;padding:1px 10px;background:var(--soft);color:var(--brand)}.st.soon{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.soonnote{margin-top:14px;padding:12px 16px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--ink);background:color-mix(in srgb,var(--accent) 8%,var(--paper))}
+.pts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.crumb{font-size:14px;margin:18px 0 0}.crumb a{text-decoration:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips span{background:var(--soft);color:var(--brand);font-weight:700;border-radius:99px;padding:4px 12px;font-size:15px}
+@media (max-width:860px){header.top{position:static}.langs a{padding:2px 4px}.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 `;
@@ -132,8 +150,44 @@ function jsonLd(lang, t) {
   ];
 }
 
+/** The top bar, the same on every public page. */
+function navLinks(lang) {
+  const t = LANGS[lang];
+  const P = PAGES[lang];
+  return `<nav class="main" aria-label="${esc(t.langName)}"><a href="${t.path}#industries">${esc(P.nav.industries)}</a><a href="${t.path}#products">${esc(P.nav.products)}</a><a href="${t.path}#addons">${esc(P.nav.addons)}</a><a href="${t.path}#pricing">${esc(P.nav.pricing)}</a><a href="/guide/">${esc(P.nav.guide)}</a></nav>
+<span class="spacer"></span>
+<div class="langs">${Object.entries(LANGS).map(([k, o]) => `<a href="${o.path}" hreflang="${o.htmlLang}"${k === lang ? ' aria-current="page"' : ''}>${esc(o.label)}</a>`).join('')}</div>
+<a class="btn ghost" href="/pos/" rel="nofollow">${esc(P.nav.login)}</a>
+<a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.nav.trial)}</a>`;
+}
+
+/** Where each product's button goes. */
+function productLinks(lang, id, here = '') {
+  const t = LANGS[lang];
+  const P = PAGES[lang];
+  const x = P.products[id];
+  // On the page a button would lead to, it leads to the video guide instead.
+  if (id === 'warehouse' && here === 'wholesale') return `<a href="/guide/#warehouse">${esc(P.nav.guide)} →</a>`;
+  if (id === 'stocktake') return `<a href="${APP_DOWNLOAD}">${esc(x.cta)} →</a>`;
+  if (id === 'pos') return `<a href="${t.path}retail/">${esc(x.cta)} →</a><a href="${t.path}fnb/">${esc(x.cta2)} →</a>`;
+  if (id === 'warehouse') return `<a href="${t.path}wholesale/">${esc(x.cta)} →</a>`;
+  return `<a href="/pos/" rel="nofollow">${esc(x.cta)} →</a>`;
+}
+
+function productCards(lang, ids = ['stocktake', 'pos', 'warehouse', 'backoffice'], here = '') {
+  const P = PAGES[lang];
+  return ids.map((id) => { const x = P.products[id]; return `<article class="prod"><span class="kind">${esc(x.kind)}</span><h3>${esc(x.name)}</h3><p class="line">${esc(x.line)}</p>
+<ul>${x.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><div class="go">${productLinks(lang, id, here)}</div></article>`; }).join('\n');
+}
+
+function addonCards(lang) {
+  const P = PAGES[lang];
+  return P.addons.map((a) => `<div class="addon"><b>${esc(a.name)}</b><span class="st${a.state === 'soon' ? ' soon' : ''}">${esc(P.state[a.state])}</span><p class="ask">${esc(a.ask)}</p><p class="what">${esc(a.what)}</p></div>`).join('\n');
+}
+
 function page(lang) {
   const t = LANGS[lang];
+  const P = PAGES[lang];
   const shot = lang === 'en' ? '/img/pos-register-en.png' : '/img/pos-register.png';
   const url = SITE + t.path;
   const alternates = Object.values(LANGS).map((o) => `<link rel="alternate" hreflang="${o.htmlLang}" href="${SITE}${o.path}">`).join('\n');
@@ -186,27 +240,26 @@ ${jsonLd(lang, t).map((o) => `<script type="application/ld+json">${JSON.stringif
 <body>
 <header class="top"><div class="wrap">
 <a class="logo" href="${t.path}"><img src="/icons/icon-192.png" alt="" width="34" height="34">Pos Stock Check</a>
-<nav class="main" aria-label="${esc(t.langName)}"><a href="#features">${esc(t.nav.features)}</a><a href="#how">${esc(t.nav.how)}</a><a href="#pricing">${esc(t.nav.pricing)}</a><a href="#faq">${esc(t.nav.faq)}</a><a href="/guide/">${esc(t.nav.guide)}</a></nav>
-<span class="spacer"></span>
-<div class="langs">${Object.entries(LANGS).map(([k, o]) => `<a href="${o.path}" hreflang="${o.htmlLang}"${k === lang ? ' aria-current="page"' : ''}>${esc(o.label)}</a>`).join('')}</div>
-<a class="btn ghost" href="/pos/" rel="nofollow">${esc(t.nav.open)}</a>
+${navLinks(lang)}
 </div></header>
 <main>
 <div class="wrap hero">
 <div>
-<div class="eyebrow">${esc(t.hero.eyebrow)}</div>
-<h1>${esc(t.hero.h1)}</h1>
-<p class="lead">${esc(t.hero.lead)}</p>
-<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(t.hero.cta)}</a><a class="btn ghost" href="/pos/" rel="nofollow">${esc(t.hero.cta2)}</a></div>
-<p class="small">${esc(t.hero.note)}</p>
+<h1>${esc(P.hero.h1)}</h1>
+<p class="sub">${esc(P.hero.sub)}</p>
+<p class="lead">${esc(P.hero.lead)}</p>
+<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.hero.cta)}</a><a class="btn ghost" href="#industries">${esc(P.hero.cta2)}</a></div>
+<p class="small">${esc(P.hero.note)}</p>
 </div>
-<img class="shot" src="${shot}" width="1366" height="800" alt="${esc(t.features[1][0])} — Pos Stock Check">
+<img class="shot" src="${shot}" width="1366" height="800" alt="${esc(P.products.pos.name)} — Pos Stock Check">
 </div>
 <div class="wrap facts">${t.facts.map(([b, s]) => `<div><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('')}</div>
-<section id="features"><div class="wrap"><h2>${esc(t.featuresTitle)}</h2>
-<div class="grid">${t.features.map(([h, p]) => `<article class="card"><h3>${esc(h)}</h3><p>${esc(p)}</p></article>`).join('\n')}</div></div></section>
-<section id="for"><div class="wrap"><h2>${esc(t.forTitle)}</h2>
-<div class="grid">${t.for.map(([h, p]) => `<div class="card"><h3>${esc(h)}</h3><p>${esc(p)}</p></div>`).join('\n')}</div></div></section>
+<section id="industries"><div class="wrap"><h2>${esc(P.industriesTitle)}</h2><p class="lead" style="margin:-8px 0 20px">${esc(P.industriesLead)}</p>
+<div class="inds">${INDUSTRY_IDS.map((id) => { const x = P.industries[id]; return `<a class="ind" href="${t.path}${id}/"><span class="em" aria-hidden="true">${x.icon}</span><b>${esc(x.name)}</b><span>${esc(x.short)}</span><i>${esc(P.see)}</i></a>`; }).join('\n')}</div></div></section>
+<section id="products"><div class="wrap"><h2>${esc(P.productsTitle)}</h2>
+<div class="prods">${productCards(lang)}</div></div></section>
+<section id="addons"><div class="wrap"><h2>${esc(P.addonsTitle)}</h2><p class="lead" style="margin:-8px 0 20px">${esc(P.addonsLead)}</p>
+<div class="addons">${addonCards(lang)}</div></div></section>
 <section id="how"><div class="wrap"><h2>${esc(t.howTitle)}</h2>
 <ol class="steps">${t.how.map(([h, p]) => `<li><h3>${esc(h)}</h3><p>${esc(p)}</p></li>`).join('\n')}</ol></div></section>
 <section id="pricing"><div class="wrap"><h2>${esc(t.pricingTitle)}</h2>
@@ -220,6 +273,64 @@ ${contact}
 <div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(t.hero.cta)}</a></div></div></section>
 </main>
 <footer><div class="wrap"><span>© ${new Date().getFullYear()} Pos Stock Check · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
+</body>
+</html>
+`;
+}
+
+/** One page per kind of business: only what that business needs. */
+function industryPage(lang, id) {
+  const t = LANGS[lang];
+  const P = PAGES[lang];
+  const x = P.industries[id];
+  const url = `${SITE}${t.path}${id}/`;
+  const title = `${x.h1} · Pos Stock Check`;
+  const alternates = Object.values(LANGS).map((o) => `<link rel="alternate" hreflang="${o.htmlLang}" href="${SITE}${o.path}${id}/">`).join('\n');
+  return `<!doctype html>
+<html lang="${t.htmlLang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(x.lead)}">
+<link rel="canonical" href="${url}">
+${alternates}
+<link rel="alternate" hreflang="x-default" href="${SITE}/${id}/">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0f5132">
+<link rel="icon" type="image/png" href="/icons/icon-64.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(x.lead)}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${SITE}/img/og-image.png">
+<style>${CSS.trim()}</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+<a class="logo" href="${t.path}"><img src="/icons/icon-192.png" alt="" width="34" height="34">Pos Stock Check</a>
+${navLinks(lang)}
+</div></header>
+<main>
+<div class="wrap"><p class="crumb"><a href="${t.path}">← ${esc(P.back)}</a> · <a href="${t.path}#industries">${esc(P.nav.industries)}</a></p></div>
+<div class="wrap hero" style="grid-template-columns:minmax(0,1fr)">
+<div>
+<div class="eyebrow"><span aria-hidden="true">${x.icon}</span> ${esc(x.name)}</div>
+<h1>${esc(x.h1)}</h1>
+<p class="lead">${esc(x.lead)}</p>
+<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.ctaPage)}</a><a class="btn ghost" href="${t.path}#pricing">${esc(P.ctaTalk)}</a></div>
+</div>
+</div>
+<section><div class="wrap">
+<div class="pts">${x.points.map(([h, p]) => `<article class="card"><h3>${esc(h)}</h3><p>${esc(p)}</p></article>`).join('\n')}</div>
+${x.soon ? `<p class="soonnote">${esc(x.soon)}</p>` : ''}
+</div></section>
+<section><div class="wrap"><h2>${esc(P.usesTitle)}</h2>
+<div class="prods">${productCards(lang, x.products, id)}</div></div></section>
+<section><div class="wrap"><h2>${esc(P.planTitle)}</h2><p class="lead">${esc(x.plan)}</p>
+<div class="ctas"><a class="btn primary" href="${APP_DOWNLOAD}">${esc(P.ctaPage)}</a><a class="btn ghost" href="${t.path}#pricing">${esc(P.ctaTalk)}</a></div></div></section>
+</main>
+<footer><div class="wrap"><span>© ${new Date().getFullYear()} Pos Stock Check · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}${id}/" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
 </body>
 </html>
 `;
@@ -253,6 +364,14 @@ On hand = the last finished count + goods received since − sales and goods out
 ## Features
 ${en.features.map(([h, p]) => `- **${h}**: ${p}`).join('\n')}
 
+## The four products (one shared stock)
+${Object.values(PAGES.en.products).map((x) => `- **${x.name}** (${x.kind}): ${x.line} ${x.points.join('; ')}.`).join('\n')}
+
+Chinese names: 盘点通 (Stock Take), 收银通 (POS), 仓管通 (Warehouse), 云后台 (Back Office).
+
+## By kind of business
+${INDUSTRY_IDS.map((id) => { const x = PAGES.en.industries[id]; return `- [${x.name}](${SITE}/en/${id}/): ${x.lead}${x.soon ? ` (${x.soon})` : ''}`; }).join('\n')}
+
 ## Malaysia-specific
 - SST, with prices tax-inclusive or tax added on top.
 - Cash rounded to the nearest 5 sen; card and DuitNow QR charged to the sen.
@@ -272,18 +391,22 @@ ${en.faq.map(([q, a]) => `### ${q}\n${a}`).join('\n\n')}
 ${CONTACT.email ? `- Email: ${CONTACT.email}\n` : ''}${CONTACT.whatsapp ? `- WhatsApp: +${CONTACT.whatsapp}\n` : ''}`;
 }
 
-for (const lang of Object.keys(LANGS)) write(`${LANGS[lang].path.replace(/^\//, '')}index.html`, page(lang));
+for (const lang of Object.keys(LANGS)) {
+  write(`${LANGS[lang].path.replace(/^\//, '')}index.html`, page(lang));
+  for (const id of INDUSTRY_IDS) write(`${LANGS[lang].path.replace(/^\//, '')}${id}/index.html`, industryPage(lang, id));
+}
 
 write('404.html', `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Page not found · Pos Stock Check</title><meta name="robots" content="noindex"><style>${CSS.trim()}</style></head><body><main class="wrap" style="padding-block:80px"><h1>404</h1><p class="lead">找不到这个页面 · Page not found · Halaman tidak dijumpai</p><p><a class="btn primary" href="/">Pos Stock Check</a></p></main></body></html>\n`);
 
+const PATHS = ['', ...INDUSTRY_IDS.map((id) => `${id}/`)];
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${Object.values(LANGS).map((o) => `  <url>
-    <loc>${SITE}${o.path}</loc>
+${PATHS.flatMap((rest) => Object.values(LANGS).map((o) => `  <url>
+    <loc>${SITE}${o.path}${rest}</loc>
     <lastmod>${TODAY}</lastmod>
-${Object.values(LANGS).map((a) => `    <xhtml:link rel="alternate" hreflang="${a.htmlLang}" href="${SITE}${a.path}"/>`).join('\n')}
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/"/>
-  </url>`).join('\n')}
+${Object.values(LANGS).map((a) => `    <xhtml:link rel="alternate" hreflang="${a.htmlLang}" href="${SITE}${a.path}${rest}"/>`).join('\n')}
+    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/${rest}"/>
+  </url>`)).join('\n')}
 </urlset>
 `);
 

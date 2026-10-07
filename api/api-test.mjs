@@ -27,6 +27,8 @@ await ws.collection('stockChecks').doc('c1').collection('items').doc('i1').set({
 await ws.collection('movements').doc('m1').set({ barcode: '9555', type: 'SALE', quantityMilli: 2000, at: Date.now(), branchId: '' });
 await ws.collection('sales').doc('s1').set({ receiptNo: 'R1', status: 'COMPLETED', createdAt: Date.now(), branchId: '', totalSen: 3180, lines: [], payments: [] });
 await db.doc('licences/w1').set({ plan: 'UNLIMITED', status: 'ACTIVE', expiresAt: 0 });
+const READONLY = 'sck_test_token_read_only_for_api_0003';
+await db.doc(`apiTokens/${sha256(READONLY)}`).set({ workspaceId: 'w1', name: 'Read only', createdAt: 1, scopes: ['items.read'] });
 // A company on a plan without the API.
 const STARTER_TOKEN = 'sck_test_token_for_a_starter_plan_0002';
 await db.doc(`apiTokens/${sha256(STARTER_TOKEN)}`).set({ workspaceId: 'w3', name: 'Starter', createdAt: 1 });
@@ -58,7 +60,15 @@ const check = async (name, fn) => {
 const eq = (a, b, what) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${what}: ${JSON.stringify(a)} != ${JSON.stringify(b)}`); };
 
 await check('no token is refused', async () => eq((await call('GET', '/v1/items', null, null)).status, 401, 'status'));
-await check('a wrong token is refused', async () => eq((await call('GET', '/v1/items', null, 'sck_wrong_token_wrong_token_wrong')).status, 401, 'status'));
+await check('a wrong token is refused', async () => {
+  const r = await call('GET', '/v1/items', null, 'sck_wrong_token_wrong_token_wrong');
+  eq([r.status, r.json.error.code], [401, 'UNAUTHENTICATED'], 'status and code');
+});
+await check('a read-only token reads but may not write', async () => {
+  eq((await call('GET', '/v1/items', null, READONLY)).status, 200, 'read');
+  const w = await call('POST', '/v1/items', { items: [{ barcode: '1', name: 'x' }] }, READONLY);
+  eq([w.status, w.json.error.code], [403, 'PERMISSION_DENIED'], 'write');
+});
 await check('items are this company\'s only', async () => {
   const r = await call('GET', '/v1/items');
   eq(r.json.items.map((i) => i.barcode), ['9555'], 'barcodes');
@@ -94,6 +104,7 @@ await check('stores', async () => eq((await call('GET', '/v1/stores')).json.stor
 await check('a plan without the API is refused', async () => {
   const r = await call('GET', '/v1/items', null, STARTER_TOKEN);
   eq(r.status, 403, 'status');
+  eq(r.json.error.code, 'MODULE_NOT_ENABLED', 'code');
   if (!/Unlimited/.test(r.json.error.message)) throw new Error(r.json.error.message);
 });
 await check('offline sync: added once, and an old count does not undo newer sales', async () => {

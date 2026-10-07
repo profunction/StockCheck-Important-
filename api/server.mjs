@@ -16,11 +16,11 @@ import { initializeApp } from 'firebase-admin/app';
 import { FieldPath, getFirestore } from 'firebase-admin/firestore';
 import { levels as ledgerLevels, merge } from './ledger.js';
 import {
-  ApiError, bearer, customerIn, customerOut, itemIn, itemOut, offlineOpIn, pageSize, receiptOut, sha256, stockChange,
+  ApiError, customerIn, customerOut, itemIn, itemOut, offlineOpIn, pageSize, receiptOut, stockChange,
 } from './lib.mjs';
 import { mergeOfflineTransactions } from './offline.js';
-import { entitlements } from './plans.js';
 import { createRateLimiterMiddleware } from './ratelimit.mjs';
+import { authenticate, requireModule, requireScope, tenant } from './middleware.mjs';
 
 initializeApp();
 const db = getFirestore();
@@ -67,29 +67,17 @@ async function licenceOf(ws) {
   return licence;
 }
 
-app.use('/v1', wrap(async (req, res, next) => {
-  const token = bearer(req.get('authorization'));
-  if (!token) throw new ApiError(401, 'Send an access token: Authorization: Bearer sck_...');
-  const hash = sha256(token);
-
-  const snap = await db.doc(`apiTokens/${hash}`).get();
-  if (!snap.exists) throw new ApiError(401, 'This access token is not valid, or was revoked.');
-  const data = snap.data();
-  req.ws = data.workspaceId;
-  req.tokenName = data.name || 'API';
-  req.tokenKey = hash.slice(0, 10);
-  const plan = entitlements(await licenceOf(req.ws));
-  if (!plan.modules.api) {
-    throw new ApiError(403, plan.active
-      ? 'Your plan does not include the API. It comes with Unlimited, or the API pack on its own.'
-      : 'This company has no active plan. Renew it to use the API.');
-  }
-  if (Date.now() - (lastTouched.get(hash) || 0) > 10 * 60 * 1000) {
-    lastTouched.set(hash, Date.now());
-    snap.ref.update({ lastUsedAt: Date.now() }).catch(() => {});
-  }
-  next();
-}));
+app.use('/v1',
+  authenticate({ loadToken: async (hash) => { const snap = await db.doc(`apiTokens/${hash}`).get(); return snap.exists ? snap.data() : null; } }),
+  tenant({ loadLicence: licenceOf }),
+  requireModule('api'),
+  (req, _res, next) => {
+    if (Date.now() - (lastTouched.get(req.tokenHash) || 0) > 10 * 60 * 1000) {
+      lastTouched.set(req.tokenHash, Date.now());
+      db.doc(`apiTokens/${req.tokenHash}`).update({ lastUsedAt: Date.now() }).catch(() => {});
+    }
+    next();
+  });
 
 const col = (req, name) => db.collection('workspaces').doc(req.ws).collection(name);
 
@@ -104,19 +92,19 @@ async function page(query, req) {
 
 // ------------------------------------------------------------------ items
 
-app.get('/v1/items', wrap(async (req, res) => {
+app.get('/v1/items', requireScope('items.read'), wrap(async (req, res) => {
   const { docs, cursor } = await page(col(req, 'products'), req);
   res.json({ items: docs.map((d) => itemOut(d.id, d.data())), cursor });
 }));
 
-app.get('/v1/items/:barcode', wrap(async (req, res) => {
+app.get('/v1/items/:barcode', requireScope('items.read'), wrap(async (req, res) => {
   const snap = await col(req, 'products').doc(req.params.barcode).get();
   if (!snap.exists) throw new ApiError(404, 'No item with that barcode.');
   res.json(itemOut(snap.id, snap.data()));
 }));
 
 /** { items: [ { barcode, name, price_sen, ... } ] } or a single item. Up to 250. */
-app.post('/v1/items', wrap(async (req, res) => {
+app.post('/v1/items', requireScope('items.write'), wrap(async (req, res) => {
   const list = Array.isArray(req.body?.items) ? req.body.items : [req.body];
   if (list.length > 250) throw new ApiError(400, 'At most 250 items per request.');
   const parsed = list.map(itemIn);
@@ -173,7 +161,7 @@ const levelOut = (storeId, l) => ({
   reorder_level: l.reorderLevel == null ? null : l.reorderLevel / 1000,
 });
 
-app.get('/v1/inventory', wrap(async (req, res) => {
+app.get('/v1/inventory', requireScope('inventory.read'), wrap(async (req, res) => {
   const byBranch = await stockByBranch(req);
   const store = req.query.store_id;
   let levels;
@@ -190,7 +178,7 @@ app.get('/v1/inventory', wrap(async (req, res) => {
  * Recorded as goods received or written off -- movements, like everything
  * else that changes stock -- so the history shows that the API did it.
  */
-app.post('/v1/inventory', wrap(async (req, res) => {
+app.post('/v1/inventory', requireScope('inventory.write'), wrap(async (req, res) => {
   const list = req.body?.inventory_levels;
   if (!Array.isArray(list) || !list.length) throw new ApiError(400, 'Send { "inventory_levels": [ ... ] }');
   if (list.length > 250) throw new ApiError(400, 'At most 250 levels per request.');
@@ -228,7 +216,7 @@ app.post('/v1/inventory', wrap(async (req, res) => {
  * corrects the stock as it stood at that moment -- sales recorded online
  * after it still count, so nothing newer is overwritten.
  */
-app.post('/v1/sync', wrap(async (req, res) => {
+app.post('/v1/sync', requireScope('sync.write'), wrap(async (req, res) => {
   const list = req.body?.transactions;
   if (!Array.isArray(list) || !list.length) throw new ApiError(400, 'Send { "transactions": [ ... ] }');
   if (list.length > 200) throw new ApiError(400, 'At most 200 transactions per request.');
@@ -311,7 +299,7 @@ app.post('/v1/sync', wrap(async (req, res) => {
 
 // --------------------------------------------------------------- receipts
 
-app.get('/v1/receipts', wrap(async (req, res) => {
+app.get('/v1/receipts', requireScope('receipts.read'), wrap(async (req, res) => {
   const size = pageSize(req.query.limit);
   let q = col(req, 'sales');
   const min = req.query.created_at_min ? Date.parse(req.query.created_at_min) : null;
@@ -334,12 +322,12 @@ app.get('/v1/receipts', wrap(async (req, res) => {
 
 // -------------------------------------------------------------- customers
 
-app.get('/v1/customers', wrap(async (req, res) => {
+app.get('/v1/customers', requireScope('customers.read'), wrap(async (req, res) => {
   const { docs, cursor } = await page(col(req, 'customers'), req);
   res.json({ customers: docs.map((d) => customerOut(d.id, d.data())), cursor });
 }));
 
-app.post('/v1/customers', wrap(async (req, res) => {
+app.post('/v1/customers', requireScope('customers.write'), wrap(async (req, res) => {
   const { id, fields } = customerIn(req.body);
   const now = Date.now();
   const ref = id ? col(req, 'customers').doc(id) : col(req, 'customers').doc();
@@ -355,12 +343,12 @@ app.post('/v1/customers', wrap(async (req, res) => {
 
 // ------------------------------------------------------ categories, stores
 
-app.get('/v1/categories', wrap(async (req, res) => {
+app.get('/v1/categories', requireScope('items.read'), wrap(async (req, res) => {
   const snap = await col(req, 'pos').doc('categories').get();
   res.json({ categories: (snap.data()?.list || []).map((c) => ({ id: c.id, name: c.name, color: c.color || null })) });
 }));
 
-app.get('/v1/stores', wrap(async (req, res) => {
+app.get('/v1/stores', requireScope('stores.read'), wrap(async (req, res) => {
   const config = (await col(req, 'meta').doc('config').get()).data() || {};
   res.json({
     stores: [{ id: '', name: 'Main shop' }, ...(config.branches || []).map((b) => ({ id: b.id, name: b.name, active: b.active !== false }))],
@@ -375,7 +363,10 @@ app.use((req, res) => res.status(404).json({ error: { message: `No such endpoint
 app.use((err, _req, res, _next) => {
   const status = err instanceof ApiError ? err.status : (err.type === 'entity.parse.failed' ? 400 : 500);
   if (status === 500) console.error(err);
-  res.status(status).json({ error: { message: status === 500 ? 'Something went wrong on our side.' : err.message } });
+  res.status(status).json({ error: {
+    message: status === 500 ? 'Something went wrong on our side.' : err.message,
+    ...(err.code ? { code: err.code } : {}),
+  } });
 });
 
 const port = Number(process.env.PORT) || 8080;

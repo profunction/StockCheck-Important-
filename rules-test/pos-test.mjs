@@ -309,8 +309,16 @@ await expect('cashier: blank a receipt\'s customer refused', false,
 // Plans: a part the plan leaves out ------------------------------------------------
 await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), `licences/${WS}`), { plan: 'APP_ONLY', status: 'ACTIVE', expiresAt: 0, modules: { app: true, pos: false, warehouse: false, api: false } }));
 await expect('app-only plan: a sale refused', false, () => setDoc(doc(as('cashier1'), ws('sales/s-app')), sale('cashier1', '')));
+await expect('app-only plan: a purchase order refused', false,
+  () => setDoc(doc(as('buyer1'), ws('purchaseOrders/po-app')), { poNo: 'PO-A', branchId: '', status: 'DRAFT', lines: [], createdAt: 1 }));
+await expect('app-only plan: a transfer refused', false,
+  () => setDoc(doc(as('keeper1'), ws('transfers/tr-app')), { fromBranch: '', toBranch: 'ipoh', status: 'DRAFT', lines: [], createdAt: 1 }));
+await expect('app-only plan: a delivery refused', false, () => setDoc(doc(as('keeper1'), ws('receivings/g-app')), receiving('keeper1')));
+await expect('app-only plan: other company data still refused', false, () => getDocs(collection(as('admin2'), ws('sales'))));
 await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), `licences/${WS}`), { plan: 'POS_ONLY', status: 'ACTIVE', expiresAt: 0, modules: { app: false, pos: true, warehouse: true, api: false } }));
 await expect('till-only plan: a sale', true, () => setDoc(doc(as('cashier1'), ws('sales/s-pos')), sale('cashier1', '')));
+await expect('till-only plan (warehouse included): a purchase order', true,
+  () => setDoc(doc(as('buyer1'), ws('purchaseOrders/po-pos')), { poNo: 'PO-P', branchId: '', status: 'DRAFT', lines: [], createdAt: 1 }));
 await testEnv.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), `licences/${WS}`)));
 await expect('no licence (older shops): a sale still goes through', true, () => setDoc(doc(as('cashier1'), ws('sales/s-nolic')), sale('cashier1', '')));
 

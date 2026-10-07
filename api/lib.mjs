@@ -172,9 +172,11 @@ export function stockChange(entry, onHandMilli) {
 }
 
 export class ApiError extends Error {
-  constructor(status, message) {
+  constructor(status, message, code = undefined) {
     super(message);
     this.status = status;
+    // A stable word for programs (MODULE_NOT_ENABLED, ...); the message is for people.
+    this.code = code;
   }
 }
 

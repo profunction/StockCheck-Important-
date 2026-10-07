@@ -70,49 +70,67 @@ summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0;color:var(--mute
 .final{text-align:center}.final .ctas{justify-content:center}
 footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
 footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
-@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
+header.top .btn{padding:8px 14px}
+.hero h1{margin-bottom:4px}.hero .sub{font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--brand);margin:0 0 14px}
+.inds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+a.ind{display:grid;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
+a.ind:hover{border-color:var(--brand);transform:translateY(-2px)}a.ind .em{font-size:30px;line-height:1}a.ind b{font-size:18px}a.ind span{color:var(--muted);font-size:15px}a.ind i{font-style:normal;color:var(--brand);font-weight:700;font-size:14px;margin-top:6px}
+.prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.prod{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
+.prod h3{margin:0;font-size:20px}.prod .kind{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.04em}.prod .line{margin:0;font-weight:600}
+.prod ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}.prod .go{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.prod .go a{font-weight:700;font-size:15px}
+.addons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.addon{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.addon b{font-size:17px}.addon .ask{margin:0;font-weight:600}.addon .what{margin:0;color:var(--muted);font-size:15px}
+.st{justify-self:start;font-size:12px;font-weight:700;border-radius:99px;padding:1px 10px;background:var(--soft);color:var(--brand)}.st.soon{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.soonnote{margin-top:14px;padding:12px 16px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--ink);background:color-mix(in srgb,var(--accent) 8%,var(--paper))}
+.pts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.crumb{font-size:14px;margin:18px 0 0}.crumb a{text-decoration:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips span{background:var(--soft);color:var(--brand);font-weight:700;border-radius:99px;padding:4px 12px;font-size:15px}
+@media (max-width:860px){header.top{position:static}.langs a{padding:2px 4px}.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
 <a class="logo" href="/en/"><img src="/icons/icon-192.png" alt="" width="34" height="34">Pos Stock Check</a>
-<nav class="main" aria-label="Language"><a href="#features">Features</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="/guide/">Guides</a></nav>
+<nav class="main" aria-label="Language"><a href="/en/#industries">For my business</a><a href="/en/#products">Products</a><a href="/en/#addons">Add more</a><a href="/en/#pricing">Pricing</a><a href="/guide/">Guides</a></nav>
 <span class="spacer"></span>
 <div class="langs"><a href="/" hreflang="zh-Hans-MY">中文</a><a href="/en/" hreflang="en-MY" aria-current="page">English</a><a href="/ms/" hreflang="ms-MY">Bahasa Melayu</a></div>
-<a class="btn ghost" href="/pos/" rel="nofollow">Sign in to POS</a>
+<a class="btn ghost" href="/pos/" rel="nofollow">Sign in</a>
+<a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Free trial</a>
 </div></header>
 <main>
 <div class="wrap hero">
 <div>
-<div class="eyebrow">Stock-take and POS for Malaysian businesses</div>
-<h1>Count stock on your phone, sell at the counter, and the numbers always agree</h1>
-<p class="lead">Stock Check is the stock-take app for your phone; Pos Stock Check is the cash register for your counter. They share one database: sell an item at the till and the stock on the phone drops at once; count a shelf and the back office sees it.</p>
-<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Start 14-day free trial</a><a class="btn ghost" href="/pos/" rel="nofollow">Open the POS</a></div>
-<p class="small">No credit card · English / 中文 / Bahasa Melayu</p>
+<h1>Count stock on your phone, sell at the counter</h1>
+<p class="sub">Stock and shop management made simple</p>
+<p class="lead">Count stock quickly with your phone and check out fast at the counter. As the business grows, add a warehouse, online selling and more when you need them.</p>
+<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Try free for 14 days</a><a class="btn ghost" href="#industries">Find the right setup</a></div>
+<p class="small">No credit card · 中文 / English / Bahasa Melayu · Malaysia</p>
 </div>
-<img class="shot" src="/img/pos-register-en.png" width="1366" height="800" alt="Counter POS — Pos Stock Check">
+<img class="shot" src="/img/pos-register-en.png" width="1366" height="800" alt="POS — Pos Stock Check">
 </div>
 <div class="wrap facts"><div><b>14 days</b><span>free trial</span></div><div><b>RM48</b><span>a month, from</span></div><div><b>3 languages</b><span>English, Chinese, Malay</span></div><div><b>Works offline</b><span>keep selling without internet</span></div></div>
-<section id="features"><div class="wrap"><h2>Stock-take, POS and inventory in one system</h2>
-<div class="grid"><article class="card"><h3>Phone stock-take</h3><p>Scan barcodes with the camera, say &quot;five eggs&quot;, or tap NFC tags. Count by area; areas add up.</p></article>
-<article class="card"><h3>Counter POS</h3><p>USB barcode scanner, 58/80 mm receipt printer, split payments, cash rounded to 5 sen, SST included or added.</p></article>
-<article class="card"><h3>Stock that adds up</h3><p>On hand = last count + goods in since − sales since. Every figure is traceable, and each count shows what went missing.</p></article>
-<article class="card"><h3>Restaurants</h3><p>Tables, dine-in / take-away, modifiers (sugar level, extra egg), kitchen tickets, service charge.</p></article>
-<article class="card"><h3>Warehouse system</h3><p>Purchase orders with approval, receiving by scan, damage notes, warehouse-to-shop transfers (in transit), adjustments with reasons, reorder suggestions, audit log. Works in a phone browser.</p></article>
-<article class="card"><h3>Shifts and cash drawer</h3><p>Cashiers open a shift with a float and close it with the cash counted; short or over at a glance, slip printed; the drawer opens for cash.</p></article>
-<article class="card"><h3>Price labels</h3><p>30×20 or 40×30 mm labels: name, price, barcode, and a TANPA SST mark on exempt goods.</p></article>
-<article class="card"><h3>MyInvois e-invoice</h3><p>Each month, the LHDN consolidated e-invoice (JSON / CSV) in one click, ready for MyInvois.</p></article>
-<article class="card"><h3>Members and points</h3><p>Member cards (barcode or NFC); customers earn points and spend them on later bills.</p></article>
-<article class="card"><h3>Branches and staff rights</h3><p>Stock is kept per branch. Cashiers cannot change prices or delete receipts; voids need a reason.</p></article>
-<article class="card"><h3>Works with other tills</h3><p>Loyverse syncs items, stock and sales, and counts can be written back; other POS systems import by Excel / CSV.</p></article>
-<article class="card"><h3>Reports</h3><p>Sales summary, by item, category, employee, payment type, modifier, discount and tax; export to Excel.</p></article>
-<article class="card"><h3>Open API</h3><p>Online shops and accounting software read and update items, stock, receipts and customers with an access token.</p></article></div></div></section>
-<section id="for"><div class="wrap"><h2>Who it is for</h2>
-<div class="grid"><div class="card"><h3>Grocery shops, mini markets, supermarkets</h3><p>Barcode checkout, weighed items, low-stock alerts</p></div>
-<div class="card"><h3>Warehouses and wholesalers</h3><p>Counting by area, purchase orders, branch transfers, RFID handhelds</p></div>
-<div class="card"><h3>Restaurants and cafés</h3><p>Tables, kitchen tickets, modifiers, service charge</p></div>
-<div class="card"><h3>Hardware, stationery, pharmacy and other retail</h3><p>Items with several barcodes, loyalty points, staff permissions</p></div></div></div></section>
+<section id="industries"><div class="wrap"><h2>What is your business?</h2><p class="lead" style="margin:-8px 0 20px">Pick one and see only what matters to you.</p>
+<div class="inds"><a class="ind" href="/en/retail/"><span class="em" aria-hidden="true">🛒</span><b>Retail / Mini market</b><span>Barcode checkout, phone counts, SST</span><i>See what fits →</i></a>
+<a class="ind" href="/en/fnb/"><span class="em" aria-hidden="true">🍜</span><b>Restaurant / Café</b><span>Ordering, kitchen tickets, service charge</span><i>See what fits →</i></a>
+<a class="ind" href="/en/wholesale/"><span class="em" aria-hidden="true">📦</span><b>Warehouse / Wholesale</b><span>Receiving, transfers, stock</span><i>See what fits →</i></a>
+<a class="ind" href="/en/ecommerce/"><span class="em" aria-hidden="true">🛍️</span><b>Online sellers</b><span>One stock for the shop and online</span><i>See what fits →</i></a></div></div></section>
+<section id="products"><div class="wrap"><h2>Four products, one stock</h2>
+<div class="prods"><article class="prod"><span class="kind">Android app</span><h3>Stock Take</h3><p class="line">Count your stock quickly with a phone.</p>
+<ul><li>Phone barcode scanning</li><li>Say the quantity</li><li>Counts offline</li><li>Shows what is short</li><li>Photos</li><li>Loyverse sync</li></ul><div class="go"><a href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">Start counting →</a></div></article>
+<article class="prod"><span class="kind">Web, installable</span><h3>POS</h3><p class="line">Faster, simpler checkout at the counter.</p>
+<ul><li>Retail: barcode, SST, cash rounding, receipts, offline</li><li>Restaurant: dine-in, modifiers, kitchen tickets, service charge</li></ul><div class="go"><a href="/en/retail/">I run a shop →</a><a href="/en/fnb/">I run a restaurant →</a></div></article>
+<article class="prod"><span class="kind">Web and phone</span><h3>Warehouse</h3><p class="line">Warehouse stock, goods in and out, transfers to shops.</p>
+<ul><li>Purchase orders and approval</li><li>Receiving by scan</li><li>Transfers in transit</li><li>Adjustments</li><li>Reorder suggestions</li></ul><div class="go"><a href="/en/wholesale/">See the warehouse setup →</a></div></article>
+<article class="prod"><span class="kind">Web</span><h3>Back Office</h3><p class="line">For the owner: the business at a glance, staff, and adding more.</p>
+<ul><li>Sales and shift reports</li><li>Staff and permissions</li><li>Items, prices, taxes</li><li>Monthly LHDN e-invoice</li><li>Add more</li></ul><div class="go"><a href="/pos/" rel="nofollow">Sign in →</a></div></article></div></div></section>
+<section id="addons"><div class="wrap"><h2>Business growing? Add more.</h2><p class="lead" style="margin:-8px 0 20px">Start with counting and checkout. Add more when you need it — no new system, your data stays.</p>
+<div class="addons"><div class="addon"><b>📦 Warehouse &amp; ordering</b><span class="st">Available now</span><p class="ask">Need a central warehouse?</p><p class="what">Warehouses, purchase orders, transfers, reorder suggestions.</p></div>
+<div class="addon"><b>🧾 Accounting &amp; e-invoice</b><span class="st">Partly available</span><p class="ask">Submitting LHDN e-invoices?</p><p class="what">The monthly MyInvois consolidated e-invoice is included. SQL Account and AutoCount links are coming.</p></div>
+<div class="addon"><b>🌐 Online store sync</b><span class="st soon">Coming soon</span><p class="ask">Selling on Shopee or TikTok?</p><p class="what">Stock and orders in sync, no overselling.</p></div>
+<div class="addon"><b>🚚 Delivery</b><span class="st soon">Coming soon</span><p class="ask">Sending orders out?</p><p class="what">Lalamove, GrabExpress.</p></div></div></div></section>
 <section id="how"><div class="wrap"><h2>Start in three steps</h2>
 <ol class="steps"><li><h3>Install the app and register</h3><p>Install Stock Check on an Android phone. The first person to register is the admin, with a 14-day trial.</p></li>
 <li><h3>Do a first count</h3><p>Scan what is in the shop, or import your item list from Excel.</p></li>

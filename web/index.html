@@ -70,49 +70,67 @@ summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0;color:var(--mute
 .final{text-align:center}.final .ctas{justify-content:center}
 footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
 footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
-@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
+header.top .btn{padding:8px 14px}
+.hero h1{margin-bottom:4px}.hero .sub{font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--brand);margin:0 0 14px}
+.inds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+a.ind{display:grid;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
+a.ind:hover{border-color:var(--brand);transform:translateY(-2px)}a.ind .em{font-size:30px;line-height:1}a.ind b{font-size:18px}a.ind span{color:var(--muted);font-size:15px}a.ind i{font-style:normal;color:var(--brand);font-weight:700;font-size:14px;margin-top:6px}
+.prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.prod{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
+.prod h3{margin:0;font-size:20px}.prod .kind{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.04em}.prod .line{margin:0;font-weight:600}
+.prod ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}.prod .go{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.prod .go a{font-weight:700;font-size:15px}
+.addons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.addon{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.addon b{font-size:17px}.addon .ask{margin:0;font-weight:600}.addon .what{margin:0;color:var(--muted);font-size:15px}
+.st{justify-self:start;font-size:12px;font-weight:700;border-radius:99px;padding:1px 10px;background:var(--soft);color:var(--brand)}.st.soon{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.soonnote{margin-top:14px;padding:12px 16px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--ink);background:color-mix(in srgb,var(--accent) 8%,var(--paper))}
+.pts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.crumb{font-size:14px;margin:18px 0 0}.crumb a{text-decoration:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips span{background:var(--soft);color:var(--brand);font-weight:700;border-radius:99px;padding:4px 12px;font-size:15px}
+@media (max-width:860px){header.top{position:static}.langs a{padding:2px 4px}.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
 <a class="logo" href="/"><img src="/icons/icon-192.png" alt="" width="34" height="34">Pos Stock Check</a>
-<nav class="main" aria-label="语言"><a href="#features">功能</a><a href="#how">怎么用</a><a href="#pricing">价格</a><a href="#faq">常见问题</a><a href="/guide/">使用教程</a></nav>
+<nav class="main" aria-label="语言"><a href="/#industries">适合我的生意</a><a href="/#products">产品</a><a href="/#addons">功能扩展</a><a href="/#pricing">价格</a><a href="/guide/">使用教程</a></nav>
 <span class="spacer"></span>
 <div class="langs"><a href="/" hreflang="zh-Hans-MY" aria-current="page">中文</a><a href="/en/" hreflang="en-MY">English</a><a href="/ms/" hreflang="ms-MY">Bahasa Melayu</a></div>
-<a class="btn ghost" href="/pos/" rel="nofollow">登录收银</a>
+<a class="btn ghost" href="/pos/" rel="nofollow">登录</a>
+<a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">免费试用</a>
 </div></header>
 <main>
 <div class="wrap hero">
 <div>
-<div class="eyebrow">马来西亚商店的盘点和收银系统</div>
-<h1>用手机盘点，用电脑收银，库存自动对得上</h1>
-<p class="lead">Stock Check 是手机盘点 app，Pos Stock Check 是电脑收银系统。两个共用同一个数据库：收银卖出一样，手机上的库存马上少一样；盘点数到多少，收银后台马上看到。</p>
-<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">免费试用 14 天</a><a class="btn ghost" href="/pos/" rel="nofollow">打开收银系统</a></div>
-<p class="small">不用信用卡 · 中文 / English / Bahasa Melayu</p>
+<h1>手机盘点 + 柜台收银</h1>
+<p class="sub">让库存和生意管理变得简单</p>
+<p class="lead">用手机快速盘点，柜台快速收银。生意扩大后，再按需要增加仓库、电商和其他功能。</p>
+<div class="ctas"><a class="btn primary" href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">免费试用 14 天</a><a class="btn ghost" href="#industries">看看适合我的方案</a></div>
+<p class="small">不用信用卡 · 中文 / English / Bahasa Melayu · 马来西亚</p>
 </div>
-<img class="shot" src="/img/pos-register.png" width="1366" height="800" alt="电脑收银（POS） — Pos Stock Check">
+<img class="shot" src="/img/pos-register.png" width="1366" height="800" alt="收银通 — Pos Stock Check">
 </div>
 <div class="wrap facts"><div><b>14 天</b><span>免费试用</span></div><div><b>RM48</b><span>每月起</span></div><div><b>3 种语言</b><span>中文、英文、马来文</span></div><div><b>离线可用</b><span>没网络照样收银</span></div></div>
-<section id="features"><div class="wrap"><h2>一个系统，盘点、收银、库存都在里面</h2>
-<div class="grid"><article class="card"><h3>手机扫码盘点</h3><p>用手机镜头扫条码，或用说的「五个鸡蛋」，或感应 NFC 标签。分区域盘点，自动加总。</p></article>
-<article class="card"><h3>电脑收银（POS）</h3><p>USB 扫码枪、收据打印机（58/80mm）、分开付款、现金四舍五入到 5 仙、SST 含税或另加。</p></article>
-<article class="card"><h3>库存自动计算</h3><p>库存 = 最后一次盘点 + 之后进货 − 之后卖出。每个数字都查得到来源，盘点后直接看到短少多少。</p></article>
-<article class="card"><h3>餐厅功能</h3><p>桌位、堂食 / 外带、加料（甜度、加蛋）、厨房单、服务费。</p></article>
-<article class="card"><h3>仓库系统</h3><p>采购单（老板批准）、扫码收货、损坏记录、仓库和门店之间调货（在途）、带原因的库存调整、补货建议、操作记录。手机浏览器就能用。</p></article>
-<article class="card"><h3>开班交班和钱箱</h3><p>收银员开班点备用金，交班点现金，马上知道短少或多出，打印交班单；收现金自动开钱箱。</p></article>
-<article class="card"><h3>价格标签</h3><p>30×20 或 40×30 mm 标签：商品名、价钱、条码，免税商品自动标「TANPA SST」。</p></article>
-<article class="card"><h3>电子发票 MyInvois</h3><p>每个月一键生成 LHDN 合并电子发票（JSON / CSV），上传 MyInvois 或交给会计。</p></article>
-<article class="card"><h3>会员和积分</h3><p>会员卡（条码或 NFC），消费累积积分，下次可以抵钱。</p></article>
-<article class="card"><h3>多分店、员工权限</h3><p>每间分店分开算库存；收银员不能改价、不能删收据，作废要写原因。</p></article>
-<article class="card"><h3>连接别的收银系统</h3><p>Loyverse 自动同步商品、库存、销售，也可以写回盘点数量；其他 POS 用 Excel / CSV 导入。</p></article>
-<article class="card"><h3>报表</h3><p>销售总结、按商品、分类、员工、付款方式、加料、折扣、税；可以导出 Excel。</p></article>
-<article class="card"><h3>开放 API</h3><p>网店、会计软件可以用访问令牌读写商品、库存、收据和顾客。</p></article></div></div></section>
-<section id="for"><div class="wrap"><h2>适合谁用</h2>
-<div class="grid"><div class="card"><h3>杂货店、迷你市场、超市</h3><p>扫码收银、称重商品、库存不足提醒</p></div>
-<div class="card"><h3>仓库、批发</h3><p>分区域盘点、采购单、分店调货、RFID 手持机</p></div>
-<div class="card"><h3>餐厅、咖啡店</h3><p>桌位、厨房单、加料、服务费</p></div>
-<div class="card"><h3>五金、文具、药房等零售店</h3><p>多条码商品、会员积分、员工权限</p></div></div></div></section>
+<section id="industries"><div class="wrap"><h2>你的生意是什么？</h2><p class="lead" style="margin:-8px 0 20px">选一个，只看跟你有关的。</p>
+<div class="inds"><a class="ind" href="/retail/"><span class="em" aria-hidden="true">🛒</span><b>零售 / Mini Market</b><span>扫码收银、手机盘点、SST</span><i>看看适合的功能 →</i></a>
+<a class="ind" href="/fnb/"><span class="em" aria-hidden="true">🍜</span><b>餐饮 / Cafe</b><span>点单、厨房单、服务费</span><i>看看适合的功能 →</i></a>
+<a class="ind" href="/wholesale/"><span class="em" aria-hidden="true">📦</span><b>仓库 / 批发</b><span>进货、调货、库存</span><i>看看适合的功能 →</i></a>
+<a class="ind" href="/ecommerce/"><span class="em" aria-hidden="true">🛍️</span><b>电商卖家</b><span>一份库存，店里和网上一起卖</span><i>看看适合的功能 →</i></a></div></div></section>
+<section id="products"><div class="wrap"><h2>四个产品，一份库存</h2>
+<div class="prods"><article class="prod"><span class="kind">Android App</span><h3>盘点通</h3><p class="line">用手机快速完成库存盘点。</p>
+<ul><li>手机扫码</li><li>语音输入数量</li><li>离线盘点</li><li>库存核对：短少多少</li><li>照片记录</li><li>Loyverse 同步</li></ul><div class="go"><a href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">我要开始盘点 →</a></div></article>
+<article class="prod"><span class="kind">网页 / 可安装</span><h3>收银通</h3><p class="line">让柜台收银更快、更简单。</p>
+<ul><li>零售：扫码、SST、现金四舍五入、收据、离线</li><li>餐饮：堂食外带、加料、厨房单、服务费</li></ul><div class="go"><a href="/retail/">我是零售店 →</a><a href="/fnb/">我是餐饮店 →</a></div></article>
+<article class="prod"><span class="kind">网页 / 手机</span><h3>仓管通</h3><p class="line">管理仓库、进出货和门店调货。</p>
+<ul><li>采购单和批准</li><li>扫码收货</li><li>调货（在途）</li><li>库存调整</li><li>补货建议</li></ul><div class="go"><a href="/wholesale/">看仓库方案 →</a></div></article>
+<article class="prod"><span class="kind">网页</span><h3>云后台</h3><p class="line">老板查看生意、管理员工、开启扩展功能。</p>
+<ul><li>销售和交班报表</li><li>员工和权限</li><li>商品、价格、税</li><li>每月 LHDN 电子发票</li><li>功能扩展</li></ul><div class="go"><a href="/pos/" rel="nofollow">登录后台 →</a></div></article></div></div></section>
+<section id="addons"><div class="wrap"><h2>生意扩大了？再增加功能。</h2><p class="lead" style="margin:-8px 0 20px">一开始只需要盘点和收银。需要的时候再加，不用换系统，资料都在。</p>
+<div class="addons"><div class="addon"><b>📦 仓库与订货</b><span class="st">现在可以用</span><p class="ask">需要管理中央仓库？</p><p class="what">仓库、采购单、调货、补货建议。</p></div>
+<div class="addon"><b>🧾 会计与电子发票</b><span class="st">部分已经可以用</span><p class="ask">要交 LHDN 电子发票？</p><p class="what">每月 MyInvois 合并电子发票已包含。SQL Account、AutoCount 连接即将推出。</p></div>
+<div class="addon"><b>🌐 电商同步</b><span class="st soon">即将推出</span><p class="ask">在 Shopee、TikTok 卖东西？</p><p class="what">库存和订单自动同步、防超卖。</p></div>
+<div class="addon"><b>🚚 配送</b><span class="st soon">即将推出</span><p class="ask">要安排送货？</p><p class="what">Lalamove、GrabExpress。</p></div></div></div></section>
 <section id="how"><div class="wrap"><h2>三步开始</h2>
 <ol class="steps"><li><h3>下载 app，注册公司</h3><p>在 Android 手机安装 Stock Check，第一个注册的人就是管理员，自动有 14 天试用。</p></li>
 <li><h3>盘点一次</h3><p>扫一遍店里的东西，或用 Excel 导入商品清单。</p></li>

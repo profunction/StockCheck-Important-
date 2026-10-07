@@ -38,6 +38,20 @@ On hand = the last finished count + goods received since − sales and goods out
 - **Reports**: Sales summary, by item, category, employee, payment type, modifier, discount and tax; export to Excel.
 - **Open API**: Online shops and accounting software read and update items, stock, receipts and customers with an access token.
 
+## The four products (one shared stock)
+- **Stock Take** (Android app): Count your stock quickly with a phone. Phone barcode scanning; Say the quantity; Counts offline; Shows what is short; Photos; Loyverse sync.
+- **POS** (Web, installable): Faster, simpler checkout at the counter. Retail: barcode, SST, cash rounding, receipts, offline; Restaurant: dine-in, modifiers, kitchen tickets, service charge.
+- **Warehouse** (Web and phone): Warehouse stock, goods in and out, transfers to shops. Purchase orders and approval; Receiving by scan; Transfers in transit; Adjustments; Reorder suggestions.
+- **Back Office** (Web): For the owner: the business at a glance, staff, and adding more. Sales and shift reports; Staff and permissions; Items, prices, taxes; Monthly LHDN e-invoice; Add more.
+
+Chinese names: 盘点通 (Stock Take), 收银通 (POS), 仓管通 (Warehouse), 云后台 (Back Office).
+
+## By kind of business
+- [Retail / Mini market](https://stockcheck-fb58e.web.app/en/retail/): Scan and sell, and every sale comes off the stock. Count with your phone and see what is missing at once.
+- [Restaurant / Café](https://stockcheck-fb58e.web.app/en/fnb/): Quick ordering, clear kitchen tickets, service charge and SST worked out for you.
+- [Warehouse / Wholesale](https://stockcheck-fb58e.web.app/en/wholesale/): One stock for the warehouse and the shops: what came in, what is on the way, and where it went missing. (Coming soon: store order requests, pick lists.)
+- [Online sellers](https://stockcheck-fb58e.web.app/en/ecommerce/): Get the stock right first: the shop, the warehouse and online all sell from one stock. (Online store sync is coming: Shopee, TikTok Shop and Shopify stock and orders in sync, no overselling. WhatsApp us to be among the first.)
+
 ## Malaysia-specific
 - SST, with prices tax-inclusive or tax added on top.
 - Cash rounded to the nearest 5 sen; card and DuitNow QR charged to the sen.

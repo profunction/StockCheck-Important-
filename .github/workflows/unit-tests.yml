@@ -28,12 +28,15 @@ jobs:
           diff -u platform/plans.mjs api/plans.js
           diff -u web/js/offline.js api/offline.js
           diff -u web/js/ledger.js api/ledger.js
+          diff -u web/js/modules.js api/modules.js
       - name: Website (money, tax, stock, shifts, ESC/POS, labels, plans, offline, PDPA)
         run: for f in web/js/*.test.mjs; do echo "== $f"; node "$f" || exit 1; done
       - name: Payments and licences
         run: node platform/billing.test.mjs
-      - name: API shapes
-        run: node api/lib.test.mjs
+      - name: API shapes and the request chain
+        run: |
+          node api/lib.test.mjs
+          node api/middleware.test.mjs
       - name: Excel files open
         run: |
           pip install --quiet openpyxl

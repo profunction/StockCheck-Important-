@@ -286,8 +286,9 @@ service cloud.firestore {
       }
 
       // A part of the product the company's plan leaves out (PLANS in
-      // platform/plans.mjs): the till on the app-only pack, counting on the
-      // till-only pack. A licence from before plans had modules has none,
+      // platform/plans.mjs; the same rule as isEnabled() in web/js/modules.js
+      // for a licence with a modules map): the till on the app-only pack,
+      // counting on the till-only pack, the warehouse on both. A licence from before plans had modules has none,
       // and keeps everything it had.
       function moduleOff(name) {
         return exists(licencePath())
@@ -565,7 +566,8 @@ service cloud.firestore {
         }
         allow read: if (buyer() || can('WH_APPROVE') || can('RECORD_STOCK_MOVEMENTS')) && inMyBranch(resource.data);
         allow create: if buyer() && inMyBranch(request.resource.data)
-                      && approvalHeld('DRAFT', request.resource.data.status);
+                      && approvalHeld('DRAFT', request.resource.data.status)
+                      && !moduleOff('warehouse');
         allow update: if inMyBranch(resource.data) && inMyBranch(request.resource.data)
                       && approvalHeld(resource.data.status, request.resource.data.status)
                       && (buyer() || can('WH_APPROVE') || receiving());
@@ -587,7 +589,8 @@ service cloud.firestore {
         allow create: if can('RECORD_STOCK_MOVEMENTS')
                       && inMyBranch(request.resource.data)
                       && request.resource.data.createdByUid == request.auth.uid
-                      && request.resource.data.lines is list;
+                      && request.resource.data.lines is list
+                      && !moduleOff('warehouse');
         allow update, delete: if false;
       }
 
@@ -603,7 +606,10 @@ service cloud.firestore {
                  || d.toBranch in myBranches();
         }
         allow read: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(resource.data);
-        allow create, update: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data);
+        // Starting one needs the warehouse part; one already on its way can
+        // always be received, whatever the plan became since.
+        allow create: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data) && !moduleOff('warehouse');
+        allow update: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data);
         allow delete: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(resource.data) && resource.data.status == 'DRAFT';
       }
 
