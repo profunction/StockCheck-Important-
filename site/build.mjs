@@ -284,22 +284,27 @@ write('robots.txt', `# Pos Stock Check
 User-agent: *
 Allow: /
 Disallow: /pos/
+Disallow: /warehouse/
 
 User-agent: GPTBot
 Allow: /
 Disallow: /pos/
+Disallow: /warehouse/
 
 User-agent: OAI-SearchBot
 Allow: /
 Disallow: /pos/
+Disallow: /warehouse/
 
 User-agent: ClaudeBot
 Allow: /
 Disallow: /pos/
+Disallow: /warehouse/
 
 User-agent: PerplexityBot
 Allow: /
 Disallow: /pos/
+Disallow: /warehouse/
 
 User-agent: Google-Extended
 Allow: /

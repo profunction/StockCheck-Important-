@@ -368,6 +368,11 @@ Object.assign(ms, {
   signFoot: 'Pos Stock Check · Malaysia',
 });
 
+
+Object.assign(en, { movedToWarehouse: 'Purchase orders, receiving, transfers and suppliers are now in the warehouse system — same login, same stock, with approval and in-transit tracking.', openWarehouse: 'Open the warehouse system', posGuide: 'How to use', whApp: 'Warehouse system' });
+Object.assign(zh, { movedToWarehouse: '采购单、收货、调货和供应商已经搬到仓库系统 —— 同一个账号、同一套库存，还多了审批和在途追踪。', openWarehouse: '打开仓库系统', posGuide: '使用教程', whApp: '仓库系统' });
+Object.assign(ms, { movedToWarehouse: 'Pesanan belian, penerimaan, pindahan dan pembekal kini dalam sistem gudang — log masuk dan stok yang sama, dengan kelulusan dan stok dalam perjalanan.', openWarehouse: 'Buka sistem gudang', posGuide: 'Cara guna', whApp: 'Sistem gudang' });
+
 const DICTS = { en, zh, ms };
 
 function detect() {

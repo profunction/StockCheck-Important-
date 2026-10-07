@@ -1,0 +1,39 @@
+name: Website UI tests
+
+# Drives the POS and the warehouse system in a real browser against an
+# in-memory Firebase (tests/ui/fb-mock.js): every screen a worker or an owner
+# uses, end to end. Deploys nothing.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'web/**'
+      - 'tests/ui/**'
+      - '.github/workflows/ui-test.yml'
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Money and stock arithmetic
+        run: |
+          node web/js/money.test.mjs
+          node web/js/ledger.test.mjs
+      - name: Install the browser
+        working-directory: tests/ui
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Every screen
+        working-directory: tests/ui
+        run: node run-all.mjs
+      - name: Screenshots of what failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: tests/ui/shots/

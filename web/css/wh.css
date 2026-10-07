@@ -1,0 +1,97 @@
+/*
+ * The warehouse system, on top of pos.css. Its own blue so a worker never
+ * mistakes it for the till; big targets and a bar along the bottom on a
+ * phone, because it is used standing up with a box in the other hand.
+ */
+:root { --wh: #1d4f7a; --wh-soft: #e3edf6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wh: #6aa8db; --wh-soft: #1a2a38; } }
+:root[data-theme="dark"] { --wh: #6aa8db; --wh-soft: #1a2a38; }
+
+.shell.wh .side { background: #0f2537; }
+.shell.wh .side .group > a.top.current { background: rgba(106, 168, 219, .16); }
+.shell.wh .side .group > a.top.current .ic { color: #9cc9ee; }
+.wh-brand { background: radial-gradient(120% 90% at 0% 0%, #2f78b5 0%, transparent 55%), #0f2537; }
+.side .foot label.field select { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); color: var(--side-text); }
+
+.wh-bottom { display: none; }
+.scrim { display: none; }
+
+.wh-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.wh-tile {
+  display: grid; justify-items: start; justify-content: stretch; align-content: start; gap: 6px; text-align: left; min-height: 116px; padding: 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-1); font-weight: 400;
+}
+.wh-tile:hover { border-color: var(--wh); background: var(--surface); box-shadow: var(--shadow-2); }
+.wh-tile .ic-wrap { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; background: var(--wh-soft); color: var(--wh); }
+.wh-tile .t { font-weight: 750; font-size: 17px; }
+.wh-tile .s { color: var(--muted); font-size: 13px; }
+.wh-tile.hot { border-color: var(--accent); }
+.wh-tile.hot .ic-wrap { background: var(--accent-soft); color: var(--accent); }
+.wh-tile.hot .s { color: var(--accent); font-weight: 650; }
+
+.card.stat.warn .value { color: var(--accent); }
+.card.stat.bad .value { color: var(--danger); }
+.wh-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.wh-row { display: flex; width: 100%; justify-content: space-between; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 10px 2px; gap: 10px; font-weight: 500; }
+.wh-row:hover { background: var(--surface-2); }
+
+.wh-list { display: grid; gap: 10px; }
+.wh-card {
+  display: grid; gap: 4px; text-align: left; justify-content: stretch; align-items: start; padding: 14px 16px; min-height: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-1); font-weight: 400;
+}
+.wh-card:hover { border-color: var(--wh); background: var(--surface); }
+.wh-head { display: grid; gap: 10px; margin-bottom: 14px; }
+.wh-scan { margin-bottom: 12px; }
+.wh-scan input.scan.big, .scanwrap input.scan.big { font-size: 19px; min-height: 56px; padding-left: 44px; border-width: 2px; font-weight: 600; }
+.wh-scan .search-box .ic { left: 14px; color: var(--wh); }
+.wh-tabs { margin-bottom: 12px; flex-wrap: wrap; }
+
+.wh-lines { display: grid; gap: 8px; margin: 10px 0; }
+.wh-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n step" "m step"; gap: 2px 12px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.wh-line .n { grid-area: n; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; overflow-wrap: anywhere; }
+.wh-line > .muted { grid-area: m; font-size: 13px; }
+.wh-line .wh-step, .wh-line .wh-po-fields { grid-area: step; }
+.wh-line.flash { animation: whflash .7s ease-out; }
+@keyframes whflash { from { background: var(--wh-soft); border-color: var(--wh); } }
+.wh-step { display: flex; align-items: center; gap: 6px; }
+.wh-step button { width: 46px; height: 46px; padding: 0; border-radius: 12px; }
+.wh-step .q { min-width: 64px; width: 76px; text-align: center; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.wh-step span.q { display: inline-block; }
+.wh-line.po { grid-template-columns: minmax(0, 1fr); grid-template-areas: "n" "m" "step"; }
+.wh-po-fields { display: grid; grid-template-columns: 110px 120px 1fr auto; gap: 10px; align-items: end; margin-top: 6px; }
+
+.wh-bar { position: sticky; bottom: 0; z-index: 5; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  padding: 12px 0; margin-top: 12px; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+.wh-bar .grow { flex: 1; }
+.wh-bar button.primary { min-height: 52px; font-size: 16px; }
+
+.wh-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.wh-chips button { border-radius: 99px; min-height: 40px; }
+.wh-chips button.on { background: var(--wh); border-color: var(--wh); color: #fff; }
+.wh-onhand { display: grid; justify-items: end; }
+.wh-onhand strong { font-size: 26px; font-variant-numeric: tabular-nums; }
+input.big-num { font-size: 28px; font-weight: 800; min-height: 60px; text-align: center; font-variant-numeric: tabular-nums; }
+
+table.wh-ledger tr.base td { background: var(--wh-soft); }
+table.wh-ledger tr.total td { background: var(--surface-2); }
+table.wh-ledger tr.old td { color: var(--muted); }
+details summary { cursor: pointer; padding: 6px 0; }
+
+.shell.wh .guide section .steps li::before { background: var(--wh); color: #fff; }
+
+@media (max-width: 960px) {
+  .shell.wh .main { padding-bottom: 96px; }
+  .wh-bottom {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--surface); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  .wh-bottom a, .wh-bottom button { display: grid; justify-items: center; gap: 2px; padding: 4px 2px; border: 0; background: none; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: 11.5px; font-weight: 600; min-height: 0; }
+  .wh-bottom a.on { color: var(--wh); }
+  .shell.wh.menu .scrim { display: block; position: fixed; inset: 0; background: rgba(0, 0, 0, .4); z-index: 35; }
+  .wh-bar { bottom: 70px; }
+  .wh-po-fields { grid-template-columns: 1fr 1fr; }
+  .wh-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

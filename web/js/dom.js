@@ -83,15 +83,19 @@ export function modal(build, { wide = false, onClose } = {}) {
   return close;
 }
 
-/** Yes/no question; resolves true on yes. */
-export function confirmBox(message, yes, no) {
+/**
+ * Yes/no question; resolves true on yes. The yes button is red by default --
+ * most questions guard a delete or a cancel; pass tone 'primary' for one
+ * that only confirms (goods arrived, dispatch now).
+ */
+export function confirmBox(message, yes, no, { tone = 'danger' } = {}) {
   return new Promise((resolve) => {
     let answered = false;
     modal((close) => [
       h('p', { class: 'confirm-text' }, message),
       h('div', { class: 'actions' },
         h('button', { onclick: () => close() }, no),
-        h('button', { class: 'danger', autofocus: true, onclick: () => { answered = true; close(); } }, yes)),
+        h('button', { class: tone, autofocus: true, onclick: () => { answered = true; close(); } }, yes)),
     ], { onClose: () => resolve(answered) });
   });
 }

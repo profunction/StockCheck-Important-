@@ -40,6 +40,7 @@ const MENU = [
       ['tokens', 'intTokens'], ['api', 'intApi'],
     ], page: () => import('./integrations.js'),
   },
+  { id: 'guide', icon: 'check', label: 'posGuide', perm: null, page: () => import('./posguide.js') },
   {
     id: 'settings', icon: 'sliders', label: 'navSettings', perm: null, children: [
       ['features', 'setFeatures'], ['payments', 'setPayments'], ['taxes', 'setTaxes'], ['loyalty', 'setLoyalty'],
@@ -173,6 +174,7 @@ function renderSide() {
       h('div', { class: 'sm' }, `${t('branch')}: ${session.branchName()}`)),
     nav,
     h('div', { class: 'foot' },
+      h('a', { class: 'side-link', href: '/warehouse/' }, icon('box', 17), t('whApp')),
       installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
       langPicker(),
       h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));
