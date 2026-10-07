@@ -47,11 +47,22 @@ jobs:
              "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}"
 
       # JEXO, JEXO POS, JEXO Warehouse and JEXO Cloud: the website's apps as
-      # Android apps (webapps/), signed with their own fixed key so an
-      # installed copy takes the next one as an update.
+      # Android apps (webapps/), signed with the key in the WEBAPPS_KEYSTORE
+      # secret so an installed copy takes the next one as an update.
       - name: Build the website apps
+        env:
+          WEBAPPS_KEYSTORE: ${{ secrets.WEBAPPS_KEYSTORE }}
         run: |
-          ./gradlew :webapps:assembleRelease --stacktrace
+          KS=webapps/jexo-webapps.keystore
+          if [ -n "$WEBAPPS_KEYSTORE" ]; then
+            printf '%s' "$WEBAPPS_KEYSTORE" | base64 -d > "$KS"
+          else
+            echo "::warning::No WEBAPPS_KEYSTORE secret: these APKs get a one-off key, open with the address bar showing, and will not update over each other."
+            keytool -genkeypair -keystore "$KS" -storetype PKCS12 -alias jexo -keyalg RSA -keysize 2048 -validity 12000 \
+              -storepass jexo-webapps -keypass jexo-webapps -dname "CN=JEXO Apps (one-off), O=JEXO, C=MY"
+          fi
+          ./gradlew :webapps:assembleRelease --stacktrace || { rm -f "$KS"; exit 1; }
+          rm -f "$KS"
           mkdir -p webapps-out
           for f in hub:JEXO pos:JEXO-POS warehouse:JEXO-Warehouse cloud:JEXO-Cloud; do
             cp "webapps/build/outputs/apk/${f%%:*}/release/webapps-${f%%:*}-release.apk" "webapps-out/${f##*:}.apk"

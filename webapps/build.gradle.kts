@@ -9,16 +9,15 @@
  * the code to keep in step.
  *
  * Chrome hides the address bar only for an app the website vouches for:
- * web/.well-known/assetlinks.json names these package names and this key's
- * fingerprint. A copy signed with another key still opens, but as a browser
- * tab with the address bar showing.
+ * /.well-known/assetlinks.json names these package names and the signing
+ * key's fingerprint. The deploy writes that file from the same key.
  *
- * The key (jexo-webapps.keystore) is kept in this private repository so
- * every build is signed the same way and an installed app takes updates.
- * These apps hold no data of their own -- sign-in and data live in Chrome
- * under the website's address -- so the key protects only the right to
- * show the website without an address bar. For Google Play, Play signs
- * with its own key; add Play's fingerprint to assetlinks.json then.
+ * The key is never in this repository. CI writes it from the GitHub secret
+ * WEBAPPS_KEYSTORE into jexo-webapps.keystore for the build and deletes it
+ * after. Without the secret, CI makes a one-off key: the apps still open,
+ * but as a browser tab with the address bar, and a new build will not
+ * install over an old one. For Google Play, Play signs with its own key;
+ * its fingerprint goes into assetlinks.json as well (PLAY_SHA256).
  */
 plugins {
     alias(libs.plugins.android.application)

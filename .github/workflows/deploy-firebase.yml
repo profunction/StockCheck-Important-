@@ -131,6 +131,33 @@ jobs:
             echo "::warning::No APK release found; the download link will not work until Build APK has run."
           fi
 
+      # Chrome shows JEXO, JEXO POS, JEXO Warehouse and JEXO Cloud without an
+      # address bar only if the website names their signing key here. Worked
+      # out from the same secret the APKs are signed with; PLAY_SHA256 (a
+      # repository variable) adds Google Play's key once they are on Play.
+      - name: Let the website vouch for its Android apps
+        if: steps.setup.outputs.ready == 'true'
+        env:
+          WEBAPPS_KEYSTORE: ${{ secrets.WEBAPPS_KEYSTORE }}
+          PLAY_SHA256: ${{ vars.PLAY_SHA256 }}
+        run: |
+          FPS="$PLAY_SHA256"
+          if [ -n "$WEBAPPS_KEYSTORE" ]; then
+            printf '%s' "$WEBAPPS_KEYSTORE" | base64 -d > "$RUNNER_TEMP/webapps.p12"
+            FP=$(keytool -list -v -keystore "$RUNNER_TEMP/webapps.p12" -storepass jexo-webapps | grep -m1 'SHA256:' | sed 's/.*SHA256: *//')
+            rm -f "$RUNNER_TEMP/webapps.p12"
+            FPS="$FP${FPS:+,$FPS}"
+          fi
+          if [ -z "$FPS" ]; then echo "::warning::No WEBAPPS_KEYSTORE secret: the Android website apps will show the address bar."; exit 0; fi
+          mkdir -p web/.well-known
+          FPS="$FPS" node -e '
+            const fps = process.env.FPS.split(",").map((s) => s.trim()).filter(Boolean);
+            const apps = ["com.jexo.apps", "com.jexo.pos", "com.jexo.warehouse", "com.jexo.cloud"];
+            console.log(JSON.stringify(apps.map((p) => ({ relation: ["delegate_permission/common.handle_all_urls"],
+              target: { namespace: "android_app", package_name: p, sha256_cert_fingerprints: fps } })), null, 2));
+          ' > web/.well-known/assetlinks.json
+          cat web/.well-known/assetlinks.json
+
       - name: Deploy database rules, indexes and the website
         if: steps.setup.outputs.ready == 'true'
         run: rules-test/node_modules/.bin/firebase deploy --only firestore:rules,firestore:indexes,hosting --project "$PROJECT" --non-interactive
