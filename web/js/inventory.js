@@ -9,7 +9,8 @@ import { collection, db, deleteDoc, doc, getDocs, limit, orderBy, query, setDoc,
 import { confirmBox, dateTime, h, modal, mount, toast } from './dom.js';
 import { t } from './i18n.js';
 import { formatQty, formatSen, parseQty, parseSen, receiptNo, rm } from './money.js';
-import { isLow, levels as ledgerLevels, merge } from './ledger.js';
+import { isLow } from './ledger.js';
+import { branchQuery, levelsFor, loadStockData } from './stockdata.js';
 import { session, ws } from './session.js';
 import { menuButton } from './main.js';
 import { scanWithCamera } from './camera.js';
@@ -22,9 +23,6 @@ export function render(main, sub) {
 
 const head = (title, ...extra) => h('div', { class: 'page-head' }, menuButton(), h('h1', {}, title), h('span', { class: 'grow' }), ...extra);
 const canMove = () => session.can('RECORD_STOCK_MOVEMENTS');
-const branchQuery = (col, field = 'branchId') => (session.branchIds.length
-  ? query(col, where(field, 'in', [...session.branchIds, ''].slice(0, 30)))
-  : col);
 const allBranches = () => [{ id: '', name: t('mainShop') }, ...session.branches.filter((b) => b.active !== false)];
 const productFor = (text) => session.find(text) ||
   session.products.find((p) => (p.name || '').toLowerCase() === String(text).trim().toLowerCase()) || null;
@@ -39,27 +37,6 @@ function movement(p, type, qtyMilli, branchId, reference, note) {
 
 // --------------------------------------------------------------- stock levels
 
-async function loadLevels() {
-  const checksCol = collection(db, ws('stockChecks'));
-  let checkQueries;
-  if (!session.can('VIEW_ALL_HISTORY')) checkQueries = [query(checksCol, where('createdByUid', '==', session.uid))];
-  else if (!session.branchIds.length) checkQueries = [query(checksCol, orderBy('createdAt', 'desc'), limit(1000))];
-  else {
-    checkQueries = [query(checksCol, where('branchId', 'in', [...session.branchIds, ''].slice(0, 10))),
-      query(checksCol, where('createdByUid', '==', session.uid))];
-  }
-  const checkSnaps = await Promise.all(checkQueries.map((q) => getDocs(q)));
-  const checks = [...new Map(checkSnaps.flatMap((s) => s.docs).map((d) => [d.id, { ...d.data(), id: d.id }])).values()]
-    .filter((c) => ['COMPLETED', 'REVIEWED', 'LOCKED'].includes(c.status));
-  const items = new Map(await Promise.all(checks.map(async (c) => [c.id, (await getDocs(collection(db, ws(`stockChecks/${c.id}/items`)))).docs.map((d) => d.data())])));
-
-  const since = Date.now() - 400 * 24 * 3600 * 1000;
-  const moveCol = collection(db, ws('movements'));
-  const moves = (await getDocs(session.branchIds.length ? branchQuery(moveCol) : query(moveCol, where('at', '>=', since))))
-    .docs.map((d) => d.data()).filter((m) => m.at >= since);
-  return { checks, items, moves };
-}
-
 function levelsPage(main) {
   const box = h('div', {}, h('p', { class: 'muted' }, t('loading')));
   let data = null;
@@ -70,11 +47,7 @@ function levelsPage(main) {
 
   const draw = () => {
     if (!data) return;
-    const branchIds = branch === 'ALL' ? [...new Set([...data.checks.map((c) => c.branchId || ''), ...data.moves.map((m) => m.branchId || '')])] : [branch];
-    const per = branchIds.map((b) => ledgerLevels(
-      data.checks.filter((c) => (c.branchId || '') === b), (c) => data.items.get(c.id) || [],
-      data.moves.filter((m) => (m.branchId || '') === b), catalogue));
-    let rows = per.length === 1 ? per[0] : merge(per);
+    let rows = levelsFor(data, branch, catalogue);
     if (filter === 'low') rows = rows.filter(isLow);
     if (filter === 'uncounted') rows = rows.filter((r) => r.counted == null);
     const text = q.trim().toLowerCase();
@@ -105,7 +78,7 @@ function levelsPage(main) {
       session.branches.length ? h('select', { style: { width: 'auto' }, onchange: (e) => { branch = e.target.value; draw(); } },
         h('option', { value: 'ALL' }, t('allBranches')), allBranches().map((b) => h('option', { value: b.id }, b.name))) : null),
     box);
-  loadLevels().then((d) => { data = d; draw(); }).catch((err) => mount(box, h('p', { class: 'muted' }, `${t('errLoad')}: ${err.message}`)));
+  loadStockData().then((d) => { data = d; draw(); }).catch((err) => mount(box, h('p', { class: 'muted' }, `${t('errLoad')}: ${err.message}`)));
 }
 
 // ----------------------------------------------------------------- adjust

@@ -179,6 +179,7 @@
     <string name="movement_transfer_in">From branch</string>
     <string name="movement_source_file">File</string>
     <string name="movement_source_manual">By hand</string>
+    <string name="movement_source_warehouse">Warehouse</string>
     <string name="record_title">Record goods</string>
     <string name="record_type_receive">Goods in</string>
     <string name="record_type_write_off">Write off</string>

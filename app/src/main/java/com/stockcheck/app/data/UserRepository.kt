@@ -228,7 +228,7 @@ class UserRepository(
         }
 
         val existing = if (replacingId.isNotEmpty()) config.branches.firstOrNull { it.id == replacingId } else null
-        val updated = others + Branch(id = id, name = clean, active = existing?.active ?: true)
+        val updated = others + Branch(id = id, name = clean, active = existing?.active ?: true, kind = existing?.kind ?: "STORE")
         Db.config().update("branches", updated.sortedBy { it.name.lowercase() }).awaitAck()
 
         audit.record(

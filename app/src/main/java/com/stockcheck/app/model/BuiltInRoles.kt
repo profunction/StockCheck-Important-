@@ -58,6 +58,8 @@ object BuiltInRoles {
         P.POS_VOID,
         P.POS_MANAGE,
         P.POS_REPORTS,
+        P.WH_PURCHASE,
+        P.WH_APPROVE,
     )
 
     val seeds: List<Role> = listOf(

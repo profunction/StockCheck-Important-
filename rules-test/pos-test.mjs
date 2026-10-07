@@ -49,6 +49,8 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
     posManager: { name: 'POS manager', permissions: ['POS_MANAGE', 'POS_REPORTS'], builtIn: false },
     worker: { name: 'Worker', permissions: ['CREATE_STOCK_CHECK'], builtIn: true },
     keeper: { name: 'Keeper', permissions: ['RECORD_STOCK_MOVEMENTS'], builtIn: false },
+    buyer: { name: 'Buyer', permissions: ['WH_PURCHASE'], builtIn: false },
+    approver: { name: 'Approver', permissions: ['WH_APPROVE'], builtIn: false },
   };
   for (const [id, data] of Object.entries(roles)) await setDoc(doc(db, ws(`roles/${id}`)), data);
 
@@ -64,6 +66,11 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, ws('users/mgr')), user('posManager'));
   await setDoc(doc(db, ws('users/worker1')), user('worker'));
   await setDoc(doc(db, ws('users/ipohKeeper')), user('keeper', ['ipoh']));
+  await setDoc(doc(db, ws('users/keeper1')), user('keeper'));
+  await setDoc(doc(db, ws('users/buyer1')), user('buyer'));
+  await setDoc(doc(db, ws('users/approver1')), user('approver'));
+  await setDoc(doc(db, ws('purchaseOrders/ordered')), { poNo: 'PO-9', branchId: '', status: 'ORDERED', lines: [{ barcode: '9555', qtyMilli: 10000, receivedMilli: 0, costSen: 1400 }], createdAt: 1 });
+  await setDoc(doc(db, ws('purchaseOrders/submitted')), { poNo: 'PO-8', branchId: '', status: 'SUBMITTED', lines: [], createdAt: 1 });
   await setDoc(doc(db, ws('customers/c1')), { name: 'Ah Seng', points: 500 });
   await setDoc(doc(db, 'workspaces/other/users/admin2'), user('admin'));
   await setDoc(doc(db, 'apiTokens/' + 'a'.repeat(64)), { workspaceId: WS, name: 'Shop', createdByUid: 'admin1', createdAt: 1 });
@@ -219,6 +226,41 @@ await expect('Ipoh keeper: stock out of Ipoh', true,
   () => setDoc(doc(as('ipohKeeper'), ws('movements/tr-out')), sold('ipohKeeper', 'ipoh', { type: 'TRANSFER_OUT', source: 'MANUAL' })));
 await expect('Ipoh keeper: stock into KL refused (KL receives it)', false,
   () => setDoc(doc(as('ipohKeeper'), ws('movements/tr-in')), sold('ipohKeeper', 'kl', { type: 'TRANSFER_IN', source: 'MANUAL' })));
+
+// Warehouse: buying, approving, receiving ------------------------------------
+await expect('buyer: raise a purchase order', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('')));
+await expect('buyer: submit it for approval', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('', 'SUBMITTED')));
+await expect('buyer: approve their own order refused', false,
+  () => updateDoc(doc(as('buyer1'), ws('purchaseOrders/submitted')), { status: 'APPROVED' }));
+await expect('buyer: raise one already approved refused', false, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b2')), po('', 'APPROVED')));
+await expect('buyer: skip approval straight to ordered refused', false,
+  () => updateDoc(doc(as('buyer1'), ws('purchaseOrders/submitted')), { status: 'ORDERED' }));
+await expect('approver: approve', true, () => updateDoc(doc(as('approver1'), ws('purchaseOrders/submitted')), { status: 'APPROVED' }));
+await expect('buyer: mark an approved order as ordered', true,
+  () => updateDoc(doc(as('buyer1'), ws('purchaseOrders/submitted')), { status: 'ORDERED' }));
+await expect('admin: approve', true, () => setDoc(doc(as('admin1'), ws('purchaseOrders/a1')), po('', 'APPROVED')));
+await expect('keeper: raise a purchase order refused', false, () => setDoc(doc(as('keeper1'), ws('purchaseOrders/k1')), po('')));
+await expect('keeper: record goods arriving against an order', true,
+  () => updateDoc(doc(as('keeper1'), ws('purchaseOrders/ordered')), {
+    lines: [{ barcode: '9555', qtyMilli: 10000, receivedMilli: 8000, damagedMilli: 2000, costSen: 1400 }], status: 'RECEIVED', receivedAt: 2, updatedAt: 2,
+  }));
+await expect('keeper: change the price while receiving refused', false,
+  () => updateDoc(doc(as('keeper1'), ws('purchaseOrders/submitted')), { note: 'cheaper', updatedAt: 3 }));
+const receiving = (uid, branchId = '') => ({ receivingNo: 'GRN-1', poId: 'ordered', branchId, createdByUid: uid, createdAt: 1, lines: [{ barcode: '9555', receivedMilli: 8000, damagedMilli: 2000 }] });
+await expect('keeper: record a delivery', true, () => setDoc(doc(as('keeper1'), ws('receivings/g1')), receiving('keeper1')));
+await expect('keeper: the same delivery saved twice refused', false, () => setDoc(doc(as('keeper1'), ws('receivings/g1')), receiving('keeper1')));
+await expect('keeper: a delivery in somebody else\'s name refused', false, () => setDoc(doc(as('keeper1'), ws('receivings/g2')), receiving('admin1')));
+await expect('Ipoh keeper: a delivery for KL refused', false, () => setDoc(doc(as('ipohKeeper'), ws('receivings/g3')), receiving('ipohKeeper', 'kl')));
+await expect('admin: delete a delivery record refused', false, () => deleteDoc(doc(as('admin1'), ws('receivings/g1'))));
+await expect('buyer: read deliveries', true, () => getDocs(collection(as('buyer1'), ws('receivings'))));
+await expect('cashier: read deliveries refused', false, () => getDocs(collection(as('cashier1'), ws('receivings'))));
+await expect('buyer: keep the supplier list', true, () => setDoc(doc(as('buyer1'), ws('pos/suppliers')), { list: [{ id: 's1', name: 'Nestle' }] }));
+await expect('buyer: change register settings refused', false, () => setDoc(doc(as('buyer1'), ws('pos/settings')), { shopName: 'x' }));
+await expect('buyer: set reorder point, maximum and cost', true,
+  () => updateDoc(doc(as('buyer1'), ws('products/9555')), { reorderLevelMilli: 30000, maxStockMilli: 100000, preferredSupplierId: 's1', costSen: 1430, updatedAt: 5 }));
+await expect('buyer: change the selling price refused', false, () => updateDoc(doc(as('buyer1'), ws('products/9555')), { priceSen: 100 }));
+await expect('keeper: adjust stock with a reason', true,
+  () => setDoc(doc(as('keeper1'), ws('movements/adj1')), sold('keeper1', '', { type: 'WRITE_OFF', source: 'WAREHOUSE', reason: 'DAMAGED', kind: 'ADJUSTMENT' })));
 
 // API tokens ----------------------------------------------------------------
 const hash = 'b'.repeat(64);

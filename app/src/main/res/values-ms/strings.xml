@@ -168,6 +168,7 @@
     <string name="movement_transfer_in">Dari cawangan</string>
     <string name="movement_source_file">Fail</string>
     <string name="movement_source_manual">Manual</string>
+    <string name="movement_source_warehouse">Sistem gudang</string>
     <string name="record_title">Rekod barang</string>
     <string name="record_type_receive">Barang masuk</string>
     <string name="record_type_write_off">Hapus kira</string>

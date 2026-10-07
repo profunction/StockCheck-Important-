@@ -79,7 +79,15 @@ enum class Permission(val group: PermissionGroup, val label: String) {
     POS_SELL(PermissionGroup.POS, "Use the cash register"),
     POS_VOID(PermissionGroup.POS, "Void a sale"),
     POS_MANAGE(PermissionGroup.POS, "Manage prices, products and register settings"),
-    POS_REPORTS(PermissionGroup.POS, "View sales reports");
+    POS_REPORTS(PermissionGroup.POS, "View sales reports"),
+
+    // --- Warehouse system (the Stock Check warehouse website) ---
+    // Receiving, transfers and adjustments ride on RECORD_STOCK_MOVEMENTS,
+    // since each of them is a movement. Buying and approving are their own:
+    // raising a purchase order commits the company's money, and whoever
+    // approves one should not need to be the one who raised it.
+    WH_PURCHASE(PermissionGroup.WAREHOUSE, "Raise purchase orders and manage suppliers"),
+    WH_APPROVE(PermissionGroup.WAREHOUSE, "Approve purchase orders");
 
     companion object {
         fun byNameOrNull(raw: String): Permission? = entries.firstOrNull { it.name == raw }
@@ -94,6 +102,7 @@ enum class PermissionGroup(val label: String) {
     EXPORT("Import & export"),
     ADMIN("Users & roles"),
     POS("Cash register (POS)"),
+    WAREHOUSE("Warehouse"),
 }
 
 /**

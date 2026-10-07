@@ -402,7 +402,7 @@ enum class MovementType(val sign: Int) {
 }
 
 /** Where a movement was recorded. */
-enum class MovementSource { MANUAL, FILE, LOYVERSE, POS, API }
+enum class MovementSource { MANUAL, FILE, LOYVERSE, POS, API, WAREHOUSE }
 
 /**
  * Stock that came in or went out between two counts, at
@@ -558,6 +558,12 @@ data class Branch(
     val name: String = "",
     /** False once it closes. Its history stays; it stops being offered. */
     val active: Boolean = true,
+    /**
+     * STORE or WAREHOUSE, set in the warehouse system. Carried through every
+     * save here so renaming a warehouse on the phone does not turn it back
+     * into a shop.
+     */
+    val kind: String = "STORE",
 ) {
     companion object {
         /**

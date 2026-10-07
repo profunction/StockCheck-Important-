@@ -381,7 +381,13 @@ service cloud.firestore {
                       // nothing else: not rename it, not deactivate it.
                       || (can('RECORD_STOCK_MOVEMENTS')
                           && request.resource.data.diff(resource.data).affectedKeys()
-                               .hasOnly(['reorderLevelMilli', 'updatedAt']));
+                               .hasOnly(['reorderLevelMilli', 'updatedAt']))
+                      // The buyer sets reorder points, the most to hold, who
+                      // to buy from and what it costs -- still not the name
+                      // or the selling price.
+                      || (can('WH_PURCHASE')
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                               .hasOnly(['reorderLevelMilli', 'maxStockMilli', 'preferredSupplierId', 'costSen', 'updatedAt']));
         allow delete: if can('EDIT_TEMPLATE') || can('POS_MANAGE');
       }
 
@@ -472,20 +478,62 @@ service cloud.firestore {
         allow delete: if can('POS_MANAGE');
       }
 
-      // ------------------------------------------ POS: purchase orders
+      // --------------------------------------------------- purchase orders
       //
-      // What was ordered from a supplier and what of it has arrived. Arrival
-      // itself is recorded as RECEIVE movements, under that permission.
+      // What was ordered from a supplier and what of it has arrived.
+      //
+      // DRAFT -> SUBMITTED -> APPROVED -> ORDERED -> PARTIAL -> RECEIVED
+      // -> CLOSED, or CANCELLED. Raising one is the buyer's; moving it into
+      // an approved state is the approver's (an admin is both). Whoever
+      // receives goods may then record what arrived against it, and nothing
+      // else: not the prices, not the quantities ordered.
       match /purchaseOrders/{poId} {
         function buyer() {
-          return can('POS_MANAGE') || can('RECORD_STOCK_MOVEMENTS');
+          return can('POS_MANAGE') || can('WH_PURCHASE');
         }
-        allow read: if buyer() && inMyBranch(resource.data);
-        allow create, update: if buyer() && inMyBranch(request.resource.data);
+        function approvedState(status) {
+          return status in ['APPROVED', 'ORDERED', 'PARTIAL', 'RECEIVED', 'CLOSED'];
+        }
+        // Entering an approved state from one that was not is approving it.
+        function approvalHeld(before, after) {
+          return !approvedState(after) || approvedState(before) || can('WH_APPROVE');
+        }
+        function receiving() {
+          return can('RECORD_STOCK_MOVEMENTS')
+                 && resource.data.status in ['ORDERED', 'PARTIAL']
+                 && request.resource.data.status in ['ORDERED', 'PARTIAL', 'RECEIVED']
+                 && request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['lines', 'status', 'receivedAt', 'updatedAt']);
+        }
+        allow read: if (buyer() || can('WH_APPROVE') || can('RECORD_STOCK_MOVEMENTS')) && inMyBranch(resource.data);
+        allow create: if buyer() && inMyBranch(request.resource.data)
+                      && approvalHeld('DRAFT', request.resource.data.status);
+        allow update: if inMyBranch(resource.data) && inMyBranch(request.resource.data)
+                      && approvalHeld(resource.data.status, request.resource.data.status)
+                      && (buyer() || can('WH_APPROVE') || receiving());
         allow delete: if buyer() && inMyBranch(resource.data) && resource.data.status == 'DRAFT';
       }
 
-      // ------------------------------------------------- POS: transfers
+      // ---------------------------------------------------------- receiving
+      //
+      // One delivery checked in: per line what was ordered, what arrived,
+      // what was damaged or turned away, with the delivery note number. The
+      // stock it adds is RECEIVE movements written in the same batch. Never
+      // edited and never deleted -- it is the record of what the driver
+      // handed over -- and its id is made on the phone, so a delivery saved
+      // twice over a bad connection is refused the second time rather than
+      // received twice.
+      match /receivings/{receivingId} {
+        allow read: if (can('RECORD_STOCK_MOVEMENTS') || can('WH_PURCHASE') || can('POS_MANAGE') || can('WH_APPROVE'))
+                    && inMyBranch(resource.data);
+        allow create: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(request.resource.data)
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && request.resource.data.lines is list;
+        allow update, delete: if false;
+      }
+
+      // --------------------------------------------------------- transfers
       //
       // Stock sent from one branch to another. The sender records it going
       // out, the receiving branch records it arriving -- each only at a
@@ -505,6 +553,11 @@ service cloud.firestore {
       //
       // Receipt header, tax, service charge, payment methods, tables.
       // Every member reads it so any till can print a receipt.
+      // Suppliers are the buyer's as much as the till manager's.
+      match /pos/suppliers {
+        allow write: if can('WH_PURCHASE');
+      }
+
       match /pos/{docId} {
         allow read: if active();
         allow write: if can('POS_MANAGE');

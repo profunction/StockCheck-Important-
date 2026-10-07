@@ -168,6 +168,7 @@
     <string name="movement_transfer_in">调入</string>
     <string name="movement_source_file">文件</string>
     <string name="movement_source_manual">手动</string>
+    <string name="movement_source_warehouse">仓库系统</string>
     <string name="record_title">记录进出货</string>
     <string name="record_type_receive">进货</string>
     <string name="record_type_write_off">报损</string>

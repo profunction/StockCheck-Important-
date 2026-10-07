@@ -388,6 +388,11 @@ export function setLang(next) {
   local.set('pos.lang', lang);
 }
 
+/** More strings from another part of the site (the warehouse app): { en: {...}, zh: {...}, ms: {...} }. */
+export function addStrings(packs) {
+  for (const [code, dict] of Object.entries(packs)) Object.assign(DICTS[code] || {}, dict);
+}
+
 export function t(key) {
   return DICTS[lang][key] ?? en[key] ?? key;
 }
