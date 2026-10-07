@@ -26,7 +26,7 @@ import { menuButton, tillButton } from './main.js';
 import { icon } from './icons.js';
 import { layoutFor, modeCards } from './modes.js';
 import { shiftButton, shiftReady } from './shifts.js';
-import { tillAllowed } from './tills.js';
+import { thisTill, tillAllowed, tillLabel } from './tills.js';
 import { directReady, openDrawer } from './rawprint.js';
 
 const WEIGHED_UNITS = ['kg', 'g', 'l', 'ml', 'm'];
@@ -55,6 +55,8 @@ function defaultOrderType() {
 }
 
 const layout = () => layoutFor(session.settings);
+/** "Till 3" in the top bar, filled in once this computer is registered. */
+const tillBadge = () => h('span', { class: 'till-badge', title: t('tillN') }, tillLabel(thisTill));
 const isFnb = () => layout() === 'fnb';
 const kitchenOn = () => isFnb() && session.settings.kitchenTicket !== false;
 
@@ -116,6 +118,8 @@ export function render(main) {
   drawAll();
   let gone = false;
   tillAllowed().then((ok) => {
+    // Which till this is, in the bar at the top: "Till 3" or its name.
+    document.querySelectorAll('.till-badge').forEach((el) => { el.textContent = tillLabel(thisTill); });
     if (!ok && !gone) lockedView(main, t('tillLimit').replace('{n}', String(session.plan?.tills)));
   }).catch((err) => console.warn('tills', err));
 
@@ -260,7 +264,7 @@ function build(kind) {
     mount(root, h('div', { class: 'market' },
       h('section', { class: 'left' },
         els.online,
-        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), shiftButton(() => els.scan?.focus()), tillButton()),
+        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), tillBadge(), shiftButton(() => els.scan?.focus()), tillButton()),
         els.orderInfo,
         els.lines),
       h('aside', { class: 'mpanel' },
@@ -288,6 +292,7 @@ function build(kind) {
           menuButton(),
           h('div', { class: 'search-box' }, icon('search', 18), els.search),
           h('span', { class: 'grow' }),
+          tillBadge(),
           shiftButton(() => els.scan?.focus()),
           els.tablesBtn,
           h('button', { onclick: openTicketsList }, icon('receipt', 18), t('openTickets'), els.openCount),

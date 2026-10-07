@@ -66,7 +66,7 @@ const en = {
   planNoWarehouse: 'Your plan does not include the warehouse system.',
   planNoBranches: 'More branches and warehouses come with the Business and Unlimited plans.',
   tillLimit: 'Your plan allows {n} tills, and they are in use. Remove one under Settings → Device, or upgrade the plan.',
-  tills: 'Tills on this plan', removeTill: 'Remove', tillName: 'Till name',
+  tillN: 'Till', thisComputerIs: 'This computer is', tillsInUse: 'tills in use', tills: 'Tills', removeTill: 'Remove', tillName: 'Till name',
 };
 
 const zh = {
@@ -124,7 +124,7 @@ const zh = {
   planNoWarehouse: '你的配套没有仓库系统。',
   planNoBranches: '多分店 / 多仓库要 Business 或 Unlimited 配套。',
   tillLimit: '你的配套只可以用 {n} 台收银机，已经用满了。请在「设置 → 本机」移除一台，或升级配套。',
-  tills: '这个配套的收银机', removeTill: '移除', tillName: '收银机名称',
+  tillN: '收银机', thisComputerIs: '这台电脑是', tillsInUse: '台收银机在用', tills: '收银机', removeTill: '移除', tillName: '收银机名称',
 };
 
 const ms = {
@@ -182,7 +182,7 @@ const ms = {
   planNoWarehouse: 'Pelan anda tidak termasuk sistem gudang.',
   planNoBranches: 'Cawangan dan gudang tambahan ada dalam pelan Business dan Unlimited.',
   tillLimit: 'Pelan anda membenarkan {n} kaunter dan semuanya digunakan. Buang satu di Tetapan → Peranti, atau naik taraf pelan.',
-  tills: 'Kaunter pada pelan ini', removeTill: 'Buang', tillName: 'Nama kaunter',
+  tillN: 'Kaunter', thisComputerIs: 'Komputer ini ialah', tillsInUse: 'kaunter digunakan', tills: 'Kaunter', removeTill: 'Buang', tillName: 'Nama kaunter',
 };
 
 addStrings({ en, zh, ms });

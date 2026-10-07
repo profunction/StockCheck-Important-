@@ -32,6 +32,7 @@ export function receiptView(sale) {
     row(t('receiptNo'), sale.receiptNo),
     row(t('date'), dateTime(sale.createdAt)),
     row(t('cashier'), sale.cashierName || ''),
+    sale.tillName ? row(t('tillN'), sale.tillName) : null,
     sale.table ? row(t('table'), sale.table) : null,
     sale.orderType && sale.orderType !== 'RETAIL' ? row(t('orderType'), t(`order_${sale.orderType}`)) : null,
     sale.customerName ? row(t('customer'), sale.customerName) : null,

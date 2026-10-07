@@ -205,6 +205,25 @@ let failed = 0;
     await page.waitForSelector('h1');
     if (!(await page.evaluate(() => location.hash.startsWith('#/reports')))) throw new Error('still locked');
   });
+  await step('tills: numbered, named, and on the receipt', async () => {
+    await page.goto(base + '/pos/#/pos');
+    await page.waitForSelector('.till-badge:has-text("收银机 1")');
+    await page.goto(base + '/pos/#/settings/device');
+    await page.waitForSelector('.this-till:has-text("收银机 1")');
+    await page.fill('input[aria-label="收银机名称"]', 'Kaunter A');
+    await page.click('.card:has(.this-till) button:has-text("保存")');
+    await page.waitForSelector('.this-till:has-text("Kaunter A")');
+    await page.goto(base + '/pos/#/pos');
+    await page.waitForSelector('.till-badge:has-text("Kaunter A")');
+    await page.fill('input.scan', '9555012345678');
+    await page.press('input.scan', 'Enter');
+    await page.click('.mpanel .pay, .buttons .pay');
+    await page.click('.dialog .paymethods button:has-text("现金")');
+    await page.click('.dialog .quick button:has-text("RM 50")');
+    await page.click('.dialog .actions button.primary');
+    await page.waitForFunction(() => [...window.__store].some(([k, v]) => k.includes('/sales/') && v.tillNo === 1 && v.tillName === 'Kaunter A'));
+    await page.click('.dialog button:has-text("下一单")');
+  });
   await step('menu: folds away and comes back', async () => {
     await page.goto(base + '/pos/#/pos');
     await page.click('.side .side-collapse');

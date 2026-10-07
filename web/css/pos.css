@@ -483,3 +483,5 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .till-lock { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .till-lock.on { background: color-mix(in srgb, var(--warn, #b54708) 14%, var(--surface)); border-color: var(--warn, #b54708); color: var(--warn, #b54708); font-weight: 650; }
 .till-locked-note { margin: 0 12px 8px; padding: 8px 10px; border-radius: 9px; background: rgba(245, 158, 11, .15); color: #fcd34d; font-size: 13px; display: flex; gap: 8px; align-items: center; }
+.till-badge { display: inline-flex; align-items: center; padding: 0 12px; min-height: 40px; border-radius: 10px; background: var(--surface-3); font-weight: 700; white-space: nowrap; }
+.till-badge:empty { display: none; }

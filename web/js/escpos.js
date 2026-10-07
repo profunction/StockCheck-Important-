@@ -83,6 +83,7 @@ export function receiptLines(sale, { width = 48, settings = {} } = {}) {
   rule();
   add(twoCols(sale.receiptNo || '', dt(sale.createdAt || 0), width));
   if (sale.cashierName) add(`Cashier: ${sale.cashierName}`);
+  if (sale.tillName) add(`Till: ${sale.tillName}`);
   if (sale.table) add(`Table: ${sale.table}`);
   if (sale.customerName) add(`Member: ${sale.customerName}`);
   rule();

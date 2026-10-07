@@ -15,6 +15,7 @@ import { h, modal, mount, toast } from './dom.js';
 import { paymentLabel, t } from './i18n.js';
 import { formatSen, parseSen, receiptNo, rm, settle, lineTotal } from './money.js';
 import { session, ws } from './session.js';
+import { thisTill, tillLabel } from './tills.js';
 import { printView, receiptView } from './receipt.js';
 import { directReady, printDirect } from './rawprint.js';
 
@@ -146,6 +147,8 @@ async function recordSale(cart, totals, payments) {
     branchName: session.branchName(),
     cashierUid: session.uid,
     cashierName: session.name,
+    // Which machine sold it: Till 3, or the name it was given.
+    tillId: thisTill.id, tillNo: thisTill.no, tillName: tillLabel(thisTill),
     shiftId: session.shift?.id || '',
     createdAt: now,
     status: 'COMPLETED',

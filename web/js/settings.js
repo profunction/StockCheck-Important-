@@ -3,7 +3,7 @@
  * company -- except "This device", which is about this computer only.
  */
 import { db, doc, setDoc } from './fb.js';
-import { h, local, mount, toast } from './dom.js';
+import { dateTime, h, local, mount, toast } from './dom.js';
 import { icon } from './icons.js';
 import { getLang, paymentLabel, t } from './i18n.js';
 import { DEFAULT_SETTINGS, session, ws } from './session.js';
@@ -11,7 +11,7 @@ import { menuButton } from './main.js';
 import { taxList } from './money.js';
 import { chosenMode, modeCards } from './modes.js';
 import { choosePrinter, directName, directReady, directSupported, forget, openDrawer, printDirect } from './rawprint.js';
-import { listTills, removeTill, tillId } from './tills.js';
+import { listTills, numbered, registerTill, removeTill, renameTill, thisTill, tillId, tillLabel } from './tills.js';
 import { MODULES } from './modules.js';
 
 export function render(main, sub) {
@@ -261,18 +261,32 @@ const testSale = () => ({
   subtotalSen: 100, totalSen: 100, payments: [{ method: 'CASH', amountSen: 100 }], taxes: [],
 });
 
-/** The tills this company's plan counts, for a plan with a till limit. */
+/**
+ * The company's tills: which one this computer is (and its name), and every
+ * till with when it was last used. A plan that counts tills shows how many
+ * of its places are taken; an owner frees one by removing a till.
+ */
 function tillsCard() {
   const box = h('div');
   const card = h('div', { class: 'card', style: { maxWidth: '640px', marginTop: '16px' } }, h('h2', {}, t('tills')), box);
   const draw = async () => {
+    await registerTill().catch(() => {});
     const limit = session.plan?.tills;
-    if (!limit || limit >= 1e9) { card.classList.add('hidden'); return; }
-    const list = await listTills();
+    const counted = limit && limit < 1e9;
+    const list = numbered(await listTills());
+    const name = h('input', { value: thisTill.name, placeholder: `${t('tillN')} ${thisTill.no}`, 'aria-label': t('tillName') });
     mount(box,
-      h('p', { class: 'muted' }, `${list.length} / ${limit}`),
-      h('table', { class: 'list' }, h('tbody', {}, list.map((x) => h('tr', {},
-        h('td', {}, x.name || x.id, x.id === tillId() ? h('span', { class: 'pill good', style: { marginLeft: '8px' } }, t('thisTill')) : ''),
+      h('p', {}, t('thisComputerIs'), ' ', h('strong', { class: 'this-till' }, tillLabel(thisTill))),
+      h('div', { class: 'row' },
+        h('label', { class: 'field grow' }, t('tillName'), name),
+        h('button', { style: { alignSelf: 'end' }, onclick: async () => {
+          try { await renameTill(thisTill.id, name.value); toast(t('saved'), 'ok'); draw(); } catch (err) { toast(err.message || String(err), 'error'); }
+        } }, t('save'))),
+      counted ? h('p', { class: 'muted' }, `${list.length} / ${limit}`) : h('p', { class: 'muted' }, `${list.length} ${t('tillsInUse')}`),
+      h('table', { class: 'list' }, h('tbody', {}, list.sort((a, b) => a.no - b.no).map((x) => h('tr', {},
+        h('td', {}, h('strong', {}, `#${x.no}`), ' ', x.name || '', x.id === tillId() ? h('span', { class: 'pill good', style: { marginLeft: '8px' } }, t('thisTill')) : ''),
+        h('td', { class: 'muted' }, x.branchId ? session.branchName(x.branchId) : ''),
+        h('td', { class: 'muted' }, x.lastSeenAt ? dateTime(x.lastSeenAt) : ''),
         h('td', { class: 'num' }, session.can('POS_MANAGE') && x.id !== tillId()
           ? h('button', { class: 'danger', onclick: async () => { await removeTill(x.id); draw(); } }, t('removeTill')) : ''))))));
   };
