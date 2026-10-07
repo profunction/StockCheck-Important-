@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 64" role="img" aria-label="NEXO">
+  <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 44V20l24 24V20"/>
+    <path d="M68 20H52v24h16M52 32h13"/>
+    <path d="M80 20l22 24M102 20L80 44"/>
+    <circle cx="125" cy="32" r="12"/>
+  </g>
+  <circle cx="14" cy="44" r="6" fill="#14B8A6"/>
+  <circle cx="38" cy="20" r="6" fill="#14B8A6"/>
+</svg>

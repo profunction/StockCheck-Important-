@@ -1,5 +1,5 @@
 /**
- * The Pos Stock Check API.
+ * The NEXO API.
  *
  * Lets another system -- an online shop, an accounting program, a
  * customer's own spreadsheet script -- read and update a company's items,
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 app.get('/', (_req, res) => res.json({
-  name: 'Pos Stock Check API',
+  name: 'NEXO API',
   version: 1,
   docs: 'https://stockcheck-fb58e.web.app/#/integrations/api',
 }));
@@ -366,8 +366,9 @@ app.use((err, _req, res, _next) => {
   res.status(status).json({ error: {
     message: status === 500 ? 'Something went wrong on our side.' : err.message,
     ...(err.code ? { code: err.code } : {}),
+    ...(err.extra || {}),
   } });
 });
 
 const port = Number(process.env.PORT) || 8080;
-app.listen(port, () => console.log(`Pos Stock Check API on :${port}`));
+app.listen(port, () => console.log(`NEXO API on :${port}`));

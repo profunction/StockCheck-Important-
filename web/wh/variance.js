@@ -1,6 +1,6 @@
 /**
  * What a count found against what the books expected -- the meeting point
- * of the Stock Check app and the warehouse.
+ * of the NEXO Count app and the warehouse.
  *
  * For a finished count: expected is what earlier counts plus the movements
  * up to that moment said should be there (the same ledger as everywhere);

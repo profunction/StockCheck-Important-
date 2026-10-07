@@ -171,7 +171,7 @@ export async function shiftDialog(onChange = () => {}) {
     if (!summary || sen == null) { diff.textContent = ''; return; }
     const d = sen - summary.expectedCashSen;
     diff.textContent = `${d < 0 ? t('short') : d > 0 ? t('over') : t('exact')} ${rm(Math.abs(d))}`;
-    diff.style.color = d < 0 ? 'var(--bad, #b42318)' : d > 0 ? 'var(--warn, #b54708)' : 'var(--good, #1f6b45)';
+    diff.style.color = d < 0 ? 'var(--bad, #b42318)' : d > 0 ? 'var(--warn, #b54708)' : 'var(--good, #0f766e)';
   };
   counted.addEventListener('input', drawDiff);
 

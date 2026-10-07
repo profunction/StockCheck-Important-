@@ -2,7 +2,7 @@
  * The POS website: sign in, then a back office with a register in it.
  *
  * Same accounts, same company and the same products and stock as the
- * Stock Check app -- both read and write one database, so there is nothing to
+ * NEXO Count app -- both read and write one database, so there is nothing to
  * connect or sync.
  */
 import { auth, initFirebase, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from './fb.js';
@@ -17,6 +17,8 @@ const app = document.getElementById('app');
 /** The menu, Loyverse-style: groups with pages under them. */
 const MENU = [
   { id: 'pos', icon: 'cart', label: 'navRegister', may: 'pos.sell', page: () => import('./register.js') },
+  // NEXO Cloud: what is shown inside follows the company's modules (dashboard.js).
+  { id: 'cloud', icon: 'chart', label: 'navCloud', perm: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'], page: () => import('./dashboard.js') },
   {
     id: 'reports', icon: 'chart', label: 'navReports', may: 'pos.reports', children: [
       ['summary', 'repSummary'], ['items', 'repItems'], ['categories', 'repCategories'],
@@ -88,7 +90,7 @@ function renderSignIn(message = '') {
       }
     },
   },
-  h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 40, height: 40 }), 'Pos Stock Check'),
+  h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 40, height: 40 }), 'NEXO POS'),
   h('h2', { style: { margin: '6px 0 0' } }, t('signIn')),
   h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')),
   h('label', { class: 'field' }, t('email'), email),
@@ -110,7 +112,7 @@ function renderSignIn(message = '') {
   langPicker());
   mount(app, h('div', { class: 'signin-split' },
     h('section', { class: 'signin-brand' },
-      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/icon-192.png', alt: '', width: 36, height: 36 }), 'Pos Stock Check'),
+      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/icon-192.png', alt: '', width: 36, height: 36 }), 'NEXO POS'),
       h('div', { style: { display: 'grid', gap: '22px' } },
         h('h1', {}, t('signInTagline')),
         h('ul', {},
@@ -175,7 +177,7 @@ function renderSide() {
     nav.append(box);
   }
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png', alt: '', width: 28, height: 28 }), 'Pos Stock Check'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png', alt: '', width: 28, height: 28 }), 'NEXO POS'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email),

@@ -76,3 +76,10 @@ test('unknown modules and scopes are caught when the server starts', () => {
   assert.throws(() => requireModule('nope'), /Unknown module/);
   assert.throws(() => requireScope('nope.write'), /Unknown scope/);
 });
+
+test('a module that is off answers with its id', async () => {
+  const { err } = await run([...chain, requireModule('ecommerce')]);
+  assert.equal(err.code, 'MODULE_NOT_ENABLED');
+  assert.deepEqual(err.extra, { module: 'ecommerce' });
+  assert.match(err.message, /ecommerce module is not enabled/);
+});

@@ -281,14 +281,14 @@ function tillsCard() {
  */
 function addons(main) {
   const lang = getLang();
-  const order = ['stocktake', 'pos', 'warehouse', 'api', 'ecommerce', 'accounting', 'delivery'];
+  const order = ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'ecommerce', 'accounting', 'logistics', 'b2b'];
   const card = (id) => {
     const m = MODULES[id];
     const on = session.has(id);
     const state = m.status === 'planned' ? ['pill', t('addonSoon')] : on ? ['pill good', t('addonOn')] : ['pill warn', t('addonAvailable')];
     return h('div', { class: `addon${on ? ' on' : ''}` },
       h('div', { class: 'row', style: { justifyContent: 'space-between', alignItems: 'baseline' } },
-        h('strong', {}, m.name[lang] || m.name.en), h('span', { class: state[0] }, state[1])),
+        h('strong', {}, m.displayName[lang] || m.displayName.en), h('span', { class: state[0] }, state[1])),
       h('p', { class: 'muted', style: { margin: 0 } }, t(`addonAsk_${id}`)),
       h('p', { style: { margin: 0 } }, t(`addonWhat_${id}`)));
   };

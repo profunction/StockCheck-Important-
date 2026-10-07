@@ -25,7 +25,7 @@ const OVERLAY = () => {
     #demo-cap{position:fixed;z-index:99998;left:50%;bottom:26px;transform:translateX(-50%);max-width:88%;background:rgba(17,38,27,.94);color:#fff;font:700 25px/1.35 "Noto Sans CJK SC","Noto Sans SC",sans-serif;padding:11px 26px;border-radius:14px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:opacity .3s;pointer-events:none}
     #demo-cap small{display:block;font:500 16px/1.3 system-ui,sans-serif;opacity:.82;margin-top:3px}
     #demo-cap:empty{opacity:0}
-    #demo-title{position:fixed;inset:0;z-index:99997;background:var(--demo-bg,linear-gradient(135deg,#11261b,#1f6b45));color:#fff;display:grid;place-items:center;text-align:center;font:800 52px/1.3 "Noto Sans CJK SC","Noto Sans SC",sans-serif;transition:opacity .6s;pointer-events:none}
+    #demo-title{position:fixed;inset:0;z-index:99997;background:var(--demo-bg,linear-gradient(135deg,#0b1b2b,#12385a 70%,#0f4c4a));color:#fff;display:grid;place-items:center;text-align:center;font:800 52px/1.3 "Noto Sans CJK SC","Noto Sans SC",sans-serif;transition:opacity .6s;pointer-events:none}
     #demo-title small{display:block;font-size:26px;font-weight:500;opacity:.9;margin-top:14px}
     #demo-title em{display:block;font:500 20px/1.3 system-ui,sans-serif;font-style:normal;opacity:.7;margin-top:8px}`;
   document.head.append(style);

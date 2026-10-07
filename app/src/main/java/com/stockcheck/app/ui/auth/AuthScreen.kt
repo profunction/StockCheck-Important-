@@ -49,7 +49,7 @@ import com.stockcheck.app.ui.common.NoticeTone
 /** Which of the three things the form is currently doing. */
 private enum class AuthMode(val label: String, val title: String, val action: String) {
     SIGN_IN("Sign in", "Sign in to continue counting", "Sign in"),
-    CREATE("New company", "Set up a new company on Stock Check", "Create company"),
+    CREATE("New company", "Set up a new company on NEXO", "Create company"),
 }
 
 /**
@@ -107,7 +107,7 @@ fun AuthScreen(
                 tint = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(12.dp))
-            Text("Stock Check", style = MaterialTheme.typography.headlineSmall)
+            Text("NEXO Count", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(4.dp))
             Text(
                 text = mode.title,

@@ -3,9 +3,9 @@
  * mistakes it for the till; big targets and a bar along the bottom on a
  * phone, because it is used standing up with a box in the other hand.
  */
-:root { --wh: #1d4f7a; --wh-soft: #e3edf6; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wh: #6aa8db; --wh-soft: #1a2a38; } }
-:root[data-theme="dark"] { --wh: #6aa8db; --wh-soft: #1a2a38; }
+:root { --wh: #12385a; --wh-soft: #e4ecf4; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wh: #7fb2dc; --wh-soft: #142433; } }
+:root[data-theme="dark"] { --wh: #7fb2dc; --wh-soft: #142433; }
 
 .shell.wh .side { background: #0f2537; }
 .shell.wh .side .group > a.top.current { background: rgba(106, 168, 219, .16); }

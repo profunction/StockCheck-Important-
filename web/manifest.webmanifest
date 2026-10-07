@@ -1,7 +1,7 @@
 {
-  "name": "Pos Stock Check",
-  "short_name": "Pos Stock Check",
-  "description": "Cash register and back office that shares products and stock with the Stock Check app.",
+  "name": "NEXO POS",
+  "short_name": "NEXO POS",
+  "description": "Cash register and back office that shares products and stock with the NEXO Count app.",
   "start_url": "/pos/#/pos",
   "scope": "/pos/",
   "display": "standalone",

@@ -56,14 +56,14 @@ export function requireModule(id) {
     if (!isEnabled(req.licence, id)) {
       throw new ApiError(403, id === 'api'
         ? 'Your plan does not include the API. It comes with Unlimited, or the API pack on its own.'
-        : `Your plan does not include ${MODULES[id].name.en}.`, ERRORS.MODULE_NOT_ENABLED);
+        : `The ${id} module is not enabled for this company (${MODULES[id].displayName.en}).`, ERRORS.MODULE_NOT_ENABLED, { module: id });
     }
   });
 }
 
 /** The token may do [scope] ('items.write'); a token with no scopes may do all. */
 export function requireScope(scope) {
-  if (!MODULES.api.scopes.includes(scope)) throw new Error(`Unknown scope: ${scope}`);
+  if (!MODULES.api.apiScopes.includes(scope)) throw new Error(`Unknown scope: ${scope}`);
   return step((req) => {
     if (!tokenAllows(req.token, scope)) {
       throw new ApiError(403, `This access token may not ${scope.replace('.', ' ')}.`, ERRORS.PERMISSION_DENIED);

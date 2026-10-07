@@ -1,5 +1,5 @@
 /**
- * The Stock Check phone app's guide videos: illustrated step cards (number,
+ * The NEXO Count phone app's guide videos: illustrated step cards (number,
  * picture, what to do) rather than screen recordings -- the Android app
  * cannot be filmed in this environment, and a mock-up passed off as the
  * real screen would mislead.
@@ -25,7 +25,7 @@ const ICON = {
 export const APP_FILMS = [
   {
     name: 'app-1-count',
-    title: ['手机盘点', 'Stock Check app · 盘点', 'Counting stock with the phone'],
+    title: ['手机盘点', 'NEXO Count app · 盘点', 'Counting stock with the phone'],
     slides: [
       ['list', '开始一次盘点', '打开 app →「盘点」→ 新盘点，选模板和区域（例如：冷房、货架 7）', 'Stock tab → new count; pick a template and an area'],
       ['scan', '扫条码', '用手机镜头扫商品条码，输入数到多少', 'Scan the barcode with the camera, enter how many'],
@@ -37,19 +37,19 @@ export const APP_FILMS = [
   },
   {
     name: 'app-2-stock',
-    title: ['库存和进出货', 'Stock Check app · 库存', 'Stock levels, goods in and out'],
+    title: ['库存和进出货', 'NEXO Count app · 库存', 'Stock levels, goods in and out'],
     slides: [
       ['box', '「库存」页', '每样商品现在有多少 = 最后一次盘点 + 之后进出', 'On hand = last count + goods in and out since'],
       ['file', '导入进货和销售', '用 Excel / CSV 导入，系统自动认出每一栏', 'Import Excel or CSV; columns are recognised'],
       ['sync', '连接 Loyverse', '贴上 Loyverse 令牌，商品、库存、销售自动同步', 'Paste a Loyverse token: items, stock and sales sync'],
-      ['cart', '连接 Pos Stock Check', '收银卖出，手机上的库存马上减少', 'A sale at the till takes it off the phone’s stock'],
+      ['cart', '连接 NEXO POS', '收银卖出，手机上的库存马上减少', 'A sale at the till takes it off the phone’s stock'],
       ['bell', '补货提醒', '设补货点，低于就显示「要补货」', 'Set a reorder point; it says when to buy'],
       ['check', '写回 Loyverse', '盘点后，可以把正确数量写回 Loyverse（要先确认）', 'After a count, write correct figures back to Loyverse'],
     ],
   },
   {
     name: 'app-3-team',
-    title: ['员工、分店和权限', 'Stock Check app · 团队', 'Staff, branches and permissions'],
+    title: ['员工、分店和权限', 'NEXO Count app · 团队', 'Staff, branches and permissions'],
     slides: [
       ['user', '注册公司', '第一个注册的人就是管理员，自动有 14 天试用', 'The first to register is the admin, with a 14-day trial'],
       ['key', '员工加入', '把公司代码告诉员工，他们注册时填就加入', 'Staff join with the company code'],
@@ -77,18 +77,18 @@ export function slidesHtml(film) {
   return `<!doctype html><meta charset="utf-8"><style>
     html,body{margin:0;height:100%;background:#0f1a14;font-family:"Noto Sans CJK SC","Noto Sans SC",system-ui,sans-serif;overflow:hidden}
     .title,.slide{position:absolute;inset:0;display:grid;opacity:0;transition:opacity .6s}
-    .title{place-items:center;text-align:center;color:#fff;background:linear-gradient(135deg,#11261b,#1f6b45)}
+    .title{place-items:center;text-align:center;color:#fff;background:linear-gradient(135deg,#0b1b2b,#12385a 70%,#0f4c4a)}
     .title h1{font-size:56px;margin:0}.title p{font-size:26px;margin:14px 0 0;opacity:.9}.title em{display:block;font:500 20px system-ui;font-style:normal;opacity:.7;margin-top:8px}
     .slide{grid-template-columns:1.15fr .85fr;align-items:center;gap:40px;padding:0 80px;background:#f3f6f2}
     .on{opacity:1}
-    .step{display:inline-block;background:#1f6b45;color:#fff;font-weight:800;font-size:20px;border-radius:99px;padding:6px 16px}
+    .step{display:inline-block;background:#0f766e;color:#fff;font-weight:800;font-size:20px;border-radius:99px;padding:6px 16px}
     h2{font-size:48px;margin:22px 0 14px;color:#17201a}
     .zh{font-size:30px;line-height:1.45;color:#2d3a31;margin:0}
     .en{font-size:20px;color:#5d6a61;margin:16px 0 0;font-family:system-ui,sans-serif}
     .phone{justify-self:center;width:250px;height:500px;border-radius:40px;background:#17201a;padding:14px;box-shadow:0 30px 60px rgba(0,0,0,.25);transform:translateY(20px);transition:transform .8s}
     .on .phone{transform:none}
     .screen{height:100%;border-radius:28px;background:#fff;display:grid;align-content:center;justify-items:center;gap:30px}
-    .badge{width:150px;height:150px;border-radius:40px;background:#e1efe6;color:#1f6b45;display:grid;place-items:center;transform:scale(.7);transition:transform .7s .2s}
+    .badge{width:150px;height:150px;border-radius:40px;background:#ccf0ea;color:#0f4c4a;display:grid;place-items:center;transform:scale(.7);transition:transform .7s .2s}
     .on .badge{transform:scale(1)}
     .bars{display:grid;gap:10px;width:70%}.bars i{display:block;height:12px;border-radius:6px;background:#e7ece6}.bars i.short{width:60%}
   </style>

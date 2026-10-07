@@ -1,7 +1,7 @@
 {
-  "name": "Warehouse Stock Check",
+  "name": "NEXO Warehouse",
   "short_name": "Warehouse",
-  "description": "Receiving, transfers, purchase orders and stock control for the Stock Check family.",
+  "description": "Receiving, transfers, purchase orders and stock control for NEXO.",
   "start_url": "/warehouse/#/home",
   "scope": "/warehouse/",
   "id": "/warehouse/",

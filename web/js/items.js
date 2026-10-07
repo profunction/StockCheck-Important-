@@ -1,5 +1,5 @@
 /**
- * Items: the product list (shared with the Stock Check app), categories,
+ * Items: the product list (shared with the NEXO Count app), categories,
  * modifiers and discounts.
  *
  * Products are the same documents the app counts against, keyed by barcode.

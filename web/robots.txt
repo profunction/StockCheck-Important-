@@ -1,4 +1,4 @@
-# Pos Stock Check
+# NEXO
 # Everything public may be read and quoted, by search engines and AI
 # assistants alike. The POS itself is a signed-in tool and has nothing to index.
 User-agent: *

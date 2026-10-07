@@ -5,7 +5,7 @@
  * NFC or RFID reader set to keyboard mode types the card's number and Enter,
  * exactly like a barcode scanner, so it needs nothing here at all.
  *
- * Tag ids are written the way the Stock Check app writes them -- upper-case
+ * Tag ids are written the way the NEXO Count app writes them -- upper-case
  * hex, no separators -- so a tag bound on one finds its product on the other.
  */
 import { h, modal, toast } from './dom.js';

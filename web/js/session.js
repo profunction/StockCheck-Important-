@@ -87,7 +87,7 @@ export const session = {
   licence: null,
   plan: null,
   /**
-   * Whether the company has module [id] (modules.js: stocktake, pos,
+   * Whether the company has module [id] (modules.js: count, pos,
    * warehouse, api, ...). The one question every screen asks; the answer
    * comes from the registry, never from plan fields read here.
    */
@@ -100,7 +100,7 @@ export const session = {
   },
   /** Older name for has(), kept for the licence keys it was called with. */
   allows(module) {
-    return this.has({ app: 'stocktake' }[module] || module);
+    return this.has({ app: 'count' }[module] || module);
   },
   /** This cashier's open shift (shifts.js), or null. */
   shift: null,

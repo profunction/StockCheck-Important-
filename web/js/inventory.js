@@ -3,7 +3,7 @@
  * orders, receiving, transfers and suppliers are the warehouse system's.
  *
  * Everything that changes stock is a movement -- the same documents the
- * Stock Check app writes -- so the app and the website always agree.
+ * NEXO Count app writes -- so the app and the website always agree.
  */
 import { collection, db, doc, getDocs, query, setDoc, where } from './fb.js';
 import { dateTime, h, mount, toast } from './dom.js';

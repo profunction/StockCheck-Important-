@@ -1,5 +1,5 @@
 /**
- * The Pos Stock Check API's shapes: what goes out, what is accepted in.
+ * The NEXO API's shapes: what goes out, what is accepted in.
  * Pure -- no Firebase -- so it is tested on its own (lib.test.mjs).
  *
  * Field names are snake_case, like most public APIs and like Loyverse's,
@@ -172,11 +172,13 @@ export function stockChange(entry, onHandMilli) {
 }
 
 export class ApiError extends Error {
-  constructor(status, message, code = undefined) {
+  constructor(status, message, code = undefined, extra = undefined) {
     super(message);
     this.status = status;
     // A stable word for programs (MODULE_NOT_ENABLED, ...); the message is for people.
     this.code = code;
+    // More for programs, e.g. { module: 'ecommerce' }.
+    this.extra = extra;
   }
 }
 

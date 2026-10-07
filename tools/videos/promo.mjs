@@ -13,7 +13,7 @@ import { film } from './studio.mjs';
 
 const SITE = 'stockcheck-fb58e.web.app';
 const PHONE = { width: 540, height: 960 };
-const GREEN = 'linear-gradient(160deg,#0d2418,#1f6b45 60%,#2f8a5b)';
+const NAVY = 'linear-gradient(160deg,#0b1b2b,#12385a 60%,#0f4c4a)';
 
 const shop = (opts) => {
   const w = world(opts);
@@ -36,11 +36,11 @@ async function endCard(page, x, lines, ms = 4500) {
     t.id = 'demo-title';
     t.style.setProperty('--demo-bg', bg);
     t.style.pointerEvents = 'none';
-    t.innerHTML = `<div><div style="font-size:.6em;opacity:.85;letter-spacing:.04em">Pos Stock Check</div>${l[0]}<small>${l[1]}</small><small style="margin-top:6px">${l[2]}</small><em style="margin-top:18px;font-size:1.05em;opacity:1;color:#ffd166">${l[3]}</em></div>`;
+    t.innerHTML = `<div><div style="font-size:.6em;opacity:.85;letter-spacing:.04em">NEXO POS</div>${l[0]}<small>${l[1]}</small><small style="margin-top:6px">${l[2]}</small><em style="margin-top:18px;font-size:1.05em;opacity:1;color:#ffd166">${l[3]}</em></div>`;
     document.getElementById('demo-cap').innerHTML = '';
     document.getElementById('demo-cursor').style.display = 'none';
     document.body.append(t);
-  }, [lines, GREEN]);
+  }, [lines, NAVY]);
   await x.wait(ms);
 }
 
@@ -48,7 +48,7 @@ async function endCard(page, x, lines, ms = 4500) {
 
 await film('promo-1-wide', shop({ mode: 'SUPERMARKET', withSales: true }), async (page, x, base) => {
   await page.waitForSelector('.market');
-  await x.title('收银 · 盘点 · 仓库<br>一个系统全搞定', '马来西亚商店、超市、仓库、餐厅', 'POS · Stok · Gudang — satu sistem', { bg: GREEN });
+  await x.title('收银 · 盘点 · 仓库<br>一个系统全搞定', '马来西亚商店、超市、仓库、餐厅', 'POS · Stok · Gudang — satu sistem', { bg: NAVY });
   await x.click('.shift-btn', 700);
   await x.type('.dialog input.bigsum', '200', 300);
   await x.caption('开班：点好备用金', 'Buka syif: kira wang apungan', 1300);
@@ -89,7 +89,7 @@ await film('promo-1-wide', shop({ mode: 'SUPERMARKET', withSales: true }), async
 await film('promo-2-reel-zh', shop({ mode: 'SUPERMARKET' }), async (page, x, base) => {
   await page.waitForSelector('.market');
   await phoneStyle(page);
-  await x.title('还在用本子<br>记库存？', '库存对不上，钱不见了', 'Masih catat stok dalam buku?', { bg: GREEN });
+  await x.title('还在用本子<br>记库存？', '库存对不上，钱不见了', 'Masih catat stok dalam buku?', { bg: NAVY });
   await x.click('.mlines', 100);
   await x.caption('扫码收银', 'Imbas & jual', 500);
   for (const pic of ['malt', 'water', 'eggs', 'coffee']) await x.scan(item(pic).barcode, 420);
@@ -112,7 +112,7 @@ await film('promo-2-reel-zh', shop({ mode: 'SUPERMARKET' }), async (page, x, bas
 await film('promo-3-reel-bm', shop({ mode: 'SUPERMARKET' }), async (page, x, base) => {
   await page.waitForSelector('.market');
   await phoneStyle(page);
-  await x.title('Stok tak pernah<br>tepat?', 'POS + kira stok + gudang', 'One system for your shop', { bg: GREEN });
+  await x.title('Stok tak pernah<br>tepat?', 'POS + kira stok + gudang', 'One system for your shop', { bg: NAVY });
   await x.click('.mlines', 100);
   await x.caption('Imbas & jual', 'Scan and sell', 500);
   for (const pic of ['malt', 'rice', 'sugar', 'water']) await x.scan(item(pic).barcode, 420);

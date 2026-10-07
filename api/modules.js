@@ -1,5 +1,5 @@
 /**
- * The module registry: every part of Stock Check a company can have, in
+ * The module registry: every part of NEXO a company can have, in
  * one place -- its name for customers, what it depends on, which existing
  * permissions each of its actions needs, which menu entries and API routes
  * belong to it.
@@ -10,7 +10,7 @@
  *
  * Copied unchanged to api/modules.js (CI checks the copy). Pure.
  *
- * Where a company's modules come from (no new collection, nothing to
+ * Where a company's modules come from (tenant id = workspace id) (no new collection, nothing to
  * migrate): the licence document licences/{workspaceId}, written only by
  * the platform. Its `modules` map wins; a licence without one gets what its
  * plan includes (plans.js); a company with no licence at all -- set up
@@ -21,20 +21,27 @@
  */
 import { PLANS } from './plans.js';
 
-/** status: live (sold now) or planned (shown as coming soon, never enabled). */
+/**
+ * status: live (sold now) or planned (shown as coming soon, never enabled).
+ * kind: core (what a small shop starts with) or addon (added as it grows).
+ * licenceKey: the switch in licences/{ws}.modules; modules sold together
+ *   share one (procurement rides on the warehouse, tax on the POS).
+ * actions: what can be done -> the existing permissions that allow it.
+ * menuItems: the back-office menu entries that belong to the module.
+ * routes: the API paths it guards. apiScopes: what a token may be limited to.
+ */
 export const MODULES = {
-  stocktake: {
-    id: 'stocktake', licenceKey: 'app', status: 'live', kind: 'core', dependsOn: [],
-    name: { zh: '盘点通', en: 'Stock Take', ms: 'Kira Stok' },
-    actions: {
-      view: [],
-      count: ['CREATE_STOCK_CHECK'],
-      move: ['RECORD_STOCK_MOVEMENTS'],
-    },
+  count: {
+    id: 'count', licenceKey: 'app', status: 'live', kind: 'core', dependsOn: [],
+    displayName: { zh: 'NEXO Count', en: 'NEXO Count', ms: 'NEXO Count' },
+    description: { zh: '手机盘点', en: 'Mobile stock counting', ms: 'Kira stok dengan telefon' },
+    actions: { view: [], count: ['CREATE_STOCK_CHECK'], move: ['RECORD_STOCK_MOVEMENTS'] },
+    menuItems: ['inventory'], routes: [], apiScopes: [],
   },
   pos: {
     id: 'pos', licenceKey: 'pos', status: 'live', kind: 'core', dependsOn: [],
-    name: { zh: '收银通', en: 'POS', ms: 'POS' },
+    displayName: { zh: 'NEXO POS', en: 'NEXO POS', ms: 'NEXO POS' },
+    description: { zh: '柜台收银', en: 'Point of sale', ms: 'Jualan di kaunter' },
     actions: {
       view: [],
       sell: ['POS_SELL'],
@@ -43,48 +50,82 @@ export const MODULES = {
       reports: ['POS_REPORTS', 'POS_SELL'],
       customers: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'],
     },
+    menuItems: ['pos', 'reports', 'customers'], routes: [], apiScopes: [],
   },
   warehouse: {
     id: 'warehouse', licenceKey: 'warehouse', status: 'live', kind: 'addon', dependsOn: [],
-    name: { zh: '仓库与订货', en: 'Warehouse & ordering', ms: 'Gudang & pesanan' },
+    displayName: { zh: 'NEXO Warehouse', en: 'NEXO Warehouse', ms: 'NEXO Warehouse' },
+    description: { zh: '仓库、收货、调货', en: 'Warehouse, receiving, transfers', ms: 'Gudang, terima barang, pindahan' },
     actions: {
       view: [],
       move: ['RECORD_STOCK_MOVEMENTS'],
-      purchase: ['WH_PURCHASE', 'POS_MANAGE', 'WH_APPROVE'],
-      suppliers: ['WH_PURCHASE', 'POS_MANAGE'],
-      approve: ['WH_APPROVE'],
       places: ['ADMIN'],
       audit: ['VIEW_AUDIT_LOG'],
     },
+    menuItems: ['home', 'receive', 'transfers', 'adjust', 'stock', 'variance', 'places', 'audit'], routes: [], apiScopes: [],
+  },
+  procurement: {
+    id: 'procurement', licenceKey: 'warehouse', status: 'live', kind: 'addon', dependsOn: ['warehouse'],
+    displayName: { zh: 'NEXO Procurement', en: 'NEXO Procurement', ms: 'NEXO Procurement' },
+    description: { zh: '采购单、供应商、补货', en: 'Purchase orders, suppliers, reordering', ms: 'Pesanan belian, pembekal, tambah stok' },
+    actions: {
+      view: [],
+      purchase: ['WH_PURCHASE', 'POS_MANAGE', 'WH_APPROVE'],
+      suppliers: ['WH_PURCHASE', 'POS_MANAGE'],
+      approve: ['WH_APPROVE'],
+    },
+    menuItems: ['purchase', 'suppliers'], routes: [], apiScopes: [],
+  },
+  tax: {
+    id: 'tax', licenceKey: 'pos', status: 'live', kind: 'addon', dependsOn: ['pos'],
+    displayName: { zh: 'NEXO Tax', en: 'NEXO Tax', ms: 'NEXO Tax' },
+    description: { zh: 'SST 和 LHDN 电子发票', en: 'SST and LHDN e-invoices', ms: 'SST dan e-Invois LHDN' },
+    actions: { view: [], einvoice: ['POS_REPORTS'] },
+    menuItems: ['reports/taxes', 'reports/einvoice'], routes: [], apiScopes: [],
   },
   api: {
     id: 'api', licenceKey: 'api', status: 'live', kind: 'addon', dependsOn: [],
-    name: { zh: '开放 API', en: 'Open API', ms: 'API terbuka' },
+    displayName: { zh: '开放 API', en: 'Open API', ms: 'API terbuka' },
+    description: { zh: '连接网店和会计软件', en: 'Connect online shops and accounting software', ms: 'Sambung kedai dalam talian dan perisian akaun' },
     actions: { tokens: ['CHANGE_PERMISSION'] },
+    menuItems: ['integrations'], routes: ['/v1'],
     // What an access token may be limited to. A token with no scopes (all
     // made before scopes existed) may do everything, as before.
-    scopes: ['items.read', 'items.write', 'inventory.read', 'inventory.write', 'receipts.read',
+    apiScopes: ['items.read', 'items.write', 'inventory.read', 'inventory.write', 'receipts.read',
       'customers.read', 'customers.write', 'stores.read', 'sync.write'],
   },
   ecommerce: {
     id: 'ecommerce', licenceKey: 'ecommerce', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    name: { zh: '电商同步', en: 'Online store sync', ms: 'Segerak kedai dalam talian' },
+    displayName: { zh: 'NEXO Commerce', en: 'NEXO Commerce', ms: 'NEXO Commerce' },
+    description: { zh: 'Shopee、TikTok、Shopify 同步', en: 'Shopee, TikTok and Shopify sync', ms: 'Segerak Shopee, TikTok, Shopify' },
     actions: { view: [], sync: ['POS_MANAGE'], manage: ['POS_MANAGE'] },
+    menuItems: [], routes: ['/ecommerce'], apiScopes: [],
   },
   accounting: {
     id: 'accounting', licenceKey: 'accounting', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    name: { zh: '会计软件连接', en: 'Accounting software', ms: 'Perisian perakaunan' },
+    displayName: { zh: 'NEXO Accounting', en: 'NEXO Accounting', ms: 'NEXO Accounting' },
+    description: { zh: 'SQL Account、AutoCount 连接', en: 'SQL Account and AutoCount links', ms: 'Sambungan SQL Account, AutoCount' },
     actions: { view: [], export: ['POS_REPORTS'] },
+    menuItems: [], routes: [], apiScopes: [],
   },
-  delivery: {
-    id: 'delivery', licenceKey: 'delivery', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    name: { zh: '配送', en: 'Delivery', ms: 'Penghantaran' },
+  logistics: {
+    id: 'logistics', licenceKey: 'logistics', status: 'planned', kind: 'addon', dependsOn: ['pos'],
+    displayName: { zh: 'NEXO Logistics', en: 'NEXO Logistics', ms: 'NEXO Logistics' },
+    description: { zh: 'Lalamove、GrabExpress 配送', en: 'Lalamove and GrabExpress delivery', ms: 'Penghantaran Lalamove, GrabExpress' },
     actions: { view: [], book: ['POS_SELL'] },
+    menuItems: [], routes: [], apiScopes: [],
+  },
+  b2b: {
+    id: 'b2b', licenceKey: 'b2b', status: 'planned', kind: 'addon', dependsOn: ['warehouse'],
+    displayName: { zh: 'NEXO B2B', en: 'NEXO B2B', ms: 'NEXO B2B' },
+    description: { zh: '门店和批发客户下单', en: 'Orders from shops and trade customers', ms: 'Pesanan dari kedai dan pelanggan borong' },
+    actions: { view: [], order: ['RECORD_STOCK_MOVEMENTS'] },
+    menuItems: [], routes: [], apiScopes: [],
   },
 };
 
 /** What a company with no licence document keeps (see the top of this file). */
-const WITHOUT_LICENCE = ['stocktake', 'pos', 'warehouse'];
+const WITHOUT_LICENCE = ['count', 'pos', 'warehouse', 'procurement', 'tax'];
 
 export const moduleIds = () => Object.keys(MODULES);
 
@@ -117,7 +158,7 @@ export function isEnabled(licence, id, path = []) {
   return switchedOn(licence, m) && m.dependsOn.every((d) => isEnabled(licence, d, [...path, id]));
 }
 
-/** The company's modules as a list, e.g. ['stocktake', 'pos']. */
+/** The company's modules as a list, e.g. ['count', 'pos'] -- the enabled_modules view. */
 export const enabledModules = (licence) => moduleIds().filter((id) => isEnabled(licence, id));
 
 /**
@@ -139,7 +180,7 @@ export function can(who, what) {
 
 /** What an API token may do: no scopes on the token means all of them. */
 export function tokenAllows(token, scope) {
-  if (!MODULES.api.scopes.includes(scope)) return false;
+  if (!MODULES.api.apiScopes.includes(scope)) return false;
   return !Array.isArray(token?.scopes) || token.scopes.includes(scope);
 }
 
