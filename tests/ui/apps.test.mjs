@@ -277,6 +277,31 @@ let failed = 0;
   failed += await s.done();
 }
 
+// ------------------------------------------------ branches from the till's settings
+{
+  const s = await start({});
+  const { page, base, step, store } = s;
+  await step('settings: an admin adds a branch, then closes it', async () => {
+    await page.goto(base + '/pos/#/settings/stores');
+    await page.click('button[data-act="branch-add"]');
+    await page.fill('.dialog input', 'Kedai Klang');
+    await page.click('button[data-act="branch-save"]');
+    await page.waitForSelector('tr[data-branch="kedai-klang"]:has-text("Kedai Klang")');
+    const b = (await store('workspaces/w1/meta/config')).branches.find((x) => x.id === 'kedai-klang');
+    if (!b || b.active !== true || b.kind !== 'STORE') throw new Error(JSON.stringify(b));
+    await page.click('tr[data-branch="kedai-klang"] button');
+    await page.waitForFunction(() => window.__store.get('workspaces/w1/meta/config').branches.find((x) => x.id === 'kedai-klang')?.active === false);
+  });
+  await step('settings: the same name twice is refused', async () => {
+    await page.click('button[data-act="branch-add"]');
+    await page.fill('.dialog input', 'kedai klang');
+    await page.click('button[data-act="branch-save"]');
+    await page.waitForSelector('.toast:has-text("同名")');
+    await page.keyboard.press('Escape');
+  });
+  failed += await s.done();
+}
+
 // ------------------------------------------------ guides that talk
 {
   const s = await start({});

@@ -24,7 +24,7 @@ addStrings({
   en: {
     nfTitle: 'Notifications', nfTg: 'Telegram bot', nfTgLead: 'Ask about stock and sales in Telegram ("How many Milo?", "sales today", "low stock"), and get the day\'s report every morning at 8.',
     nfTgConnect: 'Connect Telegram', nfTgOpen: 'Open Telegram', nfTgOr: 'Or find the bot in Telegram and send:',
-    nfTgNoBot: 'The Telegram bot is not switched on yet.', nfTgCodeTime: 'This code works once, for 15 minutes.',
+    nfTgNoBot: 'The Telegram bot is not switched on yet.', nfTgCodeTime: 'This code is only for connecting: send it to the bot within 15 minutes. Once connected, it stays connected until you press Disconnect.',
     nfTgMine: 'My connected chats', nfTgNone: 'No chat connected yet.', nfDaily: 'Morning report', nfDisconnect: 'Disconnect',
     nfEmail: 'Report by email', nfEmailLead: 'Yesterday\'s sales and today\'s low stock, every morning at 8.',
     nfEmailOn: 'Send the morning report by email', nfEmailTo: 'To (one or more, separated by commas)',
@@ -36,7 +36,7 @@ addStrings({
   zh: {
     nfTitle: '通知', nfTg: 'Telegram 机器人', nfTgLead: '在 Telegram 问库存和销售（「Milo 还有多少？」「今天卖了多少」「低库存」），每天早上 8 点收到营业报告。',
     nfTgConnect: '连接 Telegram', nfTgOpen: '打开 Telegram', nfTgOr: '或在 Telegram 找到机器人，发送：',
-    nfTgNoBot: 'Telegram 机器人还没开通。', nfTgCodeTime: '这个码只能用一次，15 分钟内有效。',
+    nfTgNoBot: 'Telegram 机器人还没开通。', nfTgCodeTime: '这个码只是用来连接：15 分钟内发给机器人就可以。连接好之后会一直有效，直到你按「断开」。',
     nfTgMine: '我连接的聊天', nfTgNone: '还没有连接。', nfDaily: '早上报告', nfDisconnect: '断开',
     nfEmail: 'Email 报告', nfEmailLead: '每天早上 8 点：昨天的销售和现在的低库存。',
     nfEmailOn: '每天早上用 email 寄营业报告', nfEmailTo: '寄给（可以几个，用逗号分开）',
@@ -48,7 +48,7 @@ addStrings({
   ms: {
     nfTitle: 'Pemberitahuan', nfTg: 'Bot Telegram', nfTgLead: 'Tanya stok dan jualan di Telegram ("berapa stok Milo", "jualan hari ini", "stok rendah"), dan terima laporan setiap pagi jam 8.',
     nfTgConnect: 'Sambung Telegram', nfTgOpen: 'Buka Telegram', nfTgOr: 'Atau cari bot di Telegram dan hantar:',
-    nfTgNoBot: 'Bot Telegram belum dihidupkan.', nfTgCodeTime: 'Kod ini sekali guna, sah 15 minit.',
+    nfTgNoBot: 'Bot Telegram belum dihidupkan.', nfTgCodeTime: 'Kod ini hanya untuk menyambung: hantar kepada bot dalam 15 minit. Selepas disambung, ia kekal sehingga anda tekan Putuskan.',
     nfTgMine: 'Sembang saya yang disambung', nfTgNone: 'Belum ada.', nfDaily: 'Laporan pagi', nfDisconnect: 'Putuskan',
     nfEmail: 'Laporan melalui e-mel', nfEmailLead: 'Jualan semalam dan stok rendah, setiap pagi jam 8.',
     nfEmailOn: 'Hantar laporan pagi melalui e-mel', nfEmailTo: 'Kepada (boleh beberapa, dipisah koma)',

@@ -8,6 +8,7 @@ import { icon } from './icons.js';
 import { getLang, paymentLabel, t } from './i18n.js';
 import { DEFAULT_SETTINGS, session, ws } from './session.js';
 import { menuButton } from './main.js';
+import { addBranchDialog, saveBranch } from './branches.js';
 import { taxList } from './money.js';
 import { chosenMode, modeCards } from './modes.js';
 import { choosePrinter, directName, directReady, directSupported, forget, openDrawer, printDirect } from './rawprint.js';
@@ -200,14 +201,23 @@ function receipt(main) {
 }
 
 function stores(main) {
+  const box = h('div');
+  const draw = () => mount(box, h('table', { class: 'list', style: { maxWidth: '760px' } }, h('tbody', {},
+    [{ id: '', name: t('mainShop') }, ...session.branches].map((b) => h('tr', { 'data-branch': b.id },
+      h('td', {}, h('strong', {}, b.name)),
+      h('td', {}, b.id ? t(`brKind_${b.kind || 'STORE'}`) : ''),
+      h('td', {}, b.active === false ? h('span', { class: 'pill bad' }, t('closed')) : ''),
+      h('td', { class: 'num' }, b.id === session.branchId ? h('span', { class: 'pill good' }, t('thisTill')) : ''),
+      h('td', { class: 'num' }, session.isAdmin && b.id
+        ? h('button', { class: 'ghost', onclick: async () => { if (await saveBranch(b.id, { active: b.active === false })) draw(); } },
+          b.active === false ? t('brReopen') : t('brClose'))
+        : null))))));
   mount(main,
-    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, t('setStores'))),
-    h('p', { class: 'muted' }, t('storesHelp')),
-    h('table', { class: 'list', style: { maxWidth: '640px' } }, h('tbody', {},
-      [{ id: '', name: t('mainShop') }, ...session.branches].map((b) => h('tr', {},
-        h('td', {}, b.name),
-        h('td', {}, b.active === false ? h('span', { class: 'pill bad' }, t('closed')) : ''),
-        h('td', { class: 'num' }, b.id === session.branchId ? h('span', { class: 'pill good' }, t('thisTill')) : ''))))));
+    h('div', { class: 'page-head' }, menuButton(), h('h1', { class: 'grow' }, t('setStores')),
+      session.isAdmin ? h('button', { class: 'primary', 'data-act': 'branch-add', onclick: () => addBranchDialog(draw) }, icon('plus', 17), t('brAdd')) : null),
+    h('p', { class: 'muted' }, session.isAdmin ? t('storesHelp') : t('brAdminOnly')),
+    box);
+  draw();
 }
 
 function device(main) {
