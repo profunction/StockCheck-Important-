@@ -263,7 +263,7 @@ let failed = 0;
     await page.goto(`${base}/guide/#account`);
     await page.reload();
     await page.waitForSelector('.gp-split .acct');
-    for (const go of ['create', 'join', 'signin', 'reset']) await page.waitForSelector(`.acct a[data-go="${go}"]`);
+    for (const go of ['signin', 'create']) await page.waitForSelector(`.acct a[data-go="${go}"]`);
     await page.addInitScript(() => { window.__signedOut = true; });
     await page.click('.acct a[data-go="create"]');
     await page.waitForSelector('.auth-tabs button.on[data-tab="create"]');

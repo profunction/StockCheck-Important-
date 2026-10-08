@@ -668,7 +668,7 @@ export const ACCOUNT_GUIDE = {
     intro: '一个账号用全部 JEXO：手机 app、收银、仓库、网页版盘点和 Cloud。',
     sections: [
       { id: 'signup', title: '注册、加入公司、忘记密码', video: V('acc-1-signup'), steps: [
-        '老板：按旁边的「注册新公司」，填名字、email、密码、公司名，再自己定一个公司代码（至少 4 个字，例如 KEDAIMAJU）。你就是管理员，有 14 天试用。',
+        '老板：按「注册」，填名字、email、密码、公司名，再自己定一个公司代码（至少 4 个字，例如 KEDAIMAJU）。你就是管理员，有 14 天试用。',
         '员工：「加入公司」，填老板给的公司代码；先是员工身份，老板之后可以给更多权限。',
         '管理员在「我的 Profile」看得到公司代码。',
         '忘记密码：登录页按「忘记密码？」，填 email 和公司代码，重设链接寄到 email。',
@@ -684,7 +684,7 @@ export const ACCOUNT_GUIDE = {
     intro: 'One account for all of JEXO: the phone app, the till, the warehouse, Count on the web and Cloud.',
     sections: [
       { id: 'signup', title: 'Signing up, joining, forgotten password', video: V('acc-1-signup'), steps: [
-        'Owner: press Register a company beside this: name, email, password, company name, and a company code you choose (at least 4 characters, e.g. KEDAIMAJU). You are its admin, with a 14-day trial.',
+        'Owner: press Register: name, email, password, company name, and a company code you choose (at least 4 characters, e.g. KEDAIMAJU). You are its admin, with a 14-day trial.',
         'Staff: Join a company with the code from the owner; you start as staff, and the owner can give you more later.',
         'Admins see the company code in Profile.',
         'Forgotten password: Forgot password? on the sign-in page, your email and the company code, and a reset link is emailed.',
@@ -700,7 +700,7 @@ export const ACCOUNT_GUIDE = {
     intro: 'Satu akaun untuk semua JEXO: aplikasi telefon, kaunter, gudang, Count di web dan Cloud.',
     sections: [
       { id: 'signup', title: 'Daftar, sertai, lupa kata laluan', video: V('acc-1-signup'), steps: [
-        'Pemilik: tekan Daftar syarikat di sebelah: nama, e-mel, kata laluan, nama syarikat, dan kod syarikat pilihan anda (sekurang-kurangnya 4 aksara, cth. KEDAIMAJU). Anda admin, dengan percubaan 14 hari.',
+        'Pemilik: tekan Daftar: nama, e-mel, kata laluan, nama syarikat, dan kod syarikat pilihan anda (sekurang-kurangnya 4 aksara, cth. KEDAIMAJU). Anda admin, dengan percubaan 14 hari.',
         'Pekerja: Sertai syarikat dengan kod daripada pemilik; mula sebagai pekerja, pemilik boleh beri lebih kemudian.',
         'Admin nampak kod syarikat di Profil.',
         'Lupa kata laluan: Lupa kata laluan? di halaman log masuk, e-mel dan kod syarikat, pautan set semula dihantar.',
