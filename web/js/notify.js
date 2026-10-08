@@ -22,7 +22,7 @@ import { menuButton } from './main.js';
 
 addStrings({
   en: {
-    nfTitle: 'Notifications', nfTg: 'Telegram bot', nfTgLead: 'Ask about stock and sales in Telegram ("How many Milo?", "sales today", "low stock"), and get the day\'s report every morning at 8.',
+    nfTitle: 'Notifications', nfTg: 'Telegram bot', nfTgLead: 'Ask about stock and sales in Telegram ("How many Milo?", "sales this month", "profit today", "best sellers", "what is out of stock?"), and get the day\'s report every morning at 8.',
     nfTgConnect: 'Connect Telegram', nfTgOpen: 'Open Telegram', nfTgOr: 'Or find the bot in Telegram and send:',
     nfTgNoBot: 'The Telegram bot is not switched on yet.', nfTgCodeTime: 'This code is only for connecting: send it to the bot within 15 minutes. Once connected, it stays connected until you press Disconnect.',
     nfTgMine: 'My connected chats', nfTgNone: 'No chat connected yet.', nfDaily: 'Morning report', nfDisconnect: 'Disconnect',
@@ -34,7 +34,7 @@ addStrings({
     nfPushDaily: 'Send the morning report as a notification', nfAdminOnly: 'Only an admin may change this.',
   },
   zh: {
-    nfTitle: '通知', nfTg: 'Telegram 机器人', nfTgLead: '在 Telegram 问库存和销售（「Milo 还有多少？」「今天卖了多少」「低库存」），每天早上 8 点收到营业报告。',
+    nfTitle: '通知', nfTg: 'Telegram 机器人', nfTgLead: '在 Telegram 问库存和销售（「Milo 还有多少？」「这个月卖了多少」「今天赚多少」「什么最好卖」「有什么没货了」），每天早上 8 点收到营业报告。',
     nfTgConnect: '连接 Telegram', nfTgOpen: '打开 Telegram', nfTgOr: '或在 Telegram 找到机器人，发送：',
     nfTgNoBot: 'Telegram 机器人还没开通。', nfTgCodeTime: '这个码只是用来连接：15 分钟内发给机器人就可以。连接好之后会一直有效，直到你按「断开」。',
     nfTgMine: '我连接的聊天', nfTgNone: '还没有连接。', nfDaily: '早上报告', nfDisconnect: '断开',
@@ -46,7 +46,7 @@ addStrings({
     nfPushDaily: '用通知发早上的营业报告', nfAdminOnly: '只有管理员可以改。',
   },
   ms: {
-    nfTitle: 'Pemberitahuan', nfTg: 'Bot Telegram', nfTgLead: 'Tanya stok dan jualan di Telegram ("berapa stok Milo", "jualan hari ini", "stok rendah"), dan terima laporan setiap pagi jam 8.',
+    nfTitle: 'Pemberitahuan', nfTg: 'Bot Telegram', nfTgLead: 'Tanya stok dan jualan di Telegram ("berapa stok Milo", "jualan bulan ini", "untung hari ini", "paling laris", "stok habis"), dan terima laporan setiap pagi jam 8.',
     nfTgConnect: 'Sambung Telegram', nfTgOpen: 'Buka Telegram', nfTgOr: 'Atau cari bot di Telegram dan hantar:',
     nfTgNoBot: 'Bot Telegram belum dihidupkan.', nfTgCodeTime: 'Kod ini hanya untuk menyambung: hantar kepada bot dalam 15 minit. Selepas disambung, ia kekal sehingga anda tekan Putuskan.',
     nfTgMine: 'Sembang saya yang disambung', nfTgNone: 'Belum ada.', nfDaily: 'Laporan pagi', nfDisconnect: 'Putuskan',

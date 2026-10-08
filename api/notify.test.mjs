@@ -57,7 +57,16 @@ const seed = () => ({
   [`${W}meta/config`]: { companyName: 'Kedai Maju', branches: [{ id: 'ipoh', name: 'Kedai Ipoh' }, { id: 'gudang', name: 'Gudang' }] },
   [`${W}meta/notify`]: { emailDaily: true, emails: ['boss@kedai.my', 'not an email'], pushDaily: true },
   [`${W}products/9555`]: { name: 'Milo 1kg', unit: 'pcs', reorderLevelMilli: 30000 },
-  [`${W}products/2001`]: { name: 'Beras 5kg', unit: 'bag' },
+  [`${W}products/2001`]: { name: 'Beras 5kg', unit: 'bag', priceSen: 2690 },
+  [`${W}products/3001`]: { name: 'Kopi O 1kg', unit: 'pcs', costSen: 1000 },
+  [`${W}movements/m2`]: { barcode: '3001', type: 'SALE', quantityMilli: 1000, at: Date.now(), branchId: 'ipoh' },
+  [`${W}movements/m3`]: { barcode: '3001', type: 'RECEIVE', quantityMilli: 4000, at: Date.now(), branchId: 'gudang' },
+  [`${W}sales/t1`]: { status: 'COMPLETED', createdAt: NOW - 3600_000, totalSen: 5000, cashierName: 'Mei', payments: [{ method: 'CASH', amountSen: 5000 }],
+    lines: [{ barcode: '3001', name: 'Kopi O 1kg', qtyMilli: 2000, lineTotalSen: 5000, costSen: 1000 }] },
+  [`${W}sales/t2`]: { status: 'COMPLETED', createdAt: NOW - 1800_000, totalSen: 1590, cashierName: 'Ali', payments: [{ method: 'QR', amountSen: 1590 }],
+    lines: [{ barcode: '9555', name: 'Milo 1kg', qtyMilli: 1000, lineTotalSen: 1590 }] },
+  [`${W}purchaseOrders/p1`]: { poNo: 'PO-0001', supplierName: 'Nestle', status: 'ORDERED', branchId: 'gudang', expectedAt: NOW + 86_400_000 },
+  [`${W}purchaseOrders/p2`]: { poNo: 'PO-0002', supplierName: 'Old', status: 'RECEIVED', branchId: 'gudang' },
   [`${W}stockChecks/c1`]: { status: 'COMPLETED', branchId: 'ipoh', zone: '', createdAt: 1000, completedAt: 1000 },
   [`${W}stockChecks/c1/items/i1`]: { barcode: '9555', productName: 'Milo 1kg', quantityMilli: 20000 },
   [`${W}stockChecks/c2`]: { status: 'COMPLETED', branchId: 'gudang', zone: '', createdAt: 1000, completedAt: 1000 },
@@ -68,6 +77,7 @@ const seed = () => ({
   'telegramLinks/ALICODE12345': { workspaceId: 'w1', uid: 'ali', expiresAt: Date.now() + 600_000 },
   'telegramLinks/OLDCODE12345': { workspaceId: 'w1', uid: 'boss', expiresAt: Date.now() - 1 },
 });
+const ask = (n, chatId, text, lang) => n.handleUpdate(say(chatId, text, lang), NOW);
 const say = (chatId, text, lang = 'zh') => ({ message: { chat: { id: chatId }, from: { first_name: 'T', language_code: lang }, text } });
 const last = () => heard.telegram.at(-1);
 
@@ -94,12 +104,34 @@ test('linking a chat, then asking it things', async () => {
   assert.match(last().text, /📦 Milo 1kg/);
   assert.match(last().text, /Kedai Ipoh: 18 pcs/);
   assert.match(last().text, /Gudang: 50 pcs/);
-  await n.handleUpdate(say(100, 'kopi'));
-  assert.match(last().text, /找不到「kopi」/);
+  await n.handleUpdate(say(100, 'teh tarik'));
+  assert.match(last().text, /我不太明白「teh tarik」/);
+  await n.handleUpdate(say(100, 'Teh 还有多少'));
+  assert.match(last().text, /找不到「Teh」/);
   await n.handleUpdate(say(100, '低库存'));
   assert.match(last().text, /低库存 1 样[\s\S]*Milo 1kg \(Kedai Ipoh\): 剩 18, 补货点 30/);
-  await n.handleUpdate(say(100, '昨天卖了多少'));
+  await ask(n, 100, '昨天卖了多少');
   assert.match(last().text, /营业额：RM 31\.80（1 单/);
+
+  // The wider questions.
+  await ask(n, 100, '有什么没有货了吗');
+  assert.match(last().text, /没货了（1 样）\n• Kopi O 1kg \(Kedai Ipoh\)/);
+  await ask(n, 100, '今天赚多少？');
+  assert.match(last().text, /销售（未含税）: RM 65\.90\n成本: RM 20\.00\n毛利: RM 45\.90/);
+  assert.match(last().text, /没有填成本/, 'Milo was sold without a cost');
+  await ask(n, 100, '今天什么最好卖');
+  assert.match(last().text, /1\. Kopi O 1kg ×2 · RM 50\.00\n2\. Milo 1kg ×1/);
+  await ask(n, 100, '今天谁卖最多');
+  assert.match(last().text, /1\. Mei: RM 50\.00 · 1 单\n2\. Ali: RM 15\.90/);
+  await ask(n, 100, '这个月卖了多少');
+  assert.match(last().text, /RM 97\.70（3 单/);
+  await ask(n, 100, '库存价值多少');
+  assert.match(last().text, /Gudang: RM 40\.00/);
+  assert.match(last().text, /1 样商品没有成本/, 'Milo, counted once though it is in two places');
+  await ask(n, 100, '有什么采购单要收货？');
+  assert.match(last().text, /（1 张）\n• PO-0001 · Nestle · 已下单 · 预计 9\/10/);
+  await ask(n, 100, 'Beras 多少钱？');
+  assert.match(last().text, /Beras 5kg: RM 26\.90 \/ bag/);
 });
 
 test('a worker sees their own branch, and no sales', async () => {
@@ -109,6 +141,12 @@ test('a worker sees their own branch, and no sales', async () => {
   assert.match(last().text, /Disambung: Ali/);
   await n.handleUpdate(say(200, 'jualan hari ini'));
   assert.match(last().text, /tidak boleh lihat jualan/);
+  await ask(n, 200, 'untung hari ini');
+  assert.match(last().text, /tidak boleh lihat ini/);
+  await ask(n, 200, 'pesanan belian');
+  assert.match(last().text, /tidak boleh lihat ini/);
+  await ask(n, 200, 'apa stok habis');
+  assert.equal(last().text, '🚫 Stok habis (1)\n• Kopi O 1kg', 'one place: no place name');
   await n.handleUpdate(say(200, 'berapa stok Milo'));
   assert.match(last().text, /Kedai Ipoh: 18/);
   assert.doesNotMatch(last().text, /Gudang/);

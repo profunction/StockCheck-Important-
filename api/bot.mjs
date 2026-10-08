@@ -11,39 +11,63 @@
 // ------------------------------------------------------------- questions
 
 const WORDS = {
-  help: /^\/?(help|start|帮助|说明|bantuan|tolong)$/i,
-  report: /(^\/report\b|报告|报表|report|laporan)/i,
-  low: /(^\/low\b|低库存|缺货|补货|没货|low stock|\blow\b|stok rendah|hampir habis|habis)/i,
-  sales: /(^\/sales\b|卖了|销售|营业额|生意|sales|sold|jualan|terjual)/i,
-  yesterday: /(昨天|昨日|yesterday|semalam)/i,
-  stock: /(^\/stock\b|还有多少|还剩|剩多少|有多少|库存|多少|stock|how many|\bstok\b|berapa|baki)/i,
+  help: /^\/?(help|start|帮助|说明|你会什么|你可以做什么|bantuan|tolong|apa boleh)$/i,
+  report: /(^\/report\b|报告|报表|总结|report|summary|laporan|ringkasan)/i,
+  out: /(没有货|没货|卖完|卖光|缺货|断货|零库存|没库存|out of stock|sold out|stok habis|habis stok|kehabisan|tiada stok)/i,
+  low: /(^\/low\b|低库存|快没|快卖完|补货|要订|要买货|不够|low stock|\blow\b|restock|reorder|stok rendah|hampir habis|perlu pesan)/i,
+  profit: /(赚|利润|毛利|profit|margin|earn|untung)/i,
+  top: /(最好卖|卖最多|卖得最好|卖得好|热卖|畅销|最多人买|top|best ?sell|popular|most sold|paling laris|laris)/i,
+  staff: /(谁卖|员工|收银员|哪个人|哪位|cashier|staff|employee|who sold|pekerja|juruwang|siapa jual)/i,
+  value: /(库存价值|库存值|货值|货值多少|存货价值|stock value|inventory value|worth|nilai stok|nilai inventori)/i,
+  po: /(采购单|采购|待收货|要收货|进货单|供应商订单|purchase order|\bpo\b|supplier|pesanan belian|pembekal)/i,
+  sales: /(^\/sales\b|卖了|卖多少|销售|营业|营业额|生意|收了多少|收入|几单|现金|刷卡|收款|sales|sold|revenue|takings|receipts|jualan|terjual|kutipan|tunai)/i,
+  price: /(多少钱|价钱|价格|售价|卖几钱|几钱|price|how much is|harga)/i,
+  stock: /(^\/stock\b|还有多少|还剩|剩多少|有多少|剩下|库存|多少|stock|how many|left|\bstok\b|berapa|baki)/i,
 };
+
+const PERIODS = [
+  ['yesterday', /(昨天|昨日|yesterday|semalam)/i],
+  ['week', /(这个星期|这星期|这礼拜|本周|这周|一个星期|一星期|七天|7 ?天|this week|last 7 days|\bweek\b|minggu)/i],
+  ['month', /(这个月|本月|一个月|this month|\bmonth\b|bulan)/i],
+];
+
+/** today, yesterday, week (the last 7 days) or month (since the 1st). */
+export function periodOf(text) {
+  return (PERIODS.find(([, re]) => re.test(text)) || ['today'])[0];
+}
 
 /** Strips the question words, leaving what is asked about ("Milo 1kg"). */
 function subject(text) {
   return text
-    .replace(/^\/stock(@\w+)?/i, '')
-    .replace(/还有多少|还剩多少|还剩|剩多少|有多少|库存|多少|还有|呢|吗|[？?！!。,，]/g, ' ')
-    .replace(/\b(how many|stock|left|do we have|have|is|are|of|the|stok|berapa|baki|lagi|ada)\b/gi, ' ')
+    .replace(/^\/(stock|price)(@\w+)?/i, '')
+    .replace(/还有多少|还剩多少|还剩|剩多少|剩下|有多少|库存|多少钱|价钱|价格|售价|卖几钱|几钱|多少|还有|呢|吗|的|[？?！!。,，]/g, ' ')
+    .replace(/\b(how many|how much is|how much|price of|price|stock|left|do we have|have|is|are|of|the|stok|berapa|baki|lagi|ada|harga)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 /**
- * What a message asks: { kind: 'link', code } | 'help' | 'report' | 'low'
- * | { kind: 'sales', day: 'today' | 'yesterday' } | { kind: 'stock', query }.
- * Anything else is taken as a product to look up.
+ * What a message asks: { kind, period?, query?, guess? }. kind is link,
+ * help, report, out, low, profit, top, staff, value, po, sales, price or
+ * stock; period is today, yesterday, week or month. Anything else is taken
+ * as a product to look up (guess: true), so a plain "Milo" works too.
  */
 export function parseMessage(raw) {
   const text = String(raw || '').trim();
   const start = /^\/start(?:@\w+)?\s+([A-Za-z0-9_-]{4,64})$/.exec(text);
   if (start) return { kind: 'link', code: start[1] };
   if (!text || WORDS.help.test(text)) return { kind: 'help' };
-  if (WORDS.report.test(text)) return { kind: 'report', day: WORDS.yesterday.test(text) ? 'yesterday' : 'today' };
-  if (WORDS.low.test(text)) return { kind: 'low' };
-  if (WORDS.sales.test(text)) return { kind: 'sales', day: WORDS.yesterday.test(text) ? 'yesterday' : 'today' };
-  const query = WORDS.stock.test(text) ? subject(text) : text.replace(/[？?！!。]/g, '').trim();
-  return query ? { kind: 'stock', query } : { kind: 'help' };
+  const period = periodOf(text);
+  for (const kind of ['report', 'out', 'low', 'profit', 'staff', 'top', 'value', 'po', 'sales']) {
+    if (WORDS[kind].test(text)) return { kind, period, day: period };
+  }
+  if (WORDS.price.test(text)) return { kind: 'price', query: subject(text) };
+  if (WORDS.stock.test(text)) {
+    const query = subject(text);
+    return query ? { kind: 'stock', query } : { kind: 'help' };
+  }
+  const query = text.replace(/[？?！!。]/g, '').trim();
+  return query ? { kind: 'stock', query, guess: true } : { kind: 'help' };
 }
 
 /** Products matching [query]: the barcode exactly, else every word in the name. At most [max]. */
@@ -84,7 +108,11 @@ export function dayRange(now, daysAgo = 0, offsetMinutes = 480) {
   return [start, start + 86_400_000];
 }
 
-const dateLabel = (start, offsetMinutes = 480) => {
+/** "8/10/2026", or "2/10/2026 – 8/10/2026" for more than one day. */
+export const rangeLabel = (start, end = 0) => (end && end - start > 86_400_000
+  ? `${dateLabel(start)} – ${dateLabel(end - 1)}` : dateLabel(start));
+
+export const dateLabel = (start, offsetMinutes = 480) => {
   const d = new Date(start + offsetMinutes * 60_000);
   return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
 };
@@ -96,35 +124,63 @@ export function summarize(sales) {
   const done = sales.filter((s) => s.status !== 'VOIDED');
   const byMethod = {};
   const items = new Map();
+  const cashiers = new Map();
   let total = 0;
+  let cost = 0;
   for (const s of done) {
     total += s.totalSen || 0;
     for (const p of s.payments || []) byMethod[p.method] = (byMethod[p.method] || 0) + (p.amountSen || 0);
     // What was handed back came out of the cash.
     if (s.changeSen) byMethod.CASH = (byMethod.CASH || 0) - s.changeSen;
+    const who = s.cashierName || s.cashierUid || '?';
+    const c = cashiers.get(who) || { name: who, sen: 0, receipts: 0 };
+    c.sen += s.totalSen || 0;
+    c.receipts += 1;
+    cashiers.set(who, c);
     for (const l of s.lines || []) {
       const key = l.barcode || l.name;
       const row = items.get(key) || { name: l.name || key, qtyMilli: 0, sen: 0 };
       row.qtyMilli += l.qtyMilli || 0;
       row.sen += l.lineTotalSen || 0;
       items.set(key, row);
+      cost += Math.round(((l.costSen || 0) * (l.qtyMilli || 0)) / 1000);
     }
   }
+  const sold = [...items.values()].sort((a, b) => b.qtyMilli - a.qtyMilli || b.sen - a.sen);
+  // Profit before tax: what the lines came to, less what they cost.
+  const lineSen = sold.reduce((n, r) => n + r.sen, 0);
   return {
     totalSen: total,
     receipts: done.length,
     averageSen: done.length ? Math.round(total / done.length) : 0,
     voided: sales.length - done.length,
     byMethod,
-    top: [...items.values()].sort((a, b) => b.qtyMilli - a.qtyMilli || b.sen - a.sen).slice(0, 5),
+    top: sold.slice(0, 5),
+    items: sold,
+    lineSen,
+    costSen: cost,
+    profitSen: lineSen - cost,
+    cashiers: [...cashiers.values()].sort((a, b) => b.sen - a.sen),
   };
+}
+
+/** [start, end) of today, yesterday, the last 7 days, or this month (Malaysia time). */
+export function periodRange(period, now = Date.now(), offsetMinutes = 480) {
+  if (period === 'yesterday') return dayRange(now, 1, offsetMinutes);
+  if (period === 'week') return [dayRange(now, 6, offsetMinutes)[0], dayRange(now, 0, offsetMinutes)[1]];
+  if (period === 'month') {
+    const d = new Date(now + offsetMinutes * 60_000);
+    const start = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - offsetMinutes * 60_000;
+    return [start, dayRange(now, 0, offsetMinutes)[1]];
+  }
+  return dayRange(now, 0, offsetMinutes);
 }
 
 // ----------------------------------------------------------------- words
 
 const T = {
   zh: {
-    help: '我是 SuXin 助手。可以问我：\n• Milo 还有多少？\n• 今天卖了多少？ / 昨天卖了多少？\n• 低库存\n• 报告\n每天早上 8 点我会发营业报告给你。',
+    help: '我是 SuXin 助手。你可以这样问我：\n• Milo 还有多少？ / Milo 多少钱？\n• 今天卖了多少？ 昨天？ 这个星期？ 这个月？\n• 这个月赚多少？\n• 什么最好卖？\n• 有什么没货了？ / 低库存\n• 谁卖最多？\n• 库存价值多少？\n• 有什么采购单要收货？\n• 报告\n每天早上 8 点我会发营业报告给你。',
     notLinked: '这个 Telegram 还没有连接到 SuXin。请在 SuXin 收银后台 → 设置 → 通知，按「连接 Telegram」。',
     linked: (name, company) => `✅ 已连接：${name} · ${company}\n每天早上 8 点会收到营业报告。发「帮助」看可以问什么。`,
     badCode: '这个连接码不对或已过期（15 分钟内有效）。请在 设置 → 通知 再按一次「连接 Telegram」。',
@@ -132,7 +188,7 @@ const T = {
     noMatch: (q) => `找不到「${q}」。试试商品名字的一部分，或扫条码后发条码数字。`,
     stockLine: (name) => `📦 ${name}`,
     nowhere: '还没有盘点或进货记录。',
-    sales: (day) => (day === 'yesterday' ? '昨天' : '今天'),
+    sales: (day) => ({ yesterday: '昨天', week: '最近 7 天', month: '这个月' }[day] || '今天'),
     salesHead: (label, date) => `💰 ${label}（${date}）`,
     total: '营业额', receipts: '单', average: '平均每单', voided: '作废', top: '最好卖',
     noSales: '没有销售。',
@@ -144,7 +200,7 @@ const T = {
     more: (n) => `…还有 ${n} 样`,
   },
   en: {
-    help: 'I am the SuXin assistant. Ask me:\n• How many Milo?\n• Sales today / sales yesterday\n• Low stock\n• Report\nI send the day\'s report every morning at 8.',
+    help: 'I am the SuXin assistant. Ask me:\n• How many Milo? / Milo price?\n• Sales today, yesterday, this week, this month\n• Profit this month\n• Best sellers\n• What is out of stock? / Low stock\n• Who sold most?\n• Stock value\n• Purchase orders to receive\n• Report\nI send the day\'s report every morning at 8.',
     notLinked: 'This Telegram is not connected to SuXin yet. In the SuXin back office go to Settings → Notifications and press Connect Telegram.',
     linked: (name, company) => `✅ Connected: ${name} · ${company}\nYou will get the report every morning at 8. Send "help" to see what to ask.`,
     badCode: 'That link code is wrong or has expired (15 minutes). Press Connect Telegram again under Settings → Notifications.',
@@ -152,7 +208,7 @@ const T = {
     noMatch: (q) => `Nothing called "${q}". Try part of the name, or send the barcode number.`,
     stockLine: (name) => `📦 ${name}`,
     nowhere: 'No counts or deliveries recorded yet.',
-    sales: (day) => (day === 'yesterday' ? 'Yesterday' : 'Today'),
+    sales: (day) => ({ yesterday: 'Yesterday', week: 'The last 7 days', month: 'This month' }[day] || 'Today'),
     salesHead: (label, date) => `💰 ${label} (${date})`,
     total: 'Sales', receipts: 'receipts', average: 'average', voided: 'Voided', top: 'Best sellers',
     noSales: 'No sales.',
@@ -164,7 +220,7 @@ const T = {
     more: (n) => `…and ${n} more`,
   },
   ms: {
-    help: 'Saya pembantu SuXin. Tanya saya:\n• Berapa stok Milo?\n• Jualan hari ini / jualan semalam\n• Stok rendah\n• Laporan\nSaya hantar laporan setiap pagi jam 8.',
+    help: 'Saya pembantu SuXin. Tanya saya:\n• Berapa stok Milo? / Harga Milo?\n• Jualan hari ini, semalam, minggu ini, bulan ini\n• Untung bulan ini\n• Paling laris\n• Apa stok habis? / Stok rendah\n• Siapa jual paling banyak?\n• Nilai stok\n• Pesanan belian untuk diterima\n• Laporan\nSaya hantar laporan setiap pagi jam 8.',
     notLinked: 'Telegram ini belum disambung ke SuXin. Di pejabat SuXin, pergi ke Tetapan → Pemberitahuan dan tekan Sambung Telegram.',
     linked: (name, company) => `✅ Disambung: ${name} · ${company}\nAnda akan terima laporan setiap pagi jam 8. Hantar "bantuan" untuk lihat apa boleh ditanya.`,
     badCode: 'Kod sambungan salah atau tamat tempoh (15 minit). Tekan Sambung Telegram semula di Tetapan → Pemberitahuan.',
@@ -172,7 +228,7 @@ const T = {
     noMatch: (q) => `Tiada barang "${q}". Cuba sebahagian nama, atau hantar nombor kod bar.`,
     stockLine: (name) => `📦 ${name}`,
     nowhere: 'Belum ada kiraan atau penghantaran.',
-    sales: (day) => (day === 'yesterday' ? 'Semalam' : 'Hari ini'),
+    sales: (day) => ({ yesterday: 'Semalam', week: '7 hari lepas', month: 'Bulan ini' }[day] || 'Hari ini'),
     salesHead: (label, date) => `💰 ${label} (${date})`,
     total: 'Jualan', receipts: 'resit', average: 'purata', voided: 'Batal', top: 'Paling laris',
     noSales: 'Tiada jualan.',
@@ -195,9 +251,9 @@ export const langOf = (code) => {
 };
 export const words = (lang) => T[lang] || T.zh;
 
-export function salesText(summary, { lang = 'zh', day = 'today', start = Date.now() } = {}) {
+export function salesText(summary, { lang = 'zh', day = 'today', start = Date.now(), end = 0 } = {}) {
   const w = words(lang);
-  const head = w.salesHead(w.sales(day), dateLabel(start));
+  const head = w.salesHead(w.sales(day), rangeLabel(start, end));
   if (!summary.receipts) return `${head}\n${w.noSales}${summary.voided ? `\n${w.voided}: ${summary.voided}` : ''}`;
   const methods = Object.entries(summary.byMethod).filter(([, v]) => v)
     .map(([m, v]) => `${w.methods[m] || m} ${rm(v)}`).join(' · ');

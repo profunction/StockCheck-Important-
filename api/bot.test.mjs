@@ -2,17 +2,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  dayRange, findProducts, langOf, lowText, parseMessage, qty, reportPush, reportText, rm, salesText, stockText, summarize,
+  dayRange, findProducts, langOf, lowText, parseMessage, periodRange, qty, reportPush, reportText, rm, salesText, stockText, summarize,
 } from './bot.mjs';
 
 test('questions in three languages', () => {
   assert.deepEqual(parseMessage('/start AB12cd34'), { kind: 'link', code: 'AB12cd34' });
   assert.equal(parseMessage('帮助').kind, 'help');
   assert.equal(parseMessage('').kind, 'help');
-  assert.deepEqual(parseMessage('今天卖了多少？'), { kind: 'sales', day: 'today' });
-  assert.deepEqual(parseMessage('昨天卖了多少'), { kind: 'sales', day: 'yesterday' });
-  assert.deepEqual(parseMessage('jualan semalam'), { kind: 'sales', day: 'yesterday' });
-  assert.deepEqual(parseMessage('sales'), { kind: 'sales', day: 'today' });
+  assert.deepEqual(parseMessage('今天卖了多少？'), { kind: 'sales', period: 'today', day: 'today' });
+  assert.deepEqual(parseMessage('昨天卖了多少'), { kind: 'sales', period: 'yesterday', day: 'yesterday' });
+  assert.deepEqual(parseMessage('jualan semalam'), { kind: 'sales', period: 'yesterday', day: 'yesterday' });
+  assert.deepEqual(parseMessage('sales'), { kind: 'sales', period: 'today', day: 'today' });
   assert.equal(parseMessage('低库存').kind, 'low');
   assert.equal(parseMessage('low stock').kind, 'low');
   assert.equal(parseMessage('stok rendah').kind, 'low');
@@ -20,8 +20,35 @@ test('questions in three languages', () => {
   assert.deepEqual(parseMessage('Milo 还有多少？'), { kind: 'stock', query: 'Milo' });
   assert.deepEqual(parseMessage('how many Milo 1kg'), { kind: 'stock', query: 'Milo 1kg' });
   assert.deepEqual(parseMessage('berapa stok Milo'), { kind: 'stock', query: 'Milo' });
-  assert.deepEqual(parseMessage('Beras 5kg'), { kind: 'stock', query: 'Beras 5kg' });
+  assert.deepEqual(parseMessage('Beras 5kg'), { kind: 'stock', query: 'Beras 5kg', guess: true });
   assert.deepEqual(parseMessage('/stock 9555012345678'), { kind: 'stock', query: '9555012345678' });
+});
+
+test('the wider questions: sold out, profit, best sellers, cashiers, value, orders, prices', () => {
+  const kind = (s) => parseMessage(s).kind;
+  for (const s of ['有什么没有货了吗', '有什么没货了？', '卖完了吗', 'what is out of stock', 'stok habis apa']) assert.equal(kind(s), 'out', s);
+  assert.equal(kind('低库存'), 'low');
+  for (const s of ['这个月赚多少？', '今天利润', 'profit this month', 'untung bulan ini']) assert.equal(kind(s), 'profit', s);
+  assert.equal(parseMessage('这个月赚多少？').period, 'month');
+  assert.equal(parseMessage('profit this week').period, 'week');
+  for (const s of ['什么最好卖？', '最畅销', 'best sellers', 'paling laris']) assert.equal(kind(s), 'top', s);
+  for (const s of ['谁卖最多？', 'sales by cashier']) assert.equal(kind(s), 'staff', s);
+  for (const s of ['库存价值多少？', 'stock value', 'nilai stok']) assert.equal(kind(s), 'value', s);
+  for (const s of ['有什么采购单要收货？', 'purchase orders', 'pesanan belian']) assert.equal(kind(s), 'po', s);
+  assert.deepEqual(parseMessage('这个星期卖了多少？'), { kind: 'sales', period: 'week', day: 'week' });
+  assert.deepEqual(parseMessage('Milo 多少钱？'), { kind: 'price', query: 'Milo' });
+  assert.deepEqual(parseMessage('price of Milo 1kg'), { kind: 'price', query: 'Milo 1kg' });
+  assert.deepEqual(parseMessage('harga Milo'), { kind: 'price', query: 'Milo' });
+});
+
+test('periods run in Malaysian time', () => {
+  // 2026-10-08 01:00 in Malaysia.
+  const now = Date.UTC(2026, 9, 7, 17, 0);
+  const [ws, we] = periodRange('week', now);
+  assert.equal(new Date(ws).toISOString(), '2026-10-01T16:00:00.000Z');
+  assert.equal(new Date(we).toISOString(), '2026-10-08T16:00:00.000Z');
+  assert.equal(new Date(periodRange('month', now)[0]).toISOString(), '2026-09-30T16:00:00.000Z');
+  assert.deepEqual(periodRange('yesterday', now), dayRange(now, 1));
 });
 
 const PRODUCTS = [

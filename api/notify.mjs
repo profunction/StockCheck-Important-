@@ -17,12 +17,16 @@
  * TELEGRAM_BOT_TOKEN, TELEGRAM_SECRET, SMTP_USER, SMTP_PASS, JOB_KEY.
  * Whatever is missing is simply not sent.
  */
+import {
+  dontKnow, noRight, outText, poText, priceText, profitText, staffText, topText, valueText,
+} from './answers.mjs';
 import { isLow, levels as ledgerLevels } from './ledger.js';
 import {
-  dayRange, findProducts, langOf, lowText, parseMessage, reportPush, reportText, salesText, stockText, summarize, words,
+  dayRange, findProducts, langOf, lowText, parseMessage, periodRange, reportPush, reportText, salesText, stockText, summarize, words,
 } from './bot.mjs';
 
 const SITE = 'https://stockcheck-fb58e.web.app';
+const OPEN_PO = ['SUBMITTED', 'APPROVED', 'ORDERED', 'PARTIAL'];
 
 export function notifier(db, env = process.env) {
   const wsRef = (id) => db.collection('workspaces').doc(id);
@@ -167,8 +171,8 @@ export function notifier(db, env = process.env) {
     return telegram(chatId, words(lang).linked(who.name, co.name));
   }
 
-  /** One update from Telegram's webhook. */
-  async function handleUpdate(update) {
+  /** One update from Telegram's webhook; [now] sets "today". */
+  async function handleUpdate(update, now = Date.now()) {
     const msg = update?.message || update?.edited_message;
     if (!msg?.text || !msg.chat?.id) return;
     const chatId = String(msg.chat.id);
@@ -190,24 +194,61 @@ export function notifier(db, env = process.env) {
       || who.can('VIEW_ALL_HISTORY') || who.can('POS_SELL') || who.can('CREATE_STOCK_CHECK');
     const maySales = who.can('POS_REPORTS');
 
-    if (q.kind === 'help') return telegram(chatId, w.help);
-    if (q.kind === 'sales') {
-      if (!maySales) return telegram(chatId, w.noSalesRight);
-      const [from, to] = dayRange(Date.now(), q.day === 'yesterday' ? 1 : 0);
-      return telegram(chatId, salesText(summarize(await salesBetween(chat.workspaceId, from, to)), { lang, day: q.day, start: from }));
+    const say = (text) => telegram(chatId, text);
+    const no = () => say(noRight(lang));
+    if (q.kind === 'help') return say(w.help);
+    if (q.kind === 'po') {
+      if (!(who.can('WH_PURCHASE') || who.can('WH_APPROVE') || who.can('RECORD_STOCK_MOVEMENTS'))) return no();
+      const pos = (await wsRef(chat.workspaceId).collection('purchaseOrders').where('status', 'in', OPEN_PO).get())
+        .docs.map((d) => ({ ...d.data(), id: d.id }))
+        .filter((p) => !who.branchIds.length || !p.branchId || who.branchIds.includes(p.branchId))
+        .sort((a, b) => (a.expectedAt || Infinity) - (b.expectedAt || Infinity));
+      return say(poText(pos, lang));
     }
-    if (!mayStock) return telegram(chatId, w.help);
+    const [from, to] = periodRange(q.period || 'today', now);
+    const span = { lang, period: q.period || 'today', day: q.period || 'today', start: from, end: to };
+    if (['sales', 'profit', 'top', 'staff'].includes(q.kind)) {
+      if (!maySales) return q.kind === 'sales' ? say(w.noSalesRight) : no();
+      const sales = await salesBetween(chat.workspaceId, from, to);
+      const summary = summarize(sales);
+      if (q.kind === 'sales') return say(salesText(summary, span));
+      if (q.kind === 'top') return say(topText(summary, span));
+      if (q.kind === 'staff') return say(staffText(summary, span));
+      const missingCost = sales.filter((s) => s.status !== 'VOIDED')
+        .reduce((n, s) => n + (s.lines || []).filter((l) => l.costSen == null).length, 0);
+      return say(profitText(summary, { ...span, missingCost }));
+    }
+    if (!mayStock) return say(q.kind === 'value' ? noRight(lang) : w.help);
     const { byBranch, products } = await stock(chat.workspaceId);
     const mine = visible(byBranch, who);
-    if (q.kind === 'low') return telegram(chatId, lowText(lowsOf(mine, co.placeName), lang));
+    const catalogue = new Map(products.map((p) => [p.barcode, p]));
+    const live = (l) => catalogue.get(l.barcode || l.key)?.active !== false;
+    if (q.kind === 'low') return say(lowText(lowsOf(mine, co.placeName), lang));
+    if (q.kind === 'out') {
+      return say(outText(Object.entries(mine).flatMap(([b, list]) => list.filter((l) => l.onHand <= 0 && live(l))
+        .map((l) => ({ name: l.name || l.barcode || l.key, place: Object.keys(mine).length > 1 ? co.placeName(b) : '' }))), lang));
+    }
+    if (q.kind === 'value') {
+      if (!(maySales || who.can('POS_MANAGE'))) return no();
+      const missing = new Set();
+      const places = Object.entries(mine).map(([b, list]) => ({
+        place: co.placeName(b),
+        sen: list.filter((l) => l.onHand > 0 && live(l)).reduce((n, l) => {
+          const cost = catalogue.get(l.barcode || l.key)?.costSen;
+          if (cost == null) { missing.add(l.key); return n; }
+          return n + Math.round((cost * l.onHand) / 1000);
+        }, 0),
+      }));
+      return say(valueText(places, missing.size, lang));
+    }
     if (q.kind === 'report') {
-      const [from, to] = dayRange(Date.now(), q.day === 'yesterday' ? 1 : 0);
       const summary = summarize(maySales ? await salesBetween(chat.workspaceId, from, to) : []);
-      return telegram(chatId, reportText({ company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang, showSales: maySales }));
+      return say(reportText({ company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang, showSales: maySales }));
     }
     const found = findProducts(products, q.query);
-    if (!found.length) return telegram(chatId, w.noMatch(q.query));
-    return telegram(chatId, stockText(found, mine, co.placeName, lang));
+    if (!found.length) return say(q.guess ? dontKnow(q.query, lang) : w.noMatch(q.query));
+    if (q.kind === 'price') return say(priceText(found, lang));
+    return say(stockText(found, mine, co.placeName, lang));
   }
 
   /** Points Telegram at this server and publishes the bot's name for the website. */
