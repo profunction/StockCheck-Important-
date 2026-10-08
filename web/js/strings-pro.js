@@ -13,8 +13,8 @@ const en = {
   profWrongPw: 'That password is not right.', profModeChanged: 'Till mode changed', profPickNew: 'Choose the new till mode',
   modeLocked: 'The till mode is set. To change it, an admin goes to Profile and enters their password.',
   modeLockFirst: 'Choose carefully: once set, only an admin can change it, on Profile, with their password.',
-  // JEXO Cloud dashboard
-  navCloud: 'JEXO Cloud', dashLead: 'Your business today, in one place. What shows here follows the products you have.',
+  // SuXin Cloud dashboard
+  navCloud: 'SuXin Cloud', dashLead: 'Your business today, in one place. What shows here follows the products you have.',
   dashToday: 'Today', dashSales: 'Sales today', dashReceipts: 'Receipts', dashAverage: 'Average bill', dashVoided: 'Voided',
   dashRecent: 'Latest receipts', dashNoSales: 'No sales yet today.', dashStock: 'Stock', dashItems: 'Items with stock',
   dashStockValue: 'Stock value (at cost)', dashLow: 'Low stock', dashOut: 'Out of stock', dashLowList: 'Low on stock',
@@ -77,8 +77,8 @@ const zh = {
   profWrongPw: '密码不对。', profModeChanged: '收银模式已更换', profPickNew: '选新的收银模式',
   modeLocked: '收银模式已经选定。要更换：管理员到「我的 Profile」输入密码才可以换。',
   modeLockFirst: '请想清楚再选：选了以后，只有管理员到「我的 Profile」输入密码才可以换。',
-  // JEXO Cloud dashboard
-  navCloud: 'JEXO Cloud 云后台', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
+  // SuXin Cloud dashboard
+  navCloud: 'SuXin Cloud 云后台', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
   dashToday: '今天', dashSales: '今天销售', dashReceipts: '收据', dashAverage: '平均每单', dashVoided: '已作废',
   dashRecent: '最近的收据', dashNoSales: '今天还没有销售。', dashStock: '库存', dashItems: '有库存的商品',
   dashStockValue: '库存价值（成本）', dashLow: '低库存', dashOut: '没货', dashLowList: '库存不足',
@@ -135,8 +135,8 @@ const ms = {
   profWrongPw: 'Kata laluan itu salah.', profModeChanged: 'Mod kaunter ditukar', profPickNew: 'Pilih mod kaunter baharu',
   modeLocked: 'Mod kaunter sudah ditetapkan. Untuk menukar, admin pergi ke Profil dan masukkan kata laluan.',
   modeLockFirst: 'Pilih dengan teliti: selepas ditetapkan, hanya admin boleh menukarnya di Profil dengan kata laluan.',
-  // JEXO Cloud dashboard
-  navCloud: 'JEXO Cloud', dashLead: 'Perniagaan anda hari ini, di satu tempat. Apa yang dipaparkan ikut produk yang anda ada.',
+  // SuXin Cloud dashboard
+  navCloud: 'SuXin Cloud', dashLead: 'Perniagaan anda hari ini, di satu tempat. Apa yang dipaparkan ikut produk yang anda ada.',
   dashToday: 'Hari ini', dashSales: 'Jualan hari ini', dashReceipts: 'Resit', dashAverage: 'Purata bil', dashVoided: 'Dibatalkan',
   dashRecent: 'Resit terkini', dashNoSales: 'Belum ada jualan hari ini.', dashStock: 'Stok', dashItems: 'Barang ada stok',
   dashStockValue: 'Nilai stok (kos)', dashLow: 'Stok rendah', dashOut: 'Habis stok', dashLowList: 'Stok tidak cukup',

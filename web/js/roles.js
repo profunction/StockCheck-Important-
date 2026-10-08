@@ -1,5 +1,5 @@
 /**
- * The built-in roles a new company starts with -- the same four the JEXO
+ * The built-in roles a new company starts with -- the same four the SuXin
  * Count app writes when a company is created there (BuiltInRoles.kt), so a
  * company made on the website and one made on a phone are set up alike.
  * roles.test.mjs reads the Kotlin files and fails if the two drift.

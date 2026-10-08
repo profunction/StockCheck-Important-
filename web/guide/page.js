@@ -10,10 +10,10 @@ import { ACCOUNT_GUIDE, APP_GUIDE, CLOUD_GUIDE, POS_GUIDE, WAREHOUSE_GUIDE } fro
 
 const TABS = {
   account: { guide: ACCOUNT_GUIDE, label: { zh: '账号和注册', en: 'Account & sign-up', ms: 'Akaun & daftar' } },
-  app: { guide: APP_GUIDE, label: { zh: 'JEXO Count（手机 + 网页）', en: 'JEXO Count (phone + web)', ms: 'JEXO Count (telefon + web)' } },
-  pos: { guide: POS_GUIDE, label: { zh: 'JEXO POS 收银', en: 'JEXO POS (till)', ms: 'JEXO POS (POS)' } },
-  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: 'JEXO Warehouse 仓库', en: 'JEXO Warehouse', ms: 'JEXO Warehouse (gudang)' } },
-  cloud: { guide: CLOUD_GUIDE, label: { zh: 'JEXO Cloud 老板总览', en: 'JEXO Cloud', ms: 'JEXO Cloud' } },
+  app: { guide: APP_GUIDE, label: { zh: 'SuXin Count（手机 + 网页）', en: 'SuXin Count (phone + web)', ms: 'SuXin Count (telefon + web)' } },
+  pos: { guide: POS_GUIDE, label: { zh: 'SuXin POS 收银', en: 'SuXin POS (till)', ms: 'SuXin POS (POS)' } },
+  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: 'SuXin Warehouse 仓库', en: 'SuXin Warehouse', ms: 'SuXin Warehouse (gudang)' } },
+  cloud: { guide: CLOUD_GUIDE, label: { zh: 'SuXin Cloud 老板总览', en: 'SuXin Cloud', ms: 'SuXin Cloud' } },
 };
 const TITLE = { zh: '使用教程', en: 'How to use', ms: 'Cara guna' };
 

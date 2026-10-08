@@ -1,5 +1,5 @@
 /**
- * Launcher icons for the website's Android apps (webapps/): the J on each
+ * Launcher icons for the website's Android apps (webapps/): the S on each
  * app's colour, with a badge saying which app it is.
  *
  *   node tools/brand/webapp-icons.mjs
@@ -27,7 +27,7 @@ const SIZES = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 };
 
 const icon = (bg, glyph) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 <rect x="2" y="2" width="60" height="60" rx="14" fill="${bg}"/>
-<g transform="translate(-6 -1)"><path d="M44 18V36a12 12 0 0 1-24 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="36" r="5" fill="#2DD4BF"/><circle cx="44" cy="18" r="5" fill="#2DD4BF"/></g>
+<g transform="translate(-6 -1)"><path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="44" r="5" fill="#2DD4BF"/><circle cx="42" cy="20" r="5" fill="#2DD4BF"/></g>
 <circle cx="48" cy="48" r="13" fill="#fff"/>
 <g transform="translate(39.5 39.5) scale(.71)" fill="none" stroke="${bg}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${GLYPH[glyph]}</g></svg>`;
 

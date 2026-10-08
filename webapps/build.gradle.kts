@@ -1,6 +1,6 @@
 /*
- * The website's apps as Android apps: JEXO (the app centre), JEXO POS,
- * JEXO Warehouse and JEXO Cloud. JEXO Count is the native app in :app.
+ * The website's apps as Android apps: SuXin (the app centre), SuXin POS,
+ * SuXin Warehouse and SuXin Cloud. SuXin Count is the native app in :app.
  *
  * Each is a Trusted Web Activity: the phone's Chrome shows the website full
  * screen, with no address bar, as its own app with its own icon. Everything
@@ -26,7 +26,7 @@ plugins {
 val site = "https://stockcheck-fb58e.web.app"
 
 android {
-    namespace = "com.jexo.webapps"
+    namespace = "com.suxin.webapps"
     compileSdk = 36
 
     defaultConfig {
@@ -40,10 +40,10 @@ android {
     productFlavors {
         // id, package, name on the phone, where it opens
         listOf(
-            listOf("hub", "com.jexo.apps", "JEXO", "$site/app/"),
-            listOf("pos", "com.jexo.pos", "JEXO POS", "$site/pos/"),
-            listOf("warehouse", "com.jexo.warehouse", "JEXO Warehouse", "$site/warehouse/"),
-            listOf("cloud", "com.jexo.cloud", "JEXO Cloud", "$site/pos/#/cloud"),
+            listOf("hub", "com.suxin.apps", "SuXin", "$site/app/"),
+            listOf("pos", "com.suxin.pos", "SuXin POS", "$site/pos/"),
+            listOf("warehouse", "com.suxin.warehouse", "SuXin Warehouse", "$site/warehouse/"),
+            listOf("cloud", "com.suxin.cloud", "SuXin Cloud", "$site/pos/#/cloud"),
         ).forEach { (id, pkg, label, url) ->
             create(id) {
                 dimension = "app"
@@ -55,6 +55,7 @@ android {
     }
 
     signingConfigs {
+        // "jexo": the names the key was made with (before the brand was SuXin).
         create("jexo") {
             storeFile = file("jexo-webapps.keystore")
             storePassword = "jexo-webapps"

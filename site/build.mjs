@@ -36,7 +36,7 @@ const SIGNIN = '/app/';
 const SHORT = { zh: '中文', en: 'EN', ms: 'BM' };
 
 /** The header logo: the connected-J mark and the name, drawn inline. */
-const LOGO = `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0B1B2B"/><path d="M44 18V36a12 12 0 0 1-24 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="36" r="6" fill="#2DD4BF"/><circle cx="44" cy="18" r="6" fill="#2DD4BF"/></svg><span>${BRAND.name}</span>`;
+const LOGO = `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0B1B2B"/><path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="44" r="6" fill="#2DD4BF"/><circle cx="42" cy="20" r="6" fill="#2DD4BF"/></svg><span>${BRAND.name}</span>`;
 
 /** Line icons for the kinds of business (24-unit, stroke = currentColor). */
 const ICONS = {
@@ -365,7 +365,7 @@ function llms() {
 
 > ${en.description}
 
-${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **JEXO Count**, the Android app for counting stock by scanning barcodes; **JEXO POS**, the web cash register for the counter; **JEXO Warehouse** for receiving, transfers and purchase orders; and **JEXO Cloud**, the owner's back office. JEXO was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
+${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **SuXin Count**, the Android app for counting stock by scanning barcodes; **SuXin POS**, the web cash register for the counter; **SuXin Warehouse** for receiving, transfers and purchase orders; and **SuXin Cloud**, the owner's back office. SuXin was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
 
 中文：${zh.description}
 
@@ -376,7 +376,7 @@ ${PAID.map(plan).join('\n')}
 ${['APP_ONLY', 'POS_ONLY', 'API_ONLY'].map((id) => `- ${PLANS[id].label} (standalone): ${rm(PLANS[id].monthlySen)} per month or ${rm(PLANS[id].yearlySen)} per year; ${en.standalone[id]}.`).join('\n')}
 - Lifetime licences are limited to 50 in total.
 - Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes ${LIFETIME_SUPPORT_MONTHS} months of updates and support.
-- Platforms: JEXO Count on Android; JEXO POS, JEXO Warehouse and JEXO Cloud in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
+- Platforms: SuXin Count on Android; SuXin POS, SuXin Warehouse and SuXin Cloud in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
 - Works offline: sales are kept on the device and sent when the connection returns.
 
 ## How stock is calculated
@@ -388,7 +388,7 @@ ${en.features.map(([h, p]) => `- **${h}**: ${p}`).join('\n')}
 ## The four products (one shared stock)
 ${Object.values(PAGES.en.products).map((x) => `- **${x.name}** (${x.kind}): ${x.line} ${x.points.join('; ')}.`).join('\n')}
 
-Chinese names: 盘点通 (JEXO Count), 收银通 (JEXO POS), 仓管通 (JEXO Warehouse), 云后台 (JEXO Cloud).
+Chinese names: 盘点通 (SuXin Count), 收银通 (SuXin POS), 仓管通 (SuXin Warehouse), 云后台 (SuXin Cloud).
 
 ## By kind of business
 ${INDUSTRY_IDS.map((id) => { const x = PAGES.en.industries[id]; return `- [${x.name}](${SITE}/en/${id}/): ${x.lead}${x.soon ? ` (${x.soon})` : ''}`; }).join('\n')}
@@ -406,7 +406,7 @@ ${en.faq.map(([q, a]) => `### ${q}\n${a}`).join('\n\n')}
 - Website (English): ${SITE}/en/
 - Website (Bahasa Melayu): ${SITE}/ms/
 - Sign in or sign up (all apps): ${SITE}/app/
-- JEXO Count on the web: ${SITE}/count/
+- SuXin Count on the web: ${SITE}/count/
 - POS sign-in: ${POS_URL}
 - Android app download: ${APP_DOWNLOAD}
 - Warehouse system (web, works on phones): ${WAREHOUSE_URL}

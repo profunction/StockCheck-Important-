@@ -1,6 +1,6 @@
 /**
- * The JEXO apps a company can open -- JEXO Count, JEXO POS, JEXO Cloud and
- * JEXO Warehouse -- for the app centre (/app/) and the switcher every app
+ * The SuXin apps a company can open -- SuXin Count, SuXin POS, SuXin Cloud and
+ * SuXin Warehouse -- for the app centre (/app/) and the switcher every app
  * carries in its sidebar. All four share one sign-in, one company and one
  * stock, so switching is just opening another page.
  *
@@ -11,7 +11,7 @@
  * database rules hold the same line; this only decides what is shown.
  *
  * Also the sign-in screen and start-up shared by the newer apps (the app
- * centre and JEXO Count on the web).
+ * centre and SuXin Count on the web).
  */
 import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from './fb.js';
 import { h, mount } from './dom.js';
@@ -22,7 +22,7 @@ import { checkForm, createCompany, joinCompany, resetPassword, signupError } fro
 
 addStrings({
   en: {
-    appCentre: 'JEXO apps', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
+    appCentre: 'SuXin apps', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
     appLocked: 'Not in your plan', appBuy: 'See plans', appDenied: 'Ask your admin for access',
     appCentreLead: 'One sign-in for everything. Open what your plan includes; the rest can be added any time.',
     appPlan: 'Your plan', appNoPlan: 'Trial / no plan yet', appAddMore: 'Add more',
@@ -43,7 +43,7 @@ addStrings({
     suErrTaken: 'This email already has an account. Sign in, or use Forgot password.',
   },
   zh: {
-    appCentre: 'JEXO 应用', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
+    appCentre: 'SuXin 应用', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
     appLocked: '你的配套没有包括', appBuy: '看配套', appDenied: '没有权限，请问管理员',
     appCentreLead: '一个账号用全部。配套包括的就能打开；没有的，随时可以增加。',
     appPlan: '你的配套', appNoPlan: '试用 / 还没有配套', appAddMore: '增加功能',
@@ -64,7 +64,7 @@ addStrings({
     suErrTaken: '这个 email 已经有账号了。请直接登录，或按「忘记密码」。',
   },
   ms: {
-    appCentre: 'Aplikasi JEXO', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
+    appCentre: 'Aplikasi SuXin', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
     appLocked: 'Tiada dalam pelan anda', appBuy: 'Lihat pelan', appDenied: 'Minta akses daripada admin',
     appCentreLead: 'Satu log masuk untuk semua. Buka apa yang ada dalam pelan; yang lain boleh ditambah bila-bila masa.',
     appPlan: 'Pelan anda', appNoPlan: 'Percubaan / belum ada pelan', appAddMore: 'Tambah fungsi',
@@ -91,13 +91,13 @@ addStrings({
  * perms: any one of these lets someone in (an admin always may).
  */
 export const APPS = [
-  { id: 'count', module: 'count', name: 'JEXO Count', href: '/count/', icon: 'barcode', color: '#0F4C4A',
+  { id: 'count', module: 'count', name: 'SuXin Count', href: '/count/', icon: 'barcode', color: '#0F4C4A',
     perms: ['CREATE_STOCK_CHECK', 'SCAN_BARCODE', 'VIEW_OWN_HISTORY', 'VIEW_ALL_HISTORY'] },
-  { id: 'pos', module: 'pos', name: 'JEXO POS', href: '/pos/#/pos', icon: 'cart', color: '#0B1B2B',
+  { id: 'pos', module: 'pos', name: 'SuXin POS', href: '/pos/#/pos', icon: 'cart', color: '#0B1B2B',
     perms: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'] },
-  { id: 'cloud', module: null, name: 'JEXO Cloud', href: '/pos/#/cloud', icon: 'chart', color: '#0f766e',
+  { id: 'cloud', module: null, name: 'SuXin Cloud', href: '/pos/#/cloud', icon: 'chart', color: '#0f766e',
     perms: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'] },
-  { id: 'warehouse', module: 'warehouse', name: 'JEXO Warehouse', href: '/warehouse/', icon: 'box', color: '#12385A',
+  { id: 'warehouse', module: 'warehouse', name: 'SuXin Warehouse', href: '/warehouse/', icon: 'box', color: '#12385A',
     perms: ['RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE', 'POS_MANAGE', 'VIEW_ALL_HISTORY'] },
 ];
 
@@ -112,7 +112,7 @@ export function appState(who, app) {
 export function appSwitcher(currentId) {
   const current = APPS.find((a) => a.id === currentId);
   return h('details', { class: 'appswitch' },
-    h('summary', {}, icon('apps', 17), h('span', { class: 'grow' }, t('appSwitch')), current ? h('b', {}, current.name.replace('JEXO ', '')) : null),
+    h('summary', {}, icon('apps', 17), h('span', { class: 'grow' }, t('appSwitch')), current ? h('b', {}, current.name.replace('SuXin ', '')) : null),
     h('div', { class: 'appswitch-list' },
       APPS.map((a) => {
         const state = appState(session, a);

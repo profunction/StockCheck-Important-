@@ -503,7 +503,7 @@ app.get('/buy', async (req, res) => {
   res.type('html').send(`<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JEXO Count — licence</title>
+<title>SuXin Count — licence</title>
 <style>
  :root { color-scheme: light dark; }
  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.6;
@@ -525,7 +525,7 @@ app.get('/buy', async (req, res) => {
  .warn { background: #a6271d22; border: 1px solid #a6271d66; border-radius: 6px; padding: 12px; }
  #status { margin-top: 16px; min-height: 1.4em; }
 </style></head><body>
-<h1>JEXO Count</h1>
+<h1>SuXin Count</h1>
 <p>Company code: <b class="code">${esc(company || 'not given')}</b></p>
 ${known ? '' : '<p class="warn">That company code was not recognised. Check it on the Profile tab in the app before paying.</p>'}
 ${rows.join('')}

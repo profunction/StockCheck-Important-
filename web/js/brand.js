@@ -3,13 +3,13 @@
  * in the language files names the products directly.
  */
 export const BRAND = {
-  name: 'JEXO',
+  name: 'SuXin',
   tagline: 'One Business. Connected.',
   products: {
-    count: 'JEXO Count',
-    pos: 'JEXO POS',
-    warehouse: 'JEXO Warehouse',
-    cloud: 'JEXO Cloud',
+    count: 'SuXin Count',
+    pos: 'SuXin POS',
+    warehouse: 'SuXin Warehouse',
+    cloud: 'SuXin Cloud',
   },
   colors: { ink: '#0B1B2B', pos: '#0B1B2B', warehouse: '#12385A', count: '#0F4C4A', node: '#2DD4BF', nodeDeep: '#14B8A6' },
 };

@@ -1,5 +1,5 @@
 /**
- * Makes the POS, the warehouse system, JEXO Count and the app centre open
+ * Makes the POS, the warehouse system, SuXin Count and the app centre open
  * with the internet down.
  *
  * The website's own files: network first, so a new version is used as soon

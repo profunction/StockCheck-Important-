@@ -23,7 +23,7 @@ import androidx.core.view.WindowCompat
  * often one-handed, sometimes under poor light. Dynamic colour is not used so
  * that the status colours below always mean the same thing on every device.
  *
- * JEXO Count: the same teal and ink navy as JEXO POS and JEXO Cloud, so
+ * SuXin Count: the same teal and ink navy as SuXin POS and SuXin Cloud, so
  * the phone and the till look like one product. Every role is set,
  * including the surface containers cards and the bottom bar are drawn on --
  * left out, Material fills them with its own purple-grey. Amber (tertiary)
@@ -136,7 +136,7 @@ private val AppTypography = Typography(
     labelSmall = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium),
 )
 
-/** Corners matching JEXO POS and the website: crisp, not bubbly. */
+/** Corners matching SuXin POS and the website: crisp, not bubbly. */
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(6.dp),
     small = RoundedCornerShape(8.dp),

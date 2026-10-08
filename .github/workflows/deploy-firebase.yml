@@ -122,16 +122,16 @@ jobs:
         run: |
           mkdir -p web/download
           if gh release download build-main --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir /tmp/apk --clobber; then
-            # JEXO Count (the native app) keeps its old address too.
-            for f in /tmp/apk/StockCheck-*.apk; do cp "$f" web/download/JEXO-Count.apk; mv "$f" web/download/StockCheck.apk; done
-            # JEXO, JEXO POS, JEXO Warehouse, JEXO Cloud.
-            mv /tmp/apk/JEXO*.apk web/download/ 2>/dev/null || echo "::warning::No website-app APKs in the release yet."
+            # SuXin Count (the native app) keeps its old address too.
+            for f in /tmp/apk/StockCheck-*.apk; do cp "$f" web/download/SuXin-Count.apk; mv "$f" web/download/StockCheck.apk; done
+            # SuXin, SuXin POS, SuXin Warehouse, SuXin Cloud.
+            mv /tmp/apk/SuXin*.apk web/download/ 2>/dev/null || echo "::warning::No website-app APKs in the release yet."
             ls -l web/download
           else
             echo "::warning::No APK release found; the download link will not work until Build APK has run."
           fi
 
-      # Chrome shows JEXO, JEXO POS, JEXO Warehouse and JEXO Cloud without an
+      # Chrome shows SuXin, SuXin POS, SuXin Warehouse and SuXin Cloud without an
       # address bar only if the website names their signing key here. Worked
       # out from the same secret the APKs are signed with; PLAY_SHA256 (a
       # repository variable) adds Google Play's key once they are on Play.
@@ -152,7 +152,7 @@ jobs:
           mkdir -p web/.well-known
           FPS="$FPS" node -e '
             const fps = process.env.FPS.split(",").map((s) => s.trim()).filter(Boolean);
-            const apps = ["com.jexo.apps", "com.jexo.pos", "com.jexo.warehouse", "com.jexo.cloud"];
+            const apps = ["com.suxin.apps", "com.suxin.pos", "com.suxin.warehouse", "com.suxin.cloud"];
             console.log(JSON.stringify(apps.map((p) => ({ relation: ["delegate_permission/common.handle_all_urls"],
               target: { namespace: "android_app", package_name: p, sha256_cert_fingerprints: fps } })), null, 2));
           ' > web/.well-known/assetlinks.json

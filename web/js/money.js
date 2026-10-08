@@ -3,7 +3,7 @@
  * arithmetic is tested on its own (money.test.mjs).
  *
  * Money is whole sen and quantities whole thousandths, as everywhere else in
- * JEXO Count: RM 15.90 is 1590, 1.25 kg is 1250. Floating-point ringgit
+ * SuXin Count: RM 15.90 is 1590, 1.25 kg is 1250. Floating-point ringgit
  * would put a sen wrong on one receipt in a few hundred, and a till that is a
  * sen out is a till nobody trusts.
  */

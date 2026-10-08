@@ -1,6 +1,6 @@
-# Modules: how JEXO grows without getting complicated
+# Modules: how SuXin grows without getting complicated
 
-JEXO — *One Business. Connected.* (formerly Pos Stock Check / Stock Check).
+SuXin — *One Business. Connected.* (formerly Pos Stock Check / Stock Check).
 Only names on screen changed: the Android package `com.stockcheck.app`,
 Firestore paths, licence keys, URLs and saved settings are unchanged.
 
@@ -9,23 +9,23 @@ Underneath, every part is a **module** in one registry.
 
 | Customer sees | Module id | Licence key | Status |
 |---|---|---|---|
-| JEXO Count 盘点通 (Android) | `count` | `app` | live |
-| JEXO POS 收银通 (web) | `pos` | `pos` | live |
-| JEXO Warehouse 仓管通 | `warehouse` | `warehouse` | live |
-| JEXO Procurement (purchase orders, suppliers, 网购进货 online purchases) | `procurement` (needs `warehouse`) | `warehouse` | live |
-| JEXO Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
+| SuXin Count 盘点通 (Android) | `count` | `app` | live |
+| SuXin POS 收银通 (web) | `pos` | `pos` | live |
+| SuXin Warehouse 仓管通 | `warehouse` | `warehouse` | live |
+| SuXin Procurement (purchase orders, suppliers, 网购进货 online purchases) | `procurement` (needs `warehouse`) | `warehouse` | live |
+| SuXin Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
 | Open API | `api` | `api` | live |
-| JEXO Accounting | `accounting` | `accounting` | planned |
-| JEXO Logistics 配送 | `logistics` | `logistics` | planned |
-| JEXO B2B | `b2b` | `b2b` | planned |
+| SuXin Accounting | `accounting` | `accounting` | planned |
+| SuXin Logistics 配送 | `logistics` | `logistics` | planned |
+| SuXin B2B | `b2b` | `b2b` | planned |
 
 Each entry also lists `menuItems`, `routes` and `apiScopes`. Planned
 modules are never on, whatever a licence says.
 
-JEXO Cloud 云后台 is not a module: it is the signed-in website itself. Its
+SuXin Cloud 云后台 is not a module: it is the signed-in website itself. Its
 dashboard (`web/js/dashboard.js`, menu `#/cloud`) shows today's sales only
 with the POS and `POS_REPORTS`, stock with Count or POS, and orders to
-receive / transfers on the way only with JEXO Warehouse.
+receive / transfers on the way only with SuXin Warehouse.
 
 ## Where a company's modules come from
 
@@ -91,10 +91,10 @@ Receive). Part of the procurement module: `may: 'procurement.purchase'`.
 
 ## Apps, sign-up and locks
 
-- **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then JEXO Count,
+- **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then SuXin Count,
   POS, Cloud and Warehouse. An app the plan does not include is shown locked with where to add
   it; every app's sidebar carries the same switcher.
-- **JEXO Count on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
+- **SuXin Count on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
   the Android app (reference numbers from `meta/counters`, increments for edits), so a count can
   be started on one and finished on the other.
 - **Sign-up** (`web/js/signup.js`): a new company (founder is admin: code claimed, built-in roles
@@ -112,7 +112,7 @@ Receive). Part of the procurement module: `may: 'procurement.purchase'`.
 
 Every app and every job in it has a guide section with a short video
 (`web/js/guides.js`, shown on each app's "How to use" page and on `/guide/`,
-which has tabs for the account, JEXO Count, POS, Warehouse and Cloud).
+which has tabs for the account, SuXin Count, POS, Warehouse and Cloud).
 
 - The videos are filmed by `tools/videos/record.mjs` in the pretend shop of
   `world.mjs`: `node tools/videos/record.mjs` films them all, or name some.

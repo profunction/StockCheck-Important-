@@ -1,8 +1,8 @@
-# JEXO — One Business. Connected.
+# SuXin — One Business. Connected.
 
 > Count stock by scanning with your phone, sell at the counter, and keep stock levels in step automatically. SST, DuitNow QR, 5-sen cash rounding, multiple branches, loyalty points, NFC/RFID and Loyverse import. 14-day free trial, from RM48 a month.
 
-JEXO is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **JEXO Count**, the Android app for counting stock by scanning barcodes; **JEXO POS**, the web cash register for the counter; **JEXO Warehouse** for receiving, transfers and purchase orders; and **JEXO Cloud**, the owner's back office. JEXO was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
+SuXin is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **SuXin Count**, the Android app for counting stock by scanning barcodes; **SuXin POS**, the web cash register for the counter; **SuXin Warehouse** for receiving, transfers and purchase orders; and **SuXin Cloud**, the owner's back office. SuXin was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
 
 中文：用手机扫条码盘点，电脑收银，库存自动同步。支持 SST、DuitNow QR、现金四舍五入、多分店、会员积分、NFC/RFID 和 Loyverse 导入。14 天免费试用，每月 RM48 起。
 
@@ -12,12 +12,12 @@ JEXO is a business system for Malaysia: grocery shops, mini markets, supermarket
 - Starter: RM48 per month, RM480 per year, or RM1,680 lifetime; 5 users.
 - Business: RM118 per month, RM1,180 per year, or RM4,180 lifetime; 20 users.
 - Unlimited: RM228 per month, RM2,280 per year, or RM7,980 lifetime; unlimited users.
-- JEXO Count (standalone): RM28 per month or RM280 per year; The stock-take app only (3 users, Loyverse write-back).
+- SuXin Count (standalone): RM28 per month or RM280 per year; The stock-take app only (3 users, Loyverse write-back).
 - POS (standalone): RM38 per month or RM380 per year; The POS only (2 tills, SST, reports).
 - API (standalone): RM68 per month or RM680 per year; The API only (online shop, accounting).
 - Lifetime licences are limited to 50 in total.
 - Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes 24 months of updates and support.
-- Platforms: JEXO Count on Android; JEXO POS, JEXO Warehouse and JEXO Cloud in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
+- Platforms: SuXin Count on Android; SuXin POS, SuXin Warehouse and SuXin Cloud in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
 - Works offline: sales are kept on the device and sent when the connection returns.
 
 ## How stock is calculated
@@ -39,12 +39,12 @@ On hand = the last finished count + goods received since − sales and goods out
 - **Open API**: Online shops and accounting software read and update items, stock, receipts and customers with an access token.
 
 ## The four products (one shared stock)
-- **JEXO Count** (Android app and web): Count your stock quickly with a phone. Phone barcode scanning; Say the quantity; Counts offline; Shows what is short; Photos; Loyverse sync.
-- **JEXO POS** (Web, installable): Faster, simpler checkout at the counter. Retail: barcode, SST, cash rounding, receipts, offline; Restaurant: dine-in, modifiers, kitchen tickets, service charge.
-- **JEXO Warehouse** (Web and phone): Warehouse stock, goods in and out, transfers to shops. Purchase orders and approval; Receiving by scan; Transfers in transit; Adjustments; Reorder suggestions.
-- **JEXO Cloud** (Web): For the owner: the business at a glance, staff, and adding more. Sales and shift reports; Staff and permissions; Items, prices, taxes; Monthly LHDN e-invoice; A dashboard that fits your business.
+- **SuXin Count** (Android app and web): Count your stock quickly with a phone. Phone barcode scanning; Say the quantity; Counts offline; Shows what is short; Photos; Loyverse sync.
+- **SuXin POS** (Web, installable): Faster, simpler checkout at the counter. Retail: barcode, SST, cash rounding, receipts, offline; Restaurant: dine-in, modifiers, kitchen tickets, service charge.
+- **SuXin Warehouse** (Web and phone): Warehouse stock, goods in and out, transfers to shops. Purchase orders and approval; Receiving by scan; Transfers in transit; Adjustments; Reorder suggestions.
+- **SuXin Cloud** (Web): For the owner: the business at a glance, staff, and adding more. Sales and shift reports; Staff and permissions; Items, prices, taxes; Monthly LHDN e-invoice; A dashboard that fits your business.
 
-Chinese names: 盘点通 (JEXO Count), 收银通 (JEXO POS), 仓管通 (JEXO Warehouse), 云后台 (JEXO Cloud).
+Chinese names: 盘点通 (SuXin Count), 收银通 (SuXin POS), 仓管通 (SuXin Warehouse), 云后台 (SuXin Cloud).
 
 ## By kind of business
 - [Retail / Mini market](https://stockcheck-fb58e.web.app/en/retail/): Scan and sell, and every sale comes off the stock. Count with your phone and see what is missing at once.
@@ -57,7 +57,7 @@ Chinese names: 盘点通 (JEXO Count), 收银通 (JEXO POS), 仓管通 (JEXO War
 - Records DuitNow QR, card, e-wallet, cash and bank transfer payments (money goes through the shop's own terminals).
 
 ## Frequently asked questions
-### Does JEXO POS handle SST?
+### Does SuXin POS handle SST?
 Yes. Set one or more taxes (for example SST at 6% and 8%) and choose which each item carries; items with no tax, such as rice or sugar, can be set tax-free. Prices can include tax or have it added, and receipts and the tax report show each rate separately.
 
 ### Can I take DuitNow QR and card payments?
@@ -101,7 +101,7 @@ Yes. Every part has step-by-step guides with videos on the website's Guide page,
 - Website (English): https://stockcheck-fb58e.web.app/en/
 - Website (Bahasa Melayu): https://stockcheck-fb58e.web.app/ms/
 - Sign in or sign up (all apps): https://stockcheck-fb58e.web.app/app/
-- JEXO Count on the web: https://stockcheck-fb58e.web.app/count/
+- SuXin Count on the web: https://stockcheck-fb58e.web.app/count/
 - POS sign-in: https://stockcheck-fb58e.web.app/pos/
 - Android app download: https://stockcheck-fb58e.web.app/download/StockCheck.apk
 - Warehouse system (web, works on phones): https://stockcheck-fb58e.web.app/warehouse/

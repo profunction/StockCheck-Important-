@@ -1,4 +1,4 @@
-/** JEXO Count on the web: its own words, in the site's three languages. */
+/** SuXin Count on the web: its own words, in the site's three languages. */
 const en = {
   cTitle: 'Stock counts', cNew: 'New count', cZone: 'Area (optional, e.g. Rack 3, Cold room)', cBranch: 'Branch', cNote: 'Note (optional)',
   cStart: 'Start counting', cMine: 'My counts', cAll: 'All counts', cNone: 'No counts yet. Start the first one.',
@@ -9,10 +9,10 @@ const en = {
   cUnknown: 'Not in the product list', cNameIt: 'Name it', cNameTitle: 'Name this product', cSetQty: 'Quantity counted',
   cRemoveLine: 'Remove this line', cRemoveQ: 'Remove this line from the count?', cVoice: 'Say the quantity',
   cHeard: 'Heard', cNotHeard: 'Did not catch a number. Try again.', cReadOnly: 'This count is finished, so it is read only.',
-  cNoLines: 'Nothing counted yet. Scan the first item.', cDiff: 'See the differences in JEXO Warehouse',
-  cPlanNo: 'Your plan does not include JEXO Count. Add it from the app centre.', cNoCreate: 'You cannot start counts. Ask your admin for access.',
+  cNoLines: 'Nothing counted yet. Scan the first item.', cDiff: 'See the differences in SuXin Warehouse',
+  cPlanNo: 'Your plan does not include SuXin Count. Add it from the app centre.', cNoCreate: 'You cannot start counts. Ask your admin for access.',
   cTempRef: 'No internet: a temporary reference number was used.', cOpen: 'Open', cAdded: 'Added', cLast: 'Last scanned',
-  cAppHint: 'The same counts as the JEXO Count phone app: start here, finish on a phone, or the other way round.',
+  cAppHint: 'The same counts as the SuXin Count phone app: start here, finish on a phone, or the other way round.',
 };
 const zh = {
   cTitle: '盘点', cNew: '新盘点', cZone: '区域（可不填，例如 第 3 排、冷藏室）', cBranch: '分店', cNote: '备注（可不填）',
@@ -24,10 +24,10 @@ const zh = {
   cUnknown: '商品清单里没有', cNameIt: '取名字', cNameTitle: '给这个商品取名字', cSetQty: '点到的数量',
   cRemoveLine: '删除这一行', cRemoveQ: '从这次盘点删除这一行？', cVoice: '说出数量',
   cHeard: '听到', cNotHeard: '没听到数字，请再说一次。', cReadOnly: '这次盘点已完成，只能看。',
-  cNoLines: '还没有点任何东西。扫第一样商品吧。', cDiff: '到 JEXO Warehouse 看差异',
-  cPlanNo: '你的配套没有包括 JEXO Count。可以在应用中心增加。', cNoCreate: '你不能开始盘点，请向管理员要权限。',
+  cNoLines: '还没有点任何东西。扫第一样商品吧。', cDiff: '到 SuXin Warehouse 看差异',
+  cPlanNo: '你的配套没有包括 SuXin Count。可以在应用中心增加。', cNoCreate: '你不能开始盘点，请向管理员要权限。',
   cTempRef: '没有网络：先用一个临时单号。', cOpen: '打开', cAdded: '已加', cLast: '刚扫到',
-  cAppHint: '跟 JEXO Count 手机 app 是同一份盘点：可以在这里开始、在手机完成，反过来也可以。',
+  cAppHint: '跟 SuXin Count 手机 app 是同一份盘点：可以在这里开始、在手机完成，反过来也可以。',
 };
 const ms = {
   cTitle: 'Kiraan stok', cNew: 'Kiraan baharu', cZone: 'Kawasan (pilihan, cth. Rak 3, Bilik sejuk)', cBranch: 'Cawangan', cNote: 'Nota (pilihan)',
@@ -39,9 +39,9 @@ const ms = {
   cUnknown: 'Tiada dalam senarai barang', cNameIt: 'Beri nama', cNameTitle: 'Namakan barang ini', cSetQty: 'Kuantiti dikira',
   cRemoveLine: 'Buang baris ini', cRemoveQ: 'Buang baris ini daripada kiraan?', cVoice: 'Sebut kuantiti',
   cHeard: 'Didengar', cNotHeard: 'Tiada nombor didengar. Cuba lagi.', cReadOnly: 'Kiraan ini sudah selesai, jadi hanya boleh dibaca.',
-  cNoLines: 'Belum ada yang dikira. Imbas barang pertama.', cDiff: 'Lihat beza dalam JEXO Warehouse',
-  cPlanNo: 'Pelan anda tidak termasuk JEXO Count. Tambah dari pusat aplikasi.', cNoCreate: 'Anda tidak boleh mula kiraan. Minta akses daripada admin.',
+  cNoLines: 'Belum ada yang dikira. Imbas barang pertama.', cDiff: 'Lihat beza dalam SuXin Warehouse',
+  cPlanNo: 'Pelan anda tidak termasuk SuXin Count. Tambah dari pusat aplikasi.', cNoCreate: 'Anda tidak boleh mula kiraan. Minta akses daripada admin.',
   cTempRef: 'Tiada internet: nombor rujukan sementara digunakan.', cOpen: 'Buka', cAdded: 'Ditambah', cLast: 'Terakhir diimbas',
-  cAppHint: 'Kiraan yang sama dengan aplikasi telefon JEXO Count: mula di sini, selesai di telefon, atau sebaliknya.',
+  cAppHint: 'Kiraan yang sama dengan aplikasi telefon SuXin Count: mula di sini, selesai di telefon, atau sebaliknya.',
 };
 export const STRINGS = { en, zh, ms };

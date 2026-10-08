@@ -1,6 +1,6 @@
 /**
- * The JEXO app centre (/app/): sign in once, then choose JEXO Count, JEXO
- * POS, JEXO Cloud or JEXO Warehouse. What the plan includes opens; the rest
+ * The SuXin app centre (/app/): sign in once, then choose SuXin Count, SuXin
+ * POS, SuXin Cloud or SuXin Warehouse. What the plan includes opens; the rest
  * is shown locked with where to add it (apps.js decides which is which).
  */
 import { h, mount } from '../js/dom.js';
@@ -19,7 +19,7 @@ function render() {
   const plan = session.licence ? PLANS[session.licence.plan]?.label || session.licence.plan : '';
   mount(app, h('div', { class: 'hub' },
     h('header', { class: 'hub-top' },
-      h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 34, height: 34 }), 'JEXO'),
+      h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 34, height: 34 }), 'SuXin'),
       h('span', { class: 'grow' }),
       h('a', { class: 'btn ghost', href: '/guide/#account', 'data-act': 'guide' }, icon('check', 17), t('posGuide')),
       langPicker(),
@@ -50,7 +50,7 @@ function render() {
 }
 
 startApp(app, {
-  name: 'JEXO', logo: '/icons/icon-192.png', tagline: 'One Business. Connected.',
+  name: 'SuXin', logo: '/icons/icon-192.png', tagline: 'One Business. Connected.',
   features: APPS.map((a) => [a.icon, `${a.name} — ${t(`app_${a.id}`)}`]),
-  foot: 'JEXO · Malaysia',
+  foot: 'SuXin · Malaysia',
 }, render);

@@ -42,11 +42,11 @@ jobs:
       # debug key), so each new APK installs over the last one. Without the
       # secret, the runner's own fresh debug key: a new build then needs the
       # old app removed first.
-      - name: Use the fixed key for JEXO Count
+      - name: Use the fixed key for SuXin Count
         env:
           WEBAPPS_KEYSTORE: ${{ secrets.WEBAPPS_KEYSTORE }}
         run: |
-          if [ -z "$WEBAPPS_KEYSTORE" ]; then echo "::warning::No WEBAPPS_KEYSTORE secret: JEXO Count is signed with a one-off key."; exit 0; fi
+          if [ -z "$WEBAPPS_KEYSTORE" ]; then echo "::warning::No WEBAPPS_KEYSTORE secret: SuXin Count is signed with a one-off key."; exit 0; fi
           mkdir -p ~/.android
           printf '%s' "$WEBAPPS_KEYSTORE" | base64 -d > "$RUNNER_TEMP/k.p12"
           rm -f ~/.android/debug.keystore
@@ -62,7 +62,7 @@ jobs:
           mv app/build/outputs/apk/debug/app-debug.apk \
              "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}"
 
-      # JEXO, JEXO POS, JEXO Warehouse and JEXO Cloud: the website's apps as
+      # SuXin, SuXin POS, SuXin Warehouse and SuXin Cloud: the website's apps as
       # Android apps (webapps/), signed with the key in the WEBAPPS_KEYSTORE
       # secret so an installed copy takes the next one as an update.
       - name: Build the website apps
@@ -75,12 +75,12 @@ jobs:
           else
             echo "::warning::No WEBAPPS_KEYSTORE secret: these APKs get a one-off key, open with the address bar showing, and will not update over each other."
             keytool -genkeypair -keystore "$KS" -storetype PKCS12 -alias jexo -keyalg RSA -keysize 2048 -validity 12000 \
-              -storepass jexo-webapps -keypass jexo-webapps -dname "CN=JEXO Apps (one-off), O=JEXO, C=MY"
+              -storepass jexo-webapps -keypass jexo-webapps -dname "CN=SuXin Apps (one-off), O=SuXin, C=MY"
           fi
           ./gradlew :webapps:assembleRelease --stacktrace || { rm -f "$KS"; exit 1; }
           rm -f "$KS"
           mkdir -p webapps-out
-          for f in hub:JEXO pos:JEXO-POS warehouse:JEXO-Warehouse cloud:JEXO-Cloud; do
+          for f in hub:SuXin pos:SuXin-POS warehouse:SuXin-Warehouse cloud:SuXin-Cloud; do
             cp "webapps/build/outputs/apk/${f%%:*}/release/webapps-${f%%:*}-release.apk" "webapps-out/${f##*:}.apk"
           done
           ls -l webapps-out

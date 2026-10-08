@@ -2,7 +2,7 @@
  * Counting one stock check: scan (USB scanner, camera or typing), each scan
  * adding the quantity set above the box -- 1 unless changed, or a weight for
  * goods sold by the kilo -- or say the quantity. Lines are written exactly as
- * the JEXO Count app writes them, and edits are increments rather than
+ * the SuXin Count app writes them, and edits are increments rather than
  * totals so two people counting the same check never overwrite each other
  * (StockRepository.kt explains why).
  */

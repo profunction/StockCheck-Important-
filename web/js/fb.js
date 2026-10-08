@@ -74,7 +74,7 @@ export async function initFirebase() {
  *
  * Creating an account signs it in on whatever Firebase app made it, so it is
  * done on a second app with the same settings, then signed out again -- the
- * same way the JEXO Count app does it.
+ * same way the SuXin Count app does it.
  */
 let staffApp;
 export async function createStaffAccount(email, password) {

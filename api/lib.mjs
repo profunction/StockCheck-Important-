@@ -1,5 +1,5 @@
 /**
- * The JEXO API's shapes: what goes out, what is accepted in.
+ * The SuXin API's shapes: what goes out, what is accepted in.
  * Pure -- no Firebase -- so it is tested on its own (lib.test.mjs).
  *
  * Field names are snake_case, like most public APIs and like Loyverse's,

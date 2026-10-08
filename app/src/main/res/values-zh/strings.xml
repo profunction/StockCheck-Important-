@@ -75,8 +75,8 @@
     <string name="paywall_contact_whatsapp">WhatsApp 联络我们</string>
     <string name="paywall_contact_email">电邮联络我们</string>
     <string name="paywall_contact_prompt">申请授权：</string>
-    <string name="paywall_contact_message">你好，我想申请 JEXO Count 授权。公司代码：%1$s</string>
-    <string name="paywall_contact_subject">JEXO Count 授权 — %1$s</string>
+    <string name="paywall_contact_message">你好，我想申请 SuXin Count 授权。公司代码：%1$s</string>
+    <string name="paywall_contact_subject">SuXin Count 授权 — %1$s</string>
     <string name="paywall_no_email">这台手机上没有 app 能寄电邮。</string>
 
     <string name="onboarding_how_to_use">怎么使用这个 App</string>
@@ -84,7 +84,7 @@
     <string name="onboarding_skip">跳过</string>
     <string name="onboarding_next">下一步</string>
     <string name="onboarding_done">开始使用</string>
-    <string name="onboarding_step1_title">欢迎使用 JEXO Count</string>
+    <string name="onboarding_step1_title">欢迎使用 SuXin Count</string>
     <string name="onboarding_step1_body">点「新建盘点」，选模板和区域，就可以开始扫码了。</string>
     <string name="onboarding_step2_title">扫描条码</string>
     <string name="onboarding_step2_body">把镜头对准条码。第一次扫会自动加这个商品；再扫同一个条码，它会问你要加多少，不会自己重复加，不怕扫两次。</string>
@@ -205,7 +205,7 @@
     <string name="role_unit">单位</string>
     <string name="role_expiry">有效期</string>
     <string name="pos_title">连接收银系统</string>
-    <string name="pos_web_title">JEXO POS（网站）</string>
+    <string name="pos_web_title">SuXin POS（网站）</string>
     <string name="pos_web_body">我们自己的收银系统，适合商店、超市、仓库和餐厅。在柜台电脑打开，用这个同样的账号登录，插上 USB 扫码枪和收据打印机就能用。商品、照片、价格和库存都和这个 app 共用，不用另外连接。</string>
     <string name="pos_web_open">打开 POS 网站</string>
     <string name="pos_admin_only">只有公司管理员可以连接收银系统。</string>
@@ -239,7 +239,7 @@
     <string name="guide_team_title">员工、分店和权限</string>
     <string name="guide_play">看视频</string>
     <string name="guide_more_title">收银和仓库系统</string>
-    <string name="guide_more_body">JEXO POS（收银）和 JEXO Warehouse（仓库）在网站上有自己的教程和视频。</string>
+    <string name="guide_more_body">SuXin POS（收银）和 SuXin Warehouse（仓库）在网站上有自己的教程和视频。</string>
     <string name="guide_pos">收银系统教程</string>
     <string name="guide_warehouse">仓库系统教程</string>
     <string name="guide_tour">再看一次入门介绍</string>
@@ -248,7 +248,7 @@
     <string name="guide_close">关闭</string>
     <string name="guide_entry">使用教程</string>
     <string name="guide_entry_sub">一步一步的教程和视频</string>
-    <string name="wh_web_title">JEXO Warehouse 仓库系统（网站）</string>
+    <string name="wh_web_title">SuXin Warehouse 仓库系统（网站）</string>
     <string name="wh_web_body">采购单、收货、仓库和门店之间调货、带原因的库存调整、操作记录。手机浏览器也能用，可以安装成 app。同一个账号，商品和库存和这个 app 一样。</string>
     <string name="wh_web_open">打开仓库系统</string>
     <string-array name="guide_count_steps">
@@ -260,12 +260,12 @@
     <string-array name="guide_stock_steps">
         <item>库存：现在有多少 = 最后盘点 + 之后进出。</item>
         <item>用 Excel / CSV 导入进货和销售，或连接 Loyverse 自动同步。</item>
-        <item>JEXO POS 卖出，库存马上减少；设补货点就会提醒。</item>
+        <item>SuXin POS 卖出，库存马上减少；设补货点就会提醒。</item>
     </string-array>
     <string-array name="guide_team_steps">
         <item>第一个注册的人是管理员；员工用公司代码加入。</item>
         <item>「我的」→ 角色：设定谁能盘点、看全部、改库存、用收银和仓库。</item>
         <item>分店和仓库分开算；操作记录保留每一次修改。</item>
     </string-array>
-    <string name="pos_loyverse_plan">Loyverse 同步包含在 Business、Unlimited 配套，以及「JEXO Count 单独配套」。</string>
+    <string name="pos_loyverse_plan">Loyverse 同步包含在 Business、Unlimited 配套，以及「SuXin Count 单独配套」。</string>
 </resources>
