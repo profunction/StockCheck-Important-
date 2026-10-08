@@ -235,6 +235,48 @@ let failed = 0;
   failed += await s.done();
 }
 
+// ------------------------------------------------ notifications and the bot
+{
+  const s = await start({ seedPatch: { set: {
+    'publicConfig/telegram': { username: 'SuXinBot' },
+    'publicConfig/push': { vapidKey: 'BTestKey' },
+    'telegramChats/777': { workspaceId: 'w1', uid: 'u1', chatName: 'Jeffrey phone', daily: true },
+  } } });
+  const { page, base, step, store, docs } = s;
+  await step('notify: connect Telegram leaves a one-off code and opens the bot with it', async () => {
+    await page.goto(base + '/pos/#/settings/notify');
+    await page.click('button[data-act="tg-connect"]');
+    const href = await page.getAttribute('a[data-act="tg-open"]', 'href');
+    const code = /start=([A-Za-z0-9]+)$/.exec(href)?.[1];
+    if (!href.startsWith('https://t.me/SuXinBot?start=') || !code || code.length < 12) throw new Error(href);
+    const link = await store(`telegramLinks/${code}`);
+    if (link.uid !== 'u1' || link.workspaceId !== 'w1' || !(link.expiresAt > Date.now())) throw new Error(JSON.stringify(link));
+    await page.waitForSelector(`.nf-start:has-text("/start ${code}")`);
+  });
+  await step('notify: my chat, its morning report switched off, then disconnected', async () => {
+    await page.waitForSelector('.nf-chat[data-chat="777"]:has-text("Jeffrey phone")');
+    await page.click('.nf-chat[data-chat="777"] input[type=checkbox]');
+    await page.waitForFunction(() => window.__store.get('telegramChats/777')?.daily === false);
+    await page.click('.nf-chat[data-chat="777"] button');
+    await page.waitForFunction(() => !window.__store.has('telegramChats/777'));
+  });
+  await step('notify: the admin turns on the email report', async () => {
+    await page.check('.nf-card:has-text("Email") input[type=checkbox]');
+    await page.fill('.nf-card:has-text("Email") input[type=text]', 'boss@kedai.my, nonsense, ah@kedai.my');
+    await page.click('button[data-act="email-save"]');
+    await page.waitForFunction(() => window.__store.get('workspaces/w1/meta/notify')?.emailDaily === true);
+    const n = await store('workspaces/w1/meta/notify');
+    if (JSON.stringify(n.emails) !== JSON.stringify(['boss@kedai.my', 'ah@kedai.my'])) throw new Error(JSON.stringify(n));
+  });
+  await step('notify: notifications on in this browser', async () => {
+    await page.click('button[data-act="push-here"]');
+    await page.waitForSelector('button[data-act="push-here"]:has-text("已开启")');
+    if ((await page.evaluate(() => window.__pushKey)) !== 'BTestKey') throw new Error('key');
+    if (!(await docs('workspaces/w1/users/u1/pushTokens/')).length) throw new Error('no token saved');
+  });
+  failed += await s.done();
+}
+
 // ------------------------------------------------ guides that talk
 {
   const s = await start({});
@@ -263,11 +305,19 @@ let failed = 0;
     await page.goto(`${base}/guide/#account`);
     await page.reload();
     await page.waitForSelector('.gp-split .acct');
-    for (const go of ['signin', 'create']) await page.waitForSelector(`.acct a[data-go="${go}"]`);
+    for (const go of ['app-signin', 'app-create']) await page.waitForSelector(`.acct a[data-go="${go}"]`);
     await page.addInitScript(() => { window.__signedOut = true; });
-    await page.click('.acct a[data-go="create"]');
+    await page.click('.acct a[data-go="app-create"]');
     await page.waitForSelector('.auth-tabs button.on[data-tab="create"]');
     if (!(await page.isVisible('.auth-card:has-text("公司代码")'))) throw new Error('no company code on register');
+  });
+  await step('guide: every app\'s guide opens that app', async () => {
+    for (const [tab, href] of [['pos', '/pos/#/pos'], ['warehouse', '/warehouse/'], ['app', '/count/'], ['cloud', '/pos/#/cloud']]) {
+      await page.goto(`${base}/guide/#${tab}`);
+      await page.reload();
+      await page.waitForSelector(`.acct a.primary[href="${href}"]`);
+      await page.waitForSelector('.acct a[href="/download/"]');
+    }
   });
   await step('guide: playing a video reads its steps aloud in the page language', async () => {
     await page.goto(`${base}/guide/#pos`);

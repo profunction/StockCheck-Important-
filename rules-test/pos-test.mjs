@@ -379,6 +379,30 @@ await expect('new company: then its settings', true,
 await expect('new company: and its trial', true,
   () => setDoc(doc(as('founder'), `licences/${NEW}`), { plan: 'TRIAL', status: 'ACTIVE', seats: 5, startedAt: Date.now(), expiresAt: Date.now() + 14 * 86400000 }));
 
+// The bot and notifications ------------------------------------------------
+await testEnv.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), 'userIndex/cashier1'), { workspaceId: WS });
+  await setDoc(doc(ctx.firestore(), 'telegramChats/555'), { workspaceId: WS, uid: 'cashier1', daily: true });
+});
+const soon = () => Date.now() + 10 * 60 * 1000;
+await expect('telegram: a link code for yourself', true,
+  () => setDoc(doc(as('cashier1'), 'telegramLinks/ABCDEFGHJKLM'), { workspaceId: WS, uid: 'cashier1', expiresAt: soon() }));
+await expect('telegram: not for someone else', false,
+  () => setDoc(doc(as('cashier1'), 'telegramLinks/ABCDEFGHJKLN'), { workspaceId: WS, uid: 'admin1', expiresAt: soon() }));
+await expect('telegram: not into another company', false,
+  () => setDoc(doc(as('cashier1'), 'telegramLinks/ABCDEFGHJKLP'), { workspaceId: 'other', uid: 'cashier1', expiresAt: soon() }));
+await expect('telegram: not for days', false,
+  () => setDoc(doc(as('cashier1'), 'telegramLinks/ABCDEFGHJKLQ'), { workspaceId: WS, uid: 'cashier1', expiresAt: Date.now() + 86400000 }));
+await expect('telegram: codes cannot be read back', false, () => getDoc(doc(as('cashier1'), 'telegramLinks/ABCDEFGHJKLM')));
+await expect('telegram: my chat, report off', true, () => updateDoc(doc(as('cashier1'), 'telegramChats/555'), { daily: false }));
+await expect('telegram: cannot move my chat to another account', false, () => updateDoc(doc(as('cashier1'), 'telegramChats/555'), { uid: 'admin1' }));
+await expect('telegram: someone else cannot see my chat', false, () => getDoc(doc(as('cashier2'), 'telegramChats/555')));
+await expect('telegram: nobody files a chat but the bot', false,
+  () => setDoc(doc(as('cashier1'), 'telegramChats/666'), { workspaceId: WS, uid: 'cashier1', daily: true }));
+await expect('push: my own token', true, () => setDoc(doc(as('cashier1'), ws('users/cashier1/pushTokens/tok1')), { platform: 'web' }));
+await expect('push: not on someone else', false, () => setDoc(doc(as('cashier1'), ws('users/cashier2/pushTokens/tok1')), { platform: 'web' }));
+await expect('public config: readable, not writable', false, () => setDoc(doc(as('admin1'), 'publicConfig/telegram'), { username: 'x' }));
+
 const width = Math.max(...results.map((r) => r.name.length));
 let failed = 0;
 for (const r of results) {

@@ -63,6 +63,8 @@ export async function createUserWithEmailAndPassword(_a, email) {
   authCb?.(user);
   return { user };
 }
+// This browser's notification address: always granted here.
+export async function webPushToken(vapidKey) { window.__pushKey = vapidKey; return 'web-token-test'; }
 export async function deleteUser() { window.__deletedUser = (window.__deletedUser || 0) + 1; }
 window.__resetMails = [];
 // An admin's password at the till: j@x.com, or any admin's email in the

@@ -488,3 +488,11 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .narrated { display: grid; gap: 6px; align-content: start; }
 .narrated video { width: 100%; border-radius: 10px; background: #000; }
 .narrate-toggle { justify-self: start; font-size: 14px; min-height: 34px; }
+
+/* Settings -> Notifications */
+.nf { display: grid; gap: 16px; max-width: 720px; }
+.nf-card, .nf-body { display: grid; gap: 12px; }
+.nf-code { display: grid; gap: 8px; justify-items: start; }
+.nf-code:empty { display: none; }
+.nf-start { font-size: 18px; padding: 10px 14px; border-radius: 8px; background: var(--surface-2); user-select: all; word-break: break-all; }
+.nf-chat { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--line); }

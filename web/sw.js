@@ -8,7 +8,7 @@
  * copy is never out of date. Data is not touched here; Firestore keeps its
  * own offline copy and sends queued sales when the connection returns.
  */
-const CACHE = 'stockcheck-pos-v7';
+const CACHE = 'stockcheck-pos-v8';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/pos/', '/pos/index.html', '/css/pos.css', '/js/main.js', '/warehouse/', '/warehouse/index.html', '/css/wh.css', '/wh/main.js', '/count/', '/count/index.html', '/cnt/main.js', '/app/', '/app/index.html', '/hub/main.js'])).catch(() => {}));
@@ -48,4 +48,21 @@ self.addEventListener('fetch', (event) => {
     : url.pathname.startsWith('/warehouse') ? caches.match('/warehouse/index.html')
       : url.pathname.startsWith('/count') ? caches.match('/count/index.html')
         : url.pathname.startsWith('/app') ? caches.match('/app/index.html') : undefined))));
+});
+
+// The morning report and other notifications (Firebase Cloud Messaging; the
+// server sends { notification: { title, body }, fcmOptions: { link } }).
+self.addEventListener('push', (event) => {
+  let msg = {};
+  try { msg = event.data ? event.data.json() : {}; } catch { msg = { notification: { body: event.data?.text() || '' } }; }
+  const n = msg.notification || {};
+  const link = msg.fcmOptions?.link || msg.data?.link || '/pos/#/cloud';
+  event.waitUntil(self.registration.showNotification(n.title || 'SuXin', {
+    body: n.body || '', icon: '/icons/icon-192.png', badge: '/icons/icon-64.png', data: { link },
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(self.clients.openWindow(event.notification.data?.link || '/app/'));
 });

@@ -51,7 +51,7 @@ const MENU = [
   {
     id: 'settings', icon: 'sliders', label: 'navSettings', perm: null, children: [
       ['features', 'setFeatures'], ['payments', 'setPayments'], ['taxes', 'setTaxes'], ['loyalty', 'setLoyalty'],
-      ['receipt', 'setReceipt'], ['stores', 'setStores'], ['device', 'setDevice'], ['addons', 'setAddons'],
+      ['receipt', 'setReceipt'], ['stores', 'setStores'], ['device', 'setDevice'], ['notify', 'setNotify'], ['addons', 'setAddons'],
     ], page: () => import('./settings.js'),
   },
 ];

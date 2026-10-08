@@ -18,6 +18,7 @@ import { levels as ledgerLevels, merge } from './ledger.js';
 import {
   ApiError, customerIn, customerOut, itemIn, itemOut, offlineOpIn, pageSize, receiptOut, stockChange,
 } from './lib.mjs';
+import { notifier, sameSecret } from './notify.mjs';
 import { mergeOfflineTransactions } from './offline.js';
 import { createRateLimiterMiddleware } from './ratelimit.mjs';
 import { authenticate, requireModule, requireScope, tenant } from './middleware.mjs';
@@ -353,6 +354,32 @@ app.get('/v1/stores', requireScope('stores.read'), wrap(async (req, res) => {
   res.json({
     stores: [{ id: '', name: 'Main shop' }, ...(config.branches || []).map((b) => ({ id: b.id, name: b.name, active: b.active !== false }))],
   });
+}));
+
+// ------------------------------------------- the bot and the morning report
+
+const notify = notifier(db);
+
+// Telegram signs every delivery with the secret given when the webhook was set.
+app.post('/telegram', wrap(async (req, res) => {
+  if (!sameSecret(req.get('x-telegram-bot-api-secret-token'), process.env.TELEGRAM_SECRET)) {
+    return res.status(401).json({ error: { message: 'Not from Telegram.' } });
+  }
+  // An answer that fails is logged, never retried by Telegram in a loop.
+  try { await notify.handleUpdate(req.body); } catch (err) { console.error('telegram', err); }
+  res.json({ ok: true });
+}));
+
+// Called by Cloud Scheduler (the daily report) and by the deploy (setup),
+// with the JOB_KEY secret.
+const jobKey = (req, res, next) => (sameSecret(req.get('x-job-key'), process.env.JOB_KEY)
+  ? next() : res.status(401).json({ error: { message: 'Wrong job key.' } }));
+app.post('/jobs/daily', jobKey, wrap(async (req, res) => {
+  res.json(await notify.dailyReports(Number(req.query.now) || Date.now()));
+}));
+app.post('/jobs/setup', jobKey, wrap(async (req, res) => {
+  const self = process.env.SELF_URL || `https://${req.get('host')}`;
+  res.json({ ...(await notify.setupTelegram(self)), ...(await notify.setupPush()) });
 }));
 
 // ----------------------------------------------------------------- errors

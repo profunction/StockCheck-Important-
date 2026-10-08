@@ -1,0 +1,290 @@
+/**
+ * The SuXin bot and the daily report: reads the company's data, asks
+ * bot.mjs what to say, and says it by Telegram, email and phone
+ * notification.
+ *
+ *   Telegram   a person links their chat on the website (Settings ->
+ *              Notifications -> Connect Telegram), which leaves a one-off
+ *              code in telegramLinks/; "/start <code>" in the bot files the
+ *              chat under telegramChats/{chatId}. Questions are answered
+ *              with what that person's role may see.
+ *   Email      workspaces/{ws}/meta/notify { emailDaily, emails } -- an
+ *              admin's choice -- through any SMTP account (Gmail works).
+ *   Push       Firebase Cloud Messaging, to the tokens phones and browsers
+ *              leave under workspaces/{ws}/users/{uid}/pushTokens/.
+ *
+ * Every secret comes from the environment (Secret Manager on Cloud Run):
+ * TELEGRAM_BOT_TOKEN, TELEGRAM_SECRET, SMTP_USER, SMTP_PASS, JOB_KEY.
+ * Whatever is missing is simply not sent.
+ */
+import { isLow, levels as ledgerLevels } from './ledger.js';
+import {
+  dayRange, findProducts, langOf, lowText, parseMessage, reportPush, reportText, salesText, stockText, summarize, words,
+} from './bot.mjs';
+
+const SITE = 'https://stockcheck-fb58e.web.app';
+
+export function notifier(db, env = process.env) {
+  const wsRef = (id) => db.collection('workspaces').doc(id);
+  const tgApi = env.TELEGRAM_API || 'https://api.telegram.org';
+  let mailer = null;
+
+  // ---------------------------------------------------------------- sending
+
+  async function telegram(chatId, text) {
+    if (!env.TELEGRAM_BOT_TOKEN) return false;
+    const res = await fetch(`${tgApi}/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: text.slice(0, 4000), disable_web_page_preview: true }),
+    });
+    return res.ok;
+  }
+
+  async function telegramCall(method, body) {
+    const res = await fetch(`${tgApi}/bot${env.TELEGRAM_BOT_TOKEN}/${method}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
+    });
+    return res.json();
+  }
+
+  async function email(to, subject, text) {
+    const list = to.filter((x) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+    if (!list.length) return false;
+    // Tests point this at a stand-in instead of a real mail server.
+    if (env.MAIL_STUB_URL) {
+      await fetch(env.MAIL_STUB_URL, { method: 'POST', body: JSON.stringify({ to: list, subject, text }) });
+      return true;
+    }
+    if (!env.SMTP_USER || !env.SMTP_PASS) return false;
+    if (!mailer) {
+      const { default: nodemailer } = await import('nodemailer');
+      const port = Number(env.SMTP_PORT || 465);
+      mailer = nodemailer.createTransport({
+        host: env.SMTP_HOST || 'smtp.gmail.com', port, secure: port === 465, auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+      });
+    }
+    await mailer.sendMail({ from: env.MAIL_FROM || `SuXin <${env.SMTP_USER}>`, to: list.join(', '), subject, text });
+    return true;
+  }
+
+  /** To each of [owners] ({ wsId, uid, token }); tokens the service says are dead are removed. */
+  async function push(owners, { title, body }) {
+    if (!owners.length) return 0;
+    const tokens = owners.map((o) => o.token);
+    if (env.PUSH_STUB_URL) {
+      await fetch(env.PUSH_STUB_URL, { method: 'POST', body: JSON.stringify({ tokens, title, body }) });
+      return tokens.length;
+    }
+    const { getMessaging } = await import('firebase-admin/messaging');
+    const res = await getMessaging().sendEachForMulticast({
+      tokens,
+      notification: { title, body },
+      android: { priority: 'high', notification: { channelId: 'reports' } },
+      webpush: { notification: { icon: `${SITE}/icons/icon-192.png` }, fcmOptions: { link: `${SITE}/pos/#/cloud` } },
+    });
+    await Promise.all(res.responses.map((r, i) => {
+      const code = r.error?.code || '';
+      if (!/registration-token-not-registered|invalid-registration-token|invalid-argument/.test(code)) return null;
+      const o = owners[i];
+      return wsRef(o.wsId).collection('users').doc(o.uid).collection('pushTokens').doc(o.token).delete().catch(() => {});
+    }));
+    return res.successCount;
+  }
+
+  // ----------------------------------------------------------------- reading
+
+  /** The person behind a chat: active, their permissions and branches; null if gone. */
+  async function member(wsId, uid) {
+    const snap = await wsRef(wsId).collection('users').doc(uid).get();
+    if (!snap.exists) return null;
+    const p = snap.data();
+    if (p.active === false) return null;
+    const isAdmin = p.roleId === 'admin';
+    const role = isAdmin ? null : (await wsRef(wsId).collection('roles').doc(p.roleId || 'none').get()).data();
+    const perms = new Set(role?.permissions || []);
+    return {
+      uid, name: p.displayName || p.email || '', email: p.email || '', isAdmin, branchIds: p.branchIds || [],
+      can: (perm) => isAdmin || perms.has(perm),
+    };
+  }
+
+  async function company(wsId) {
+    const c = (await wsRef(wsId).collection('meta').doc('config').get()).data() || {};
+    const names = Object.fromEntries((c.branches || []).map((b) => [b.id, b.name]));
+    return { name: c.companyName || '', placeName: (id) => names[id] || (id ? id : c.companyName || '—') };
+  }
+
+  const salesBetween = async (wsId, from, to) => (await wsRef(wsId).collection('sales')
+    .where('createdAt', '>=', from).where('createdAt', '<', to).get()).docs.map((d) => d.data());
+
+  /** Stock per branch, as ledger.js works it out (the same as the app and the website). */
+  async function stock(wsId) {
+    const col = (n) => wsRef(wsId).collection(n);
+    const [checksSnap, movesSnap, productsSnap] = await Promise.all([
+      col('stockChecks').where('status', 'in', ['COMPLETED', 'REVIEWED', 'LOCKED']).get(),
+      col('movements').where('at', '>=', Date.now() - 400 * 24 * 3600 * 1000).get(),
+      col('products').get(),
+    ]);
+    const checks = checksSnap.docs.map((d) => ({ ...d.data(), id: d.id }));
+    const items = new Map(await Promise.all(checks.map(async (c) =>
+      [c.id, (await col('stockChecks').doc(c.id).collection('items').get()).docs.map((d) => d.data())])));
+    const moves = movesSnap.docs.map((d) => d.data());
+    const products = productsSnap.docs.map((d) => ({ ...d.data(), barcode: d.id }));
+    const catalogue = new Map(products.map((p) => [p.barcode, p]));
+    const branches = new Set([...checks.map((c) => c.branchId || ''), ...moves.map((m) => m.branchId || '')]);
+    const byBranch = {};
+    for (const b of branches) {
+      byBranch[b] = ledgerLevels(checks.filter((c) => (c.branchId || '') === b), (c) => items.get(c.id) || [],
+        moves.filter((m) => (m.branchId || '') === b), catalogue);
+    }
+    return { byBranch, products };
+  }
+
+  /** Only the places this person works at, when they are tied to some. */
+  const visible = (byBranch, who) => (who.branchIds.length
+    ? Object.fromEntries(Object.entries(byBranch).filter(([b]) => who.branchIds.includes(b)))
+    : byBranch);
+
+  const lowsOf = (byBranch, placeName) => Object.entries(byBranch).flatMap(([b, list]) => list.filter(isLow)
+    .map((l) => ({ name: l.name || l.barcode, onHand: l.onHand, reorderLevel: l.reorderLevel, place: placeName(b) })));
+
+  // --------------------------------------------------------------- telegram
+
+  async function link(chatId, code, msg, lang) {
+    const ref = db.collection('telegramLinks').doc(code);
+    const snap = await ref.get();
+    const l = snap.data();
+    if (!snap.exists || !(l.expiresAt > Date.now())) return telegram(chatId, words(lang).badCode);
+    const who = await member(l.workspaceId, l.uid);
+    if (!who) return telegram(chatId, words(lang).badCode);
+    const co = await company(l.workspaceId);
+    await db.collection('telegramChats').doc(chatId).set({
+      workspaceId: l.workspaceId, uid: l.uid, name: who.name, chatName: [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(' ') || msg.chat?.title || '',
+      lang, daily: true, linkedAt: Date.now(),
+    });
+    await ref.delete();
+    return telegram(chatId, words(lang).linked(who.name, co.name));
+  }
+
+  /** One update from Telegram's webhook. */
+  async function handleUpdate(update) {
+    const msg = update?.message || update?.edited_message;
+    if (!msg?.text || !msg.chat?.id) return;
+    const chatId = String(msg.chat.id);
+    const q = parseMessage(msg.text);
+    let lang = langOf(msg.from?.language_code);
+    if (q.kind === 'link') return link(chatId, q.code, msg, lang);
+    const chatSnap = await db.collection('telegramChats').doc(chatId).get();
+    if (!chatSnap.exists) return telegram(chatId, words(lang).notLinked);
+    const chat = chatSnap.data();
+    lang = chat.lang || lang;
+    const w = words(lang);
+    const who = await member(chat.workspaceId, chat.uid);
+    if (!who) {
+      await chatSnap.ref.delete();
+      return telegram(chatId, w.notLinked);
+    }
+    const co = await company(chat.workspaceId);
+    const mayStock = who.can('RECORD_STOCK_MOVEMENTS') || who.can('POS_MANAGE') || who.can('POS_REPORTS')
+      || who.can('VIEW_ALL_HISTORY') || who.can('POS_SELL') || who.can('CREATE_STOCK_CHECK');
+    const maySales = who.can('POS_REPORTS');
+
+    if (q.kind === 'help') return telegram(chatId, w.help);
+    if (q.kind === 'sales') {
+      if (!maySales) return telegram(chatId, w.noSalesRight);
+      const [from, to] = dayRange(Date.now(), q.day === 'yesterday' ? 1 : 0);
+      return telegram(chatId, salesText(summarize(await salesBetween(chat.workspaceId, from, to)), { lang, day: q.day, start: from }));
+    }
+    if (!mayStock) return telegram(chatId, w.help);
+    const { byBranch, products } = await stock(chat.workspaceId);
+    const mine = visible(byBranch, who);
+    if (q.kind === 'low') return telegram(chatId, lowText(lowsOf(mine, co.placeName), lang));
+    if (q.kind === 'report') {
+      const [from, to] = dayRange(Date.now(), q.day === 'yesterday' ? 1 : 0);
+      const summary = summarize(maySales ? await salesBetween(chat.workspaceId, from, to) : []);
+      return telegram(chatId, reportText({ company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang, showSales: maySales }));
+    }
+    const found = findProducts(products, q.query);
+    if (!found.length) return telegram(chatId, w.noMatch(q.query));
+    return telegram(chatId, stockText(found, mine, co.placeName, lang));
+  }
+
+  /** Points Telegram at this server and publishes the bot's name for the website. */
+  async function setupTelegram(selfUrl) {
+    if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_SECRET) return { telegram: 'not configured' };
+    const hook = await telegramCall('setWebhook', { url: `${selfUrl}/telegram`, secret_token: env.TELEGRAM_SECRET, allowed_updates: ['message', 'edited_message'] });
+    const me = await telegramCall('getMe');
+    const username = me?.result?.username || '';
+    await db.collection('publicConfig').doc('telegram').set({ username, updatedAt: Date.now() });
+    return { telegram: hook.ok ? 'ok' : hook.description || 'failed', username };
+  }
+
+  /** The browser push key (public) for the website, from WEB_PUSH_VAPID_KEY. */
+  async function setupPush() {
+    if (!env.WEB_PUSH_VAPID_KEY) return { push: 'not configured' };
+    await db.collection('publicConfig').doc('push').set({ vapidKey: env.WEB_PUSH_VAPID_KEY, updatedAt: Date.now() });
+    return { push: 'ok' };
+  }
+
+  // ------------------------------------------------------------ the morning
+
+  /** Yesterday's report to everyone who asked for it, once a day per company. */
+  async function dailyReports(now = Date.now()) {
+    const [from, to] = dayRange(now, 1);
+    const day = new Date(from + 8 * 3600_000).toISOString().slice(0, 10);
+    const sent = { companies: 0, telegram: 0, email: 0, push: 0 };
+    for (const ref of await db.collection('workspaces').listDocuments()) {
+      const wsId = ref.id;
+      const settingsRef = ref.collection('meta').doc('notify');
+      const settings = (await settingsRef.get()).data() || {};
+      if (settings.lastDay === day) continue;
+      const chats = (await db.collection('telegramChats').where('workspaceId', '==', wsId).get()).docs
+        .map((d) => ({ id: d.id, ...d.data() })).filter((c) => c.daily !== false);
+      const emails = settings.emailDaily ? (settings.emails || []) : [];
+      if (!chats.length && !emails.length && !settings.pushDaily) continue;
+
+      const co = await company(wsId);
+      const { byBranch } = await stock(wsId);
+      const summary = summarize(await salesBetween(wsId, from, to));
+      sent.companies++;
+
+      for (const c of chats) {
+        const who = await member(wsId, c.uid);
+        if (!who) continue;
+        const mine = visible(byBranch, who);
+        const ok = await telegram(c.id, reportText({
+          company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang: c.lang || 'zh', showSales: who.can('POS_REPORTS'),
+        })).catch(() => false);
+        if (ok) sent.telegram++;
+      }
+      const lows = lowsOf(byBranch, co.placeName);
+      if (emails.length) {
+        const lang = settings.lang || 'zh';
+        const text = reportText({ company: co.name, summary, lows, start: from, lang });
+        if (await email(emails, text.split('\n')[0].replace(/^📊 /, ''), `${text}\n\n${SITE}/pos/#/cloud`).catch((e) => { console.error('email', e.message); return false; })) sent.email++;
+      }
+      if (settings.pushDaily) {
+        const owners = [];
+        for (const u of (await ref.collection('users').get()).docs) {
+          const who = await member(wsId, u.id);
+          if (!who || !who.can('POS_REPORTS')) continue;
+          for (const t of (await u.ref.collection('pushTokens').get()).docs) owners.push({ wsId, uid: u.id, token: t.id });
+        }
+        sent.push += await push(owners, reportPush({ summary, lows, lang: settings.lang || 'zh' })).catch((e) => { console.error('push', e.message); return 0; });
+      }
+      await settingsRef.set({ lastDay: day, lastSentAt: Date.now() }, { merge: true });
+    }
+    return sent;
+  }
+
+  return { handleUpdate, dailyReports, setupTelegram, setupPush, telegram, email, push };
+}
+
+/** Constant-time comparison of a shared secret from a header. */
+export function sameSecret(given, expected) {
+  if (!expected || typeof given !== 'string' || given.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < given.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
+  return diff === 0;
+}

@@ -146,6 +146,41 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // ---------------------------------------------- the bot and notifications
+    //
+    // Connecting Telegram: the website leaves a one-off code here for its own
+    // signed-in user, in their own company, for at most 20 minutes; the bot
+    // (the API server, which these rules do not bind) reads it when the code
+    // is sent as "/start <code>", files the chat and deletes the code. Nobody
+    // can read a code back, so one seen over a shoulder is useless once used.
+    match /telegramLinks/{code} {
+      allow create: if request.auth != null
+                    && code.size() >= 12
+                    && request.resource.data.uid == request.auth.uid
+                    && exists(/databases/$(database)/documents/userIndex/$(request.auth.uid))
+                    && get(/databases/$(database)/documents/userIndex/$(request.auth.uid)).data.workspaceId
+                         == request.resource.data.workspaceId
+                    && request.resource.data.expiresAt <= request.time.toMillis() + 20 * 60 * 1000;
+      allow read, update, delete: if false;
+    }
+
+    // A linked chat: written only by the bot. Its owner sees it, may turn
+    // the morning report off and on, and may disconnect it.
+    match /telegramChats/{chatId} {
+      allow read, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['daily'])
+                    && request.resource.data.daily is bool;
+      allow create: if false;
+    }
+
+    // The bot's name and the browser push key: public facts the server
+    // publishes for the website.
+    match /publicConfig/{docId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
     match /workspaces/{ws} {
 
       // ------------------------------------------------------------ helpers
@@ -384,6 +419,11 @@ service cloud.firestore {
         allow delete: if (can('DELETE_USER') && request.auth.uid != uid
                           && (isAdmin() || resource.data.roleId != 'admin'))
                       || isOwner(uid);
+
+        // Where this person's phones and browsers receive notifications.
+        match /pushTokens/{token} {
+          allow read, write: if isOwner(uid);
+        }
       }
 
       // ------------------------------------------------------------- roles

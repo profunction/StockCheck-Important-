@@ -116,3 +116,17 @@ export async function verifyAdmin(email, password, wsId) {
     await signOutOf(checkAuth).catch(() => {});
   }
 }
+
+/**
+ * This browser's address for notifications (Firebase Cloud Messaging), for
+ * the public push key [vapidKey]. Asks the person first; the service worker
+ * (sw.js) shows what arrives. Loaded only when someone turns it on.
+ */
+export async function webPushToken(vapidKey) {
+  const { getApp } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
+  const { getMessaging, getToken, isSupported } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js');
+  if (!(await isSupported())) throw new Error('unsupported');
+  if ((await Notification.requestPermission()) !== 'granted') throw new Error('denied');
+  const registration = await navigator.serviceWorker.ready;
+  return getToken(getMessaging(getApp()), { vapidKey, serviceWorkerRegistration: registration });
+}
