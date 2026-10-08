@@ -32,7 +32,9 @@ android {
         applicationId = "com.stockcheck.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
+        // CI numbers every build (APP_VERSION_CODE, rising), as Google Play
+        // refuses a bundle whose number it has seen; 9 on a developer's machine.
+        versionCode = System.getenv("APP_VERSION_CODE")?.toIntOrNull() ?: 9
         versionName = "0.5.0"
         vectorDrawables { useSupportLibrary = true }
         // Shown on the sign-in screen so a running install can be

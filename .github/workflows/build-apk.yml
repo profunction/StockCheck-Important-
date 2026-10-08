@@ -38,6 +38,11 @@ jobs:
 
       # The APK first. A failing test still leaves something installable, and
       # an APK in hand beats a red tick and nothing to try.
+      # Every build a higher number than the last (Google Play refuses one
+      # it has seen, and Android will not install an older one over a newer).
+      - name: Number this build
+        run: echo "APP_VERSION_CODE=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+
       # Signed with the key from the WEBAPPS_KEYSTORE secret (as Android's
       # debug key), so each new APK installs over the last one. Without the
       # secret, the runner's own fresh debug key: a new build then needs the
@@ -87,6 +92,29 @@ jobs:
 
       # A spare copy; the release below is what phones download. Its storage
       # fills up, and that must never stop the release.
+      # For Google Play: an Android App Bundle (.aab) of each app, signed with
+      # the WEBAPPS_KEYSTORE key as the upload key. Only with that secret: a
+      # bundle signed with a one-off key would tie the Play listing to a key
+      # nobody has. Its failure never costs the APKs.
+      - name: Build the Play Store bundles
+        continue-on-error: true
+        env:
+          WEBAPPS_KEYSTORE: ${{ secrets.WEBAPPS_KEYSTORE }}
+        run: |
+          if [ -z "$WEBAPPS_KEYSTORE" ]; then echo "::warning::No WEBAPPS_KEYSTORE secret: no Play Store bundles."; exit 0; fi
+          printf '%s' "$WEBAPPS_KEYSTORE" | base64 -d > "$RUNNER_TEMP/upload.p12"
+          cp "$RUNNER_TEMP/upload.p12" webapps/jexo-webapps.keystore
+          printf 'storeFile=%s\nstorePassword=jexo-webapps\nkeyAlias=jexo\nkeyPassword=jexo-webapps\n' "$RUNNER_TEMP/upload.p12" > keystore.properties
+          ./gradlew :app:bundleRelease :webapps:bundleRelease --stacktrace; status=$?
+          rm -f "$RUNNER_TEMP/upload.p12" webapps/jexo-webapps.keystore keystore.properties
+          [ $status -eq 0 ] || exit $status
+          mkdir -p aab-out
+          cp app/build/outputs/bundle/release/app-release.aab aab-out/SuXin-Count.aab
+          for f in hub:SuXin pos:SuXin-POS warehouse:SuXin-Warehouse cloud:SuXin-Cloud; do
+            cp "webapps/build/outputs/bundle/${f%%:*}Release/webapps-${f%%:*}-release.aab" "aab-out/${f##*:}.aab"
+          done
+          ls -l aab-out
+
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         if: always()
@@ -120,7 +148,7 @@ jobs:
 
           Not for release. Rebuilt on every push to this branch." \
             "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}" \
-            webapps-out/*.apk
+            webapps-out/*.apk $(ls aab-out/*.aab 2>/dev/null)
 
       # Last, so its failure never costs the APK above.
       - name: Unit tests

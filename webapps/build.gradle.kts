@@ -32,7 +32,7 @@ android {
     defaultConfig {
         minSdk = 23
         targetSdk = 36
-        versionCode = 1
+        versionCode = System.getenv("APP_VERSION_CODE")?.toIntOrNull() ?: 1
         versionName = "1.0"
     }
 
