@@ -275,6 +275,11 @@ async function readScreenshots(files) {
     body: JSON.stringify({ images }),
   });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body?.error?.message || res.statusText);
+  if (!res.ok) {
+    // A known reason in the page's own language; the server's words otherwise.
+    const code = body?.error?.code || (res.status === 429 ? 'BUSY' : res.status === 403 ? 'NO_RIGHT' : '');
+    const mine = code && t(`whShotErr_${code}`);
+    throw new Error(mine && mine !== `whShotErr_${code}` ? mine : body?.error?.message || res.statusText);
+  }
   return body;
 }

@@ -1,5 +1,6 @@
 /** The warehouse system's own words, in the site's three languages. */
 const en = {
+  whShotErr_NOT_SET_UP: 'Reading screenshots is not switched on yet (the owner adds the Anthropic key first). For now, paste the order text below.', whShotErr_NOT_READ: 'These screenshots could not be read. Try clearer ones, or paste the order text.', whShotErr_BAD_IMAGE: 'A screenshot is too big or not a picture.', whShotErr_TOO_MANY: 'At most 4 screenshots at a time.', whShotErr_BUSY: 'Too many in a short time. Wait a minute.', whShotErr_NO_RIGHT: 'Your account may not raise purchase orders.',
   reason_SUPPLIER_RETURN: 'Back to supplier', reason_RESERVATION: 'Reserved order delivered',
   // Cartons, shelves, expiry, approval, returns, month end, reservations
   whPack: 'Carton', whPackSize: 'Pieces per carton', whPackName: 'Carton is called', whPackHelp: 'Leave empty if it is not bought by the carton. Stock is still kept in pieces.',
@@ -147,6 +148,7 @@ const en = {
 };
 
 const zh = {
+  whShotErr_NOT_SET_UP: '读截图还没开通（老板要先放 Anthropic 钥匙）。现在先把订单文字贴到下面的框。', whShotErr_NOT_READ: '这几张截图读不出来。换清楚一点的，或者贴订单文字。', whShotErr_BAD_IMAGE: '截图太大，或者不是图片。', whShotErr_TOO_MANY: '一次最多 4 张截图。', whShotErr_BUSY: '短时间内读太多次了，等一分钟。', whShotErr_NO_RIGHT: '你的账号不能开采购单。',
   reason_SUPPLIER_RETURN: '退回供应商', reason_RESERVATION: '预留交货',
   whPack: '箱', whPackSize: '一箱几个', whPackName: '箱的叫法', whPackHelp: '不是整箱买的就留空。库存还是按「个」记。',
   whAddPack: '+1 {p}', whPacks: '箱数', whPieces: '散的个数', whShelf: '货架', whShelfHint: '例：A-03-2', whShelfHere: '货架位置',
@@ -292,6 +294,7 @@ const zh = {
 };
 
 const ms = {
+  whShotErr_NOT_SET_UP: 'Baca tangkapan skrin belum dihidupkan (pemilik perlu tambah kunci Anthropic dahulu). Buat masa ini, tampal teks pesanan di bawah.', whShotErr_NOT_READ: 'Tangkapan skrin ini tidak dapat dibaca. Cuba yang lebih jelas, atau tampal teks pesanan.', whShotErr_BAD_IMAGE: 'Tangkapan skrin terlalu besar atau bukan gambar.', whShotErr_TOO_MANY: 'Paling banyak 4 tangkapan skrin sekali.', whShotErr_BUSY: 'Terlalu banyak dalam masa singkat. Tunggu seminit.', whShotErr_NO_RIGHT: 'Akaun anda tidak boleh buat pesanan belian.',
   reason_SUPPLIER_RETURN: 'Pulang ke pembekal', reason_RESERVATION: 'Tempahan dihantar',
   whPack: 'Karton', whPackSize: 'Biji sekarton', whPackName: 'Nama karton', whPackHelp: 'Biarkan kosong jika tidak dibeli sekarton. Stok tetap dikira dalam biji.',
   whAddPack: '+1 {p}', whPacks: 'Karton', whPieces: 'Biji lepas', whShelf: 'Rak', whShelfHint: 'cth. A-03-2', whShelfHere: 'Rak di',
