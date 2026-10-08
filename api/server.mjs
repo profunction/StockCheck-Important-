@@ -23,6 +23,13 @@ import { mergeOfflineTransactions } from './offline.js';
 import { createRateLimiterMiddleware } from './ratelimit.mjs';
 import { authenticate, requireModule, requireScope, tenant } from './middleware.mjs';
 
+// Secrets arrive from Secret Manager as they were stored; one made with
+// `openssl rand | gcloud secrets create` ends in a line break, which would
+// make the job key and Telegram's secret never match.
+for (const k of ['JOB_KEY', 'TELEGRAM_SECRET', 'TELEGRAM_BOT_TOKEN', 'SMTP_USER', 'SMTP_PASS', 'WEB_PUSH_VAPID_KEY']) {
+  if (process.env[k] !== undefined) process.env[k] = process.env[k].trim();
+}
+
 initializeApp();
 const db = getFirestore();
 const app = express();

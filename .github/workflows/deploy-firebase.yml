@@ -193,7 +193,7 @@ jobs:
           # channel -- whatever is missing is simply not sent.
           for s in job-key telegram-secret; do
             gcloud secrets describe "$s" --project "$PROJECT" >/dev/null 2>&1 || \
-              openssl rand -hex 24 | gcloud secrets create "$s" --project "$PROJECT" --replication-policy automatic --data-file=-
+              openssl rand -hex 24 | tr -d '\n' | gcloud secrets create "$s" --project "$PROJECT" --replication-policy automatic --data-file=-
           done
           SECRETS=""
           RUNTIME_SA="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
@@ -216,7 +216,7 @@ jobs:
         continue-on-error: true
         run: |
           URL=$(gcloud run services describe stockcheck-api --region asia-southeast1 --project "$PROJECT" --format='value(status.url)')
-          KEY=$(gcloud secrets versions access latest --secret job-key --project "$PROJECT")
+          KEY=$(gcloud secrets versions access latest --secret job-key --project "$PROJECT" | tr -d '[:space:]')
           echo "::add-mask::$KEY"
           curl -fsS -X POST -H "x-job-key: $KEY" "$URL/jobs/setup"; echo
           ARGS=(--location asia-southeast1 --project "$PROJECT" --schedule "0 8 * * *" --time-zone "Asia/Kuala_Lumpur"
