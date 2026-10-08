@@ -84,8 +84,16 @@ buyer's rate, shipping, duty and fees spread by value, quantity or weight,
 each item's real (landed) cost, its margin at today's price and a suggested
 price. Starts from a purchase order (`#/cost/<po id>`) or items scanned in.
 Saving writes `costSen` to the products (new, or averaged with stock on hand)
-with an audit entry. Online-purchase import (Pinduoduo, Shopee and the rest)
-was removed; old purchase orders it made still show and receive normally.
+with an audit entry.
+
+## Pinduoduo purchases (拼多多进货)
+
+`web/wh/online.js`: a Pinduoduo order becomes a purchase order, from its
+pasted text (`web/js/onlineorder.js`) or from 1-4 screenshots read by the API
+(`POST /app/read-order`, `api/readorder.mjs`, Claude with structured output;
+needs the `anthropic-api-key` secret). Pinduoduo gives buyers no order API,
+so no login is ever asked for. Shopee, Taobao, TikTok and Lazada were
+dropped from the page (the text reader still knows their layouts).
 
 ## Apps, sign-up and locks
 

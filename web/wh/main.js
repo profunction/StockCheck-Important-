@@ -25,6 +25,7 @@ const MENU = [
   { id: 'adjust', icon: 'sliders', label: 'whAdjust', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./adjust.js') },
   { id: 'stock', icon: 'barcode', label: 'whStock', perm: null, page: () => import('./stock.js'), bottom: true },
   { id: 'purchase', icon: 'receipt', label: 'whPurchase', may: 'procurement.purchase', page: () => import('./purchase.js') },
+  { id: 'online', icon: 'download', label: 'whOnline', may: 'procurement.purchase', page: () => import('./online.js') },
   { id: 'cost', icon: 'calc', label: 'whCost', perm: null, page: () => import('./cost.js') },
   { id: 'suppliers', icon: 'users', label: 'whSuppliers', may: 'procurement.suppliers', page: () => import('./suppliers.js') },
   { id: 'variance', icon: 'percent', label: 'whVariance', perm: null, page: () => import('./variance.js') },

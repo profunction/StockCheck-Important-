@@ -130,3 +130,8 @@ export async function webPushToken(vapidKey) {
   const registration = await navigator.serviceWorker.ready;
   return getToken(getMessaging(getApp()), { vapidKey, serviceWorkerRegistration: registration });
 }
+
+/** The signed-in person's ID token, which our own API (api/) checks. */
+export async function idToken() {
+  return auth?.currentUser ? auth.currentUser.getIdToken() : '';
+}

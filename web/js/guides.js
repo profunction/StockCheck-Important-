@@ -369,6 +369,13 @@ export const WAREHOUSE_GUIDE = {
         '没有审批权限的人按「提交审批」；老板按「批准」。',
         '批准后按「确认下单」，再按「复制发 WhatsApp」发给供应商。',
       ] },
+      { id: 'online', title: '拼多多进货', video: V('wh-6-online'), steps: [
+        '仓库系统 → 拼多多进货：按「读截图」，选拼多多订单的截图（1 到 4 张）。',
+        '或者在拼多多 app 打开订单，长按文字 → 全选 → 复制，贴进来，按「读取订单」。',
+        '核对：每一样配对到你的商品（系统会猜，下次同一样会记得）；新东西按「新增商品」；赠品勾「不入库」。',
+        '填今天的人民币汇率；运费可以算进成本。按「保存采购单」。',
+        '包裹到了：收货 → 扫包裹上的运单号 → 一样一样扫 → 完成收货，库存才增加。',
+      ], tip: '拼多多不开放买家订单接口，所以是截图或复制贴上，不用交出你的拼多多登录；同一张订单贴两次会被挡下。' },
       { id: 'cost', title: '成本计算器', steps: [
         '仓库系统 → 成本计算器；或者打开采购单，按「算真正成本」。',
         '选用什么钱买（马币、人民币……），填汇率。',
@@ -419,6 +426,13 @@ export const WAREHOUSE_GUIDE = {
         'Without approval rights, press Send for approval; the owner presses Approve.',
         'Once approved, mark it ordered and Copy for WhatsApp to send to the supplier.',
       ] },
+      { id: 'online', title: 'Pinduoduo purchases', video: V('wh-6-online'), steps: [
+        'Warehouse → Pinduoduo purchases: press Read screenshots and pick 1–4 screenshots of the order.',
+        'Or open the order in Pinduoduo, press and hold the text, Select all, Copy, paste it, and press Read the order.',
+        'Check it: match each item to one of your products (a best guess is offered, and remembered next time); New product for something new; tick Not stock for free gifts.',
+        'Enter today\'s yuan rate; shipping can go into the cost. Press Save purchase order.',
+        'When the parcel arrives: Receive → scan the tracking number → scan the items → Complete. Only then does stock go up.',
+      ], tip: 'Pinduoduo has no way for another program to read a buyer\'s orders, so it is screenshots or copy and paste -- your Pinduoduo login is never needed. The same order twice is refused.' },
       { id: 'cost', title: 'Cost calculator', steps: [
         'Warehouse → Cost calculator; or open a purchase order and press Work out the real cost.',
         'Choose what it was bought in (ringgit, yuan…) and the rate.',
@@ -469,6 +483,13 @@ export const WAREHOUSE_GUIDE = {
         'Tanpa hak kelulusan, tekan Hantar untuk kelulusan; pemilik tekan Luluskan.',
         'Selepas diluluskan, tandakan sudah dipesan dan Salin untuk WhatsApp kepada pembekal.',
       ] },
+      { id: 'online', title: 'Belian Pinduoduo', video: V('wh-6-online'), steps: [
+        'Gudang → Belian Pinduoduo: tekan Baca tangkapan skrin dan pilih 1–4 tangkapan skrin pesanan.',
+        'Atau buka pesanan di Pinduoduo, tekan lama teks, Pilih semua, Salin, tampal, dan tekan Baca pesanan.',
+        'Semak: padankan setiap barang dengan barang anda (tekaan diberi, dan diingati lain kali); Barang baharu untuk yang baru; tanda Bukan stok untuk hadiah percuma.',
+        'Isi kadar yuan hari ini; kos penghantaran boleh dimasukkan ke dalam kos. Tekan Simpan pesanan belian.',
+        'Bila bungkusan sampai: Terima → imbas nombor penjejakan → imbas barang → Selesai. Barulah stok naik.',
+      ], tip: 'Pinduoduo tiada cara untuk program lain membaca pesanan pembeli, jadi gunakan tangkapan skrin atau salin-tampal -- log masuk Pinduoduo anda tidak diperlukan. Pesanan yang sama dua kali ditolak.' },
       { id: 'cost', title: 'Kalkulator kos', steps: [
         'Gudang → Kalkulator kos; atau buka pesanan belian dan tekan Kira kos sebenar.',
         'Pilih mata wang (ringgit, yuan…) dan kadar tukaran.',

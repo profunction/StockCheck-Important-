@@ -260,6 +260,41 @@ await film('wh-5-check', world({ branch: 'gudang' }), async (page, x, base) => {
   await x.caption('操作记录：每一次修改都在，没人能删', 'Audit log: every change kept, nobody can delete it', 2600);
 }, { path: '/warehouse/' });
 
+await film('wh-6-online', world({ branch: 'gudang' }), async (page, x, base) => {
+  await page.waitForSelector('.wh-tile');
+  await x.go(base, '/warehouse/#/online', 1200);
+  await page.waitForSelector('textarea');
+  await x.title('拼多多进货', 'SuXin WMS · 拼多多', 'Pinduoduo purchases, as a purchase order', { bg: WH_BG });
+  await x.point('button[data-act="pdd-shot"]');
+  await x.caption('可以按「读截图」选订单截图，或者复制订单文字', 'Read screenshots of the order, or copy its text', 2600);
+  await page.fill('textarea', ['拼多多', '订单编号：240915-582013947761', 'Beras 5kg 白米 泰国香米 批发', '规格：5kg', '¥30.00', 'x4',
+    'Kopi 500g 咖啡粉 马来西亚', '¥18.00', 'x6', '运费 ¥10.00', '实付 ¥238.00', '快递单号：YT7491234567890'].join('\n'));
+  await x.caption('贴进来，按「读取订单」', 'Paste it, press Read the order', 1500);
+  await x.click('button:has-text("读取订单")', 1500);
+  await page.evaluate(() => window.scrollTo(0, 260));
+  await x.caption('商品、数量、价钱、运费、订单号都读出来了', 'Items, quantities, prices, shipping, order number — read for you', 2600);
+  await x.point('.wh-online-line .pill');
+  await x.caption('自动配对你的商品；下次同一样会记得', 'Matched to your products, and remembered next time', 2400);
+  await x.point('.wh-online-total');
+  await x.caption('人民币按汇率换成 RM，运费算进成本', 'Yuan converted to ringgit, shipping added to the cost', 2400);
+  await x.click('.wh-bar button.primary', 1500);
+  await x.caption('变成采购单：已下单，等包裹', 'Now a purchase order, waiting for the parcel', 2200);
+  await x.go(base, '/warehouse/#/receive', 1200);
+  await x.click('.wh-scan input.scan', 200);
+  await x.scan('YT7491234567890', 1500);
+  await x.caption('包裹到了：扫运单号，打开这张单收货', 'Parcel here: scan its tracking number to receive it', 2600);
+}, { path: '/warehouse/' });
+
+// ------------------------------------------------- more of the till
+
+const W = 'workspaces/w1/';
+/** The shop, with changes to its till settings. */
+const shopWith = (settings, opts = {}) => {
+  const w = world(opts);
+  w.set[`${W}pos/settings`] = { ...w.set[`${W}pos/settings`], ...settings };
+  return w;
+};
+
 await film('pos-7-shift', shopWith({ requireShift: true }), async (page, x, base) => {
   await page.waitForSelector('.tile');
   await x.title('开班和交班', 'SuXin POS · 班次', 'Opening and closing a shift');

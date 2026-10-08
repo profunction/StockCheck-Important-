@@ -14,6 +14,7 @@
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { FieldPath, getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 import { levels as ledgerLevels, merge } from './ledger.js';
 import {
   ApiError, customerIn, customerOut, itemIn, itemOut, offlineOpIn, pageSize, rateKey, receiptOut, stockChange,
@@ -23,12 +24,14 @@ import { mergeOfflineTransactions } from './offline.js';
 import { createRateLimiterMiddleware } from './ratelimit.mjs';
 import { rateLimit } from 'express-rate-limit';
 import { selfOrdering } from './selforder.mjs';
+import { orderReader } from './readorder.mjs';
+import { can as allowedTo } from './modules.js';
 import { authenticate, requireModule, requireScope, tenant } from './middleware.mjs';
 
 // Secrets arrive from Secret Manager as they were stored; one made with
 // `openssl rand | gcloud secrets create` ends in a line break, which would
 // make the job key and Telegram's secret never match.
-for (const k of ['JOB_KEY', 'TELEGRAM_SECRET', 'TELEGRAM_BOT_TOKEN', 'SMTP_USER', 'SMTP_PASS', 'WEB_PUSH_VAPID_KEY']) {
+for (const k of ['JOB_KEY', 'TELEGRAM_SECRET', 'TELEGRAM_BOT_TOKEN', 'SMTP_USER', 'SMTP_PASS', 'WEB_PUSH_VAPID_KEY', 'ANTHROPIC_API_KEY']) {
   if (process.env[k] !== undefined) process.env[k] = process.env[k].trim();
 }
 
@@ -38,7 +41,10 @@ const app = express();
 app.disable('x-powered-by');
 // Cloud Run's front end is one hop: the caller's own address is the one it adds.
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '2mb' }));
+// Screenshots for reading an order are bigger than anything else sent here.
+const smallJson = express.json({ limit: '2mb' });
+const bigJson = express.json({ limit: '16mb' });
+app.use((req, res, next) => (req.path === '/app/read-order' ? bigJson : smallJson)(req, res, next));
 
 // Any website may call this with a token; the token is the permission.
 app.use((req, res, next) => {
@@ -387,6 +393,28 @@ app.post('/public/order/:shop', orderLimit, wrap(async (req, res) => {
 app.get('/public/order/:shop/:id', readLimit, wrap(async (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json(await selfOrder.status(req.params.shop, req.params.id));
+}));
+
+// ------------------------------------------- reading a Pinduoduo screenshot
+//
+// For the website's own signed-in staff (a Firebase ID token, not an API
+// token): who they are, in which company, with what permissions.
+async function staffOf(req) {
+  const token = /^Bearer\s+(.+)$/i.exec(req.get('authorization') || '')?.[1];
+  const decoded = token ? await getAuth().verifyIdToken(token).catch(() => null) : null;
+  if (!decoded) throw new ApiError(401, 'Sign in again.', 'UNAUTHENTICATED');
+  const wsId = (await db.doc(`userIndex/${decoded.uid}`).get()).data()?.workspaceId;
+  const user = wsId ? (await db.doc(`workspaces/${wsId}/users/${decoded.uid}`).get()).data() : null;
+  if (!user || user.active === false) throw new ApiError(403, 'Not a member of a company.', 'FORBIDDEN');
+  const isAdmin = user.roleId === 'admin';
+  const role = isAdmin ? null : (await db.doc(`workspaces/${wsId}/roles/${user.roleId || 'none'}`).get()).data();
+  return { ws: wsId, uid: decoded.uid, isAdmin, permissions: role?.permissions || [], licence: await licenceOf(wsId) };
+}
+const reader = orderReader();
+app.post('/app/read-order', limited(10 * 60_000, 20), wrap(async (req, res) => {
+  const who = await staffOf(req);
+  if (!allowedTo(who, 'procurement.purchase')) throw new ApiError(403, 'Your account may not raise purchase orders.', 'FORBIDDEN');
+  res.json(await reader.read(req.body?.images));
 }));
 
 // ------------------------------------------- the bot and the morning report

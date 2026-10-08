@@ -306,6 +306,10 @@ export const PAGES = Object.fromEntries([
     S('草稿、待批准、已下单、已收货', 'Draft, to approve, ordered, received', 'Draf, untuk lulus, dipesan, diterima', { point: '.wh-tabs' }),
     S('补货建议：低于补货点的，自动算要订多少', 'Reorder: how much to order, worked out', 'Tambah stok: berapa perlu dipesan'),
   ], { world: { branch: 'gudang' } })],
+  ['wh-online', T(['拼多多进货', 'Pinduoduo purchases', 'Belian Pinduoduo'], '/warehouse/#/online', [
+    S('按「读截图」选订单截图，或把订单文字贴进来', 'Read screenshots of the order, or paste its text', 'Baca tangkapan skrin pesanan, atau tampal teksnya', { point: 'button[data-act="pdd-shot"]' }),
+    S('核对每一样，按「保存采购单」', 'Check each item and save the purchase order', 'Semak setiap barang dan simpan pesanan belian', { point: 'textarea' }),
+  ], { world: { branch: 'gudang' } })],
   ['wh-cost', T(['成本计算器', 'Cost calculator', 'Kalkulator kos'], '/warehouse/#/cost/po-demo', [
     S('选采购单，或扫商品，填每件多少钱', 'Pick a purchase order or scan items, and the price of each', 'Pilih pesanan belian atau imbas barang, dan harga seunit', { point: 'select[data-act="cc-po"]' }),
     S('用人民币买的：选货币，填汇率', 'Bought in yuan: choose the currency and the rate', 'Dibeli dalam yuan: pilih mata wang dan kadar', { point: 'select[data-act="cc-currency"]' }),

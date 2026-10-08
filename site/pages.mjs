@@ -52,7 +52,7 @@ export const PAGES = {
     addonsLead: '一开始只需要盘点和收银。需要的时候再加，不用换系统，资料都在。',
     addons: [
       { name: 'SuXin WMS · 仓库与订货', ask: '需要管理中央仓库？', what: '仓库、采购单、调货、补货建议。', state: 'live' },
-      { name: 'SuXin Procurement · 采购和成本', ask: '进货要算清楚成本？', what: '采购单、审批、补货建议，加上成本计算器：运费、关税、代理费分摊到每件货，算出真正成本和建议售价，一键存进商品。' },
+      { name: 'SuXin Procurement · 采购和成本', ask: '进货要算清楚成本？', what: '采购单、审批、补货建议、拼多多截图进货，加上成本计算器：运费、关税、代理费分摊到每件货，算出真正成本和建议售价，一键存进商品。' },
       { name: 'SuXin Tax · 会计与电子发票', ask: '要交 LHDN 电子发票？', what: '每月 MyInvois 合并电子发票已包含。SQL Account、AutoCount 连接即将推出。', state: 'part' },
       { name: 'SuXin Logistics · 配送', ask: '要安排送货？', what: 'Lalamove、GrabExpress。', state: 'soon' },
     ],
@@ -97,7 +97,7 @@ export const PAGES = {
     addonsLead: 'Start with counting and checkout. Add more when you need it — no new system, your data stays.',
     addons: [
       { name: 'SuXin WMS · Warehouse & ordering', ask: 'Need a central warehouse?', what: 'Warehouses, purchase orders, transfers, reorder suggestions.', state: 'live' },
-      { name: 'SuXin Procurement · Purchasing and costs', ask: 'Need to know what your stock really costs?', what: 'Purchase orders with approval and reorder suggestions, plus a cost calculator: shipping, duty and fees shared over each item, the real cost and a suggested price, saved to the items in one press.' },
+      { name: 'SuXin Procurement · Purchasing and costs', ask: 'Need to know what your stock really costs?', what: 'Purchase orders with approval and reorder suggestions, Pinduoduo orders from screenshots, plus a cost calculator: shipping, duty and fees shared over each item, the real cost and a suggested price, saved to the items in one press.' },
       { name: 'SuXin Tax · Accounting & e-invoice', ask: 'Submitting LHDN e-invoices?', what: 'The monthly MyInvois consolidated e-invoice is included. SQL Account and AutoCount links are coming.', state: 'part' },
       { name: 'SuXin Logistics · Delivery', ask: 'Sending orders out?', what: 'Lalamove, GrabExpress.', state: 'soon' },
     ],
@@ -142,7 +142,7 @@ export const PAGES = {
     addonsLead: 'Mula dengan kira stok dan kaunter. Tambah bila perlu — tiada sistem baharu, data anda kekal.',
     addons: [
       { name: 'SuXin WMS · Gudang & pesanan', ask: 'Perlu gudang pusat?', what: 'Gudang, pesanan belian, pindahan, cadangan tambah stok.', state: 'live' },
-      { name: 'SuXin Procurement · Belian dan kos', ask: 'Perlu tahu kos sebenar stok anda?', what: 'Pesanan belian dengan kelulusan dan cadangan tambah stok, serta kalkulator kos: penghantaran, duti dan yuran diagih ke setiap barang, kos sebenar dan harga dicadang, disimpan ke barang dengan satu tekan.' },
+      { name: 'SuXin Procurement · Belian dan kos', ask: 'Perlu tahu kos sebenar stok anda?', what: 'Pesanan belian dengan kelulusan dan cadangan tambah stok, pesanan Pinduoduo dari tangkapan skrin, serta kalkulator kos: penghantaran, duti dan yuran diagih ke setiap barang, kos sebenar dan harga dicadang, disimpan ke barang dengan satu tekan.' },
       { name: 'SuXin Tax · Akaun & e-Invois', ask: 'Hantar e-Invois LHDN?', what: 'e-Invois disatukan MyInvois bulanan sudah termasuk. Sambungan SQL Account dan AutoCount akan datang.', state: 'part' },
       { name: 'SuXin Logistics · Penghantaran', ask: 'Hantar pesanan?', what: 'Lalamove, GrabExpress.', state: 'soon' },
     ],

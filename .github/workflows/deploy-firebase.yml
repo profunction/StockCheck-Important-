@@ -201,7 +201,7 @@ jobs:
           done
           SECRETS=""
           RUNTIME_SA="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
-          for pair in JOB_KEY=job-key TELEGRAM_SECRET=telegram-secret TELEGRAM_BOT_TOKEN=telegram-bot-token SMTP_USER=smtp-user SMTP_PASS=smtp-pass; do
+          for pair in JOB_KEY=job-key TELEGRAM_SECRET=telegram-secret TELEGRAM_BOT_TOKEN=telegram-bot-token SMTP_USER=smtp-user SMTP_PASS=smtp-pass ANTHROPIC_API_KEY=anthropic-api-key; do
             name="${pair#*=}"
             if gcloud secrets describe "$name" --project "$PROJECT" >/dev/null 2>&1; then
               gcloud secrets add-iam-policy-binding "$name" --project "$PROJECT" --member "serviceAccount:$RUNTIME_SA" \

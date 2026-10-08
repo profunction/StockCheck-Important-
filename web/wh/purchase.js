@@ -35,6 +35,7 @@ export function render(main, sub) {
   const tabs = h('div', { class: 'seg wh-tabs' });
   mount(main,
     head(t('whPurchase'),
+      canBuy() ? h('button', { onclick: () => go('online') }, icon('download', 17), t('whOnline')) : null,
       canBuy() ? h('button', { onclick: () => go('purchase', 'reorder') }, icon('percent', 17), t('whReorderTitle')) : null,
       canBuy() ? h('button', { class: 'primary', onclick: () => go('purchase', 'new') }, icon('plus', 17), t('newPo')) : null),
     h('p', { class: 'muted' }, t('whPurchaseHelp')),
