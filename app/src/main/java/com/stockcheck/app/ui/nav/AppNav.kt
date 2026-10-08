@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import com.stockcheck.app.CrashLog
+import com.stockcheck.app.push.NotificationSetup
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import com.stockcheck.app.R
@@ -248,14 +249,17 @@ fun StockCheckRoot() {
             )
         }
 
-        is AuthState.SignedIn -> MainScaffold(
-            session = state.session,
-            busy = busy,
-            formError = error,
-            onChangePassword = sessionViewModel::changePassword,
-            onSignOut = sessionViewModel::signOut,
-            onSeedTemplates = sessionViewModel::seedTemplatesIfNeeded,
-        )
+        is AuthState.SignedIn -> {
+            NotificationSetup(state.session.uid)
+            MainScaffold(
+                session = state.session,
+                busy = busy,
+                formError = error,
+                onChangePassword = sessionViewModel::changePassword,
+                onSignOut = sessionViewModel::signOut,
+                onSeedTemplates = sessionViewModel::seedTemplatesIfNeeded,
+            )
+        }
     }
 }
 

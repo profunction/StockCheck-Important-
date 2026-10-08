@@ -126,3 +126,26 @@ which has tabs for the account, SuXin Count, POS, Warehouse and Cloud).
   the videos are made. A downloaded video is silent, with its captions.
 - After filming again, raise `?v=` in `guides.js` so browsers do not show a
   cached old video with the new steps.
+
+## The bot and the morning report
+
+`api/bot.mjs` decides what the SuXin bot understands and says; `api/notify.mjs`
+reads the company's data and sends it. Both run in the API on Cloud Run.
+
+- **Telegram.** Settings → Notifications & bot → Connect Telegram leaves a
+  one-off code (`telegramLinks/`, 15 minutes) and opens the bot with
+  `/start <code>`; the bot files the chat under `telegramChats/{chatId}`.
+  It answers stock, sales today or yesterday, low stock and the report in
+  Chinese, English or Malay, with only what that person's role and
+  branches allow.
+- **Email.** `workspaces/{ws}/meta/notify { emailDaily, emails }` (admins),
+  sent through any SMTP account (a Gmail app password works).
+- **Push.** Firebase Cloud Messaging to `users/{uid}/pushTokens/`: the
+  SuXin Count app files its token after sign-in; a browser does it from the
+  Notifications page (needs the public key in the `WEB_PUSH_VAPID_KEY`
+  repository variable).
+- **8 am.** Cloud Scheduler calls `POST /jobs/daily` with the `job-key`
+  secret; each company gets one report a day. The deploy makes `job-key`
+  and `telegram-secret` itself, gives the API the secrets that exist
+  (`telegram-bot-token`, `smtp-user`, `smtp-pass`), points Telegram at the
+  API (`/jobs/setup`) and creates or updates the scheduler job.

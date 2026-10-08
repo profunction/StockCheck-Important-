@@ -268,4 +268,6 @@
         <item>Cawangan dan gudang berasingan; log audit menyimpan setiap perubahan.</item>
     </string-array>
     <string name="pos_loyverse_plan">Penyegerakan Loyverse ada dalam pelan Business dan Unlimited, serta pelan SuXin Count.</string>
+    <string name="notify_channel">Laporan harian</string>
+    <string name="notify_channel_about">Laporan pagi: jualan dan stok rendah.</string>
 </resources>

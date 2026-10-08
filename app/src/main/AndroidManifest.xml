@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Tapping NFC tags and member cards; optional, so phones without NFC still install. -->
     <uses-permission android:name="android.permission.NFC" />
+    <!-- The morning report as a notification (asked once, Android 13 and later). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Only needed to hand an exported file to other apps on older releases. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -63,6 +65,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Receives the morning report from the SuXin server (Firebase Cloud Messaging). -->
+        <service
+            android:name=".push.ReportMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="reports" />
 
         <!-- Shares exported CSV/XLSX files without exposing raw file:// paths. -->
         <provider

@@ -268,4 +268,6 @@
         <item>分店和仓库分开算；操作记录保留每一次修改。</item>
     </string-array>
     <string name="pos_loyverse_plan">Loyverse 同步包含在 Business、Unlimited 配套，以及「SuXin Count 单独配套」。</string>
+    <string name="notify_channel">每日报告</string>
+    <string name="notify_channel_about">早上的营业报告：销售和低库存。</string>
 </resources>

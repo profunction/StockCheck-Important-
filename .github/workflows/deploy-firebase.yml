@@ -167,6 +167,7 @@ jobs:
       # still gone out, and the log says what to do.
       - name: Deploy storage rules
         if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
         run: rules-test/node_modules/.bin/firebase deploy --only storage --project "$PROJECT" --non-interactive --force
 
       # The POS API runs on Cloud Run. Deploying it needs Cloud Run and
@@ -186,13 +187,50 @@ jobs:
         continue-on-error: true
         run: |
           diff -u web/js/ledger.js api/ledger.js
+          # The bot's and the report's secrets live in Secret Manager, never
+          # here. Two are made on the first run (random, nobody needs to know
+          # them); the others are added by the owner when they want that
+          # channel -- whatever is missing is simply not sent.
+          for s in job-key telegram-secret; do
+            gcloud secrets describe "$s" --project "$PROJECT" >/dev/null 2>&1 || \
+              openssl rand -hex 24 | gcloud secrets create "$s" --project "$PROJECT" --replication-policy automatic --data-file=-
+          done
+          SECRETS=""
+          RUNTIME_SA="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
+          for pair in JOB_KEY=job-key TELEGRAM_SECRET=telegram-secret TELEGRAM_BOT_TOKEN=telegram-bot-token SMTP_USER=smtp-user SMTP_PASS=smtp-pass; do
+            name="${pair#*=}"
+            if gcloud secrets describe "$name" --project "$PROJECT" >/dev/null 2>&1; then
+              gcloud secrets add-iam-policy-binding "$name" --project "$PROJECT" --member "serviceAccount:$RUNTIME_SA" \
+                --role roles/secretmanager.secretAccessor --quiet >/dev/null
+              SECRETS="${SECRETS:+$SECRETS,}${pair}:latest"
+            fi
+          done
           gcloud run deploy stockcheck-api --source api --region asia-southeast1 --project "$PROJECT" \
-            --allow-unauthenticated --memory 512Mi --max-instances 3 --quiet
+            --allow-unauthenticated --memory 512Mi --max-instances 3 --quiet \
+            ${SECRETS:+--set-secrets "$SECRETS"} \
+            --set-env-vars "WEB_PUSH_VAPID_KEY=${{ vars.WEB_PUSH_VAPID_KEY }}"
+
+      # The morning report at 8 (Malaysia), and the bot pointed at the API.
+      - name: The bot and the morning report
+        if: steps.setup.outputs.ready == 'true' && steps.api.outcome == 'success'
+        continue-on-error: true
+        run: |
+          URL=$(gcloud run services describe stockcheck-api --region asia-southeast1 --project "$PROJECT" --format='value(status.url)')
+          KEY=$(gcloud secrets versions access latest --secret job-key --project "$PROJECT")
+          echo "::add-mask::$KEY"
+          curl -fsS -X POST -H "x-job-key: $KEY" "$URL/jobs/setup"; echo
+          ARGS=(--location asia-southeast1 --project "$PROJECT" --schedule "0 8 * * *" --time-zone "Asia/Kuala_Lumpur"
+                --uri "$URL/jobs/daily" --http-method POST)
+          if gcloud scheduler jobs describe suxin-daily --location asia-southeast1 --project "$PROJECT" >/dev/null 2>&1; then
+            gcloud scheduler jobs update http suxin-daily "${ARGS[@]}" --update-headers "x-job-key=$KEY" --quiet
+          else
+            gcloud scheduler jobs create http suxin-daily "${ARGS[@]}" --headers "x-job-key=$KEY" --quiet
+          fi
 
       - name: If the API did not deploy
         if: steps.setup.outputs.ready == 'true' && steps.api.outcome == 'failure'
         run: |
-          echo "::warning::The POS API was not deployed. The key's account needs Cloud Run Admin, Cloud Build Editor, Service Account User and Artifact Registry Admin. See api/README.md."
+          echo "::warning::The POS API was not deployed. The key's account needs Cloud Run Admin, Cloud Build Editor, Service Account User, Artifact Registry Admin, Secret Manager Admin and Cloud Scheduler Admin. See api/README.md."
 
       - name: Where it is
         if: steps.setup.outputs.ready == 'true'
