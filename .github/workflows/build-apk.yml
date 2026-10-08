@@ -38,6 +38,22 @@ jobs:
 
       # The APK first. A failing test still leaves something installable, and
       # an APK in hand beats a red tick and nothing to try.
+      # Signed with the key from the WEBAPPS_KEYSTORE secret (as Android's
+      # debug key), so each new APK installs over the last one. Without the
+      # secret, the runner's own fresh debug key: a new build then needs the
+      # old app removed first.
+      - name: Use the fixed key for JEXO Count
+        env:
+          WEBAPPS_KEYSTORE: ${{ secrets.WEBAPPS_KEYSTORE }}
+        run: |
+          if [ -z "$WEBAPPS_KEYSTORE" ]; then echo "::warning::No WEBAPPS_KEYSTORE secret: JEXO Count is signed with a one-off key."; exit 0; fi
+          mkdir -p ~/.android
+          printf '%s' "$WEBAPPS_KEYSTORE" | base64 -d > "$RUNNER_TEMP/k.p12"
+          rm -f ~/.android/debug.keystore
+          keytool -importkeystore -noprompt -srckeystore "$RUNNER_TEMP/k.p12" -srcstoretype PKCS12 -srcstorepass jexo-webapps -srcalias jexo \
+            -destkeystore ~/.android/debug.keystore -deststoretype PKCS12 -deststorepass android -destkeypass android -destalias androiddebugkey
+          rm -f "$RUNNER_TEMP/k.p12"
+
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
