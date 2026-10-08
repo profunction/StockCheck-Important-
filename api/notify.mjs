@@ -19,7 +19,7 @@
  */
 import {
   branchesText, busyText, compareText, customersText, dailyText, dontKnow, examplesText, greetText, itemSalesText, langText,
-  movesText, noRight, outText, poText, priceText, profitText, shiftText, slowText, staffText, taxText, thanksText, topText,
+  mailText, movesText, noRight, outText, poText, priceText, profitText, shiftText, slowText, staffText, taxText, thanksText, topText,
   valueText, voidsText, whoamiText,
 } from './answers.mjs';
 import { isLow, levels as ledgerLevels } from './ledger.js';
@@ -214,6 +214,18 @@ export function notifier(db, env = process.env) {
       await chatSnap.ref.set({ daily: q.kind === 'dailyOn' }, { merge: true });
       return say(dailyText(q.kind === 'dailyOn', lang));
     }
+    if (q.kind === 'emailTest') {
+      if (!who.isAdmin) return say(mailText('admin', '', lang));
+      if (!env.MAIL_STUB_URL && !(env.SMTP_USER && env.SMTP_PASS)) return say(mailText('off', '', lang));
+      const settings = (await ws.collection('meta').doc('notify').get()).data() || {};
+      const to = (settings.emails?.length ? settings.emails : [who.email]).filter(Boolean);
+      try {
+        const ok = await emailReport(chat.workspaceId, to, lang, now);
+        return say(ok ? mailText('sent', to.join(', '), lang) : mailText('fail', 'no address', lang));
+      } catch (err) {
+        return say(mailText('fail', String(err.message || err).slice(0, 200), lang));
+      }
+    }
     if (q.kind === 'whoami') {
       const role = who.isAdmin ? '' : (await ws.collection('roles').doc(who.roleId || 'none').get()).data()?.name || who.roleId || '';
       return say(whoamiText({ name: who.name, company: co.name, isAdmin: who.isAdmin, role, places: who.branchIds.map(co.placeName) }, lang));
@@ -339,6 +351,17 @@ export function notifier(db, env = process.env) {
   // ------------------------------------------------------------ the morning
 
   /** Yesterday's report to everyone who asked for it, once a day per company. */
+  const mailReport = (to, text) => email(to, text.split('\n')[0].replace(/^📊 /, ''), `${text}\n\n${SITE}/pos/#/cloud`);
+
+  /** Yesterday's report to [to], now: the bot's "发测试邮件". */
+  async function emailReport(wsId, to, lang, now = Date.now()) {
+    const [from, end] = dayRange(now, 1);
+    const co = await company(wsId);
+    const { byBranch } = await stock(wsId);
+    const summary = summarize(await salesBetween(wsId, from, end));
+    return mailReport(to, reportText({ company: co.name, summary, lows: lowsOf(byBranch, co.placeName), start: from, lang }));
+  }
+
   async function dailyReports(now = Date.now()) {
     const [from, to] = dayRange(now, 1);
     const day = new Date(from + 8 * 3600_000).toISOString().slice(0, 10);
@@ -369,9 +392,8 @@ export function notifier(db, env = process.env) {
       }
       const lows = lowsOf(byBranch, co.placeName);
       if (emails.length) {
-        const lang = settings.lang || 'zh';
-        const text = reportText({ company: co.name, summary, lows, start: from, lang });
-        if (await email(emails, text.split('\n')[0].replace(/^📊 /, ''), `${text}\n\n${SITE}/pos/#/cloud`).catch((e) => { console.error('email', e.message); return false; })) sent.email++;
+        const text = reportText({ company: co.name, summary, lows, start: from, lang: settings.lang || 'zh' });
+        if (await mailReport(emails, text).catch((e) => { console.error('email', e.message); return false; })) sent.email++;
       }
       if (settings.pushDaily) {
         const owners = [];

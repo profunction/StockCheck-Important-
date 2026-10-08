@@ -1,5 +1,5 @@
 /**
- * The 300 questions the SuXin bot is built to answer, as people type them,
+ * The 300-odd questions the SuXin bot is built to answer, as people type them,
  * in Chinese, English and Malay: [question, kind, what else it must catch].
  * bot.test.mjs checks every one; answers.mjs picks examples from them.
  */
@@ -325,6 +325,12 @@ export const PHRASES = [
   ['turn on the daily report', 'dailyOn', {}],
   ['hentikan laporan harian', 'dailyOff', {}],
   ['hidupkan laporan harian', 'dailyOn', {}],
+
+  // ------------------------------------------- the report by email, now
+  ['发测试邮件', 'emailTest', {}],
+  ['把报告发到我的邮箱', 'emailTest', {}],
+  ['send the report to my email', 'emailTest', {}],
+  ['hantar laporan ke emel', 'emailTest', {}],
 
   // --------------------------------------------------------- language
   ['说中文', 'lang', { lang: 'zh' }],

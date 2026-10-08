@@ -18,6 +18,7 @@ const WORDS = {
   dailyOff: /^\/stop\b|(关掉|关闭|停止|取消|暂停|不要|别再?|不用|stop|turn off|unsubscribe( from)?|pause|matikan|hentikan|berhenti|jangan)\s*(再?发|send|hantar)?\s*((每日|每天|早上|the|daily|morning|harian)\s*)*(的)?\s*(报告|report|laporan)/i,
   dailyOn: /(打开|开启|恢复|重新发|继续发|turn on|resume|subscribe( to)?|hidupkan|sambung semula|teruskan)\s*((每日|每天|早上|the|daily|morning|harian)\s*)*(的)?\s*(报告|report|laporan)/i,
   lang: /^(\/lang\b.*|(请|麻烦)?(说|讲|用|换成?|改成?|转成?|切换到?)\s*(中文|华语|华文|英文|英语|马来文|马来语|国语)\s*(吧|啦|回答|回复|好了)?|(speak|reply in|answer in|use|switch to|change to|cakap|guna|tukar ke|jawab dalam)\s+(english|chinese|malay|bahasa( melayu)?|bm|cina|inggeris|melayu)(\s+please)?|english|english please|中文|bahasa melayu|bahasa)\s*[.!！?？]*$/i,
+  emailTest: /(测试邮件|试发邮件|发.{0,8}(邮件|电邮|邮箱|email)|(email|e-mail) (me|test)|test (email|e-mail)|send .{0,20}(email|e-mail)|hantar .{0,20}e-?mel|e-?mel ujian)/i,
   whoami: /(我是谁|我的账号|我的帐号|我是哪个|我在哪间公司|我的权限|我的角色|连接了谁|who am i|my account|my role|siapa saya|akaun saya|peranan saya)/i,
   shift: /(开班|关班|交班|班次|谁在收银|谁在看店|谁在顾店|谁上班|谁在班|有人上班|有没有人在|收银机开了|shifts?\b|who is (working|on duty|at the till)|anyone working|syif|siapa (kerja|bertugas|jaga))/i,
   report: /(^\/report\b|报告|报表|总结|report|summary|laporan|ringkasan)/i,
@@ -81,7 +82,7 @@ function soldWhat(text) {
     .replace(/\b(today|yesterday|this|last|week|month|sales|sold|sell|did|we|how|many|much|units?|pcs|revenue|takings|turnover|receipts|business|cash|card|average|bill|ok|or|not|today's|hari ini|hari ni|semalam|minggu|bulan|ini|lepas|jualan|terjual|jual|berapa|unit|kutipan|tunai|kad|pendapatan|hasil)\b/gi, ' '));
 }
 
-const ORDER = ['dailyOff', 'dailyOn', 'whoami', 'shift', 'report', 'compare', 'out', 'low', 'slow', 'writeoff', 'voids', 'tax',
+const ORDER = ['emailTest', 'dailyOff', 'dailyOn', 'whoami', 'shift', 'report', 'compare', 'out', 'low', 'slow', 'writeoff', 'voids', 'tax',
   'profit', 'busy', 'customers', 'staff', 'top', 'value', 'po', 'receive'];
 
 /**

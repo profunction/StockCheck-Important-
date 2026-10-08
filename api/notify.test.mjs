@@ -163,6 +163,11 @@ test('linking a chat, then asking it things', async () => {
     await ask(n, 100, question);
     assert.match(last().text, answer, question);
   }
+  heard.mail.length = 0;
+  await ask(n, 100, '发测试邮件');
+  assert.match(last().text, /已把昨天的报告发到：boss@kedai\.my/);
+  assert.deepEqual(heard.mail[0].to, ['boss@kedai.my']);
+  assert.match(heard.mail[0].text, /RM 31\.80/);
   await ask(n, 100, '关掉每日报告');
   assert.equal(db.store.get('telegramChats/100').daily, false);
   await ask(n, 100, '用英文');
@@ -188,6 +193,8 @@ test('a worker sees their own branch, and no sales', async () => {
   assert.equal(last().text, '🚫 Stok habis (1)\n• Kopi O 1kg', 'one place: no place name');
   await ask(n, 200, 'siapa bertugas sekarang');
   assert.match(last().text, /tidak boleh lihat ini/);
+  await ask(n, 200, 'hantar laporan ke emel');
+  assert.match(last().text, /Hanya pemilik/);
   await ask(n, 200, 'cawangan');
   assert.equal(last().text, '🏪 1 tempat\n• Kedai Ipoh');
   await ask(n, 200, 'barang masuk hari ini');

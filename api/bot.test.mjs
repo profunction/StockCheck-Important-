@@ -6,9 +6,9 @@ import {
 } from './bot.mjs';
 import { PHRASES } from './phrases.mjs';
 
-test('all 300 questions are understood', () => {
-  assert.equal(PHRASES.length, 300);
-  assert.equal(new Set(PHRASES.map(([q]) => q)).size, 300, 'no question twice');
+test('all 300-odd questions are understood', () => {
+  assert.ok(PHRASES.length >= 300);
+  assert.equal(new Set(PHRASES.map(([q]) => q)).size, PHRASES.length, 'no question twice');
   for (const [text, kind, want] of PHRASES) {
     const q = parseMessage(text);
     assert.equal(q.kind, kind, text);

@@ -19,6 +19,8 @@ const A = {
     status: { SUBMITTED: '待批准', APPROVED: '已批准', ORDERED: '已下单', PARTIAL: '部分收到' },
     priceHead: '🏷️ 价钱', noSales: '这段时间没有销售。',
     dontKnow: (q) => `我不太明白「${q}」。可以这样问：\n• Milo 还有多少？\n• 今天 / 这个月卖了多少？\n• 这个月赚多少？\n• 什么最好卖？\n• 有什么没货了？\n发「帮助」看全部。`,
+    mailSent: (to) => `📧 已把昨天的报告发到：${to}\n收不到的话看看垃圾邮件。`, mailOff: '邮件还没设置好：Google Cloud 里少了 smtp-user 或 smtp-pass。',
+    mailFail: (e) => `📧 发不出去：${e}\n多数是 Gmail 应用专用密码不对，请重新生成再放进 smtp-pass。`, mailAdmin: '只有老板可以发测试邮件。',
     examplesHead: '可以这样问我（中文、English、Bahasa 都可以）：',
     greet: (n) => `你好${n ? ` ${n}` : ''} 👋 想知道什么？\n例如：今天卖了多少？ / Milo 还有多少？ / 有什么没货了？`,
     thanks: '不客气 🙂 有需要随时问我。',
@@ -51,6 +53,8 @@ const A = {
     status: { SUBMITTED: 'to approve', APPROVED: 'approved', ORDERED: 'ordered', PARTIAL: 'part received' },
     priceHead: '🏷️ Prices', noSales: 'No sales in this time.',
     dontKnow: (q) => `I did not understand "${q}". Try:\n• How many Milo?\n• Sales today / this month\n• Profit this month\n• Best sellers\n• What is out of stock?\nSend "help" for everything.`,
+    mailSent: (to) => `📧 Yesterday's report was sent to: ${to}\nIf it does not arrive, look in spam.`, mailOff: 'Email is not set up: smtp-user or smtp-pass is missing in Google Cloud.',
+    mailFail: (e) => `📧 Could not send: ${e}\nUsually the Gmail app password is wrong; make a new one and put it in smtp-pass.`, mailAdmin: 'Only the owner can send a test email.',
     examplesHead: 'You can ask me (in English, 中文 or Bahasa):',
     greet: (n) => `Hello${n ? ` ${n}` : ''} 👋 What would you like to know?\nFor example: sales today? / how many Milo? / what is out of stock?`,
     thanks: 'You are welcome 🙂 Ask me any time.',
@@ -83,6 +87,8 @@ const A = {
     status: { SUBMITTED: 'untuk lulus', APPROVED: 'diluluskan', ORDERED: 'dipesan', PARTIAL: 'sebahagian diterima' },
     priceHead: '🏷️ Harga', noSales: 'Tiada jualan dalam tempoh ini.',
     dontKnow: (q) => `Saya tidak faham "${q}". Cuba:\n• Berapa stok Milo?\n• Jualan hari ini / bulan ini\n• Untung bulan ini\n• Paling laris\n• Apa stok habis?\nHantar "bantuan" untuk semua.`,
+    mailSent: (to) => `📧 Laporan semalam dihantar ke: ${to}\nJika tiada, semak spam.`, mailOff: 'E-mel belum disediakan: smtp-user atau smtp-pass tiada di Google Cloud.',
+    mailFail: (e) => `📧 Gagal hantar: ${e}\nBiasanya kata laluan aplikasi Gmail salah; buat yang baru dan masukkan ke smtp-pass.`, mailAdmin: 'Hanya pemilik boleh hantar e-mel ujian.',
     examplesHead: 'Anda boleh tanya (Bahasa, English atau 中文):',
     greet: (n) => `Hai${n ? ` ${n}` : ''} 👋 Apa yang anda mahu tahu?\nContoh: jualan hari ini? / berapa stok Milo? / apa stok habis?`,
     thanks: 'Sama-sama 🙂 Tanya bila-bila masa.',
@@ -314,3 +320,8 @@ export function itemSalesText(product, row, { lang = 'zh', period = 'today', sta
   return w.itemSold(product.name || product.barcode, w.period[period], rangeLabel(start, end),
     `${qty(row?.qtyMilli || 0)} ${product.unit || ''}`.trimEnd(), rm(row?.sen || 0));
 }
+
+export const mailText = (kind, arg, lang = 'zh') => {
+  const w = a(lang);
+  return kind === 'sent' ? w.mailSent(arg) : kind === 'fail' ? w.mailFail(arg) : kind === 'admin' ? w.mailAdmin : w.mailOff;
+};
