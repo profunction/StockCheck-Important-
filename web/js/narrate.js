@@ -6,8 +6,11 @@
  * the voices it already has -- Android, iPhone and Windows all have
  * Chinese, English and Malay (or Indonesian, which reads Malay) voices.
  *
- * The video waits while a step is being read, so the words never fall
- * behind the picture. Narration can be switched off; the choice is kept.
+ * The video never stops for the voice. When a step is still being read as
+ * the next one comes up, the picture slows down (never pauses) until the
+ * words catch up, then goes back to normal speed -- so it plays smoothly
+ * and the words still match what is on screen. Narration can be switched
+ * off; the choice is kept.
  */
 import { h, local } from './dom.js';
 import { getLang } from './i18n.js';
@@ -41,13 +44,16 @@ export function narratedVideo(src, poster = '') {
   let cues = null;
   let last = 0;
   let speaking = false;
-  let resumeAfter = false;
+  let pending = '';
+  // How slow the picture goes while the voice catches up: slower, never stopped.
+  const SLOW = 0.6;
+  const normal = () => { if (video.playbackRate !== 1) video.playbackRate = 1; };
   const toggle = h('button', { type: 'button', class: 'ghost narrate-toggle', 'data-act': 'narrate' });
   const drawToggle = () => { toggle.textContent = (LABEL[lang] || LABEL.en)[narrationOn() ? 0 : 1]; };
   drawToggle();
   toggle.onclick = () => {
     local.set(KEY, !narrationOn());
-    if (!narrationOn()) { window.speechSynthesis.cancel(); speaking = false; }
+    if (!narrationOn()) { window.speechSynthesis.cancel(); speaking = false; pending = ''; normal(); }
     drawToggle();
   };
 
@@ -65,7 +71,8 @@ export function narratedVideo(src, poster = '') {
     speaking = true;
     const done = () => {
       speaking = false;
-      if (resumeAfter) { resumeAfter = false; video.play().catch(() => {}); }
+      // The next step came up meanwhile: read it now; otherwise full speed again.
+      if (pending && narrationOn()) { const next = pending; pending = ''; speak(next); } else normal();
     };
     u.onend = done;
     u.onerror = done;
@@ -73,8 +80,8 @@ export function narratedVideo(src, poster = '') {
   };
 
   video.addEventListener('play', () => { load(); if (window.speechSynthesis.paused) window.speechSynthesis.resume(); });
-  video.addEventListener('seeking', () => { window.speechSynthesis.cancel(); speaking = false; resumeAfter = false; last = video.currentTime; });
-  video.addEventListener('ended', () => { last = 0; });
+  video.addEventListener('seeking', () => { window.speechSynthesis.cancel(); speaking = false; pending = ''; normal(); last = video.currentTime; });
+  video.addEventListener('ended', () => { last = 0; pending = ''; normal(); });
   video.addEventListener('timeupdate', () => {
     const now = video.currentTime;
     // Until the steps have arrived, keep the place: they are read once they do.
@@ -85,12 +92,11 @@ export function narratedVideo(src, poster = '') {
     if (!due.length) return;
     const text = due.map((c) => cueText(c, lang)).filter(Boolean).join('。 ');
     if (!text) return;
-    window.speechSynthesis.cancel();
-    // The picture waits for the words.
-    if (!video.paused) { resumeAfter = true; video.pause(); }
+    // Still reading the last step: slow the picture down and read this one next.
+    if (speaking) { pending = pending ? `${pending}。 ${text}` : text; video.playbackRate = SLOW; return; }
     speak(text);
   });
-  // A pause the viewer makes stops the voice too; one this file makes does not.
-  video.addEventListener('pause', () => { if (!resumeAfter && speaking) window.speechSynthesis.pause(); });
+  // The viewer's pause stops the voice too.
+  video.addEventListener('pause', () => { if (speaking) window.speechSynthesis.pause(); });
   return h('div', { class: 'narrated' }, video, toggle);
 }
