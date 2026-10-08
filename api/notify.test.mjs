@@ -61,10 +61,18 @@ const seed = () => ({
   [`${W}products/3001`]: { name: 'Kopi O 1kg', unit: 'pcs', costSen: 1000 },
   [`${W}movements/m2`]: { barcode: '3001', type: 'SALE', quantityMilli: 1000, at: Date.now(), branchId: 'ipoh' },
   [`${W}movements/m3`]: { barcode: '3001', type: 'RECEIVE', quantityMilli: 4000, at: Date.now(), branchId: 'gudang' },
-  [`${W}sales/t1`]: { status: 'COMPLETED', createdAt: NOW - 3600_000, totalSen: 5000, cashierName: 'Mei', payments: [{ method: 'CASH', amountSen: 5000 }],
+  [`${W}sales/t1`]: { status: 'COMPLETED', createdAt: NOW - 3600_000, totalSen: 5000, taxSen: 283, cashierName: 'Mei', payments: [{ method: 'CASH', amountSen: 5000 }],
     lines: [{ barcode: '3001', name: 'Kopi O 1kg', qtyMilli: 2000, lineTotalSen: 5000, costSen: 1000 }] },
   [`${W}sales/t2`]: { status: 'COMPLETED', createdAt: NOW - 1800_000, totalSen: 1590, cashierName: 'Ali', payments: [{ method: 'QR', amountSen: 1590 }],
     lines: [{ barcode: '9555', name: 'Milo 1kg', qtyMilli: 1000, lineTotalSen: 1590 }] },
+  [`${W}sales/v1`]: { status: 'VOIDED', createdAt: NOW - 1200_000, totalSen: 999, receiptNo: 'R-9', voidedByName: 'Mei', voidReason: '打错', lines: [] },
+  [`${W}products/4001`]: { name: 'Teh Bunga', unit: 'pcs', costSen: 500 },
+  [`${W}movements/m4`]: { barcode: '4001', productName: 'Teh Bunga', type: 'RECEIVE', quantityMilli: 5000, at: NOW - 3600_000, branchId: 'gudang' },
+  [`${W}movements/m5`]: { barcode: '9555', productName: 'Milo 1kg', type: 'WRITE_OFF', quantityMilli: 1000, at: NOW - 3000_000, branchId: 'ipoh', note: '过期' },
+  [`${W}shifts/s1`]: { status: 'OPEN', operatorName: 'Mei', branchId: 'ipoh', branchName: 'Kedai Ipoh', openedAt: NOW - 3 * 3600_000, initialFloatSen: 10000 },
+  [`${W}shifts/s2`]: { status: 'CLOSED', operatorName: 'Ali', branchId: 'ipoh', openedAt: NOW - 86_400_000 },
+  [`${W}customers/c1`]: { name: 'Tan', totalSpentSen: 50000, visits: 12, createdAt: NOW - 5 * 86_400_000 },
+  [`${W}customers/c2`]: { name: 'Lim', totalSpentSen: 1000, visits: 1, createdAt: NOW - 3600_000 },
   [`${W}purchaseOrders/p1`]: { poNo: 'PO-0001', supplierName: 'Nestle', status: 'ORDERED', branchId: 'gudang', expectedAt: NOW + 86_400_000 },
   [`${W}purchaseOrders/p2`]: { poNo: 'PO-0002', supplierName: 'Old', status: 'RECEIVED', branchId: 'gudang' },
   [`${W}stockChecks/c1`]: { status: 'COMPLETED', branchId: 'ipoh', zone: '', createdAt: 1000, completedAt: 1000 },
@@ -102,14 +110,14 @@ test('linking a chat, then asking it things', async () => {
 
   await n.handleUpdate(say(100, 'Milo 还有多少？'));
   assert.match(last().text, /📦 Milo 1kg/);
-  assert.match(last().text, /Kedai Ipoh: 18 pcs/);
+  assert.match(last().text, /Kedai Ipoh: 17 pcs/);
   assert.match(last().text, /Gudang: 50 pcs/);
   await n.handleUpdate(say(100, 'teh tarik'));
   assert.match(last().text, /我不太明白「teh tarik」/);
-  await n.handleUpdate(say(100, 'Teh 还有多少'));
-  assert.match(last().text, /找不到「Teh」/);
+  await n.handleUpdate(say(100, 'Susu 还有多少'));
+  assert.match(last().text, /找不到「Susu」/);
   await n.handleUpdate(say(100, '低库存'));
-  assert.match(last().text, /低库存 1 样[\s\S]*Milo 1kg \(Kedai Ipoh\): 剩 18, 补货点 30/);
+  assert.match(last().text, /低库存 1 样[\s\S]*Milo 1kg \(Kedai Ipoh\): 剩 17, 补货点 30/);
   await ask(n, 100, '昨天卖了多少');
   assert.match(last().text, /营业额：RM 31\.80（1 单/);
 
@@ -126,12 +134,43 @@ test('linking a chat, then asking it things', async () => {
   await ask(n, 100, '这个月卖了多少');
   assert.match(last().text, /RM 97\.70（3 单/);
   await ask(n, 100, '库存价值多少');
-  assert.match(last().text, /Gudang: RM 40\.00/);
+  assert.match(last().text, /Gudang: RM 65\.00/);
   assert.match(last().text, /1 样商品没有成本/, 'Milo, counted once though it is in two places');
   await ask(n, 100, '有什么采购单要收货？');
   assert.match(last().text, /（1 张）\n• PO-0001 · Nestle · 已下单 · 预计 9\/10/);
   await ask(n, 100, 'Beras 多少钱？');
   assert.match(last().text, /Beras 5kg: RM 26\.90 \/ bag/);
+
+  // And the rest of the 300.
+  const answers = {
+    你好: /你好 Ah Hock 👋/,
+    谢谢: /不客气/,
+    我是谁: /👤 Ah Hock\n公司：Kedai Maju\n角色：老板/,
+    有几间分店: /🏪 2 个地点\n• Kedai Ipoh\n• Gudang/,
+    '现在谁在收银？': /开着的班（1）\n• Mei · Kedai Ipoh · 从 8\/10 05:30 · 备用金 RM 100\.00$/,
+    今天比昨天怎样: /这次（8\/10\/2026）: RM 65\.90 · 2 单\n上次（7\/10\/2026）: RM 31\.80 · 1 单\n⬆️ 变化: \+RM 34\.10 \+107\.2%/,
+    '几点最忙？': /1\. 07:00–08:00 · 1 单 · RM 50\.00/,
+    '什么卖不动？': /（1 样，还有库存）\n• Teh Bunga \(Gudang\): 剩 5$/,
+    今天报损了什么: /• Milo 1kg ×1 \(过期\)/,
+    今天进了什么货: /• Teh Bunga ×5\n• Kopi O 1kg ×4/,
+    今天有作废的单吗: /1 单，共 RM 9\.99\n• R-9 RM 9\.99 · Mei · 打错/,
+    今天SST多少: /收了 RM 2\.83（1 单有税）/,
+    '有多少会员？': /一共 2 位\n今天新加 1 位\n花最多的：\n1\. Tan/,
+    'Milo 今天卖了几个': /Milo 1kg\n今天（8\/10\/2026）卖了 1 pcs · RM 15\.90/,
+    例子: /可以这样问我/,
+  };
+  for (const [question, answer] of Object.entries(answers)) {
+    await ask(n, 100, question);
+    assert.match(last().text, answer, question);
+  }
+  await ask(n, 100, '关掉每日报告');
+  assert.equal(db.store.get('telegramChats/100').daily, false);
+  await ask(n, 100, '用英文');
+  assert.equal(last().text, 'OK, I will answer in English.');
+  await ask(n, 100, '今天卖了多少');
+  assert.match(last().text, /💰 Today/, 'and keeps to it');
+  await ask(n, 100, '打开每日报告');
+  assert.equal(db.store.get('telegramChats/100').daily, true);
 });
 
 test('a worker sees their own branch, and no sales', async () => {
@@ -147,8 +186,14 @@ test('a worker sees their own branch, and no sales', async () => {
   assert.match(last().text, /tidak boleh lihat ini/);
   await ask(n, 200, 'apa stok habis');
   assert.equal(last().text, '🚫 Stok habis (1)\n• Kopi O 1kg', 'one place: no place name');
+  await ask(n, 200, 'siapa bertugas sekarang');
+  assert.match(last().text, /tidak boleh lihat ini/);
+  await ask(n, 200, 'cawangan');
+  assert.equal(last().text, '🏪 1 tempat\n• Kedai Ipoh');
+  await ask(n, 200, 'barang masuk hari ini');
+  assert.match(last().text, /Tiada barang masuk/, 'the delivery went to Gudang');
   await n.handleUpdate(say(200, 'berapa stok Milo'));
-  assert.match(last().text, /Kedai Ipoh: 18/);
+  assert.match(last().text, /Kedai Ipoh: 17/);
   assert.doesNotMatch(last().text, /Gudang/);
   // Switched off by the owner: the chat is forgotten.
   db.store.get(`${W}users/ali`).active = false;

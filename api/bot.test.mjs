@@ -2,8 +2,21 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  dayRange, findProducts, langOf, lowText, parseMessage, periodRange, qty, reportPush, reportText, rm, salesText, stockText, summarize,
+  dayRange, findProducts, langOf, lowText, parseMessage, periodRange, previousRange, qty, reportPush, reportText, rm, salesText, stockText, summarize,
 } from './bot.mjs';
+import { PHRASES } from './phrases.mjs';
+
+test('all 300 questions are understood', () => {
+  assert.equal(PHRASES.length, 300);
+  assert.equal(new Set(PHRASES.map(([q]) => q)).size, 300, 'no question twice');
+  for (const [text, kind, want] of PHRASES) {
+    const q = parseMessage(text);
+    assert.equal(q.kind, kind, text);
+    for (const [k, v] of Object.entries(want)) assert.equal(q[k], v, `${text}: ${k}`);
+    // A plain sales question carries no product.
+    if (kind === 'sales' && !want.query) assert.equal(q.query, undefined, text);
+  }
+});
 
 test('questions in three languages', () => {
   assert.deepEqual(parseMessage('/start AB12cd34'), { kind: 'link', code: 'AB12cd34' });
@@ -49,6 +62,13 @@ test('periods run in Malaysian time', () => {
   assert.equal(new Date(we).toISOString(), '2026-10-08T16:00:00.000Z');
   assert.equal(new Date(periodRange('month', now)[0]).toISOString(), '2026-09-30T16:00:00.000Z');
   assert.deepEqual(periodRange('yesterday', now), dayRange(now, 1));
+  assert.deepEqual(periodRange('dayBefore', now), dayRange(now, 2));
+  assert.deepEqual(periodRange('lastWeek', now), [dayRange(now, 13)[0], dayRange(now, 6)[0]]);
+  assert.deepEqual(periodRange('lastMonth', now).map((t) => new Date(t).toISOString()), ['2026-08-31T16:00:00.000Z', '2026-09-30T16:00:00.000Z']);
+  // Against the one before: today with yesterday, this month with the same days of last month.
+  assert.deepEqual(previousRange('today', now), dayRange(now, 1));
+  assert.deepEqual(previousRange('week', now), periodRange('lastWeek', now));
+  assert.deepEqual(previousRange('month', now).map((t) => new Date(t).toISOString()), ['2026-08-31T16:00:00.000Z', '2026-09-08T16:00:00.000Z']);
 });
 
 const PRODUCTS = [

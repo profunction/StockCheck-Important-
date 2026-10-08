@@ -18,11 +18,13 @@
  * Whatever is missing is simply not sent.
  */
 import {
-  dontKnow, noRight, outText, poText, priceText, profitText, staffText, topText, valueText,
+  branchesText, busyText, compareText, customersText, dailyText, dontKnow, examplesText, greetText, itemSalesText, langText,
+  movesText, noRight, outText, poText, priceText, profitText, shiftText, slowText, staffText, taxText, thanksText, topText,
+  valueText, voidsText, whoamiText,
 } from './answers.mjs';
 import { isLow, levels as ledgerLevels } from './ledger.js';
 import {
-  dayRange, findProducts, langOf, lowText, parseMessage, periodRange, reportPush, reportText, salesText, stockText, summarize, words,
+  dayRange, findProducts, langOf, lowText, parseMessage, periodRange, previousRange, reportPush, reportText, salesText, stockText, summarize, words,
 } from './bot.mjs';
 
 const SITE = 'https://stockcheck-fb58e.web.app';
@@ -108,7 +110,7 @@ export function notifier(db, env = process.env) {
     const role = isAdmin ? null : (await wsRef(wsId).collection('roles').doc(p.roleId || 'none').get()).data();
     const perms = new Set(role?.permissions || []);
     return {
-      uid, name: p.displayName || p.email || '', email: p.email || '', isAdmin, branchIds: p.branchIds || [],
+      uid, name: p.displayName || p.email || '', email: p.email || '', isAdmin, roleId: p.roleId || '', branchIds: p.branchIds || [],
       can: (perm) => isAdmin || perms.has(perm),
     };
   }
@@ -116,7 +118,7 @@ export function notifier(db, env = process.env) {
   async function company(wsId) {
     const c = (await wsRef(wsId).collection('meta').doc('config').get()).data() || {};
     const names = Object.fromEntries((c.branches || []).map((b) => [b.id, b.name]));
-    return { name: c.companyName || '', placeName: (id) => names[id] || (id ? id : c.companyName || '—') };
+    return { name: c.companyName || '', branchIds: (c.branches || []).filter((b) => b.active !== false && !b.closed).map((b) => b.id), placeName: (id) => names[id] || (id ? id : c.companyName || '—') };
   }
 
   const salesBetween = async (wsId, from, to) => (await wsRef(wsId).collection('sales')
@@ -196,37 +198,103 @@ export function notifier(db, env = process.env) {
 
     const say = (text) => telegram(chatId, text);
     const no = () => say(noRight(lang));
+    const ws = wsRef(chat.workspaceId);
+    const here = (branchId) => !who.branchIds.length || who.branchIds.includes(branchId || '');
+
+    // Talking, and settings for this chat.
     if (q.kind === 'help') return say(w.help);
+    if (q.kind === 'examples') return say(examplesText(lang));
+    if (q.kind === 'greet') return say(greetText(who.name, lang));
+    if (q.kind === 'thanks') return say(thanksText(lang));
+    if (q.kind === 'lang') {
+      await chatSnap.ref.set({ lang: q.lang }, { merge: true });
+      return telegram(chatId, langText(q.lang));
+    }
+    if (q.kind === 'dailyOff' || q.kind === 'dailyOn') {
+      await chatSnap.ref.set({ daily: q.kind === 'dailyOn' }, { merge: true });
+      return say(dailyText(q.kind === 'dailyOn', lang));
+    }
+    if (q.kind === 'whoami') {
+      const role = who.isAdmin ? '' : (await ws.collection('roles').doc(who.roleId || 'none').get()).data()?.name || who.roleId || '';
+      return say(whoamiText({ name: who.name, company: co.name, isAdmin: who.isAdmin, role, places: who.branchIds.map(co.placeName) }, lang));
+    }
+    if (q.kind === 'branches') {
+      const ids = co.branchIds.filter((b) => here(b));
+      return say(branchesText(ids.length ? ids.map(co.placeName) : [co.placeName('')], lang));
+    }
+
     if (q.kind === 'po') {
       if (!(who.can('WH_PURCHASE') || who.can('WH_APPROVE') || who.can('RECORD_STOCK_MOVEMENTS'))) return no();
-      const pos = (await wsRef(chat.workspaceId).collection('purchaseOrders').where('status', 'in', OPEN_PO).get())
+      const pos = (await ws.collection('purchaseOrders').where('status', 'in', OPEN_PO).get())
         .docs.map((d) => ({ ...d.data(), id: d.id }))
-        .filter((p) => !who.branchIds.length || !p.branchId || who.branchIds.includes(p.branchId))
-        .sort((a, b) => (a.expectedAt || Infinity) - (b.expectedAt || Infinity));
+        .filter((p) => !p.branchId || here(p.branchId))
+        .sort((x, y) => (x.expectedAt || Infinity) - (y.expectedAt || Infinity));
       return say(poText(pos, lang));
     }
-    const [from, to] = periodRange(q.period || 'today', now);
-    const span = { lang, period: q.period || 'today', day: q.period || 'today', start: from, end: to };
-    if (['sales', 'profit', 'top', 'staff'].includes(q.kind)) {
+    if (q.kind === 'shift') {
+      if (!(maySales || who.can('POS_MANAGE'))) return no();
+      const open = (await ws.collection('shifts').where('status', '==', 'OPEN').get()).docs.map((d) => d.data())
+        .filter((x) => here(x.branchId)).sort((x, y) => x.openedAt - y.openedAt);
+      return say(shiftText(open, lang));
+    }
+    if (q.kind === 'customers') {
+      if (!(maySales || who.can('POS_MANAGE'))) return no();
+      const [from] = periodRange(q.period || 'today', now);
+      return say(customersText((await ws.collection('customers').get()).docs.map((d) => d.data()), { lang, period: q.period || 'today', from }));
+    }
+
+    const period = q.period || 'today';
+    const [from, to] = periodRange(period, now);
+    const span = { lang, period, day: period, start: from, end: to };
+    const salesIn = async (a, b) => (await salesBetween(chat.workspaceId, a, b)).filter((x) => here(x.branchId));
+    if (['sales', 'profit', 'top', 'staff', 'busy', 'voids', 'tax', 'compare'].includes(q.kind)) {
       if (!maySales) return q.kind === 'sales' ? say(w.noSalesRight) : no();
-      const sales = await salesBetween(chat.workspaceId, from, to);
+      if (q.kind === 'compare') {
+        const [pFrom, pTo] = previousRange(period, now);
+        const [cur, prev] = await Promise.all([salesIn(from, Math.min(to, now + 1)), salesIn(pFrom, pTo)]);
+        return say(compareText({ ...summarize(cur), start: from, end: to }, { ...summarize(prev), start: pFrom, end: pTo }, { lang, period }));
+      }
+      const sales = await salesIn(from, to);
+      if (q.kind === 'busy') return say(busyText(sales, span));
+      if (q.kind === 'voids') return say(voidsText(sales.filter((x) => x.status === 'VOIDED'), span));
+      if (q.kind === 'tax') return say(taxText(sales, span));
       const summary = summarize(sales);
-      if (q.kind === 'sales') return say(salesText(summary, span));
+      if (q.kind === 'sales') {
+        const product = q.query ? findProducts((await ws.collection('products').get()).docs.map((d) => ({ ...d.data(), barcode: d.id })), q.query)[0] : null;
+        if (product) return say(itemSalesText(product, summary.items.find((r) => r.barcode === product.barcode || r.name === product.name), span));
+        return say(salesText(summary, span));
+      }
       if (q.kind === 'top') return say(topText(summary, span));
       if (q.kind === 'staff') return say(staffText(summary, span));
-      const missingCost = sales.filter((s) => s.status !== 'VOIDED')
-        .reduce((n, s) => n + (s.lines || []).filter((l) => l.costSen == null).length, 0);
+      const missingCost = sales.filter((x) => x.status !== 'VOIDED')
+        .reduce((n, x) => n + (x.lines || []).filter((l) => l.costSen == null).length, 0);
       return say(profitText(summary, { ...span, missingCost }));
     }
-    if (!mayStock) return say(q.kind === 'value' ? noRight(lang) : w.help);
+    if (!mayStock) return say(['value', 'writeoff', 'receive', 'slow'].includes(q.kind) ? noRight(lang) : w.help);
+    if (q.kind === 'writeoff' || q.kind === 'receive') {
+      const type = q.kind === 'writeoff' ? 'WRITE_OFF' : 'RECEIVE';
+      const moves = (await ws.collection('movements').where('at', '>=', from).where('at', '<', to).get()).docs.map((d) => d.data())
+        .filter((m) => m.type === type && here(m.branchId));
+      const names = new Map(moves.some((m) => !m.productName)
+        ? (await ws.collection('products').get()).docs.map((d) => [d.id, d.data().name]) : []);
+      return say(movesText(q.kind, moves, { ...span, nameOf: (b) => names.get(b) }));
+    }
     const { byBranch, products } = await stock(chat.workspaceId);
     const mine = visible(byBranch, who);
     const catalogue = new Map(products.map((p) => [p.barcode, p]));
     const live = (l) => catalogue.get(l.barcode || l.key)?.active !== false;
+    const several = Object.keys(mine).length > 1;
     if (q.kind === 'low') return say(lowText(lowsOf(mine, co.placeName), lang));
     if (q.kind === 'out') {
       return say(outText(Object.entries(mine).flatMap(([b, list]) => list.filter((l) => l.onHand <= 0 && live(l))
-        .map((l) => ({ name: l.name || l.barcode || l.key, place: Object.keys(mine).length > 1 ? co.placeName(b) : '' }))), lang));
+        .map((l) => ({ name: l.name || l.barcode || l.key, place: several ? co.placeName(b) : '' }))), lang));
+    }
+    if (q.kind === 'slow') {
+      const sold = new Set((await salesIn(now - 30 * 86_400_000, now + 1)).filter((x) => x.status !== 'VOIDED')
+        .flatMap((x) => (x.lines || []).map((l) => l.barcode || l.name)));
+      return say(slowText(Object.entries(mine).flatMap(([b, list]) => list
+        .filter((l) => l.onHand > 0 && live(l) && !sold.has(l.barcode || l.key) && !sold.has(l.name))
+        .map((l) => ({ name: l.name || l.barcode || l.key, onHand: l.onHand, place: several ? co.placeName(b) : '' }))), lang));
     }
     if (q.kind === 'value') {
       if (!(maySales || who.can('POS_MANAGE'))) return no();
@@ -242,7 +310,7 @@ export function notifier(db, env = process.env) {
       return say(valueText(places, missing.size, lang));
     }
     if (q.kind === 'report') {
-      const summary = summarize(maySales ? await salesBetween(chat.workspaceId, from, to) : []);
+      const summary = summarize(maySales ? await salesIn(from, to) : []);
       return say(reportText({ company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang, showSales: maySales }));
     }
     const found = findProducts(products, q.query);
