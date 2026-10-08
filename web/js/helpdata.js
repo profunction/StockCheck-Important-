@@ -310,6 +310,12 @@ export const PAGES = Object.fromEntries([
     S('拼多多、淘宝、Shopee、TikTok 的订单贴进来', 'Paste an order from Pinduoduo, Taobao, Shopee, TikTok', 'Tampal pesanan dari Pinduoduo, Taobao, Shopee, TikTok', { point: 'textarea' }),
     S('按「读取订单」，变成采购单', 'Read the order: it becomes a purchase order', 'Baca pesanan: jadi pesanan belian'),
   ], { world: { branch: 'gudang' } })],
+  ['wh-cost', T(['成本计算器', 'Cost calculator', 'Kalkulator kos'], '/warehouse/#/cost/po-demo', [
+    S('选采购单，或扫商品，填每件多少钱', 'Pick a purchase order or scan items, and the price of each', 'Pilih pesanan belian atau imbas barang, dan harga seunit', { point: 'select[data-act="cc-po"]' }),
+    S('用人民币买的：选货币，填汇率', 'Bought in yuan: choose the currency and the rate', 'Dibeli dalam yuan: pilih mata wang dan kadar', { point: 'select[data-act="cc-currency"]' }),
+    S('填运费、关税、代理费，按货价、数量或重量分摊', 'Shipping, duty, agent: shared by value, quantity or weight', 'Penghantaran, duti, ejen: diagih ikut nilai, kuantiti atau berat', { point: 'input[data-extra="shipping"]' }),
+    S('看每件真正成本和建议售价，再存进商品', 'See each real cost and a suggested price, then save the costs', 'Lihat kos sebenar dan harga dicadang, kemudian simpan kos', { point: '.cc-out' }),
+  ], { world: { branch: 'gudang' } })],
   ['wh-suppliers', T(['供应商', 'Suppliers', 'Pembekal'], '/warehouse/#/suppliers', [
     S('供应商：电话、联络人、付款条件', 'Suppliers: phone, contact, terms', 'Pembekal: telefon, hubungan, terma', { point: 'table.list' }),
   ], { world: { branch: 'gudang' } })],

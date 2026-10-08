@@ -82,7 +82,7 @@ details summary { cursor: pointer; padding: 6px 0; }
 .shell.wh .guide section .steps li::before { background: var(--wh); color: #fff; }
 
 @media (max-width: 960px) {
-  .shell.wh .main { padding-bottom: 96px; }
+  .shell.wh .main { padding-bottom: 148px; }
   .wh-bottom {
     display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     background: var(--surface); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
@@ -100,3 +100,20 @@ details summary { cursor: pointer; padding: 6px 0; }
 .wh-online-line .scanwrap { margin-top: 6px; }
 .wh-online-line.skipped { opacity: .55; }
 .wh-online-total { display: grid; gap: 4px; margin: 12px 0; }
+
+/* The cost calculator */
+.cc-setup { display: grid; gap: 12px; max-width: 720px; }
+.wh-line.cc-line { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; cursor: default; }
+.cc-line .cc-name { min-width: 160px; flex: 1 1 200px; }
+.cc-line .field { flex: 0 1 130px; min-width: 100px; }
+.cc-extras { display: grid; gap: 8px; max-width: 520px; }
+.cc-extra { display: grid; grid-template-columns: minmax(0, 1fr) 140px 40px; gap: 8px; align-items: center; }
+.cc-totals { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 12px; }
+.cc-table td, .cc-table th { white-space: nowrap; }
+.cc-note { font-size: 13px; }
+@media (max-width: 600px) {
+  .cc-totals { grid-template-columns: 1fr 1fr; }
+  .cc-totals .stat:last-child { grid-column: 1 / -1; }
+  .cc-extra { grid-template-columns: minmax(0, 1fr) 110px 36px; }
+}
+.cc-table td.cc-n { white-space: normal; min-width: 120px; max-width: 200px; }

@@ -178,7 +178,8 @@ function view(box, po) {
   const nothingArrived = (po.lines || []).every((l) => !(l.receivedMilli || 0) && !(l.damagedMilli || 0));
   const s = po.status;
   mount(box,
-    h('div', { class: 'row', style: { marginBottom: '12px' } }, h('button', { onclick: () => go('purchase') }, t('back'))),
+    h('div', { class: 'row', style: { marginBottom: '12px' } }, h('button', { onclick: () => go('purchase') }, t('back')), h('span', { class: 'grow' }),
+      (po.lines || []).length ? h('button', { 'data-act': 'po-cost', onclick: () => go('cost', po.id) }, icon('calc', 17), t('ccFromThisPo')) : null),
     h('div', { class: 'card wh-head' },
       h('div', { class: 'row' }, h('strong', { class: 'grow', style: { fontSize: '18px' } }, po.poNo), pill(t(`po_${s}`), PO_TONE[s])),
       h('div', {}, `${po.supplierName || '—'} → ${placeName(po.branchId)}`),

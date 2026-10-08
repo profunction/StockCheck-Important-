@@ -8,7 +8,7 @@
  * copy is never out of date. Data is not touched here; Firestore keeps its
  * own offline copy and sends queued sales when the connection returns.
  */
-const CACHE = 'stockcheck-pos-v10';
+const CACHE = 'stockcheck-pos-v11';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/pos/', '/pos/index.html', '/css/pos.css', '/js/main.js', '/warehouse/', '/warehouse/index.html', '/css/wh.css', '/wh/main.js', '/count/', '/count/index.html', '/cnt/main.js', '/app/', '/app/index.html', '/hub/main.js'])).catch(() => {}));

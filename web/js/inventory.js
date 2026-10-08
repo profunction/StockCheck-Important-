@@ -75,7 +75,8 @@ function levelsPage(main) {
   };
 
   mount(main,
-    head(t('invLevels'), h('button', { onclick: () => location.reload() }, `↻ ${t('refresh')}`)),
+    head(t('invLevels'), session.has('warehouse') ? h('a', { class: 'btn', href: '/warehouse/', 'data-act': 'open-warehouse' }, `${t('openWarehouse')} →`) : null,
+      h('button', { onclick: () => location.reload() }, `↻ ${t('refresh')}`)),
     h('p', { class: 'muted' }, t('levelsHelp')),
     h('div', { class: 'row', style: { marginBottom: '12px' } },
       h('input', { type: 'search', placeholder: t('searchProducts'), style: { maxWidth: '280px' }, oninput: (e) => { q = e.target.value; draw(); } }),

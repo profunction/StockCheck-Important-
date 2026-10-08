@@ -9,7 +9,7 @@
  * stock levels and the warehouse, so it can never disagree with them.
  */
 import { collection, db, getDocs, limit, orderBy, query, where } from './fb.js';
-import { dateTime, h, mount } from './dom.js';
+import { h, mount, timeOfDay } from './dom.js';
 import { getLang, t } from './i18n.js';
 import { formatQty, rm } from './money.js';
 import { session, ws } from './session.js';
@@ -90,11 +90,11 @@ export function render(main) {
         h('div', { class: 'card' },
           h('h3', { style: { margin: '0 0 8px' } }, t('dashRecent')),
           ok.length
-            ? h('table', { class: 'list' }, h('tbody', {}, ok.slice(0, 6).map((s) => h('tr', {},
-              h('td', { class: 'muted', style: { whiteSpace: 'nowrap' } }, dateTime(s.createdAt)),
+            ? h('div', { class: 'table-wrap' }, h('table', { class: 'list' }, h('tbody', {}, ok.slice(0, 6).map((s) => h('tr', {},
+              h('td', { class: 'muted', style: { whiteSpace: 'nowrap' } }, timeOfDay(s.createdAt)),
               h('td', {}, s.receiptNo || ''),
               h('td', {}, s.cashierName || ''),
-              h('td', { class: 'num' }, rm(s.totalSen || 0))))))
+              h('td', { class: 'num' }, rm(s.totalSen || 0)))))))
             : h('p', { class: 'muted', style: { margin: 0 } }, t('dashNoSales'))));
     }).catch((err) => mount(salesBox, failed(err)));
   }

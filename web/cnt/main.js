@@ -48,7 +48,7 @@ function shell() {
       h('a', { class: 'brandmark', href: '#/' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 30, height: 30 }), 'SuXin Count'),
       h('span', { class: 'grow' }),
       appSwitcher('count'),
-      h('a', { class: 'btn ghost icon-btn', href: '/guide/#app', title: t('posGuide'), 'aria-label': t('posGuide'), 'data-act': 'guide' }, icon('check', 18)),
+      h('a', { class: 'btn ghost icon-btn', href: '/guide/#app', title: t('posGuide'), 'aria-label': t('posGuide'), 'data-act': 'guide' }, icon('book', 18)),
       langPicker(),
       h('button', { class: 'ghost icon-btn', title: t('signOut'), 'aria-label': t('signOut'), onclick: signOutNow }, icon('logout', 18))),
     mainEl));

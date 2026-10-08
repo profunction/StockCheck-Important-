@@ -224,6 +224,31 @@ await step('audit log lists what happened', async () => {
   await page.waitForSelector('table.list td:has-text("Transfer")');
 });
 
+await step('cost calculator: yuan to ringgit, shipping spread, costs saved', async () => {
+  // From the purchase order raised above: 10 Milo at RM 14.00.
+  const po = (await docs(`${W}purchaseOrders/`))[0];
+  await page.evaluate(() => { try { localStorage.clear(); } catch { /* fine */ } });
+  await page.goto(base + `/warehouse/#/purchase/${po.__id}`);
+  await page.click('button[data-act="po-cost"]');
+  await page.waitForSelector('.cc-line:has-text("Milo 1kg")');
+  // Bought in yuan instead: ¥20 each at RM 0.62, RM 26 shipping.
+  await page.selectOption('select[data-act="cc-currency"]', 'CNY');
+  await page.fill('input[data-act="cc-rate"]', '0.62');
+  await page.fill('.cc-line input[data-f="price"]', '20');
+  await page.fill('input[data-extra="shipping"]', '26');
+  await page.fill('input[data-act="cc-margin"]', '25');
+  // 10 × ¥20 × 0.62 = RM 124 + RM 26 = RM 150: RM 15.00 each, RM 20.00 at 25%.
+  await page.waitForSelector('[data-total="15000"]');
+  await page.waitForSelector('tr[data-row="0"] [data-unit="1500"]');
+  await page.waitForSelector('tr[data-row="0"]:has-text("20.00")');
+  await shot('wh-cost');
+  await page.click('button[data-act="cc-save"]');
+  await page.click('button[data-act="cc-save-go"]');
+  await page.waitForFunction((p) => window.__store.get(p)?.costSen === 1500, `${W}products/${milo}`);
+  const log = (await docs(`${W}auditLog/`)).find((a) => a.entityId === milo && a.field === 'costSen');
+  if (!log || log.newValue !== '15.00') throw new Error(JSON.stringify(log));
+});
+
 await step('guide page opens', async () => {
   await page.goto(base + '/warehouse/#/guide');
   await page.waitForSelector('.guide');
@@ -239,7 +264,7 @@ await step('phone: bottom bar, big buttons, no sideways scroll', async () => {
   await page.goto(base + '/warehouse/#/home');
   await page.waitForSelector('.wh-bottom a');
   if (!(await page.isVisible('.wh-bottom'))) throw new Error('no bottom bar');
-  for (const route of ['home', 'receive', 'transfers', 'stock', `stock/${milo}`, 'purchase', 'adjust']) {
+  for (const route of ['home', 'receive', 'transfers', 'stock', `stock/${milo}`, 'purchase', 'adjust', 'cost']) {
     await page.goto(base + `/warehouse/#/${route}`);
     await page.waitForTimeout(400);
     const wide = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);

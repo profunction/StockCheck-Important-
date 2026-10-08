@@ -84,6 +84,22 @@ const en = {
   act_CREATE: 'created', act_UPDATE: 'changed', act_DELETE: 'deleted', act_STATUS_CHANGE: 'status changed', act_EXPORT: 'exported', act_PERMISSION_CHANGE: 'permission changed',
   po_SUBMITTED: 'Waiting approval', po_APPROVED: 'Approved', po_CLOSED: 'Closed', po_DRAFT: 'Draft', po_ORDERED: 'Ordered', po_PARTIAL: 'Part received', po_RECEIVED: 'Received', po_CANCELLED: 'Cancelled',
   tr_DRAFT: 'Draft', tr_SENT: 'In transit', tr_RECEIVED: 'Received', tr_CANCELLED: 'Cancelled',
+  // 成本计算器: the cost calculator
+  whCost: 'Cost calculator', ccHelp: 'Work out what each item really costs once shipping, duty and fees are added, in ringgit, and the price that keeps your margin. Nothing changes until you save the costs.',
+  ccFromPo: 'Start from a purchase order', ccFromPoPick: 'Choose a purchase order (optional)', ccCurrency: 'Bought in', ccRate: 'Exchange rate: RM for 1',
+  ccSpread: 'Share the extra costs by', ccBy_value: 'Value', ccBy_qty: 'Quantity', ccBy_weight: 'Weight', ccWantMargin: 'Margin you want (%)',
+  ccItems: 'Items', ccItemName: 'Item name', ccUnitPrice: 'Price of one ({c})', ccWeight: 'Weight of one (kg)', ccNoLines: 'Scan or type an item above, or choose a purchase order.',
+  ccAddLine: 'Add a line by hand', ccExtrasTitle: 'Extra costs (RM)', ccExtrasHelp: 'Everything paid to get the goods here: shipping, duty and SST on imports, agent, handling.',
+  ccExtra_shipping: 'Shipping', ccExtra_duty: 'Import duty / tax', ccExtra_other: 'Agent / handling', ccExtra_custom: 'Other', ccExtraName: 'What it is', ccAddExtra: 'Add another cost',
+  ccResult: 'Result', ccGoods: 'Goods', ccExtras: 'Extra costs', ccTotal: 'Total cost', ccGoodsEach: 'Goods, each', ccExtraEach: 'Extras, each', ccLanded: 'Real cost, each',
+  ccNowCost: 'Cost now', ccNewCost: 'New cost', ccPrice: 'Selling price', ccMargin: 'Margin', ccSuggest: 'Suggested price',
+  ccHowItWorks: 'Real cost = price × rate + its share of the extra costs. Margin = (selling price − real cost) ÷ selling price; red when below the margin you want. Suggested prices are rounded up to 10 sen.',
+  ccFellBack: 'No item has a weight, so the costs were shared by {by}.', ccBadAmount: 'One of the extra costs is not an amount; it is counted as 0.',
+  ccCopy: 'Copy the result', ccCopied: 'Copied', ccSave: 'Save the costs to the items', ccSaveGo: 'Save', ccSaved: 'Costs saved', ccClear: 'Start again',
+  ccMode_new: 'Use the new cost', ccMode_average: 'Average with stock on hand',
+  ccModeHelp_new: 'Each item\'s cost becomes this order\'s real cost.', ccModeHelp_average: 'Mixes the old cost and the new one by quantity. Use it before the goods are received into stock.',
+  ccCur_MYR: 'Ringgit (RM)', ccCur_CNY: 'Chinese yuan (¥)', ccCur_USD: 'US dollar', ccCur_SGD: 'Singapore dollar', ccCur_THB: 'Thai baht', ccCur_IDR: 'Indonesian rupiah', ccCur_JPY: 'Japanese yen', ccCur_TWD: 'Taiwan dollar', ccCur_HKD: 'Hong Kong dollar', ccCur_EUR: 'Euro',
+  ccFromThisPo: 'Work out the real cost',
 };
 
 const zh = {
@@ -171,6 +187,21 @@ const zh = {
   act_CREATE: '新增', act_UPDATE: '修改', act_DELETE: '删除', act_STATUS_CHANGE: '状态改变', act_EXPORT: '导出', act_PERMISSION_CHANGE: '权限改变',
   po_SUBMITTED: '待审批', po_APPROVED: '已批准', po_CLOSED: '已关闭', po_DRAFT: '草稿', po_ORDERED: '已下单', po_PARTIAL: '部分收货', po_RECEIVED: '已收货', po_CANCELLED: '已取消',
   tr_DRAFT: '草稿', tr_SENT: '在途', tr_RECEIVED: '已收到', tr_CANCELLED: '已取消',
+  whCost: '成本计算器', ccHelp: '算出每样货加上运费、关税和杂费之后的真正成本（换成马币），还有保住利润的售价。按「存进商品」之前，什么都不会改。',
+  ccFromPo: '从采购单带入', ccFromPoPick: '选一张采购单（可以不选）', ccCurrency: '用什么钱买', ccRate: '汇率：1 块等于多少 RM',
+  ccSpread: '杂费怎样分摊', ccBy_value: '按货价', ccBy_qty: '按数量', ccBy_weight: '按重量', ccWantMargin: '想要的利润率（%）',
+  ccItems: '商品', ccItemName: '商品名字', ccUnitPrice: '一件的价钱（{c}）', ccWeight: '一件多重（公斤）', ccNoLines: '在上面扫码或打商品名字，或者选一张采购单。',
+  ccAddLine: '自己填一行', ccExtrasTitle: '杂费（RM）', ccExtrasHelp: '把货运到这里花的钱都填：运费、进口税和 SST、代理费、搬运费。',
+  ccExtra_shipping: '运费', ccExtra_duty: '关税 / 进口税', ccExtra_other: '代理 / 清关 / 搬运', ccExtra_custom: '其他', ccExtraName: '是什么费用', ccAddExtra: '再加一项费用',
+  ccResult: '结果', ccGoods: '货价', ccExtras: '杂费', ccTotal: '总成本', ccGoodsEach: '每件货价', ccExtraEach: '每件杂费', ccLanded: '每件真正成本',
+  ccNowCost: '现在的成本', ccNewCost: '新成本', ccPrice: '售价', ccMargin: '利润率', ccSuggest: '建议售价',
+  ccHowItWorks: '真正成本 = 价钱 × 汇率 + 分到的杂费。利润率 =（售价 − 真正成本）÷ 售价；低过你想要的会变红。建议售价进位到 10 仙。',
+  ccFellBack: '没有商品填重量，所以改成{by}分摊。', ccBadAmount: '有一项杂费不是数字，当 0 算。',
+  ccCopy: '复制结果', ccCopied: '已复制', ccSave: '把成本存进商品', ccSaveGo: '存', ccSaved: '成本已存', ccClear: '重新算',
+  ccMode_new: '用新成本', ccMode_average: '跟现有库存平均',
+  ccModeHelp_new: '每样商品的成本改成这次的真正成本。', ccModeHelp_average: '按数量把旧成本和新成本平均。货还没收进库存的时候用。',
+  ccCur_MYR: '马币（RM）', ccCur_CNY: '人民币（¥）', ccCur_USD: '美元', ccCur_SGD: '新币', ccCur_THB: '泰铢', ccCur_IDR: '印尼盾', ccCur_JPY: '日元', ccCur_TWD: '台币', ccCur_HKD: '港币', ccCur_EUR: '欧元',
+  ccFromThisPo: '算真正成本',
 };
 
 const ms = {
@@ -258,6 +289,21 @@ const ms = {
   act_CREATE: 'dicipta', act_UPDATE: 'diubah', act_DELETE: 'dipadam', act_STATUS_CHANGE: 'status berubah', act_EXPORT: 'dieksport', act_PERMISSION_CHANGE: 'kebenaran berubah',
   po_SUBMITTED: 'Menunggu kelulusan', po_APPROVED: 'Diluluskan', po_CLOSED: 'Ditutup', po_DRAFT: 'Draf', po_ORDERED: 'Dipesan', po_PARTIAL: 'Sebahagian diterima', po_RECEIVED: 'Diterima', po_CANCELLED: 'Dibatalkan',
   tr_DRAFT: 'Draf', tr_SENT: 'Dalam perjalanan', tr_RECEIVED: 'Diterima', tr_CANCELLED: 'Dibatalkan',
+  whCost: 'Kalkulator kos', ccHelp: 'Kira kos sebenar setiap barang selepas tambah kos penghantaran, duti dan yuran, dalam ringgit, dan harga yang kekalkan margin anda. Tiada apa berubah sehingga anda simpan kos.',
+  ccFromPo: 'Mula dari pesanan belian', ccFromPoPick: 'Pilih pesanan belian (pilihan)', ccCurrency: 'Dibeli dalam', ccRate: 'Kadar tukaran: RM untuk 1',
+  ccSpread: 'Agih kos tambahan ikut', ccBy_value: 'Nilai', ccBy_qty: 'Kuantiti', ccBy_weight: 'Berat', ccWantMargin: 'Margin dikehendaki (%)',
+  ccItems: 'Barang', ccItemName: 'Nama barang', ccUnitPrice: 'Harga seunit ({c})', ccWeight: 'Berat seunit (kg)', ccNoLines: 'Imbas atau taip barang di atas, atau pilih pesanan belian.',
+  ccAddLine: 'Tambah baris sendiri', ccExtrasTitle: 'Kos tambahan (RM)', ccExtrasHelp: 'Semua yang dibayar untuk bawa barang ke sini: penghantaran, duti dan SST import, ejen, pengendalian.',
+  ccExtra_shipping: 'Penghantaran', ccExtra_duty: 'Duti / cukai import', ccExtra_other: 'Ejen / pengendalian', ccExtra_custom: 'Lain-lain', ccExtraName: 'Kos apa', ccAddExtra: 'Tambah kos lain',
+  ccResult: 'Keputusan', ccGoods: 'Barang', ccExtras: 'Kos tambahan', ccTotal: 'Jumlah kos', ccGoodsEach: 'Barang, seunit', ccExtraEach: 'Tambahan, seunit', ccLanded: 'Kos sebenar, seunit',
+  ccNowCost: 'Kos kini', ccNewCost: 'Kos baharu', ccPrice: 'Harga jual', ccMargin: 'Margin', ccSuggest: 'Harga dicadang',
+  ccHowItWorks: 'Kos sebenar = harga × kadar + bahagian kos tambahan. Margin = (harga jual − kos sebenar) ÷ harga jual; merah jika bawah margin dikehendaki. Harga dicadang dibundarkan naik ke 10 sen.',
+  ccFellBack: 'Tiada barang ada berat, jadi kos diagih ikut {by}.', ccBadAmount: 'Satu kos tambahan bukan nombor; dikira 0.',
+  ccCopy: 'Salin keputusan', ccCopied: 'Disalin', ccSave: 'Simpan kos ke barang', ccSaveGo: 'Simpan', ccSaved: 'Kos disimpan', ccClear: 'Mula semula',
+  ccMode_new: 'Guna kos baharu', ccMode_average: 'Purata dengan stok sedia ada',
+  ccModeHelp_new: 'Kos setiap barang jadi kos sebenar pesanan ini.', ccModeHelp_average: 'Campur kos lama dan baharu ikut kuantiti. Guna sebelum barang diterima ke stok.',
+  ccCur_MYR: 'Ringgit (RM)', ccCur_CNY: 'Yuan China (¥)', ccCur_USD: 'Dolar AS', ccCur_SGD: 'Dolar Singapura', ccCur_THB: 'Baht Thai', ccCur_IDR: 'Rupiah', ccCur_JPY: 'Yen Jepun', ccCur_TWD: 'Dolar Taiwan', ccCur_HKD: 'Dolar Hong Kong', ccCur_EUR: 'Euro',
+  ccFromThisPo: 'Kira kos sebenar',
 };
 
 export const STRINGS = { en, zh, ms };

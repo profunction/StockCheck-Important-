@@ -37,7 +37,10 @@ const MENU = [
   },
   {
     id: 'inventory', icon: 'box', label: 'navInventory', perm: ['RECORD_STOCK_MOVEMENTS', 'POS_MANAGE'], children: [
-      ['levels', 'invLevels'], ['adjust', 'invAdjust'], ['purchase', 'invPurchase'], ['transfers', 'invTransfers'], ['suppliers', 'invSuppliers'],
+      // Purchase orders, transfers and suppliers are the warehouse system's:
+      // not in the menu, but old links still open a page pointing there.
+      ['levels', 'invLevels'], ['adjust', 'invAdjust'],
+      ['purchase', 'invPurchase', { hidden: true }], ['transfers', 'invTransfers', { hidden: true }], ['suppliers', 'invSuppliers', { hidden: true }],
     ], page: () => import('./inventory.js'),
   },
   { id: 'employees', icon: 'idcard', label: 'navEmployees', perm: 'VIEW_USERS', page: () => import('./employees.js') },
@@ -171,7 +174,7 @@ function renderSide() {
     const open = group === item.id;
     const box = h('div', { class: `group${open ? ' open current' : ''}` });
     const subs = h('div', { class: `sub${open ? '' : ' hidden'}` },
-      item.children.map(([id, label]) => h('a', {
+      item.children.filter(([, , opts]) => !opts?.hidden).map(([id, label]) => h('a', {
         href: `#/${item.id}/${id}`, class: open && sub === id ? 'current' : '',
       }, t(label))));
     box.append(

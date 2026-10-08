@@ -4,7 +4,7 @@
  * is shown locked with where to add it (apps.js decides which is which).
  */
 import { h, mount } from '../js/dom.js';
-import { t } from '../js/i18n.js';
+import { addStrings, t } from '../js/i18n.js';
 import { icon } from '../js/icons.js';
 import { PLANS } from '../js/plans.js';
 import { session } from '../js/session.js';
@@ -13,16 +13,23 @@ import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 import '../js/strings-pro.js';
 
+// The plan's name in the page's language ("Trial" is 试用 in Chinese).
+addStrings({
+  zh: { plan_TRIAL: '试用' },
+  ms: { plan_TRIAL: 'Percubaan' },
+});
+const planName = (id) => (t(`plan_${id}`) !== `plan_${id}` ? t(`plan_${id}`) : PLANS[id]?.label || id);
+
 const app = document.getElementById('app');
 
 function render() {
   if (guardTillLock()) return;
-  const plan = session.licence ? PLANS[session.licence.plan]?.label || session.licence.plan : '';
+  const plan = session.licence ? planName(session.licence.plan) : '';
   mount(app, h('div', { class: 'hub' },
     h('header', { class: 'hub-top' },
       h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 34, height: 34 }), 'SuXin'),
       h('span', { class: 'grow' }),
-      h('a', { class: 'btn ghost', href: '/guide/#account', 'data-act': 'guide' }, icon('check', 17), t('posGuide')),
+      h('a', { class: 'btn ghost', href: '/guide/#account', 'data-act': 'guide' }, icon('book', 17), t('posGuide')),
       langPicker(),
       h('button', { class: 'ghost', onclick: signOutNow }, icon('logout', 17), t('signOut'))),
     h('main', { class: 'hub-main' },

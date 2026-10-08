@@ -106,10 +106,18 @@ export function isoDay(date = new Date()) {
   return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`;
 }
 
+const LOCALES = { zh: 'zh-CN', en: 'en-GB', ms: 'ms-MY' };
+
+/** "8 Oct 2026, 13:05" / "2026年10月8日 13:05" / "8 Okt 2026, 13:05", in the page's language. */
 export function dateTime(ms) {
-  return new Date(ms).toLocaleString(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  return new Date(ms).toLocaleString(LOCALES[document.documentElement.lang] || 'en-GB', {
+    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
   });
+}
+
+/** "13:05", for things that happened today. */
+export function timeOfDay(ms) {
+  return new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 /** Local storage that never throws (private windows, blocked storage). */

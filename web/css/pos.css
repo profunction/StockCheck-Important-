@@ -155,7 +155,7 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 .side .foot button { background: transparent; color: var(--side-text); border-color: rgba(255, 255, 255, .16); }
 .side .foot button:hover { background: var(--side-hover); }
 .side .foot button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
-.main { overflow-y: auto; padding: 24px 28px 48px; }
+.main { overflow-y: auto; padding: 24px 28px 88px; }
 .page-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
 .page-head h1 { margin: 0; }
 .menu-toggle { display: none !important; }
@@ -228,7 +228,8 @@ table.list .thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: c
 .chips button { white-space: nowrap; min-height: 34px; padding: 4px 14px; border-radius: 99px; gap: 7px; font-weight: 600; background: var(--surface-2); border-color: var(--line); }
 .chips button .dot { width: 9px; height: 9px; border-radius: 50%; }
 .chips button.on { background: var(--text); color: var(--surface); border-color: var(--text); }
-.tiles { flex: 1; overflow-y: auto; padding: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; align-content: start; }
+/* Rows as tall as their tiles: in a short panel (a phone) the tiles scroll instead of being squeezed flat. */
+.tiles { flex: 1; overflow-y: auto; padding: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); grid-auto-rows: max-content; gap: 12px; align-content: start; }
 .tile {
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0; overflow: hidden;
   display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 0; text-align: left; min-height: 0; box-shadow: var(--shadow-1);
@@ -349,7 +350,7 @@ table.list .thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: c
   .side { position: fixed; inset: 0 auto 0 0; width: min(300px, 82%); z-index: 40; transform: translateX(-100%); transition: transform .2s; box-shadow: var(--shadow-2); }
   .shell.menu .side { transform: none; }
   .menu-toggle { display: inline-flex !important; }
-  .main { padding: 14px 16px 40px; }
+  .main { padding: 14px 16px 84px; }
   .register, .market { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 52%); }
   .ticket, .mpanel { border-left: 0; border-top: 1px solid var(--line); }
   .grid2 { grid-template-columns: 1fr; }
@@ -421,7 +422,7 @@ a.btn:hover { background: var(--surface-2); }
 .hub { min-height: 100%; background: var(--bg); }
 .hub-top { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); flex-wrap: wrap; }
 .hub-top select { width: auto; }
-.hub-main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 48px; }
+.hub-main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 88px; }
 .hub-main h1 { margin: 0 0 4px; }
 .hub-plan { margin: 4px 0 6px; }
 .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 18px; }
@@ -451,7 +452,7 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .cnt-top .appswitch { position: relative; }
 .cnt-top .appswitch[open] .appswitch-list { position: absolute; right: 0; top: 44px; min-width: 220px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: var(--shadow-2); }
 .cnt-top button.ghost { color: #fff; }
-.cnt-main { max-width: 860px; margin: 0 auto; padding: 18px 16px 60px; display: grid; gap: 12px; align-content: start; }
+.cnt-main { max-width: 860px; margin: 0 auto; padding: 18px 16px 84px; display: grid; gap: 12px; align-content: start; }
 .cnt-list { display: grid; gap: 10px; }
 .cnt-card { display: grid; gap: 4px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; color: inherit; }
 .cnt-card:hover { border-color: var(--brand); }
@@ -519,3 +520,13 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .till-list { display: grid; gap: 8px; margin: 12px 0; }
 .till-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; }
 .till-row.on { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 7%, transparent); }
+
+/* The till on a phone: the search on its own line, the till's buttons
+   small enough to share the next one. */
+@media (max-width: 600px) {
+  .reg-bar { gap: 6px; padding: 10px 12px; }
+  .reg-bar .search-box { flex: 1 1 150px; max-width: none; min-width: 0; }
+  .reg-bar > button, .reg-bar > a.btn, .reg-bar > .till-help { min-height: 36px; padding: 5px 10px; font-size: 13.5px; flex-shrink: 0; }
+  /* The lock keeps its padlock; its name is in the button's title. */
+  .reg-bar .till-lock > span:not(.ic) { display: none; }
+}
