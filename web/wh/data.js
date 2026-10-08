@@ -4,13 +4,14 @@
  * top of it, what is on its way: transfers dispatched to a place and not yet
  * received, and purchase orders not yet delivered.
  *
- *   available = on hand - reserved      (nothing is reserved yet: phase 2)
+ *   available = on hand - reserved      (open reservations, reservations.js)
  */
 import { collection, db, getDocs, query, where } from '../js/fb.js';
 import { levelsFor, loadStockData } from '../js/stockdata.js';
 import { session, ws } from '../js/session.js';
 import { isLow } from '../js/ledger.js';
 import { canApprove, canBuy, canMove, outstanding } from './common.js';
+import { reservedAt } from '../js/wms.js';
 
 const inList = () => [...session.branchIds, ''].slice(0, 30);
 
@@ -30,14 +31,23 @@ export async function loadPurchaseOrders() {
   return snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
-/** Counts, movements, transfers and purchase orders, read together. */
+/** Stock promised to customers and not yet handed over. */
+export async function loadReservations() {
+  if (!canMove() && !session.can('POS_MANAGE') && !canBuy()) return [];
+  const col = collection(db, ws('reservations'));
+  const snap = await getDocs(session.branchIds.length ? query(col, where('branchId', 'in', inList())) : col);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+/** Counts, movements, transfers, purchase orders and reservations, read together. */
 export async function loadAll() {
-  const [stock, transfers, pos] = await Promise.all([
+  const [stock, transfers, pos, reservations] = await Promise.all([
     loadStockData(),
     loadTransfers().catch(() => []),
     loadPurchaseOrders().catch(() => []),
+    loadReservations().catch(() => []),
   ]);
-  return { stock, transfers, pos };
+  return { stock, transfers, pos, reservations };
 }
 
 const at = (branch, id) => branch === 'ALL' || (id || '') === branch;
@@ -79,8 +89,9 @@ export function stockRows(data, branch) {
   }
   const transit = inTransit(data.transfers, branch);
   const ordered = onOrder(data.pos, branch);
+  const held = reservedAt(data.reservations, branch);
   // On its way here but never held here before: still a row, nothing on hand.
-  for (const key of [...transit.keys(), ...ordered.keys()]) {
+  for (const key of [...transit.keys(), ...ordered.keys(), ...held.keys()]) {
     if (seen.has(key)) continue;
     seen.add(key);
     const p = catalogue.get(key);
@@ -88,7 +99,7 @@ export function stockRows(data, branch) {
   }
   return levels.map((l) => {
     const product = catalogue.get(l.key) || null;
-    const reserved = 0;
+    const reserved = held.get(l.key) || 0;
     return {
       ...l,
       product,
@@ -110,9 +121,9 @@ export function stockRows(data, branch) {
  * ordered until somebody raises and approves a purchase order.
  */
 export function reorderSuggestions(rows) {
-  return rows.filter((r) => r.reorderLevel != null && r.onHand + r.onOrder <= r.reorderLevel).map((r) => {
+  return rows.filter((r) => r.reorderLevel != null && r.onHand - (r.reserved || 0) + r.onOrder <= r.reorderLevel).map((r) => {
     const target = r.product?.maxStockMilli ?? r.reorderLevel * 2;
-    let qty = Math.max(0, target - r.onHand - r.onOrder);
+    let qty = Math.max(0, target - r.onHand + (r.reserved || 0) - r.onOrder);
     if (!['kg', 'g', 'l', 'ml', 'm'].includes((r.unit || '').toLowerCase())) qty = Math.ceil(qty / 1000) * 1000;
     return { ...r, suggestMilli: qty };
   }).filter((r) => r.suggestMilli > 0);

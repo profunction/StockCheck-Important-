@@ -17,6 +17,7 @@ function fakeDb(seed = {}) {
       get: async () => snap(path),
       set: async (data, opts) => { store.set(path, opts?.merge ? { ...(store.get(path) || {}), ...data } : structuredClone(data)); },
       delete: async () => { store.delete(path); },
+      create: async (data) => { if (store.has(path)) throw Object.assign(new Error('exists'), { code: 6 }); store.set(path, structuredClone(data)); },
       collection: (name) => colRef(`${path}/${name}`),
     };
   }
@@ -67,7 +68,7 @@ const seed = () => ({
     lines: [{ barcode: '9555', name: 'Milo 1kg', qtyMilli: 1000, lineTotalSen: 1590 }] },
   [`${W}sales/v1`]: { status: 'VOIDED', createdAt: NOW - 1200_000, totalSen: 999, receiptNo: 'R-9', voidedByName: 'Mei', voidReason: '打错', lines: [] },
   [`${W}products/4001`]: { name: 'Teh Bunga', unit: 'pcs', costSen: 500 },
-  [`${W}movements/m4`]: { barcode: '4001', productName: 'Teh Bunga', type: 'RECEIVE', quantityMilli: 5000, at: NOW - 3600_000, branchId: 'gudang' },
+  [`${W}movements/m4`]: { barcode: '4001', productName: 'Teh Bunga', type: 'RECEIVE', quantityMilli: 5000, at: NOW - 3600_000, branchId: 'gudang', expiry: '2026-10-20' },
   [`${W}movements/m5`]: { barcode: '9555', productName: 'Milo 1kg', type: 'WRITE_OFF', quantityMilli: 1000, at: NOW - 3000_000, branchId: 'ipoh', note: '过期' },
   [`${W}shifts/s1`]: { status: 'OPEN', operatorName: 'Mei', branchId: 'ipoh', branchName: 'Kedai Ipoh', openedAt: NOW - 3 * 3600_000, initialFloatSen: 10000 },
   [`${W}shifts/s2`]: { status: 'CLOSED', operatorName: 'Ali', branchId: 'ipoh', openedAt: NOW - 86_400_000 },
@@ -215,13 +216,18 @@ test('the morning report: Telegram, email and push, once a day', async () => {
   await n.handleUpdate(say(100, '/start GOODCODE1234'));
   heard.telegram.length = 0;
   const sent = await n.dailyReports(NOW);
-  assert.deepEqual(sent, { companies: 1, telegram: 1, email: 1, push: 1 });
+  assert.deepEqual(sent, { companies: 1, telegram: 1, email: 1, push: 1, closings: 2 });
   assert.match(heard.telegram[0].text, /📊 SuXin 每日报告 · Kedai Maju\n7\/10\/2026[\s\S]*RM 31\.80/);
+  assert.match(heard.telegram[0].text, /⏰ 30 天内到期 1 批\n• Teh Bunga \(Gudang\): 5 · 2026-10-20 · 还有 12 天/);
+  // September closed by itself: stock as it stood at its end, at cost.
+  const sept = db.store.get(`${W}stockClosings/2026-09_gudang`);
+  assert.deepEqual(sept.lines.map((l) => [l.barcode, l.onHandMilli]), [['9555', 50000]]);
+  assert.equal(sept.createdByName, 'SuXin');
   assert.deepEqual(heard.mail[0].to, ['boss@kedai.my']);
   assert.match(heard.mail[0].subject, /SuXin 每日报告 · Kedai Maju/);
   assert.deepEqual(heard.push[0].tokens, ['tok-1']);
   assert.match(heard.push[0].body, /营业额 RM 31\.80 · 1 单/);
-  assert.deepEqual(await n.dailyReports(NOW), { companies: 0, telegram: 0, email: 0, push: 0 }, 'not twice in a day');
+  assert.deepEqual(await n.dailyReports(NOW), { companies: 0, telegram: 0, email: 0, push: 0, closings: 0 }, 'not twice in a day');
 });
 
 test('setup points Telegram here and publishes the bot name and push key', async () => {

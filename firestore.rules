@@ -465,17 +465,18 @@ service cloud.firestore {
         // hundred writes arrived as one import, but they can see that each one
         // lands on a product somebody already named.
         allow update: if can('IMPORT_PRODUCTS') || can('EDIT_TEMPLATE') || can('POS_MANAGE')
-                      // Whoever keeps the stock may say when it is low, and
+                      // Whoever keeps the stock may say when it is low, how
+                      // many come in a carton and which shelf it is on, and
                       // nothing else: not rename it, not deactivate it.
                       || (can('RECORD_STOCK_MOVEMENTS')
                           && request.resource.data.diff(resource.data).affectedKeys()
-                               .hasOnly(['reorderLevelMilli', 'updatedAt']))
+                               .hasOnly(['reorderLevelMilli', 'packSize', 'packName', 'shelves', 'updatedAt']))
                       // The buyer sets reorder points, the most to hold, who
                       // to buy from and what it costs -- still not the name
                       // or the selling price.
                       || (can('WH_PURCHASE')
                           && request.resource.data.diff(resource.data).affectedKeys()
-                               .hasOnly(['reorderLevelMilli', 'maxStockMilli', 'preferredSupplierId', 'costSen', 'updatedAt']));
+                               .hasOnly(['reorderLevelMilli', 'maxStockMilli', 'preferredSupplierId', 'costSen', 'packSize', 'packName', 'shelves', 'updatedAt']));
         allow delete: if can('EDIT_TEMPLATE') || can('POS_MANAGE');
       }
 
@@ -699,12 +700,98 @@ service cloud.firestore {
                  || d.fromBranch in myBranches()
                  || d.toBranch in myBranches();
         }
-        allow read: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(resource.data);
+        // When the company asks for it (pos/settings.transferApproval), a
+        // transfer leaves only once approved: DRAFT -> PENDING -> APPROVED
+        // -> SENT. Approving is the approver's; so is sending one straight
+        // out while approval is on (an approver needs nobody's say-so).
+        function approvalOn() {
+          return exists(/databases/$(database)/documents/workspaces/$(ws)/pos/settings)
+                 && get(/databases/$(database)/documents/workspaces/$(ws)/pos/settings).data.get('transferApproval', false) == true;
+        }
+        function approvalKept(before, after) {
+          return (after != 'APPROVED' || before == 'APPROVED' || can('WH_APPROVE'))
+                 && (after != 'SENT' || before in ['SENT', 'APPROVED'] || can('WH_APPROVE') || !approvalOn());
+        }
+        allow read: if (can('RECORD_STOCK_MOVEMENTS') || can('WH_APPROVE')) && eitherEnd(resource.data);
         // Starting one needs the warehouse part; one already on its way can
         // always be received, whatever the plan became since.
-        allow create: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data) && !moduleOff('warehouse');
-        allow update: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data);
+        allow create: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data) && !moduleOff('warehouse')
+                      && approvalKept('DRAFT', request.resource.data.status);
+        allow update: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(request.resource.data)
+                      && approvalKept(resource.data.status, request.resource.data.status)
+                      // What was approved is what leaves.
+                      && (resource.data.status != 'APPROVED' || can('WH_APPROVE')
+                          || (request.resource.data.lines == resource.data.lines
+                              && request.resource.data.fromBranch == resource.data.fromBranch
+                              && request.resource.data.toBranch == resource.data.toBranch));
+        // An approver who does not move stock may approve or send back, and
+        // touch nothing else.
+        allow update: if can('WH_APPROVE') && eitherEnd(resource.data)
+                      && resource.data.status == 'PENDING'
+                      && request.resource.data.status in ['APPROVED', 'DRAFT']
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'approvedByUid', 'approvedByName', 'approvedAt', 'updatedAt']);
         allow delete: if can('RECORD_STOCK_MOVEMENTS') && eitherEnd(resource.data) && resource.data.status == 'DRAFT';
+      }
+
+      // ---------------------------------------------------- supplier returns
+      //
+      // Goods sent back to a supplier. The stock leaves in the same batch
+      // (WRITE_OFF movements, reason SUPPLIER_RETURN); the record then only
+      // waits for the supplier's credit note, which the buyer notes.
+      match /supplierReturns/{returnId} {
+        allow read: if (can('RECORD_STOCK_MOVEMENTS') || can('WH_PURCHASE') || can('POS_MANAGE') || can('WH_APPROVE'))
+                    && inMyBranch(resource.data);
+        allow create: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(request.resource.data)
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && request.resource.data.status == 'OPEN'
+                      && request.resource.data.lines is list
+                      && !moduleOff('warehouse');
+        allow update: if (can('WH_PURCHASE') || can('POS_MANAGE'))
+                      && inMyBranch(resource.data)
+                      && resource.data.status == 'OPEN'
+                      && request.resource.data.status == 'CREDITED'
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'creditNo', 'creditSen', 'creditedAt', 'creditedByName', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      // ------------------------------------------------------ reservations
+      //
+      // Stock promised to a customer: still on the shelf, not free to
+      // promise again. Held, then delivered (a SALE movement in the same
+      // batch) or released.
+      match /reservations/{resId} {
+        allow read: if (can('RECORD_STOCK_MOVEMENTS') || can('POS_MANAGE') || can('WH_PURCHASE')) && inMyBranch(resource.data);
+        allow create: if (can('RECORD_STOCK_MOVEMENTS') || can('POS_MANAGE'))
+                      && inMyBranch(request.resource.data)
+                      && request.resource.data.status == 'OPEN'
+                      && request.resource.data.lines is list
+                      && !moduleOff('warehouse');
+        allow update: if (can('RECORD_STOCK_MOVEMENTS') || can('POS_MANAGE'))
+                      && inMyBranch(resource.data)
+                      && resource.data.status == 'OPEN'
+                      && request.resource.data.status in ['DELIVERED', 'RELEASED']
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'closedAt', 'closedByName', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      // --------------------------------------------------- month-end stock
+      //
+      // One place's stock and its value at cost at the end of a month, for
+      // the accounts ("2026-09_-" for the main shop). Written once, never
+      // changed: a closed month stays closed. The morning job writes the
+      // ones nobody closed by hand.
+      match /stockClosings/{closingId} {
+        allow read: if (can('RECORD_STOCK_MOVEMENTS') || can('WH_PURCHASE') || can('POS_MANAGE') || can('WH_APPROVE') || can('POS_REPORTS'))
+                    && inMyBranch(resource.data);
+        allow create: if (can('WH_APPROVE') || can('POS_MANAGE') || isAdmin())
+                      && inMyBranch(request.resource.data)
+                      && request.resource.data.lines is list
+                      && request.resource.data.month is string;
+        allow update, delete: if false;
       }
 
       // -------------------------------------------- POS: register settings

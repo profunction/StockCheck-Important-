@@ -256,6 +256,7 @@ const T = {
     total: '营业额', receipts: '单', average: '平均每单', voided: '作废', top: '最好卖',
     noSales: '没有销售。',
     lowHead: (n) => `⚠️ 低库存 ${n} 样`,
+    expHead: (n) => `⏰ 30 天内到期 ${n} 批`, expDays: (d) => (d < 0 ? `已过期 ${-d} 天` : d === 0 ? '今天到期' : `还有 ${d} 天`),
     lowNone: '✅ 没有低库存的商品。',
     left: '剩', reorderAt: '补货点',
     reportHead: (company, date) => `📊 SuXin 每日报告 · ${company}\n${date}`,
@@ -276,6 +277,7 @@ const T = {
     total: 'Sales', receipts: 'receipts', average: 'average', voided: 'Voided', top: 'Best sellers',
     noSales: 'No sales.',
     lowHead: (n) => `⚠️ ${n} items low`,
+    expHead: (n) => `⏰ ${n} batches expire within 30 days`, expDays: (d) => (d < 0 ? `expired ${-d} days ago` : d === 0 ? 'expires today' : `${d} days left`),
     lowNone: '✅ Nothing is low.',
     left: 'left', reorderAt: 'reorder at',
     reportHead: (company, date) => `📊 SuXin daily report · ${company}\n${date}`,
@@ -296,6 +298,7 @@ const T = {
     total: 'Jualan', receipts: 'resit', average: 'purata', voided: 'Batal', top: 'Paling laris',
     noSales: 'Tiada jualan.',
     lowHead: (n) => `⚠️ ${n} barang stok rendah`,
+    expHead: (n) => `⏰ ${n} kelompok luput dalam 30 hari`, expDays: (d) => (d < 0 ? `luput ${-d} hari lalu` : d === 0 ? 'luput hari ini' : `tinggal ${d} hari`),
     lowNone: '✅ Tiada stok rendah.',
     left: 'tinggal', reorderAt: 'paras pesan',
     reportHead: (company, date) => `📊 Laporan harian SuXin · ${company}\n${date}`,
@@ -356,13 +359,23 @@ export function lowText(lows, lang = 'zh', max = 15) {
   return [w.lowHead(lows.length), ...lines].join('\n');
 }
 
-/** The morning report: yesterday's sales and what is low now. */
-export function reportText({ company, summary, lows, start, lang = 'zh', showSales = true }) {
+/** Batches near or past their expiry date (wms.js expiring), soonest first; '' for none. */
+export function expiryText(soon, lang = 'zh', max = 10) {
+  if (!soon?.length) return '';
+  const w = words(lang);
+  const lines = soon.slice(0, max).map((l) => `• ${l.name}${l.place ? ` (${l.place})` : ''}: ${qty(l.qtyMilli)} · ${l.expiry} · ${w.expDays(l.daysLeft)}`);
+  if (soon.length > max) lines.push(w.more(soon.length - max));
+  return [w.expHead(soon.length), ...lines].join('\n');
+}
+
+/** The morning report: yesterday's sales, what is low now, and what is about to expire. */
+export function reportText({ company, summary, lows, start, lang = 'zh', showSales = true, soon = [] }) {
   const w = words(lang);
   return [
     w.reportHead(company || '', dateLabel(start)),
     showSales ? salesText(summary, { lang, day: 'yesterday', start }).split('\n').slice(1).join('\n') : '',
     lowText(lows, lang, 10),
+    expiryText(soon, lang),
   ].filter(Boolean).join('\n\n');
 }
 

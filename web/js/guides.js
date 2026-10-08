@@ -382,6 +382,33 @@ export const WAREHOUSE_GUIDE = {
         '填运费、关税、代理费，选按货价、数量或重量分摊。',
         '看每件真正成本、利润率和建议售价；按「把成本存进商品」才会改。',
       ], tip: '存成本时可以选「跟现有库存平均」，货还没收进库存时用。' },
+      { id: 'cartons', title: '整箱、货架、到期日', steps: [
+        '库存 → 点商品 → 「一箱几个」填 24，「货架」填 A-03-2，按保存。',
+        '收货、调货、退货时会多一个「+1 箱」按钮，数量会显示成「25 (1 箱 + 1)」。',
+        '收货时点那一行，可以填到期日和批号。',
+        '30 天内到期的货会出现在首页和库存的「快到期」，每天早上的 Telegram 报告也会提醒。',
+      ], tip: '库存还是按「个」记；箱只是方便输入和看。' },
+      { id: 'approval', title: '调货要经理批准', steps: [
+        '管理员：仓库和分店 → 勾「调货出发前要经理批准」。',
+        '员工做好调货单，按「送去批准」（不会扣库存）。',
+        '经理在调货 →「要批准」打开，按「批准」或「退回」。',
+        '批准后，仓库按「发货」才扣库存；批准过的数量不能再改。',
+      ] },
+      { id: 'returns', title: '退货给供应商', steps: [
+        '仓库系统 → 退货给供应商 → 新退货单：选供应商（可选采购单），扫要退的货，点一行选原因。',
+        '按保存：库存马上扣掉，单子是「等退款单」。',
+        '供应商给了 Credit Note：采购员打开退货单，填单号和金额，按「收到退款单了」。',
+      ] },
+      { id: 'reserve', title: '预留给客人', steps: [
+        '仓库系统 → 预留 → 新预留：填给谁，扫货和数量。',
+        '预留的货还在，但「可用」会减少，调货时超过可用会提醒。',
+        '交货时按「已交货」（扣库存）；不要了按「取消预留」。',
+      ] },
+      { id: 'monthend', title: '月结库存', steps: [
+        '仓库系统 → 月结库存 → 按「结 上个月」。',
+        '每个地点的月底库存和成本价值会定格，结了不会再改。',
+        '按「下载 Excel」给会计。',
+      ], tip: '忘了结也没关系：每月 1 号早上系统会自动结上个月。' },
       { id: 'receive', title: '收货', video: V('wh-2-receive'), steps: [
         '收货 → 选这批货的采购单（没有采购单也可以收）。',
         '填送货单号，然后一样一样扫；同一样扫几次就是几件。',
@@ -439,6 +466,33 @@ export const WAREHOUSE_GUIDE = {
         'Enter shipping, duty and agent fees, and share them by value, quantity or weight.',
         'See each item\'s real cost, margin and a suggested price; nothing changes until you save the costs.',
       ], tip: 'When saving, Average with stock on hand mixes old and new costs; use it before the goods are received.' },
+      { id: 'cartons', title: 'Cartons, shelves, expiry dates', steps: [
+        'Stock → a product → Pieces per carton 24, Shelf A-03-2, Save.',
+        'Receiving, transfers and returns get a +1 ctn button, and show 25 (1 ctn + 1).',
+        'When receiving, tap a line to add its expiry date and batch number.',
+        'Batches due within 30 days show on Home and under Stock → Expiring, and in the morning Telegram report.',
+      ], tip: 'Stock is still kept in pieces; cartons only make typing and reading easier.' },
+      { id: 'approval', title: 'Transfers approved by a manager', steps: [
+        'Admin: Warehouses & branches → tick Transfers need a manager\'s approval.',
+        'A worker makes the transfer and presses Send for approval (stock does not move).',
+        'The manager opens Transfers → To approve, and presses Approve or Send back.',
+        'Once approved, the warehouse presses Dispatch; approved quantities cannot be changed.',
+      ] },
+      { id: 'returns', title: 'Returns to the supplier', steps: [
+        'WMS → Supplier returns → New return: supplier (and purchase order), scan the goods, tap a line for the reason.',
+        'Save: stock goes down now; the return waits for the credit note.',
+        'When the credit note comes, the buyer opens the return, enters its number and amount, and presses Credit note received.',
+      ] },
+      { id: 'reserve', title: 'Reserving stock for a customer', steps: [
+        'WMS → Reservations → New reservation: for whom, scan goods and quantities.',
+        'Reserved stock stays on hand but is no longer available; transfers warn when asking for more.',
+        'Press Delivered when it is handed over (stock goes down), or Release.',
+      ] },
+      { id: 'monthend', title: 'Month-end stock', steps: [
+        'WMS → Month-end stock → Close last month.',
+        'Each place\'s closing stock and its value at cost are frozen; a closed month never changes.',
+        'Download Excel for the accounts.',
+      ], tip: 'Forgot? On the 1st each month the system closes the previous month by itself.' },
       { id: 'receive', title: 'Receiving', video: V('wh-2-receive'), steps: [
         'Receive → pick the purchase order for the delivery (or receive without one).',
         'Enter the delivery note number, then scan each item; scanning twice is two.',
@@ -496,6 +550,33 @@ export const WAREHOUSE_GUIDE = {
         'Isi penghantaran, duti dan yuran ejen, dan agih ikut nilai, kuantiti atau berat.',
         'Lihat kos sebenar, margin dan harga dicadang; tiada apa berubah sehingga anda simpan kos.',
       ], tip: 'Semasa simpan, Purata dengan stok sedia ada campur kos lama dan baharu; guna sebelum barang diterima.' },
+      { id: 'cartons', title: 'Karton, rak, tarikh luput', steps: [
+        'Stok → produk → Biji sekarton 24, Rak A-03-2, Simpan.',
+        'Terima, pindahan dan pulangan ada butang +1 ctn, dan papar 25 (1 ctn + 1).',
+        'Semasa terima, tekan baris untuk isi tarikh luput dan no. kelompok.',
+        'Yang luput dalam 30 hari dipapar di Utama, Stok → Hampir luput, dan laporan pagi Telegram.',
+      ], tip: 'Stok tetap dikira dalam biji; karton hanya memudahkan.' },
+      { id: 'approval', title: 'Pindahan diluluskan pengurus', steps: [
+        'Admin: Gudang & cawangan → tanda Pindahan perlu kelulusan pengurus.',
+        'Pekerja buat pindahan dan tekan Hantar untuk kelulusan (stok tidak bergerak).',
+        'Pengurus buka Pindahan → Untuk lulus, tekan Luluskan atau Pulangkan.',
+        'Selepas lulus, gudang tekan Hantar; kuantiti yang diluluskan tidak boleh diubah.',
+      ] },
+      { id: 'returns', title: 'Pulangan ke pembekal', steps: [
+        'WMS → Pulangan ke pembekal → Pulangan baharu: pembekal, imbas barang, tekan baris untuk sebab.',
+        'Simpan: stok berkurang sekarang; pulangan menunggu nota kredit.',
+        'Bila nota kredit sampai, pembeli isi nombor dan jumlahnya, tekan Nota kredit diterima.',
+      ] },
+      { id: 'reserve', title: 'Tempah stok untuk pelanggan', steps: [
+        'WMS → Tempahan stok → Tempahan baharu: untuk siapa, imbas barang dan kuantiti.',
+        'Stok yang ditempah kekal tetapi tidak lagi tersedia.',
+        'Tekan Dihantar bila diserahkan (stok berkurang), atau Lepaskan.',
+      ] },
+      { id: 'monthend', title: 'Stok akhir bulan', steps: [
+        'WMS → Stok akhir bulan → Tutup bulan lepas.',
+        'Stok penutup dan nilai kos setiap tempat dibekukan; bulan yang ditutup tidak berubah.',
+        'Muat turun Excel untuk akaun.',
+      ], tip: 'Terlupa? Pada 1 hari bulan sistem menutup bulan lepas sendiri.' },
       { id: 'receive', title: 'Terima barang', video: V('wh-2-receive'), steps: [
         'Terima → pilih pesanan belian untuk penghantaran (atau terima tanpa PO).',
         'Isi no. nota hantaran, kemudian imbas setiap barang; imbas dua kali ialah dua.',

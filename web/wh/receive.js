@@ -21,8 +21,9 @@ import { formatQty, parseQty, UNIT } from '../js/money.js';
 import { session, ws } from '../js/session.js';
 import { icon } from '../js/icons.js';
 import {
-  audit, canBuy, canMove, failed, head, isMine, loading, movement, newId, outstanding, pill, placeName, productBox, refNo, send,
+  audit, canBuy, canMove, failed, head, isMine, loading, movement, newId, outstanding, packButton, pill, placeName, productBox, qtyFields, qtyText, refNo, send, shelfTag,
 } from './common.js';
+import { daysLeft } from '../js/wms.js';
 import { loadPurchaseOrders } from './data.js';
 import { go } from './main.js';
 
@@ -92,7 +93,8 @@ export function showReceiving(r) {
     h('p', { class: 'muted', style: { margin: 0 } }, [r.supplierName, placeName(r.branchId), r.deliveryNo ? `${t('whDeliveryNo')} ${r.deliveryNo}` : '', r.createdByName, dateTime(r.createdAt)].filter(Boolean).join(' · ')),
     h('table', { class: 'list' },
       h('thead', {}, h('tr', {}, [t('name'), t('whOrdered'), t('whReceivedQty'), t('whDamaged'), t('whRejected')].map((x, i) => h('th', { class: i ? 'num' : '' }, x)))),
-      h('tbody', {}, (r.lines || []).map((l) => h('tr', {}, h('td', {}, l.name || l.barcode),
+      h('tbody', {}, (r.lines || []).map((l) => h('tr', {}, h('td', {}, l.name || l.barcode,
+        l.expiry ? h('div', { class: 'muted', style: { fontSize: '12px' } }, `${t('whExpiry')} ${l.expiry}${l.batchNo ? ` · ${t('whBatch')} ${l.batchNo}` : ''}`) : null),
         h('td', { class: 'num' }, l.orderedMilli != null ? formatQty(l.orderedMilli) : '—'),
         h('td', { class: 'num' }, formatQty(l.receivedMilli || 0)), h('td', { class: 'num' }, formatQty(l.damagedMilli || 0)), h('td', { class: 'num' }, formatQty(l.rejectedMilli || 0)))))),
     r.note ? h('p', { style: { margin: 0 } }, r.note) : null,
@@ -122,7 +124,7 @@ function receiving(main, sub) {
       Object.assign(state, { po, supplierId: po.supplierId || '', supplierName: po.supplierName || '', branchId: po.branchId || '' });
       state.lines = (po.lines || []).map((l) => ({
         barcode: l.barcode, name: l.name, unit: session.find(l.barcode)?.unit || '', orderedMilli: l.qtyMilli || 0,
-        before: (l.receivedMilli || 0) + (l.damagedMilli || 0), received: 0, damaged: 0, rejected: 0,
+        before: (l.receivedMilli || 0) + (l.damagedMilli || 0), received: 0, damaged: 0, rejected: 0, expiry: '', batchNo: '',
       }));
     }
     draw();
@@ -141,7 +143,7 @@ function receiving(main, sub) {
     let line = state.lines.find((l) => l.barcode === p.barcode);
     if (!line) {
       if (!free && !await confirmBox(`${p.name || p.barcode}: ${t('whNotOnPo')}`, t('add'), t('cancel'), { tone: 'primary' })) return;
-      line = { barcode: p.barcode, name: p.name || p.barcode, unit: p.unit || '', orderedMilli: free ? null : 0, before: 0, received: 0, damaged: 0, rejected: 0, extra: !free };
+      line = { barcode: p.barcode, name: p.name || p.barcode, unit: p.unit || '', orderedMilli: free ? null : 0, before: 0, received: 0, damaged: 0, rejected: 0, expiry: '', batchNo: '', extra: !free };
       state.lines.push(line);
     }
     flashed = line.barcode;
@@ -166,21 +168,27 @@ function receiving(main, sub) {
 
   function editLine(l) {
     const f = (v) => h('input', { inputmode: 'decimal', value: formatQty(v) });
-    const rec = f(l.received); const dam = f(l.damaged); const rej = f(l.rejected);
+    const product = session.find(l.barcode);
+    const rec = qtyFields(product, l.received, t('whReceivedQty'));
+    const dam = f(l.damaged); const rej = f(l.rejected);
+    const expiry = h('input', { type: 'date', value: l.expiry || '', 'data-act': 'expiry' });
+    const batchNo = h('input', { value: l.batchNo || '', maxlength: 40, placeholder: t('whBatch') });
     modal((close) => [
       h('h2', {}, l.name),
-      l.orderedMilli != null ? h('p', { class: 'muted', style: { margin: 0 } }, `${t('whOrdered')} ${formatQty(l.orderedMilli)} · ${t('whAlready')} ${formatQty(l.before)}`) : null,
-      h('label', { class: 'field' }, t('whReceivedQty'), rec),
+      l.orderedMilli != null ? h('p', { class: 'muted', style: { margin: 0 } }, `${t('whOrdered')} ${qtyText(l.orderedMilli, product)} · ${t('whAlready')} ${formatQty(l.before)}`) : null,
+      rec.el,
       h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('whDamaged'), dam), h('label', { class: 'field' }, t('whRejected'), rej)),
       h('p', { class: 'muted', style: { margin: 0 } }, t('whDamagedHelp')),
+      h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('whExpiry'), expiry), h('label', { class: 'field' }, t('whBatch'), batchNo)),
+      h('p', { class: 'muted', style: { margin: 0 } }, t('whExpiryHelp')),
       h('div', { class: 'actions' },
         h('button', { class: 'danger', onclick: () => { state.lines.splice(state.lines.indexOf(l), 1); close(); drawLines(); } }, t('remove')),
         h('span', { class: 'grow' }),
         h('button', { onclick: close }, t('cancel')),
         h('button', { class: 'primary', onclick: () => {
-          const r = parseQty(rec.value || '0'); const d = parseQty(dam.value || '0'); const j = parseQty(rej.value || '0');
+          const r = rec.read(); const d = parseQty(dam.value || '0'); const j = parseQty(rej.value || '0');
           if ([r, d, j].some((x) => x == null || x < 0)) return toast(t('errQty'), 'error');
-          Object.assign(l, { received: r, damaged: d, rejected: j });
+          Object.assign(l, { received: r, damaged: d, rejected: j, expiry: expiry.value || '', batchNo: batchNo.value.trim() });
           close(); drawLines();
         } }, t('save'))),
     ], { onClose: () => scan.focus() });
@@ -191,13 +199,17 @@ function receiving(main, sub) {
     flashed = '';
     mount(linesBox, state.lines.length ? state.lines.map((l) => {
       const step = (d) => (e) => { e.stopPropagation(); l.received = Math.max(0, l.received + d * UNIT); drawLines(); };
-      return h('div', { class: `wh-line${l.barcode === flash ? ' flash' : ''}`, onclick: () => editLine(l) },
-        h('div', { class: 'n' }, h('strong', {}, l.name), l.extra ? pill(t('whExtra'), 'warn') : null, status(l)),
+      const product = session.find(l.barcode);
+      const left = l.expiry ? daysLeft(l.expiry) : null;
+      return h('div', { class: `wh-line${l.barcode === flash ? ' flash' : ''}`, 'data-line': l.barcode, onclick: () => editLine(l) },
+        h('div', { class: 'n' }, h('strong', {}, l.name), shelfTag(product, state.branchId), l.extra ? pill(t('whExtra'), 'warn') : null, status(l),
+          l.expiry ? pill(`${t('whExpiry')} ${l.expiry}`, left != null && left <= 30 ? 'bad' : '') : null),
         h('div', { class: 'muted' }, l.orderedMilli != null
-          ? `${t('whOrdered')} ${formatQty(l.orderedMilli)} · ${t('whAlready')} ${formatQty(l.before)} · ${t('whNow')} ${formatQty(l.received)}`
+          ? `${t('whOrdered')} ${qtyText(l.orderedMilli, product)} · ${t('whAlready')} ${formatQty(l.before)} · ${t('whNow')} ${qtyText(l.received, product)}`
           : `${l.barcode}`,
         l.damaged ? ` · ${t('whDamaged')} ${formatQty(l.damaged)}` : '', l.rejected ? ` · ${t('whRejected')} ${formatQty(l.rejected)}` : ''),
         h('div', { class: 'wh-step' },
+          packButton(product, (q) => { l.received += q; drawLines(); }),
           h('button', { type: 'button', onclick: step(-1), 'aria-label': '−' }, icon('minus', 18)),
           h('span', { class: 'q' }, formatQty(l.received)),
           h('button', { type: 'button', onclick: step(1), 'aria-label': '+' }, icon('plus', 18))));
@@ -250,13 +262,16 @@ function receiving(main, sub) {
     batch.set(doc(db, ws(`receivings/${rid}`)), {
       receivingNo, poId: po?.id || '', poNo: po?.poNo || '', supplierId: state.supplierId, supplierName: state.supplierName,
       branchId: state.branchId, deliveryNo: deliveryNo.value.trim(), note: note.value.trim(),
-      lines: used.map((l) => ({ barcode: l.barcode, name: l.name, orderedMilli: l.orderedMilli, receivedMilli: l.received, damagedMilli: l.damaged, rejectedMilli: l.rejected })),
+      lines: used.map((l) => ({
+        barcode: l.barcode, name: l.name, orderedMilli: l.orderedMilli, receivedMilli: l.received, damagedMilli: l.damaged, rejectedMilli: l.rejected,
+        ...(l.expiry ? { expiry: l.expiry } : {}), ...(l.batchNo ? { batchNo: l.batchNo } : {}),
+      })),
       createdByUid: session.uid, createdByName: session.name, createdAt: now,
     });
     for (const l of used) {
       if (l.received > 0) {
         batch.set(doc(collection(db, ws('movements'))), movement({ barcode: l.barcode, name: l.name }, 'RECEIVE', l.received, state.branchId,
-          { reference: receivingNo, note: [po?.poNo, state.supplierName].filter(Boolean).join(' · ') }));
+          { reference: receivingNo, note: [po?.poNo, state.supplierName].filter(Boolean).join(' · '), expiry: l.expiry, batchNo: l.batchNo }));
       }
     }
     if (po) {

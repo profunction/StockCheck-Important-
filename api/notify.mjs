@@ -22,7 +22,8 @@ import {
   mailText, movesText, noRight, outText, poText, priceText, profitText, shiftText, slowText, staffText, taxText, thanksText, topText,
   valueText, voidsText, whoamiText,
 } from './answers.mjs';
-import { isLow, levels as ledgerLevels } from './ledger.js';
+import { isLow, levels as ledgerLevels, takenAt } from './ledger.js';
+import { closingRows, expiring, monthBefore, monthEnd, monthOf } from './wms.js';
 import {
   dayRange, findProducts, langOf, lowText, parseMessage, periodRange, previousRange, reportPush, reportText, salesText, stockText, summarize, words,
 } from './bot.mjs';
@@ -125,17 +126,18 @@ export function notifier(db, env = process.env) {
     .where('createdAt', '>=', from).where('createdAt', '<', to).get()).docs.map((d) => d.data());
 
   /** Stock per branch, as ledger.js works it out (the same as the app and the website). */
-  async function stock(wsId) {
+  /** Stock at each place now, or as it stood at [until]. */
+  async function stock(wsId, until = Infinity) {
     const col = (n) => wsRef(wsId).collection(n);
     const [checksSnap, movesSnap, productsSnap] = await Promise.all([
       col('stockChecks').where('status', 'in', ['COMPLETED', 'REVIEWED', 'LOCKED']).get(),
       col('movements').where('at', '>=', Date.now() - 400 * 24 * 3600 * 1000).get(),
       col('products').get(),
     ]);
-    const checks = checksSnap.docs.map((d) => ({ ...d.data(), id: d.id }));
+    const checks = checksSnap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((c) => takenAt(c) <= until);
     const items = new Map(await Promise.all(checks.map(async (c) =>
       [c.id, (await col('stockChecks').doc(c.id).collection('items').get()).docs.map((d) => d.data())])));
-    const moves = movesSnap.docs.map((d) => d.data());
+    const moves = movesSnap.docs.map((d) => d.data()).filter((m) => m.at <= until);
     const products = productsSnap.docs.map((d) => ({ ...d.data(), barcode: d.id }));
     const catalogue = new Map(products.map((p) => [p.barcode, p]));
     const branches = new Set([...checks.map((c) => c.branchId || ''), ...moves.map((m) => m.branchId || '')]);
@@ -144,7 +146,42 @@ export function notifier(db, env = process.env) {
       byBranch[b] = ledgerLevels(checks.filter((c) => (c.branchId || '') === b), (c) => items.get(c.id) || [],
         moves.filter((m) => (m.branchId || '') === b), catalogue);
     }
-    return { byBranch, products };
+    const movesBy = (b) => moves.filter((m) => (m.branchId || '') === b);
+    return { byBranch, products, movesBy };
+  }
+
+  /** Batches due within 30 days (or past), at the places in [byBranch]. */
+  const soonOf = (byBranch, movesBy, placeName, now = Date.now()) => Object.entries(byBranch)
+    .flatMap(([b, list]) => expiring(list, movesBy(b), { now, days: 30 }).map((l) => ({ ...l, place: placeName(b) })))
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+
+  /**
+   * Last month's closing stock for every place that has stock and was not
+   * closed by hand (web/wh/monthend.js writes the same shape). create()
+   * never overwrites: a month closed by hand keeps its figures.
+   */
+  async function closeMonth(wsId, now = Date.now()) {
+    const month = monthBefore(monthOf(now));
+    const metaRef = wsRef(wsId).collection('meta').doc('notify');
+    if ((await metaRef.get()).data()?.closedMonth === month) return 0;
+    const { byBranch, products } = await stock(wsId, monthEnd(month));
+    const cost = new Map(products.map((p) => [p.barcode, p.costSen ?? 0]));
+    let made = 0;
+    for (const [b, list] of Object.entries(byBranch)) {
+      const c = closingRows(list, (k) => cost.get(k));
+      if (!c.lines.length) continue;
+      try {
+        await wsRef(wsId).collection('stockClosings').doc(`${month}_${b || '-'}`).create({
+          month, branchId: b, asOf: monthEnd(month), lines: c.lines, valueSen: c.valueSen, qtyMilli: c.qtyMilli,
+          createdByUid: '', createdByName: 'SuXin', createdAt: now,
+        });
+        made++;
+      } catch (err) {
+        if (err.code !== 6) throw err; // 6: already exists -- closed by hand
+      }
+    }
+    await metaRef.set({ closedMonth: month }, { merge: true });
+    return made;
   }
 
   /** Only the places this person works at, when they are tied to some. */
@@ -291,7 +328,7 @@ export function notifier(db, env = process.env) {
         ? (await ws.collection('products').get()).docs.map((d) => [d.id, d.data().name]) : []);
       return say(movesText(q.kind, moves, { ...span, nameOf: (b) => names.get(b) }));
     }
-    const { byBranch, products } = await stock(chat.workspaceId);
+    const { byBranch, products, movesBy } = await stock(chat.workspaceId);
     const mine = visible(byBranch, who);
     const catalogue = new Map(products.map((p) => [p.barcode, p]));
     const live = (l) => catalogue.get(l.barcode || l.key)?.active !== false;
@@ -323,7 +360,7 @@ export function notifier(db, env = process.env) {
     }
     if (q.kind === 'report') {
       const summary = summarize(maySales ? await salesIn(from, to) : []);
-      return say(reportText({ company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang, showSales: maySales }));
+      return say(reportText({ company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang, showSales: maySales, soon: soonOf(mine, movesBy, co.placeName) }));
     }
     const found = findProducts(products, q.query);
     if (!found.length) return say(q.guess ? dontKnow(q.query, lang) : w.noMatch(q.query));
@@ -357,17 +394,18 @@ export function notifier(db, env = process.env) {
   async function emailReport(wsId, to, lang, now = Date.now()) {
     const [from, end] = dayRange(now, 1);
     const co = await company(wsId);
-    const { byBranch } = await stock(wsId);
+    const { byBranch, movesBy } = await stock(wsId);
     const summary = summarize(await salesBetween(wsId, from, end));
-    return mailReport(to, reportText({ company: co.name, summary, lows: lowsOf(byBranch, co.placeName), start: from, lang }));
+    return mailReport(to, reportText({ company: co.name, summary, lows: lowsOf(byBranch, co.placeName), start: from, lang, soon: soonOf(byBranch, movesBy, co.placeName, now) }));
   }
 
   async function dailyReports(now = Date.now()) {
     const [from, to] = dayRange(now, 1);
     const day = new Date(from + 8 * 3600_000).toISOString().slice(0, 10);
-    const sent = { companies: 0, telegram: 0, email: 0, push: 0 };
+    const sent = { companies: 0, telegram: 0, email: 0, push: 0, closings: 0 };
     for (const ref of await db.collection('workspaces').listDocuments()) {
       const wsId = ref.id;
+      sent.closings += await closeMonth(wsId, now).catch((e) => { console.error('closing', wsId, e.message); return 0; });
       const settingsRef = ref.collection('meta').doc('notify');
       const settings = (await settingsRef.get()).data() || {};
       if (settings.lastDay === day) continue;
@@ -377,7 +415,7 @@ export function notifier(db, env = process.env) {
       if (!chats.length && !emails.length && !settings.pushDaily) continue;
 
       const co = await company(wsId);
-      const { byBranch } = await stock(wsId);
+      const { byBranch, movesBy } = await stock(wsId);
       const summary = summarize(await salesBetween(wsId, from, to));
       sent.companies++;
 
@@ -387,12 +425,13 @@ export function notifier(db, env = process.env) {
         const mine = visible(byBranch, who);
         const ok = await telegram(c.id, reportText({
           company: co.name, summary, lows: lowsOf(mine, co.placeName), start: from, lang: c.lang || 'zh', showSales: who.can('POS_REPORTS'),
+          soon: soonOf(mine, movesBy, co.placeName, now),
         })).catch(() => false);
         if (ok) sent.telegram++;
       }
       const lows = lowsOf(byBranch, co.placeName);
       if (emails.length) {
-        const text = reportText({ company: co.name, summary, lows, start: from, lang: settings.lang || 'zh' });
+        const text = reportText({ company: co.name, summary, lows, start: from, lang: settings.lang || 'zh', soon: soonOf(byBranch, movesBy, co.placeName, now) });
         if (await mailReport(emails, text).catch((e) => { console.error('email', e.message); return false; })) sent.email++;
       }
       if (settings.pushDaily) {

@@ -49,3 +49,12 @@ export function levelsFor(data, branch, catalogue = new Map(session.products.map
     data.moves.filter((m) => (m.branchId || '') === b), catalogue));
   return per.length === 1 ? per[0] : merge(per);
 }
+
+/** [data] as it stood at [end]: counts finished by then, movements up to then. */
+export function asOf(data, end) {
+  return {
+    checks: data.checks.filter((c) => (c.completedAt ?? c.createdAt ?? 0) <= end),
+    items: data.items,
+    moves: data.moves.filter((m) => m.at <= end),
+  };
+}

@@ -11,6 +11,9 @@ import { formatQty, rm } from '../js/money.js';
 import { session, ws } from '../js/session.js';
 import { actionTile, canApprove, canBuy, canMove, failed, head, isMine, loading, myPlaces, pill } from './common.js';
 import { loadAll, reorderSuggestions, stockRows } from './data.js';
+import { expiring } from '../js/wms.js';
+import { places as allPlaces } from './common.js';
+import { expiryPill } from './stock.js';
 import { go } from './main.js';
 
 let scope = null;
@@ -26,6 +29,12 @@ export function render(main) {
     const incoming = data.transfers.filter((tr) => tr.status === 'SENT' && here(tr.toBranch) && isMine(tr.toBranch));
     const outgoing = data.transfers.filter((tr) => tr.status === 'DRAFT' && here(tr.fromBranch));
     const toApprove = data.pos.filter((p) => p.status === 'SUBMITTED' && here(p.branchId));
+    const trToApprove = canApprove() ? data.transfers.filter((tr) => tr.status === 'PENDING' && here(tr.fromBranch)) : [];
+    const trApproved = data.transfers.filter((tr) => tr.status === 'APPROVED' && here(tr.fromBranch) && isMine(tr.fromBranch));
+    // Batches due within 30 days (or past), at the places in view.
+    const soon = (scope === 'ALL' ? allPlaces() : allPlaces().filter((p) => p.id === scope)).flatMap((p) =>
+      expiring(stockRows(data, p.id), data.stock.moves.filter((m) => (m.branchId || '') === p.id), { days: 30 }).map((l) => ({ ...l, place: p })))
+      .sort((a, b) => a.daysLeft - b.daysLeft);
     const low = rows.filter((r) => r.low);
     const out = rows.filter((r) => r.out && (r.counted != null || r.inSince || r.outSince));
     const value = rows.reduce((s, r) => s + r.valueSen, 0);
@@ -34,6 +43,8 @@ export function render(main) {
       ...toApprove.map((p) => ({ at: p.createdAt, label: `${p.poNo} · ${p.supplierName || ''}`, tag: pill(t('po_SUBMITTED'), 'warn'), to: () => go('purchase', p.id) })),
       ...toReceive.map((p) => ({ at: p.createdAt, label: `${p.poNo} · ${p.supplierName || ''}`, tag: pill(t(`po_${p.status}`), 'good'), to: () => go('receive', p.id) })),
       ...incoming.map((tr) => ({ at: tr.sentAt || tr.createdAt, label: `${tr.transferNo} · ${session.branchName(tr.fromBranch)} → ${session.branchName(tr.toBranch)}`, tag: pill(t('tr_SENT'), 'warn'), to: () => go('transfers', tr.id) })),
+      ...trToApprove.map((tr) => ({ at: tr.submittedAt || tr.createdAt, label: `${tr.transferNo} · ${session.branchName(tr.fromBranch)} → ${session.branchName(tr.toBranch)}`, tag: pill(t('tr_PENDING'), 'warn'), to: () => go('transfers', tr.id) })),
+      ...trApproved.map((tr) => ({ at: tr.approvedAt || tr.createdAt, label: `${tr.transferNo} · → ${session.branchName(tr.toBranch)}`, tag: pill(t('tr_APPROVED'), 'good'), to: () => go('transfers', tr.id) })),
       ...outgoing.map((tr) => ({ at: tr.createdAt, label: `${tr.transferNo} · → ${session.branchName(tr.toBranch)}`, tag: pill(t('tr_DRAFT')), to: () => go('transfers', tr.id) })),
     ].sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 10);
 
@@ -43,6 +54,7 @@ export function render(main) {
       canMove() ? actionTile('sliders', t('whAdjust'), t('whAdjustSub'), () => go('adjust')) : null,
       actionTile('barcode', t('whStock'), t('whStockSub'), () => go('stock')),
       canBuy() || canApprove() ? actionTile('receipt', t('whPurchase'), toApprove.length && canApprove() ? `${toApprove.length} ${t('whToApprove')}` : t('whPurchaseSub'), () => go('purchase'), toApprove.length && canApprove() ? 'hot' : '') : null,
+      soon.length ? actionTile('book', t('whExpiring'), t('whExpiringSub').replace('{n}', 30), () => go('stock'), 'hot') : null,
       actionTile('percent', t('whVariance'), t('whVarianceSub'), () => go('variance')));
 
     const stat = (label, value2, tone = '') => h('div', { class: `card stat${tone ? ` ${tone}` : ''}` }, h('div', { class: 'label' }, label), h('div', { class: 'value' }, value2));
@@ -67,6 +79,9 @@ export function render(main) {
           waiting.length
             ? waiting.map((x) => h('button', { class: 'wh-row', onclick: x.to }, h('span', { class: 'grow' }, x.label), x.tag))
             : h('p', { class: 'muted', style: { margin: 0 } }, t('whNothingWaiting')))),
+      soon.length ? h('section', { class: 'card', style: { marginTop: '16px' }, 'data-card': 'expiring' }, h('h2', {}, `⏰ ${t('whExpiring')} (${soon.length})`),
+        h('table', { class: 'list' }, h('tbody', {}, soon.slice(0, 10).map((l) => h('tr', { class: 'click', onclick: () => go('stock', encodeURIComponent(l.key)) },
+          h('td', {}, l.name), h('td', { class: 'muted' }, l.place.name), h('td', { class: 'num' }, formatQty(l.qtyMilli)), h('td', {}, expiryPill(l.expiry))))))) : null,
       h('section', { class: 'card', style: { marginTop: '16px' } }, h('h2', {}, t('whLatestMoves')), recent));
     loadRecent();
   };

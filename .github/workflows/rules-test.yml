@@ -11,6 +11,7 @@ on:
       - 'rules-test/**'
       - 'api/**'
       - 'web/js/ledger.js'
+      - 'web/js/wms.js'
       - 'web/js/offline.js'
       - 'platform/plans.mjs'
       - '.github/workflows/rules-test.yml'
@@ -57,6 +58,7 @@ jobs:
       - name: The API's stock maths, plans and offline merge are the website's
         run: |
           diff -u web/js/ledger.js api/ledger.js
+          diff -u web/js/wms.js api/wms.js
           diff -u web/js/money.js api/money.js
           diff -u platform/plans.mjs api/plans.js
           diff -u web/js/offline.js api/offline.js

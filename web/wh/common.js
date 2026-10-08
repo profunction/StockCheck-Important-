@@ -15,6 +15,8 @@ import { session, ws } from '../js/session.js';
 import { icon } from '../js/icons.js';
 import { scanWithCamera } from '../js/camera.js';
 import { normalizeTag } from '../js/nfc.js';
+import { formatQty, parseQty, UNIT } from '../js/money.js';
+import { fromPacks, packOf, toPacks } from '../js/wms.js';
 import { menuButton } from './main.js';
 
 export const canMove = () => session.can('RECORD_STOCK_MOVEMENTS');
@@ -46,11 +48,12 @@ export function refNo(prefix, at = new Date()) {
 }
 
 /** One stock movement, as the app and the till write them, marked as the warehouse's. */
-export function movement(p, type, qtyMilli, branchId, { reference = '', note = '', reason = '', kind = '' } = {}) {
+export function movement(p, type, qtyMilli, branchId, { reference = '', note = '', reason = '', kind = '', expiry = '', batchNo = '' } = {}) {
   const now = Date.now();
   return {
     barcode: p.barcode, productName: p.name || '', branchId: branchId || '', type, quantityMilli: qtyMilli, at: now,
     source: 'WAREHOUSE', reference, note, ...(reason ? { reason } : {}), ...(kind ? { kind } : {}),
+    ...(expiry ? { expiry } : {}), ...(batchNo ? { batchNo } : {}),
     createdByUid: session.uid, createdByName: session.name, createdAt: now,
   };
 }
@@ -122,8 +125,60 @@ export function pill(text, tone = '') {
   return h('span', { class: `pill${tone ? ` ${tone}` : ''}` }, text);
 }
 
+// ------------------------------------------------------ cartons and shelves
+
+/** "77 (3 ctn + 5)" for a product sold by the carton; plain "77" otherwise. */
+export function qtyText(qtyMilli, product) {
+  const pack = packOf(product);
+  const plain = formatQty(qtyMilli);
+  if (!pack || Math.abs(qtyMilli) < pack.size * UNIT) return plain;
+  const { packs, pieces } = toPacks(Math.abs(qtyMilli), pack.size);
+  return `${plain} (${qtyMilli < 0 ? '−' : ''}${packs} ${pack.name}${pieces ? ` + ${formatQty(Math.round(pieces * UNIT))}` : ''})`;
+}
+
+/** Where [product] sits at [branchId], or ''. */
+export const shelfOf = (product, branchId) => String(product?.shelves?.[branchId || '-'] || '');
+
+/** A small grey shelf tag, or nothing. */
+export function shelfTag(product, branchId) {
+  const s = shelfOf(product, branchId);
+  return s ? h('span', { class: 'pill shelf', title: t('whShelf') }, `📍 ${s}`) : null;
+}
+
+/**
+ * Quantity fields: one box, or cartons + loose pieces for a product that
+ * comes by the carton. read() is thousandths of a piece, or null if wrong.
+ */
+export function qtyFields(product, qtyMilli, label) {
+  const pack = packOf(product);
+  if (!pack) {
+    const one = h('input', { inputmode: 'decimal', value: formatQty(qtyMilli || 0), 'data-q': 'qty' });
+    return { el: h('label', { class: 'field' }, label, one), read: () => parseQty(one.value || '0') };
+  }
+  const { packs, pieces } = toPacks(qtyMilli || 0, pack.size);
+  const ctn = h('input', { inputmode: 'numeric', value: String(packs), 'data-q': 'packs' });
+  const pcs = h('input', { inputmode: 'decimal', value: formatQty(Math.round(pieces * UNIT)), 'data-q': 'pieces' });
+  const total = h('span', { class: 'muted' });
+  const sum = () => { const p = parseQty(ctn.value || '0'); const q = parseQty(pcs.value || '0'); return p == null || q == null || p % UNIT ? null : fromPacks(p / UNIT, q / UNIT, pack.size); };
+  const show = () => { const v = sum(); total.textContent = v == null ? '' : `= ${formatQty(v)}`; };
+  ctn.oninput = show; pcs.oninput = show; show();
+  return {
+    el: h('div', { class: 'field' }, h('span', {}, label, ' · ', `1 ${pack.name} = ${pack.size}`),
+      h('div', { class: 'grid2' }, h('label', { class: 'field' }, `${t('whPacks')} (${pack.name})`, ctn), h('label', { class: 'field' }, t('whPieces'), pcs)), total),
+    read: sum,
+  };
+}
+
+/** "+1 ctn" for a product that comes by the carton; null otherwise. */
+export function packButton(product, onAdd) {
+  const pack = packOf(product);
+  if (!pack) return null;
+  return h('button', { type: 'button', class: 'pack-btn', 'data-act': 'add-pack', onclick: (e) => { e.stopPropagation(); onAdd(pack.size * UNIT); } },
+    t('whAddPack').replace('{p}', pack.name));
+}
+
 export const PO_TONE = { DRAFT: '', SUBMITTED: 'warn', APPROVED: 'good', ORDERED: 'good', PARTIAL: 'warn', RECEIVED: 'good', CLOSED: '', CANCELLED: 'bad' };
-export const TR_TONE = { DRAFT: '', SENT: 'warn', RECEIVED: 'good', CANCELLED: 'bad' };
+export const TR_TONE = { DRAFT: '', PENDING: 'warn', APPROVED: 'good', SENT: 'warn', RECEIVED: 'good', CANCELLED: 'bad' };
 
 /** What is still to come on a purchase order line: damaged goods count as delivered, rejected ones do not. */
 export const outstanding = (l) => Math.max(0, (l.qtyMilli || 0) - (l.receivedMilli || 0) - (l.damagedMilli || 0));

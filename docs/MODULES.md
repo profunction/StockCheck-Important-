@@ -27,6 +27,31 @@ dashboard (`web/js/dashboard.js`, menu `#/cloud`) shows today's sales only
 with the POS and `POS_REPORTS`, stock with Count or POS, and orders to
 receive / transfers on the way only with SuXin WMS.
 
+## What SuXin WMS keeps beyond goods in and out
+
+- **Cartons** — a product's `packSize` / `packName`; stock is still pieces,
+  cartons are how it is typed (`+1 ctn`) and read (`25 (1 ctn + 1)`).
+- **Shelves** — `products.shelves[placeId or '-']`, shown when receiving,
+  picking a transfer and on the stock page.
+- **Expiry** — an expiry date and batch number per received line, on the
+  RECEIVE movement; what is left on the shelf is the newest goods in
+  (`web/js/wms.js lotsLeft`). Due within 30 days: Home, Stock → Expiring,
+  and the morning Telegram/email report (`api/notify.mjs`).
+- **Transfer approval** — `pos/settings.transferApproval`: DRAFT → PENDING
+  → APPROVED (`WH_APPROVE`) → SENT; the rules hold the same line and keep an
+  approved transfer's lines as approved.
+- **Supplier returns** — `supplierReturns`: stock leaves at once
+  (WRITE_OFF, reason SUPPLIER_RETURN); OPEN until the buyer notes the credit
+  note (CREDITED).
+- **Reservations** — `reservations`: available = on hand − reserved;
+  DELIVERED writes a SALE movement, RELEASED writes nothing.
+- **Month end** — `stockClosings/{YYYY-MM}_{place}`: stock and value at
+  cost as at the month's last moment, written once, never changed; the
+  morning job closes any month nobody closed by hand.
+
+`web/js/wms.js` holds the sums and is copied to `api/wms.js` (CI checks the
+two match).
+
 ## Where a company's modules come from
 
 `licences/{workspaceId}` — written only by the platform (payments, the

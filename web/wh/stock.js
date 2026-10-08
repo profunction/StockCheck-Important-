@@ -11,7 +11,8 @@ import { formatQty, formatSen, parseQty, parseSen, rm } from '../js/money.js';
 import { session, ws } from '../js/session.js';
 import { icon } from '../js/icons.js';
 import { levelsFor } from '../js/stockdata.js';
-import { audit, canBuy, canMove, failed, findProduct, head, loading, myPlaces, pill, places, productBox } from './common.js';
+import { audit, canBuy, canMove, failed, findProduct, head, loading, myPlaces, pill, places, productBox, qtyText, shelfOf } from './common.js';
+import { daysLeft, expiring, lotsLeft, packOf } from '../js/wms.js';
 import { loadAll, stockRows } from './data.js';
 import { go } from './main.js';
 
@@ -43,7 +44,7 @@ export function render(main, sub) {
       places2.length > 1 ? h('select', { style: { width: 'auto' }, onchange: (e) => { scope = e.target.value; draw(); } },
         !session.branchIds.length ? h('option', { value: 'ALL', selected: scope === 'ALL' }, t('allBranches')) : null,
         places2.map((p) => h('option', { value: p.id, selected: scope === p.id }, p.name))) : null,
-      h('div', { class: 'seg' }, ['all', 'low', 'out', 'transit', 'uncounted'].map((f) => h('button', { class: filter === f ? 'on' : '', onclick: () => { filter = f; draw(); } }, t(`whF_${f}`))))),
+      h('div', { class: 'seg' }, ['all', 'low', 'out', 'transit', 'expiring', 'uncounted'].map((f) => h('button', { class: filter === f ? 'on' : '', onclick: () => { filter = f; draw(); } }, t(`whF_${f}`))))),
     box);
 
   function draw() {
@@ -53,6 +54,13 @@ export function render(main, sub) {
     if (filter === 'out') rows = rows.filter((r) => r.out);
     if (filter === 'transit') rows = rows.filter((r) => r.inTransit || r.onOrder);
     if (filter === 'uncounted') rows = rows.filter((r) => r.counted == null);
+    if (filter === 'expiring') {
+      const soon = new Map();
+      for (const p of scope === 'ALL' ? places() : places().filter((x) => x.id === scope)) {
+        for (const lot of expiringAt(p.id, 30)) if (!soon.has(lot.key) || lot.daysLeft < soon.get(lot.key).daysLeft) soon.set(lot.key, lot);
+      }
+      rows = rows.filter((r) => soon.has(r.key)).map((r) => ({ ...r, soon: soon.get(r.key) })).sort((a, b) => a.soon.daysLeft - b.soon.daysLeft);
+    }
     const text = q.trim().toLowerCase();
     if (text) rows = rows.filter((r) => (r.name || '').toLowerCase().includes(text) || r.key.toLowerCase().includes(text));
     const value = rows.reduce((s, r) => s + r.valueSen, 0);
@@ -61,13 +69,15 @@ export function render(main, sub) {
         h('div', { class: 'card stat' }, h('div', { class: 'label' }, t('itemsCount')), h('div', { class: 'value' }, String(rows.length))),
         h('div', { class: 'card stat' }, h('div', { class: 'label' }, t('stockValue')), h('div', { class: 'value' }, rm(value)))),
       rows.length ? h('div', { class: 'table-wrap' }, h('table', { class: 'list wh-stock' },
-        h('thead', {}, h('tr', {}, [[t('name')], [t('onHand'), 1], [t('whInTransit'), 1], [t('whOnOrder'), 1], [t('whAvailable'), 1], [t('whReorderAt'), 1], [t('whValue'), 1]]
+        h('thead', {}, h('tr', {}, [[t('name')], [t('onHand'), 1], [t('whInTransit'), 1], [t('whOnOrder'), 1], [t('whReserved'), 1], [t('whAvailable'), 1], [t('whReorderAt'), 1], [t('whValue'), 1]]
           .map(([x, n]) => h('th', { class: n ? 'num' : '' }, x)))),
         h('tbody', {}, rows.slice(0, 1500).map((r) => h('tr', { class: 'click', onclick: () => go('stock', encodeURIComponent(r.key)) },
-          h('td', {}, h('div', {}, r.name || r.key, r.low ? h('span', {}, ' ', pill(t('lowStock'), 'warn')) : null), h('div', { class: 'muted', style: { fontSize: '12px' } }, r.barcode)),
-          h('td', { class: 'num', style: { fontWeight: 700, color: r.out ? 'var(--danger)' : '' } }, `${formatQty(r.onHand)} ${r.unit || ''}`),
+          h('td', {}, h('div', {}, r.name || r.key, r.low ? h('span', {}, ' ', pill(t('lowStock'), 'warn')) : null, r.soon ? h('span', {}, ' ', expiryPill(r.soon.expiry)) : null),
+            h('div', { class: 'muted', style: { fontSize: '12px' } }, r.barcode, scope !== 'ALL' && shelfOf(r.product, scope) ? ` · 📍 ${shelfOf(r.product, scope)}` : '')),
+          h('td', { class: 'num', style: { fontWeight: 700, color: r.out ? 'var(--danger)' : '' } }, `${qtyText(r.onHand, r.product)} ${r.unit || ''}`),
           h('td', { class: 'num' }, r.inTransit ? formatQty(r.inTransit) : ''),
           h('td', { class: 'num' }, r.onOrder ? formatQty(r.onOrder) : ''),
+          h('td', { class: 'num' }, r.reserved ? formatQty(r.reserved) : ''),
           h('td', { class: 'num' }, formatQty(r.available)),
           h('td', { class: 'num muted' }, r.reorderLevel != null ? formatQty(r.reorderLevel) : ''),
           h('td', { class: 'num' }, r.valueSen ? formatSen(r.valueSen) : ''))))))
@@ -79,6 +89,19 @@ export function render(main, sub) {
   else loading(box);
   loadAll().then((d) => { data = d; draw(); }).catch((err) => { if (!data) failed(box, err); });
   return null;
+}
+
+/** A red or amber chip for an expiry date. */
+export function expiryPill(date) {
+  const d = daysLeft(date);
+  const text = d < 0 ? t('whExpiredAgo').replace('{n}', -d) : d === 0 ? t('whExpiresToday') : t('whDaysLeft').replace('{n}', d);
+  return pill(`${date} · ${text}`, d <= 7 ? 'bad' : 'warn');
+}
+
+/** Lots at [branch] that run out within [days], from the loaded data. */
+function expiringAt(branch, days) {
+  const levels = stockRows(data, branch);
+  return expiring(levels, data.stock.moves.filter((m) => (m.branchId || '') === (branch || '')), { days });
 }
 
 /** Movements of [key] at [branch], oldest first, from the loaded data. */
@@ -134,20 +157,34 @@ function productPage(box, key) {
       h('div', { class: 'row' }, product?.photoUrl ? h('img', { class: 'thumb', src: product.photoUrl, alt: '', style: { width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' } }) : null,
         h('div', { class: 'grow' }, h('strong', { style: { fontSize: '19px' } }, name), h('div', { class: 'muted' }, `${key}${product?.sku ? ` · ${product.sku}` : ''}${product?.unit ? ` · ${product.unit}` : ''}`))),
       h('div', { class: 'table-wrap' }, h('table', { class: 'list' },
-        h('thead', {}, h('tr', {}, [t('whAt'), t('onHand'), t('whInTransit'), t('whOnOrder'), t('whAvailable'), t('whLastCount')].map((x, i) => h('th', { class: i && i < 5 ? 'num' : '' }, x)))),
+        h('thead', {}, h('tr', {}, [t('whAt'), t('onHand'), t('whInTransit'), t('whOnOrder'), t('whReserved'), t('whAvailable'), t('whLastCount')].map((x, i) => h('th', { class: i && i < 6 ? 'num' : '' }, x)))),
         h('tbody', {}, placeRows.map(({ place, row }) => h('tr', {},
-          h('td', {}, place.name, place.kind === 'WAREHOUSE' ? h('span', {}, ' ', pill(t('whKind_WAREHOUSE'))) : null),
-          h('td', { class: 'num', style: { fontWeight: 700 } }, formatQty(row?.onHand ?? 0)),
+          h('td', {}, place.name, place.kind === 'WAREHOUSE' ? h('span', {}, ' ', pill(t('whKind_WAREHOUSE'))) : null,
+            shelfOf(product, place.id) ? h('div', { class: 'muted', style: { fontSize: '12px' } }, `📍 ${shelfOf(product, place.id)}`) : null),
+          h('td', { class: 'num', style: { fontWeight: 700 } }, qtyText(row?.onHand ?? 0, product)),
           h('td', { class: 'num' }, row?.inTransit ? formatQty(row.inTransit) : ''),
           h('td', { class: 'num' }, row?.onOrder ? formatQty(row.onOrder) : ''),
+          h('td', { class: 'num' }, row?.reserved ? formatQty(row.reserved) : ''),
           h('td', { class: 'num' }, formatQty(row?.available ?? 0)),
           h('td', { class: 'muted' }, row?.countedAt ? dateTime(row.countedAt) : t('neverCounted')))))))),
+    lotsCard(key, placeRows),
     h('section', { class: 'card', style: { marginTop: '16px' } }, ledgerBox),
     product ? settingsCard(product) : null,
     prices.length ? h('section', { class: 'card', style: { marginTop: '16px' } }, h('h2', {}, t('whPriceHistory')),
       h('table', { class: 'list' }, h('thead', {}, h('tr', {}, [t('supplier'), t('whLastPrice'), t('whAvgPrice'), t('whTimes'), t('date')].map((x, i) => h('th', { class: i && i < 4 ? 'num' : '' }, x)))),
         h('tbody', {}, prices.map((p) => h('tr', {}, h('td', {}, p.supplier), h('td', { class: 'num' }, formatSen(p.last)), h('td', { class: 'num' }, formatSen(p.avg)), h('td', { class: 'num' }, String(p.n)), h('td', { class: 'muted' }, dateTime(p.at))))))) : null);
   drawLedger();
+}
+
+/** Expiry dates still on the shelf, per place (newest deliveries are what is left). */
+function lotsCard(key, placeRows) {
+  const rows = placeRows.flatMap(({ place, row }) => (row?.onHand > 0
+    ? lotsLeft(data.stock.moves.filter((m) => m.barcode === key && (m.branchId || '') === place.id), row.onHand).filter((l) => l.expiry).map((l) => ({ ...l, place }))
+    : [])).sort((a, b) => a.expiry.localeCompare(b.expiry));
+  if (!rows.length) return null;
+  return h('section', { class: 'card', style: { marginTop: '16px' } }, h('h2', {}, t('whExpiry')),
+    h('table', { class: 'list' }, h('tbody', {}, rows.map((l) => h('tr', {},
+      h('td', {}, l.place.name), h('td', {}, expiryPill(l.expiry)), h('td', { class: 'muted' }, l.reference), h('td', { class: 'num' }, formatQty(l.qtyMilli)))))));
 }
 
 /** What each supplier charged for [key] on purchase orders that went out. */
@@ -178,17 +215,29 @@ function settingsCard(product) {
   const cost = h('input', { inputmode: 'decimal', value: product.costSen != null ? formatSen(product.costSen) : '', disabled: !buyer });
   const supplier = h('select', { disabled: !buyer }, h('option', { value: '' }, '—'),
     (session.suppliers || []).map((s) => h('option', { value: s.id, selected: s.id === product.preferredSupplierId }, s.name)));
+  const pack = packOf(product);
+  const packSize = h('input', { inputmode: 'numeric', value: pack ? String(pack.size) : '', placeholder: '24', 'data-f': 'packSize' });
+  const packName = h('input', { value: pack?.name || '', placeholder: 'ctn', maxlength: 12, list: 'wh-pack-names' });
+  const shelves = myPlaces().map((p) => ({ id: p.id || '-', place: p, input: h('input', { value: shelfOf(product, p.id), placeholder: t('whShelfHint'), maxlength: 24, 'data-shelf': p.id || '-' }) }));
   return h('section', { class: 'card', style: { marginTop: '16px', display: 'grid', gap: '12px' } },
     h('h2', { style: { margin: 0 } }, t('whReorderSettings')),
     h('p', { class: 'muted', style: { margin: 0 } }, t('whReorderHelp')),
     h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('whReorderAt'), reorder), h('label', { class: 'field' }, t('whMaxStock'), max)),
     h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('whPreferredSupplier'), supplier), h('label', { class: 'field' }, t('cost'), cost)),
+    h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('whPackSize'), packSize), h('label', { class: 'field' }, t('whPackName'), packName)),
+    h('datalist', { id: 'wh-pack-names' }, ['ctn', 'box', 'pack', 'dozen', '箱', '盒'].map((x) => h('option', { value: x }))),
+    h('p', { class: 'muted', style: { margin: 0 } }, t('whPackHelp')),
+    h('div', { class: 'grid2' }, shelves.map((x) => h('label', { class: 'field' }, `${t('whShelf')} · ${x.place.name}`, x.input))),
     h('div', { class: 'actions' }, h('button', { class: 'primary', onclick: async () => {
       const r = reorder.value.trim() ? parseQty(reorder.value) : null;
       const m = max.value.trim() ? parseQty(max.value) : null;
       const c = cost.value.trim() ? parseSen(cost.value) : null;
       if ((reorder.value.trim() && r == null) || (max.value.trim() && m == null) || (cost.value.trim() && c == null)) return toast(t('errQty'), 'error');
-      const patch = { reorderLevelMilli: r, updatedAt: Date.now() };
+      const size = packSize.value.trim() ? Number(packSize.value.trim()) : null;
+      if (size != null && (!Number.isInteger(size) || size < 2 || size > 10000)) return toast(t('errQty'), 'error');
+      const shelfMap = { ...(product.shelves || {}) };
+      for (const x of shelves) { const v = x.input.value.trim(); if (v) shelfMap[x.id] = v; else delete shelfMap[x.id]; }
+      const patch = { reorderLevelMilli: r, packSize: size, packName: size ? packName.value.trim() || 'ctn' : null, shelves: shelfMap, updatedAt: Date.now() };
       if (buyer) Object.assign(patch, { maxStockMilli: m, preferredSupplierId: supplier.value || null, costSen: c });
       const batch = writeBatch(db);
       batch.update(doc(db, ws(`products/${product.barcode}`)), patch);

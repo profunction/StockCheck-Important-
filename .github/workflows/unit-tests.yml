@@ -28,6 +28,7 @@ jobs:
           diff -u platform/plans.mjs api/plans.js
           diff -u web/js/offline.js api/offline.js
           diff -u web/js/ledger.js api/ledger.js
+          diff -u web/js/wms.js api/wms.js
           diff -u web/js/money.js api/money.js
           diff -u web/js/modules.js api/modules.js
       - name: Website (money, tax, stock, shifts, ESC/POS, labels, plans, offline, PDPA)

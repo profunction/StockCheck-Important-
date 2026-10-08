@@ -316,6 +316,17 @@ export const PAGES = Object.fromEntries([
     S('填运费、关税、代理费，按货价、数量或重量分摊', 'Shipping, duty, agent: shared by value, quantity or weight', 'Penghantaran, duti, ejen: diagih ikut nilai, kuantiti atau berat', { point: 'input[data-extra="shipping"]' }),
     S('看每件真正成本和建议售价，再存进商品', 'See each real cost and a suggested price, then save the costs', 'Lihat kos sebenar dan harga dicadang, kemudian simpan kos', { point: '.cc-out' }),
   ], { world: { branch: 'gudang' } })],
+  ['wh-returns', T(['退货给供应商', 'Supplier returns', 'Pulangan ke pembekal'], '/warehouse/#/returns/new', [
+    S('选供应商，扫要退回的货', 'Choose the supplier and scan what goes back', 'Pilih pembekal dan imbas barang yang dipulang', { point: 'select[data-act="ret-supplier"]' }),
+    S('按保存：库存马上扣，等供应商的退款单', 'Save: stock goes down now; then wait for the credit note', 'Simpan: stok berkurang; tunggu nota kredit', { point: 'button[data-act="ret-save"]' }),
+  ], { world: { branch: 'gudang' } })],
+  ['wh-reserve', T(['预留', 'Reservations', 'Tempahan stok'], '/warehouse/#/reserve/new', [
+    S('填给谁，扫要留的货', 'Who it is for, then scan the goods', 'Untuk siapa, kemudian imbas barang', { point: 'input[data-act="res-for"]' }),
+    S('预留的货不能再答应别人；交货时按「已交货」', 'Reserved stock is not free to promise; press Delivered when handed over', 'Stok ditempah tidak boleh dijanji lagi; tekan Dihantar bila diserahkan', { point: 'button[data-act="res-save"]' }),
+  ], { world: { branch: 'gudang' } })],
+  ['wh-monthend', T(['月结库存', 'Month-end stock', 'Stok akhir bulan'], '/warehouse/#/monthend', [
+    S('按「结 上个月」：每个地点的月底库存和价值定格', 'Close last month: each place\'s stock and value are frozen', 'Tutup bulan lepas: stok dan nilai setiap tempat dibekukan', { point: '.page-head' }),
+  ], { world: { branch: 'gudang' } })],
   ['wh-suppliers', T(['供应商', 'Suppliers', 'Pembekal'], '/warehouse/#/suppliers', [
     S('供应商：电话、联络人、付款条件', 'Suppliers: phone, contact, terms', 'Pembekal: telefon, hubungan, terma', { point: 'table.list' }),
   ], { world: { branch: 'gudang' } })],

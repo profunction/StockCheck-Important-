@@ -117,3 +117,7 @@ details summary { cursor: pointer; padding: 6px 0; }
   .cc-extra { grid-template-columns: minmax(0, 1fr) 110px 36px; }
 }
 .cc-table td.cc-n { white-space: normal; min-width: 120px; max-width: 200px; }
+
+/* Cartons and shelves (web/wh/common.js) */
+.wh-step .pack-btn { min-height: 44px; padding: 0 12px; font-weight: 700; white-space: nowrap; }
+.pill.shelf { background: var(--surface-2, #eef2f6); color: var(--text); font-weight: 600; }

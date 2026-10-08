@@ -250,6 +250,46 @@ await expect('Ipoh keeper: stock out of Ipoh', true,
 await expect('Ipoh keeper: stock into KL refused (KL receives it)', false,
   () => setDoc(doc(as('ipohKeeper'), ws('movements/tr-in')), sold('ipohKeeper', 'kl', { type: 'TRANSFER_IN', source: 'MANUAL' })));
 
+// Warehouse round two: approval, returns, reservations, month end -----------
+await testEnv.withSecurityRulesDisabled(async (ctx) => {
+  const db = ctx.firestore();
+  await setDoc(doc(db, ws('pos/settings')), { transferApproval: true }, { merge: true });
+  await setDoc(doc(db, ws('transfers/pend')), { transferNo: 'TR-P', fromBranch: '', toBranch: 'ipoh', status: 'PENDING', lines: [{ barcode: '9555', qtyMilli: 1000 }], createdAt: 1 });
+  await setDoc(doc(db, ws('transfers/appr')), { transferNo: 'TR-A', fromBranch: '', toBranch: 'ipoh', status: 'APPROVED', lines: [{ barcode: '9555', qtyMilli: 1000 }], createdAt: 1 });
+  await setDoc(doc(db, ws('supplierReturns/r1')), { returnNo: 'RTN-1', branchId: '', status: 'OPEN', lines: [], createdByUid: 'keeper1', createdAt: 1 });
+  await setDoc(doc(db, ws('reservations/v1')), { reservationNo: 'RSV-1', branchId: '', status: 'OPEN', lines: [], createdAt: 1 });
+  await setDoc(doc(db, ws('stockClosings/2026-09_-')), { month: '2026-09', branchId: '', lines: [], valueSen: 0, createdAt: 1 });
+  await setDoc(doc(db, ws('products/9555')), { name: 'Milo', priceSen: 1590 });
+});
+const trDraft = (status) => ({ transferNo: 'TR-9', fromBranch: '', toBranch: 'ipoh', status, lines: [{ barcode: '9555', qtyMilli: 1000 }], createdAt: 1 });
+await expect('approval on: keeper sends a transfer straight out refused', false, () => setDoc(doc(as('keeper1'), ws('transfers/k1')), trDraft('SENT')));
+await expect('approval on: keeper sends it for approval', true, () => setDoc(doc(as('keeper1'), ws('transfers/k2')), trDraft('PENDING')));
+await expect('approval on: keeper approves refused', false, () => updateDoc(doc(as('keeper1'), ws('transfers/pend')), { status: 'APPROVED' }));
+await expect('approval on: keeper dispatches a pending one refused', false, () => updateDoc(doc(as('keeper1'), ws('transfers/pend')), { status: 'SENT' }));
+await expect('approver approves a pending transfer', true,
+  () => updateDoc(doc(as('approver1'), ws('transfers/pend')), { status: 'APPROVED', approvedByUid: 'approver1', approvedByName: 'A', approvedAt: 2, updatedAt: 2 }));
+await expect('approver cannot change the lines while approving', false,
+  () => updateDoc(doc(as('approver1'), ws('transfers/appr')), { status: 'DRAFT', lines: [] }));
+await expect('keeper dispatches an approved transfer as approved', true, () => updateDoc(doc(as('keeper1'), ws('transfers/appr')), { status: 'SENT', sentAt: 3, expiries: {} }));
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), ws('transfers/appr2')), { transferNo: 'TR-B', fromBranch: '', toBranch: 'ipoh', status: 'APPROVED', lines: [{ barcode: '9555', qtyMilli: 1000 }], createdAt: 1 }));
+await expect('keeper sends more than was approved refused', false,
+  () => updateDoc(doc(as('keeper1'), ws('transfers/appr2')), { status: 'SENT', lines: [{ barcode: '9555', qtyMilli: 9000 }] }));
+await expect('keeper: carton size and shelf on a product', true, () => updateDoc(doc(as('keeper1'), ws('products/9555')), { packSize: 24, packName: 'ctn', shelves: { '-': 'A-1' }, updatedAt: 1 }));
+await expect('keeper: selling price still refused', false, () => updateDoc(doc(as('keeper1'), ws('products/9555')), { priceSen: 1 }));
+await expect('keeper: record a supplier return', true,
+  () => setDoc(doc(as('keeper1'), ws('supplierReturns/r2')), { returnNo: 'RTN-2', branchId: '', status: 'OPEN', lines: [], createdByUid: 'keeper1', createdAt: 1 }));
+await expect('keeper: mark it credited refused (the buyer does)', false, () => updateDoc(doc(as('keeper1'), ws('supplierReturns/r1')), { status: 'CREDITED', creditNo: 'CN' }));
+await expect('buyer: note the credit note', true, () => updateDoc(doc(as('buyer1'), ws('supplierReturns/r1')), { status: 'CREDITED', creditNo: 'CN-1', creditSen: 100, creditedAt: 1, creditedByName: 'B', updatedAt: 1 }));
+await expect('buyer: change what went back refused', false, () => updateDoc(doc(as('buyer1'), ws('supplierReturns/r2')), { status: 'CREDITED', lines: [{ x: 1 }] }));
+await expect('keeper: reserve stock', true, () => setDoc(doc(as('keeper1'), ws('reservations/v2')), { reservationNo: 'RSV-2', branchId: '', status: 'OPEN', lines: [], createdAt: 1 }));
+await expect('keeper: deliver a reservation', true, () => updateDoc(doc(as('keeper1'), ws('reservations/v1')), { status: 'DELIVERED', closedAt: 1, closedByName: 'K', updatedAt: 1 }));
+await expect('keeper: reopen it refused', false, () => updateDoc(doc(as('keeper1'), ws('reservations/v1')), { status: 'OPEN' }));
+await expect('cashier: reserve stock refused', false, () => setDoc(doc(as('cashier1'), ws('reservations/v3')), { reservationNo: 'RSV-3', branchId: '', status: 'OPEN', lines: [], createdAt: 1 }));
+await expect('approver: close a month', true, () => setDoc(doc(as('approver1'), ws('stockClosings/2026-08_-')), { month: '2026-08', branchId: '', lines: [], valueSen: 0, createdAt: 1 }));
+await expect('approver: rewrite a closed month refused', false, () => setDoc(doc(as('approver1'), ws('stockClosings/2026-09_-')), { month: '2026-09', branchId: '', lines: [], valueSen: 1, createdAt: 1 }));
+await expect('keeper: close a month refused', false, () => setDoc(doc(as('keeper1'), ws('stockClosings/2026-07_-')), { month: '2026-07', branchId: '', lines: [], valueSen: 0, createdAt: 1 }));
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), ws('pos/settings')), { transferApproval: false }, { merge: true }));
+
 // Warehouse: buying, approving, receiving ------------------------------------
 await expect('buyer: raise a purchase order', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('')));
 await expect('buyer: submit it for approval', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('', 'SUBMITTED')));
