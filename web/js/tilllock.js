@@ -1,7 +1,7 @@
 /**
  * The till lock: on a counter computer the cashier should see the till and
  * nothing else -- not reports, staff, settings or the other apps. Locked,
- * the back office shows only the register; SuXin Warehouse, SuXin Count and
+ * the back office shows only the register; SuXin WMS, SuXin Barcode Scan and
  * the app centre send this computer back to it.
  *
  * Locking and unlocking both take an admin's email and password, checked

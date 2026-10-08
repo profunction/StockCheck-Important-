@@ -23,7 +23,7 @@ import androidx.core.view.WindowCompat
  * often one-handed, sometimes under poor light. Dynamic colour is not used so
  * that the status colours below always mean the same thing on every device.
  *
- * SuXin Count: the same teal and ink navy as SuXin POS and SuXin Cloud, so
+ * SuXin Barcode Scan: the same teal and ink navy as SuXin POS and SuXin Every Data, so
  * the phone and the till look like one product. Every role is set,
  * including the surface containers cards and the bottom bar are drawn on --
  * left out, Material fills them with its own purple-grey. Amber (tertiary)

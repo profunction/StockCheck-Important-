@@ -1,7 +1,7 @@
 /**
  * The website's hero pictures (web/img/hero-{zh,en,ms}.jpg): the real
  * SuXin POS with a bill under way in the pretend shop (world.mjs, items with
- * their pictures), and SuXin Warehouse on a phone beside it, on the SuXin
+ * their pictures), and SuXin WMS on a phone beside it, on the SuXin
  * navy. Nothing is mocked up -- both screens are screenshots of the system.
  *
  *   node tools/brand/hero.mjs
@@ -17,9 +17,9 @@ const tmp = join(root, 'tools', 'brand', '_hero');
 mkdirSync(tmp, { recursive: true });
 
 const LABELS = {
-  zh: { pos: 'SuXin POS · 收银', wh: 'SuXin Warehouse · 仓库', count: 'SuXin Count · 盘点', stock: '一份库存' },
-  en: { pos: 'SuXin POS', wh: 'SuXin Warehouse', count: 'SuXin Count', stock: 'One stock' },
-  ms: { pos: 'SuXin POS · Kaunter', wh: 'SuXin Warehouse · Gudang', count: 'SuXin Count · Kira stok', stock: 'Satu stok' },
+  zh: { pos: 'SuXin POS · 收银', wh: 'SuXin WMS · 仓库', count: 'SuXin Barcode Scan · 盘点', stock: '一份库存' },
+  en: { pos: 'SuXin POS', wh: 'SuXin WMS', count: 'SuXin Barcode Scan', stock: 'One stock' },
+  ms: { pos: 'SuXin POS · Kaunter', wh: 'SuXin WMS · Gudang', count: 'SuXin Barcode Scan · Kira stok', stock: 'Satu stok' },
 };
 
 async function screens(lang) {

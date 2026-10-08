@@ -1,6 +1,6 @@
 /*
  * The website's apps as Android apps: SuXin (the app centre), SuXin POS,
- * SuXin Warehouse and SuXin Cloud. SuXin Count is the native app in :app.
+ * SuXin WMS and SuXin Every Data. SuXin Barcode Scan is the native app in :app.
  *
  * Each is a Trusted Web Activity: the phone's Chrome shows the website full
  * screen, with no address bar, as its own app with its own icon. Everything
@@ -42,8 +42,8 @@ android {
         listOf(
             listOf("hub", "com.suxin.apps", "SuXin", "$site/app/"),
             listOf("pos", "com.suxin.pos", "SuXin POS", "$site/pos/"),
-            listOf("warehouse", "com.suxin.warehouse", "SuXin Warehouse", "$site/warehouse/"),
-            listOf("cloud", "com.suxin.cloud", "SuXin Cloud", "$site/pos/#/cloud"),
+            listOf("warehouse", "com.suxin.warehouse", "SuXin WMS", "$site/warehouse/"),
+            listOf("cloud", "com.suxin.cloud", "SuXin Every Data", "$site/pos/#/cloud"),
         ).forEach { (id, pkg, label, url) ->
             create(id) {
                 dimension = "app"

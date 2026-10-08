@@ -114,7 +114,7 @@ fun AuthScreen(
                 tint = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(12.dp))
-            Text("SuXin Count", style = MaterialTheme.typography.headlineSmall)
+            Text("SuXin Barcode Scan", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(4.dp))
             Text(
                 text = mode.title,

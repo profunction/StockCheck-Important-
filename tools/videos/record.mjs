@@ -162,7 +162,7 @@ const WH_BG = 'linear-gradient(135deg,#0b1b2b,#12385a 65%,#1d5a8a)';
 
 await film('wh-1-purchase', world({ branch: 'gudang' }), async (page, x, base) => {
   await page.waitForSelector('.wh-tile');
-  await x.title('采购单和补货', 'SuXin Warehouse · 采购', 'Purchase orders and reorder', { bg: WH_BG });
+  await x.title('采购单和补货', 'SuXin WMS · 采购', 'Purchase orders and reorder', { bg: WH_BG });
   await x.caption('首页：今天要做的事，一按就到', 'Home: today’s jobs, one tap away');
   await x.go(base, '/warehouse/#/purchase/reorder', 1500);
   await x.caption('低于补货点的商品，自动建议要订多少', 'Below the reorder point: how much to order');
@@ -181,7 +181,7 @@ await film('wh-1-purchase', world({ branch: 'gudang' }), async (page, x, base) =
 await film('wh-2-receive', world({ branch: 'gudang' }), async (page, x, base) => {
   await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/receive', 1500);
-  await x.title('收货', 'SuXin Warehouse · 收货', 'Receiving goods', { bg: WH_BG });
+  await x.title('收货', 'SuXin WMS · 收货', 'Receiving goods', { bg: WH_BG });
   await x.caption('货到了：选是哪一张采购单', 'Goods arrive: pick the purchase order');
   await x.click('.wh-card:has-text("PO-")', 1200);
   await x.type('.wh-head input', 'DO-77812');
@@ -205,7 +205,7 @@ await film('wh-2-receive', world({ branch: 'gudang' }), async (page, x, base) =>
 await film('wh-3-transfer', world({ branch: 'gudang' }), async (page, x, base) => {
   await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/transfers/new', 1500);
-  await x.title('调货', 'SuXin Warehouse · 仓库 → 门店', 'Transfers between places', { bg: WH_BG });
+  await x.title('调货', 'SuXin WMS · 仓库 → 门店', 'Transfers between places', { bg: WH_BG });
   await page.locator('.wh-head select').nth(1).selectOption('ipoh'); await x.wait(400);
   await x.caption('从仓库送去门店：扫要送的货', 'Warehouse to shop: scan what goes', 1800);
   await x.click('.wh-scan input.scan', 200);
@@ -231,7 +231,7 @@ await film('wh-3-transfer', world({ branch: 'gudang' }), async (page, x, base) =
 await film('wh-4-stock', world({ branch: 'gudang' }), async (page, x, base) => {
   await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/adjust', 1500);
-  await x.title('库存和调整', 'SuXin Warehouse · 库存', 'Stock and adjustments', { bg: WH_BG });
+  await x.title('库存和调整', 'SuXin WMS · 库存', 'Stock and adjustments', { bg: WH_BG });
   await x.click('.wh-scan input.scan', 200);
   await x.scan(item('eggs').barcode, 1200);
   await x.caption('调整库存一定要选原因：损坏、过期、丢失…', 'Every adjustment needs a reason', 2000);
@@ -250,7 +250,7 @@ await film('wh-4-stock', world({ branch: 'gudang' }), async (page, x, base) => {
 await film('wh-5-check', world({ branch: 'gudang' }), async (page, x, base) => {
   await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/variance', 1500);
-  await x.title('盘点差异和记录', 'SuXin Warehouse · 查账', 'Count differences and the audit log', { bg: WH_BG });
+  await x.title('盘点差异和记录', 'SuXin WMS · 查账', 'Count differences and the audit log', { bg: WH_BG });
   await x.caption('手机 app 每次盘点，和账面数比较', 'Each count from the phone app against the books');
   await x.click('table.list tr.click', 1500);
   await x.caption('短少多少、值多少钱，一目了然', 'What is short and what it is worth', 2400);
@@ -264,7 +264,7 @@ await film('wh-6-online', world({ branch: 'gudang' }), async (page, x, base) => 
   await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/online', 1200);
   await page.waitForSelector('textarea');
-  await x.title('网购进货', 'SuXin Warehouse · 拼多多 / 淘宝 / Shopee / TikTok', 'Stock bought online, as a purchase order', { bg: WH_BG });
+  await x.title('网购进货', 'SuXin WMS · 拼多多 / 淘宝 / Shopee / TikTok', 'Stock bought online, as a purchase order', { bg: WH_BG });
   await x.caption('在购物 app 打开订单，全选复制', 'Copy the order from the shopping app', 2000);
   await x.click('.wh-chips button:has-text("拼多多")', 400);
   await page.fill('textarea', ['拼多多', '订单编号：240915-582013947761', 'Beras 5kg 白米 泰国香米 批发', '规格：5kg', '¥30.00', 'x4',
@@ -470,7 +470,7 @@ await film('pos-15-notify', (() => {
 
 await film('cloud-1-dashboard', world({ mode: 'RETAIL', withSales: true }), async (page, x, base) => {
   await x.go(base, '/pos/#/cloud', 1800);
-  await x.title('SuXin Cloud 总览', 'SuXin Cloud · 老板一页看全部', 'SuXin Cloud: the whole business on one page');
+  await x.title('SuXin Every Data 总览', 'SuXin Every Data · 老板一页看全部', 'SuXin Every Data: the whole business on one page');
   await x.caption('今天卖了多少、几单、平均每单', 'Today’s sales, receipts and average bill', 2400);
   await page.mouse.wheel(0, 400); await x.wait(900);
   await x.caption('库存：低库存、没货、库存价值', 'Stock: low, out, and what it is worth', 2400);
@@ -481,11 +481,11 @@ await film('cloud-1-dashboard', world({ mode: 'RETAIL', withSales: true }), asyn
   await x.caption('应用中心：收银、仓库、盘点、Cloud 随时换', 'The app centre: switch between the till, warehouse, Count and Cloud', 2600);
 }, { path: '/pos/' });
 
-// ------------------------------------------------ SuXin Count on the web
+// ------------------------------------------------ SuXin Barcode Scan on the web
 
 await film('count-1-web', world({}), async (page, x, base) => {
   await page.waitForSelector('.cnt-card, .cnt-list');
-  await x.title('网页版盘点', 'SuXin Count · 电脑或手机浏览器', 'SuXin Count in the browser');
+  await x.title('网页版盘点', 'SuXin Barcode Scan · 电脑或手机浏览器', 'SuXin Barcode Scan in the browser');
   await x.caption('和手机 app 同一个账号、同一份盘点', 'Same account and the same counts as the phone app', 2200);
   await x.click('button:has-text("新盘点")', 900);
   await x.type('form input >> nth=0', 'Rak 3');
@@ -545,14 +545,14 @@ await film('acc-1-signup', world({}), async (page, x, base) => {
 await film('wh-0-setup', world({ branch: 'gudang' }), async (page, x, base) => {
   await page.waitForSelector('.wh-tile');
   await x.go(base, '/warehouse/#/places', 1500);
-  await x.title('仓库系统设定', 'SuXin Warehouse · 开始', 'Setting up the warehouse', { bg: WH_BG });
+  await x.title('仓库系统设定', 'SuXin WMS · 开始', 'Setting up the warehouse', { bg: WH_BG });
   await x.caption('仓库和分店：每个地点库存分开算', 'Warehouses and shops, each with its own stock', 2400);
   await x.go(base, '/warehouse/#/suppliers', 1400);
   await x.caption('供应商：电话、联络人、付款条件', 'Suppliers: phone, contact, payment terms', 2400);
   await x.go(base, '/warehouse/#/', 1300);
   await x.caption('「现在在」选你人在哪一个仓库或门店', '“Working at”: the warehouse or shop you are in', 2200);
   await x.point('select');
-  await x.caption('员工权限在 SuXin Count app 的「角色」设定', 'Staff permissions are set under Roles in the SuXin Count app', 2600);
+  await x.caption('员工权限在 SuXin Barcode Scan app 的「角色」设定', 'Staff permissions are set under Roles in the SuXin Barcode Scan app', 2600);
   await x.caption('手机上按「安装」，工人就像用 app 一样', 'On a phone, Install it and workers use it like an app', 2400);
 }, { path: '/warehouse/' });
 

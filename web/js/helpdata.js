@@ -10,7 +10,7 @@
  * order -- or a list of them in `do`.
  *
  * Keys: pos-<page>[-<sub>] for the back office, till-<button> for the
- * till, wh-<page> for the warehouse, cnt-<page> for SuXin Count on the
+ * till, wh-<page> for the warehouse, cnt-<page> for SuXin Barcode Scan on the
  * web, hub for the app centre.
  */
 
@@ -144,7 +144,7 @@ const SALES = { world: { mode: 'RETAIL', withSales: true } };
 const R = (sub, title, steps) => [`pos-reports-${sub}`, T(title, `/pos/#/reports/${sub}`, steps, SALES)];
 
 export const PAGES = Object.fromEntries([
-  ['pos-cloud', T(['SuXin Cloud 总览', 'SuXin Cloud', 'SuXin Cloud'], '/pos/#/cloud', [
+  ['pos-cloud', T(['SuXin Every Data 总览', 'SuXin Every Data', 'SuXin Every Data'], '/pos/#/cloud', [
     S('老板一页看全部：今天销售、单数、平均每单', 'The whole business on one page: today\'s sales, receipts, average', 'Seluruh perniagaan: jualan hari ini, resit, purata', { point: '.dash-part' }),
     S('往下看：低库存、没货、仓库待处理', 'Scroll on: low stock, out of stock, the warehouse', 'Tatal: stok rendah, habis, gudang', { scroll: 500 }),
   ], SALES)],
@@ -215,14 +215,14 @@ export const PAGES = Object.fromEntries([
     S('一定要选原因；每一笔都记录', 'Always a reason; every change is logged', 'Sentiasa sebab; setiap perubahan direkod'),
   ], RETAIL)],
   ['pos-inventory-purchase', T(['采购单', 'Purchase orders', 'Pesanan belian'], '/pos/#/inventory/purchase', [
-    S('采购单、收货在 SuXin Warehouse 做', 'Purchase orders and receiving are in SuXin Warehouse', 'Pesanan dan terima barang di SuXin Warehouse', { point: '.card' }),
+    S('采购单、收货在 SuXin WMS 做', 'Purchase orders and receiving are in SuXin WMS', 'Pesanan dan terima barang di SuXin WMS', { point: '.card' }),
     S('按这里打开仓库系统，同一个账号', 'Open the warehouse from here, same account', 'Buka gudang dari sini, akaun sama'),
   ], RETAIL)],
   ['pos-inventory-transfers', T(['调货', 'Transfers', 'Pindahan'], '/pos/#/inventory/transfers', [
-    S('分店之间调货也在 SuXin Warehouse', 'Transfers between branches are in SuXin Warehouse', 'Pindahan antara cawangan di SuXin Warehouse', { point: '.card' }),
+    S('分店之间调货也在 SuXin WMS', 'Transfers between branches are in SuXin WMS', 'Pindahan antara cawangan di SuXin WMS', { point: '.card' }),
   ], RETAIL)],
   ['pos-inventory-suppliers', T(['供应商', 'Suppliers', 'Pembekal'], '/pos/#/inventory/suppliers', [
-    S('供应商资料在 SuXin Warehouse 管理', 'Suppliers are kept in SuXin Warehouse', 'Pembekal diurus di SuXin Warehouse', { point: '.card' }),
+    S('供应商资料在 SuXin WMS 管理', 'Suppliers are kept in SuXin WMS', 'Pembekal diurus di SuXin WMS', { point: '.card' }),
   ], RETAIL)],
   ['pos-employees', T(['员工', 'Employees', 'Pekerja'], '/pos/#/employees', [
     S('每个员工的角色和分店', 'Each person\'s role and branch', 'Peranan dan cawangan setiap orang', { point: 'table.list' }),
@@ -330,7 +330,7 @@ export const PAGES = Object.fromEntries([
     S('没有人能改或删', 'Nobody can change or delete them', 'Tiada siapa boleh ubah atau padam'),
   ], { world: { branch: 'gudang' } })],
 
-  // ------------------------------------------- SuXin Count on the web
+  // ------------------------------------------- SuXin Barcode Scan on the web
   ['cnt-list', T(['我的盘点', 'My counts', 'Kiraan saya'], '/count/', [
     S('全部盘点：编号、区域、件数、状态', 'Every count: number, area, items, status', 'Semua kiraan: nombor, kawasan, barang, status', { point: '.cnt-list' }),
     S('按「新盘点」开始', 'New count to start', 'Kiraan baharu untuk mula', { point: 'button:has-text("新盘点")' }),

@@ -9,9 +9,9 @@ Underneath, every part is a **module** in one registry.
 
 | Customer sees | Module id | Licence key | Status |
 |---|---|---|---|
-| SuXin Count 盘点通 (Android) | `count` | `app` | live |
+| SuXin Barcode Scan 盘点通 (Android) | `count` | `app` | live |
 | SuXin POS 收银通 (web) | `pos` | `pos` | live |
-| SuXin Warehouse 仓管通 | `warehouse` | `warehouse` | live |
+| SuXin WMS 仓管通 | `warehouse` | `warehouse` | live |
 | SuXin Procurement (purchase orders, suppliers, 网购进货 online purchases) | `procurement` (needs `warehouse`) | `warehouse` | live |
 | SuXin Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
 | Open API | `api` | `api` | live |
@@ -22,10 +22,10 @@ Underneath, every part is a **module** in one registry.
 Each entry also lists `menuItems`, `routes` and `apiScopes`. Planned
 modules are never on, whatever a licence says.
 
-SuXin Cloud 云后台 is not a module: it is the signed-in website itself. Its
+SuXin Every Data 云后台 is not a module: it is the signed-in website itself. Its
 dashboard (`web/js/dashboard.js`, menu `#/cloud`) shows today's sales only
 with the POS and `POS_REPORTS`, stock with Count or POS, and orders to
-receive / transfers on the way only with SuXin Warehouse.
+receive / transfers on the way only with SuXin WMS.
 
 ## Where a company's modules come from
 
@@ -91,10 +91,10 @@ Receive). Part of the procurement module: `may: 'procurement.purchase'`.
 
 ## Apps, sign-up and locks
 
-- **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then SuXin Count,
+- **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then SuXin Barcode Scan,
   POS, Cloud and Warehouse. An app the plan does not include is shown locked with where to add
   it; every app's sidebar carries the same switcher.
-- **SuXin Count on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
+- **SuXin Barcode Scan on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
   the Android app (reference numbers from `meta/counters`, increments for edits), so a count can
   be started on one and finished on the other.
 - **Sign-up** (`web/js/signup.js`): a new company (founder is admin: code claimed, built-in roles
@@ -112,7 +112,7 @@ Receive). Part of the procurement module: `may: 'procurement.purchase'`.
 
 Every app and every job in it has a guide section with a short video
 (`web/js/guides.js`, shown on each app's "How to use" page and on `/guide/`,
-which has tabs for the account, SuXin Count, POS, Warehouse and Cloud).
+which has tabs for the account, SuXin Barcode Scan, POS, Warehouse and Cloud).
 
 - The videos are filmed by `tools/videos/record.mjs` in the pretend shop of
   `world.mjs`: `node tools/videos/record.mjs` films them all, or name some.
@@ -141,7 +141,7 @@ reads the company's data and sends it. Both run in the API on Cloud Run.
 - **Email.** `workspaces/{ws}/meta/notify { emailDaily, emails }` (admins),
   sent through any SMTP account (a Gmail app password works).
 - **Push.** Firebase Cloud Messaging to `users/{uid}/pushTokens/`: the
-  SuXin Count app files its token after sign-in; a browser does it from the
+  SuXin Barcode Scan app files its token after sign-in; a browser does it from the
   Notifications page (needs the public key in the `WEB_PUSH_VAPID_KEY`
   repository variable).
 - **8 am.** Cloud Scheduler calls `POST /jobs/daily` with the `job-key`
@@ -153,7 +153,7 @@ reads the company's data and sends it. Both run in the API on Cloud Run.
 ## Every page's own tutorial
 
 `web/js/helpdata.js` lists a short tutorial for every page (back office,
-warehouse, SuXin Count on the web, the app centre) and for every button on
+warehouse, SuXin Barcode Scan on the web, the app centre) and for every button on
 the till: title and steps in three languages, and what the pointer does.
 `tools/videos/pages.mjs` films each into `web/videos/help/<key>.webm`, with
 its narration, from that same list.

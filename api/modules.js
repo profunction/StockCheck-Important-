@@ -33,7 +33,7 @@ import { PLANS } from './plans.js';
 export const MODULES = {
   count: {
     id: 'count', licenceKey: 'app', status: 'live', kind: 'core', dependsOn: [],
-    displayName: { zh: 'SuXin Count', en: 'SuXin Count', ms: 'SuXin Count' },
+    displayName: { zh: 'SuXin Barcode Scan', en: 'SuXin Barcode Scan', ms: 'SuXin Barcode Scan' },
     description: { zh: '手机盘点', en: 'Mobile stock counting', ms: 'Kira stok dengan telefon' },
     actions: { view: [], count: ['CREATE_STOCK_CHECK'], move: ['RECORD_STOCK_MOVEMENTS'] },
     menuItems: ['inventory'], routes: [], apiScopes: [],
@@ -54,7 +54,7 @@ export const MODULES = {
   },
   warehouse: {
     id: 'warehouse', licenceKey: 'warehouse', status: 'live', kind: 'addon', dependsOn: [],
-    displayName: { zh: 'SuXin Warehouse', en: 'SuXin Warehouse', ms: 'SuXin Warehouse' },
+    displayName: { zh: 'SuXin WMS', en: 'SuXin WMS', ms: 'SuXin WMS' },
     description: { zh: '仓库、收货、调货', en: 'Warehouse, receiving, transfers', ms: 'Gudang, terima barang, pindahan' },
     actions: {
       view: [],

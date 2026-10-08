@@ -1,6 +1,6 @@
 /**
- * The SuXin app centre (/app/): sign in once, then choose SuXin Count, SuXin
- * POS, SuXin Cloud or SuXin Warehouse. What the plan includes opens; the rest
+ * The SuXin app centre (/app/): sign in once, then choose SuXin Barcode Scan, SuXin
+ * POS, SuXin Every Data or SuXin WMS. What the plan includes opens; the rest
  * is shown locked with where to add it (apps.js decides which is which).
  */
 import { h, mount } from '../js/dom.js';

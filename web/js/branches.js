@@ -1,6 +1,6 @@
 /**
  * Branches and warehouses: the list in workspaces/{ws}/meta/config, shared
- * by the SuXin Count app, the till and the warehouse system. Adding one,
+ * by the SuXin Barcode Scan app, the till and the warehouse system. Adding one,
  * closing it or reopening it happens here, for both the till's Settings ->
  * Stores page and the warehouse's Places page. Only an admin may (the
  * database rules say so too), and every change goes in the audit log.

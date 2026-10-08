@@ -1,7 +1,7 @@
 /**
- * SuXin Cloud: the owner's first look at the business. What it shows follows
+ * SuXin Every Data: the owner's first look at the business. What it shows follows
  * the company's modules (modules.js) and the person's permissions -- a shop
- * with only the POS sees today's sales and stock; add SuXin Warehouse and the
+ * with only the POS sees today's sales and stock; add SuXin WMS and the
  * orders to receive and goods on the way appear; a module that is not on
  * shows nothing here (and is offered under Settings -> Add more instead).
  *
@@ -69,7 +69,7 @@ export function render(main) {
   const whBox = h('div', {}, pending());
 
   mount(main,
-    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, 'SuXin Cloud'), h('span', { class: 'grow' }),
+    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, 'SuXin Every Data'), h('span', { class: 'grow' }),
       h('span', { class: 'muted' }, session.companyName || '')),
     h('p', { class: 'muted', style: { marginTop: '-6px' } }, t('dashLead')),
     show.sales ? section(t('dashToday'), h('a', { href: '#/reports/summary' }, `${t('repSummary')} →`), salesBox) : null,

@@ -14,7 +14,7 @@ export const POS_GUIDE = {
     intro: '跟着下面做，一个下午就能开始收银。每一段都有短片示范。',
     sections: [
       { id: 'start', title: '开始使用', video: V('pos-1-start'), steps: [
-        '电脑或平板用 Chrome 打开收银系统，用 SuXin Count app 的同一个账号登录。',
+        '电脑或平板用 Chrome 打开收银系统，用 SuXin Barcode Scan app 的同一个账号登录。',
         '第一次打开会问你的店是哪一种：餐饮、超市 / 迷你市场、店面零售。选了就锁住，要换由管理员到「我的 Profile」。',
         '设置 → 税和服务费：注册了 SST 才加税，大部分商品收的那个勾「默认」。',
         '设置 → 收据：店名、地址、电话、SST 号码、纸宽（58 或 80mm）。',
@@ -113,7 +113,7 @@ export const POS_GUIDE = {
         '在 Telegram 问：「Milo 还有多少？」「今天卖了多少」「昨天卖了多少」「低库存」「报告」。',
         '每天早上 8 点自动收到：昨天的销售和现在的低库存。员工只看到他可以看的。',
         '老板：打开「每天早上用 email 寄营业报告」，填 email，按保存。',
-        'SuXin Count 手机 app 登录后允许通知，就会收到报告；电脑按「在这个浏览器开启」。',
+        'SuXin Barcode Scan 手机 app 登录后允许通知，就会收到报告；电脑按「在这个浏览器开启」。',
       ], tip: 'Telegram 和 email 都免费。' },
       { id: 'hardware', title: '扫码枪、打印机、NFC', steps: [
         'USB 扫码枪：插上就能用，不用装软件。',
@@ -127,7 +127,7 @@ export const POS_GUIDE = {
     intro: 'Follow these and you can be selling the same afternoon. Each part has a short video.',
     sections: [
       { id: 'start', title: 'Getting started', video: V('pos-1-start'), steps: [
-        'Open the POS in Chrome on a computer or tablet and sign in with your SuXin Count app account.',
+        'Open the POS in Chrome on a computer or tablet and sign in with your SuXin Barcode Scan app account.',
         'The first time, it asks what kind of shop you are: restaurant, supermarket / mini market, or retail shop. It is then locked; an admin changes it in Profile.',
         'Settings → Taxes: add SST only if you are registered; tick "default" for the rate most items carry.',
         'Settings → Receipt: shop name, address, phone, SST number, paper width (58 or 80 mm).',
@@ -226,7 +226,7 @@ export const POS_GUIDE = {
         'Ask in Telegram: "How many Milo?", "sales today", "sales yesterday", "low stock", "report".',
         'Every morning at 8: yesterday\'s sales and today\'s low stock. Staff see only what their role allows.',
         'Owner: tick "Send the morning report by email", add the emails, Save.',
-        'The SuXin Count phone app gets it once notifications are allowed; on a computer press Turn on for this browser.',
+        'The SuXin Barcode Scan phone app gets it once notifications are allowed; on a computer press Turn on for this browser.',
       ], tip: 'Telegram and email are free.' },
       { id: 'hardware', title: 'Scanner, printer, NFC', steps: [
         'USB barcode scanner: plug it in, nothing to install.',
@@ -240,7 +240,7 @@ export const POS_GUIDE = {
     intro: 'Ikut langkah di bawah dan anda boleh mula menjual pada petang yang sama. Setiap bahagian ada video pendek.',
     sections: [
       { id: 'start', title: 'Mula guna', video: V('pos-1-start'), steps: [
-        'Buka POS dengan Chrome di komputer atau tablet, log masuk dengan akaun aplikasi SuXin Count.',
+        'Buka POS dengan Chrome di komputer atau tablet, log masuk dengan akaun aplikasi SuXin Barcode Scan.',
         'Kali pertama, ia bertanya jenis kedai: restoran, pasar raya / pasar mini, atau kedai runcit. Ia kemudian dikunci; admin menukarnya di Profil.',
         'Tetapan → Cukai: tambah SST hanya jika berdaftar; tandakan "lalai" untuk kadar kebanyakan barang.',
         'Tetapan → Resit: nama kedai, alamat, telefon, no. SST, lebar kertas (58 atau 80 mm).',
@@ -339,7 +339,7 @@ export const POS_GUIDE = {
         'Tanya di Telegram: "berapa stok Milo", "jualan hari ini", "jualan semalam", "stok rendah", "laporan".',
         'Setiap pagi jam 8: jualan semalam dan stok rendah. Pekerja hanya nampak apa yang dibenarkan.',
         'Pemilik: tanda "Hantar laporan pagi melalui e-mel", isi e-mel, Simpan.',
-        'Aplikasi SuXin Count menerimanya selepas pemberitahuan dibenarkan; di komputer tekan Hidupkan untuk pelayar ini.',
+        'Aplikasi SuXin Barcode Scan menerimanya selepas pemberitahuan dibenarkan; di komputer tekan Hidupkan untuk pelayar ini.',
       ], tip: 'Telegram dan e-mel percuma.' },
       { id: 'hardware', title: 'Pengimbas, pencetak, NFC', steps: [
         'Pengimbas kod bar USB: pasang sahaja, tiada perisian.',
@@ -353,12 +353,12 @@ export const POS_GUIDE = {
 
 export const WAREHOUSE_GUIDE = {
   zh: {
-    intro: '仓库系统和收银、SuXin Count app 用同一套商品和库存。货进、货出、货在哪里，都在这里做。',
+    intro: '仓库系统和收银、SuXin Barcode Scan app 用同一套商品和库存。货进、货出、货在哪里，都在这里做。',
     sections: [
       { id: 'setup', title: '开始设定', video: V('wh-0-setup'), steps: [
         '手机或电脑用 Chrome 打开仓库系统，用同一个账号登录。手机上按「安装」变成 app。',
         '管理员：仓库和分店 → 新增地点 → 类型选「仓库」。',
-        '在 SuXin Count app 的「角色」给员工权限：收货、调货、调整要「记录进出货」。',
+        '在 SuXin Barcode Scan app 的「角色」给员工权限：收货、调货、调整要「记录进出货」。',
         '开采购单要「开采购单和管理供应商」；批准要「批准采购单」。',
         '左下「现在在」选你人在哪个仓库或门店。',
       ], tip: '工人用手机：下面五个大按钮 —— 首页、收货、调货、库存、更多。' },
@@ -397,19 +397,19 @@ export const WAREHOUSE_GUIDE = {
         '调整库存：扫商品，选减少 / 增加 / 改成实际数量，一定要选原因。',
       ] },
       { id: 'check', title: '盘点差异和操作记录', video: V('wh-5-check'), steps: [
-        '盘点在 SuXin Count app 做；完成后这里会看到和账面差多少、值多少钱。',
+        '盘点在 SuXin Barcode Scan app 做；完成后这里会看到和账面差多少、值多少钱。',
         '点一次盘点，看哪些商品短少，再点商品查每一笔进出。',
         '操作记录：每一次收货、调货、调整、审批都在，没有人能改或删。',
       ] },
     ],
   },
   en: {
-    intro: 'The warehouse system shares items and stock with the till and the SuXin Count app. Goods in, goods out, and where everything is — all here.',
+    intro: 'The warehouse system shares items and stock with the till and the SuXin Barcode Scan app. Goods in, goods out, and where everything is — all here.',
     sections: [
       { id: 'setup', title: 'Setting up', video: V('wh-0-setup'), steps: [
         'Open the warehouse system in Chrome on a phone or computer and sign in with the same account. On a phone, press Install to make it an app.',
         'Admin: Warehouses & branches → Add a place → type Warehouse.',
-        'In the SuXin Count app’s roles, give staff "Record goods in/out" to receive, transfer and adjust.',
+        'In the SuXin Barcode Scan app’s roles, give staff "Record goods in/out" to receive, transfer and adjust.',
         'Raising purchase orders needs "Raise purchase orders"; approving needs "Approve purchase orders".',
         'Bottom left, "Working at": choose the warehouse or shop you are in.',
       ], tip: 'Workers on a phone get five big buttons along the bottom: Home, Receive, Transfers, Stock, More.' },
@@ -448,19 +448,19 @@ export const WAREHOUSE_GUIDE = {
         'Adjust stock: scan, choose less / more / set to actual, and always a reason.',
       ] },
       { id: 'check', title: 'Count differences and the audit log', video: V('wh-5-check'), steps: [
-        'Counts are made in the SuXin Count app; here you see how far each was from the books, and what it is worth.',
+        'Counts are made in the SuXin Barcode Scan app; here you see how far each was from the books, and what it is worth.',
         'Open a count to see what is short, then open an item for every movement.',
         'Audit log: every receiving, transfer, adjustment and approval — nobody can change or delete them.',
       ] },
     ],
   },
   ms: {
-    intro: 'Sistem gudang berkongsi barang dan stok dengan POS dan aplikasi SuXin Count. Barang masuk, keluar, dan di mana semuanya — semua di sini.',
+    intro: 'Sistem gudang berkongsi barang dan stok dengan POS dan aplikasi SuXin Barcode Scan. Barang masuk, keluar, dan di mana semuanya — semua di sini.',
     sections: [
       { id: 'setup', title: 'Persediaan', video: V('wh-0-setup'), steps: [
         'Buka sistem gudang dengan Chrome di telefon atau komputer, log masuk dengan akaun yang sama. Di telefon, tekan Pasang.',
         'Admin: Gudang & cawangan → Tambah lokasi → jenis Gudang.',
-        'Dalam peranan aplikasi SuXin Count, beri pekerja "Rekod barang masuk/keluar" untuk terima, pindah dan laras.',
+        'Dalam peranan aplikasi SuXin Barcode Scan, beri pekerja "Rekod barang masuk/keluar" untuk terima, pindah dan laras.',
         'Membuat pesanan belian perlukan "Buat pesanan belian"; meluluskan perlukan "Luluskan pesanan belian".',
         'Bawah kiri, "Bekerja di": pilih gudang atau kedai anda.',
       ], tip: 'Pekerja di telefon dapat lima butang besar di bawah: Utama, Terima, Pindahan, Stok, Lagi.' },
@@ -499,7 +499,7 @@ export const WAREHOUSE_GUIDE = {
         'Laras stok: imbas, pilih kurang / tambah / tetapkan sebenar, dan sentiasa sebab.',
       ] },
       { id: 'check', title: 'Beza kiraan dan log audit', video: V('wh-5-check'), steps: [
-        'Kiraan dibuat dalam aplikasi SuXin Count; di sini anda lihat bezanya dengan buku dan nilainya.',
+        'Kiraan dibuat dalam aplikasi SuXin Barcode Scan; di sini anda lihat bezanya dengan buku dan nilainya.',
         'Buka kiraan untuk lihat yang kurang, kemudian buka barang untuk setiap pergerakan.',
         'Log audit: setiap penerimaan, pindahan, pelarasan dan kelulusan — tiada siapa boleh ubah atau padam.',
       ] },
@@ -509,7 +509,7 @@ export const WAREHOUSE_GUIDE = {
 
 export const APP_GUIDE = {
   zh: {
-    intro: 'SuXin Count 是 Android 手机盘点 app。下面的短片是步骤卡，一步一步说明。',
+    intro: 'SuXin Barcode Scan 是 Android 手机盘点 app。下面的短片是步骤卡，一步一步说明。',
     sections: [
       { id: 'count', title: '手机盘点', video: V('app-1-count'), steps: [
         '「盘点」→ 新盘点，选模板和区域。',
@@ -549,7 +549,7 @@ export const APP_GUIDE = {
     ],
   },
   en: {
-    intro: 'SuXin Count is the Android stock-take app. The short videos are step cards that walk through each job.',
+    intro: 'SuXin Barcode Scan is the Android stock-take app. The short videos are step cards that walk through each job.',
     sections: [
       { id: 'count', title: 'Counting with the phone', video: V('app-1-count'), steps: [
         'Stock tab → new count; pick a template and an area.',
@@ -567,7 +567,7 @@ export const APP_GUIDE = {
         'Profile tab → Roles: who may count, see everything, change stock, use the till and the warehouse.',
         'Branches and warehouses are kept apart; the audit log keeps every change.',
       ] },
-      { id: 'web', title: 'SuXin Count in the browser', video: V('count-1-web'), steps: [
+      { id: 'web', title: 'SuXin Barcode Scan in the browser', video: V('count-1-web'), steps: [
         'Open /count/ in a browser and sign in with the same account; the counts are the same as the phone app’s.',
         'New count: pick the branch, write the area (e.g. Rak 3), start.',
         'Scan with a scanner or the camera; each scan adds one. Weighed or many: type the quantity, then scan.',
@@ -589,7 +589,7 @@ export const APP_GUIDE = {
     ],
   },
   ms: {
-    intro: 'SuXin Count ialah aplikasi kira stok Android. Video pendek ialah kad langkah untuk setiap tugas.',
+    intro: 'SuXin Barcode Scan ialah aplikasi kira stok Android. Video pendek ialah kad langkah untuk setiap tugas.',
     sections: [
       { id: 'count', title: 'Kira stok dengan telefon', video: V('app-1-count'), steps: [
         'Tab Stok → kiraan baharu; pilih templat dan kawasan.',
@@ -607,7 +607,7 @@ export const APP_GUIDE = {
         'Profil → Peranan: siapa boleh kira, lihat semua, ubah stok, guna POS dan gudang.',
         'Cawangan dan gudang berasingan; log audit menyimpan setiap perubahan.',
       ] },
-      { id: 'web', title: 'SuXin Count dalam pelayar', video: V('count-1-web'), steps: [
+      { id: 'web', title: 'SuXin Barcode Scan dalam pelayar', video: V('count-1-web'), steps: [
         'Buka /count/ dalam pelayar dan log masuk dengan akaun yang sama; kiraan sama dengan aplikasi telefon.',
         'Kiraan baharu: pilih cawangan, tulis kawasan (cth. Rak 3), mula.',
         'Imbas dengan pengimbas atau kamera; setiap imbasan tambah satu. Ditimbang atau banyak: taip kuantiti, kemudian imbas.',
@@ -632,10 +632,10 @@ export const APP_GUIDE = {
 
 export const CLOUD_GUIDE = {
   zh: {
-    intro: 'SuXin Cloud 是老板看的总览：销售、库存、仓库都在一页。你的配套有什么，就显示什么。',
+    intro: 'SuXin Every Data 是老板看的总览：销售、库存、仓库都在一页。你的配套有什么，就显示什么。',
     sections: [
-      { id: 'dashboard', title: 'SuXin Cloud 总览', video: V('cloud-1-dashboard'), steps: [
-        '在应用中心按 SuXin Cloud，或收银后台左边菜单「SuXin Cloud」。',
+      { id: 'dashboard', title: 'SuXin Every Data 总览', video: V('cloud-1-dashboard'), steps: [
+        '在应用中心按 SuXin Every Data，或收银后台左边菜单「SuXin Every Data」。',
         '今天：销售、单数、平均每单，和最近的收据。',
         '库存：低库存、没货、库存价值。',
         '仓库：待批准的采购单、待收货、在途的调货。',
@@ -649,10 +649,10 @@ export const CLOUD_GUIDE = {
     ],
   },
   en: {
-    intro: 'SuXin Cloud is the owner’s overview: sales, stock and the warehouse on one page, following what your plan includes.',
+    intro: 'SuXin Every Data is the owner’s overview: sales, stock and the warehouse on one page, following what your plan includes.',
     sections: [
-      { id: 'dashboard', title: 'The SuXin Cloud overview', video: V('cloud-1-dashboard'), steps: [
-        'Press SuXin Cloud in the app centre, or in the till back office menu.',
+      { id: 'dashboard', title: 'The SuXin Every Data overview', video: V('cloud-1-dashboard'), steps: [
+        'Press SuXin Every Data in the app centre, or in the till back office menu.',
         'Today: sales, receipts, the average bill, and the latest receipts.',
         'Stock: low, out, and what it is worth.',
         'Warehouse: purchase orders to approve, to receive, and transfers in transit.',
@@ -666,10 +666,10 @@ export const CLOUD_GUIDE = {
     ],
   },
   ms: {
-    intro: 'SuXin Cloud ialah gambaran pemilik: jualan, stok dan gudang dalam satu halaman, mengikut pakej anda.',
+    intro: 'SuXin Every Data ialah gambaran pemilik: jualan, stok dan gudang dalam satu halaman, mengikut pakej anda.',
     sections: [
-      { id: 'dashboard', title: 'Gambaran SuXin Cloud', video: V('cloud-1-dashboard'), steps: [
-        'Tekan SuXin Cloud di pusat aplikasi, atau dalam menu pejabat POS.',
+      { id: 'dashboard', title: 'Gambaran SuXin Every Data', video: V('cloud-1-dashboard'), steps: [
+        'Tekan SuXin Every Data di pusat aplikasi, atau dalam menu pejabat POS.',
         'Hari ini: jualan, resit, purata bil, dan resit terkini.',
         'Stok: rendah, habis, dan nilainya.',
         'Gudang: pesanan untuk diluluskan, untuk diterima, dan pindahan dalam perjalanan.',
@@ -696,7 +696,7 @@ export const ACCOUNT_GUIDE = {
         '登录后到应用中心，你的配套有的 app 都可以打开。',
       ] },
       { id: 'phone', title: '在手机 app 注册', video: V('app-5-account'), steps: [
-        'SuXin Count app 一样有「注册公司」「加入公司」「忘记密码」。',
+        'SuXin Barcode Scan app 一样有「注册公司」「加入公司」「忘记密码」。',
         '在 app 注册的账号，网页和收银也可以直接登录。',
       ] },
     ],
@@ -712,7 +712,7 @@ export const ACCOUNT_GUIDE = {
         'Signed in, the app centre opens the apps your plan includes.',
       ] },
       { id: 'phone', title: 'Signing up in the phone app', video: V('app-5-account'), steps: [
-        'The SuXin Count app has the same Create company, Join company and Forgot password.',
+        'The SuXin Barcode Scan app has the same Create company, Join company and Forgot password.',
         'An account made in the app signs in on the web and the till too.',
       ] },
     ],
@@ -728,7 +728,7 @@ export const ACCOUNT_GUIDE = {
         'Selepas log masuk, pusat aplikasi membuka aplikasi dalam pakej anda.',
       ] },
       { id: 'phone', title: 'Daftar dalam aplikasi telefon', video: V('app-5-account'), steps: [
-        'Aplikasi SuXin Count ada Daftar syarikat, Sertai syarikat dan Lupa kata laluan yang sama.',
+        'Aplikasi SuXin Barcode Scan ada Daftar syarikat, Sertai syarikat dan Lupa kata laluan yang sama.',
         'Akaun dibuat dalam aplikasi boleh log masuk di web dan kaunter juga.',
       ] },
     ],

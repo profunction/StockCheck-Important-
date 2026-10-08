@@ -1,6 +1,6 @@
 /**
- * The SuXin apps a company can open -- SuXin Count, SuXin POS, SuXin Cloud and
- * SuXin Warehouse -- for the app centre (/app/) and the switcher every app
+ * The SuXin apps a company can open -- SuXin Barcode Scan, SuXin POS, SuXin Every Data and
+ * SuXin WMS -- for the app centre (/app/) and the switcher every app
  * carries in its sidebar. All four share one sign-in, one company and one
  * stock, so switching is just opening another page.
  *
@@ -11,7 +11,7 @@
  * database rules hold the same line; this only decides what is shown.
  *
  * Also the sign-in screen and start-up shared by the newer apps (the app
- * centre and SuXin Count on the web).
+ * centre and SuXin Barcode Scan on the web).
  */
 import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from './fb.js';
 import { h, mount } from './dom.js';
@@ -91,13 +91,13 @@ addStrings({
  * perms: any one of these lets someone in (an admin always may).
  */
 export const APPS = [
-  { id: 'count', module: 'count', name: 'SuXin Count', href: '/count/', icon: 'barcode', color: '#0F4C4A',
+  { id: 'count', module: 'count', name: 'SuXin Barcode Scan', href: '/count/', icon: 'barcode', color: '#0F4C4A',
     perms: ['CREATE_STOCK_CHECK', 'SCAN_BARCODE', 'VIEW_OWN_HISTORY', 'VIEW_ALL_HISTORY'] },
   { id: 'pos', module: 'pos', name: 'SuXin POS', href: '/pos/#/pos', icon: 'cart', color: '#0B1B2B',
     perms: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'] },
-  { id: 'cloud', module: null, name: 'SuXin Cloud', href: '/pos/#/cloud', icon: 'chart', color: '#0f766e',
+  { id: 'cloud', module: null, name: 'SuXin Every Data', href: '/pos/#/cloud', icon: 'chart', color: '#0f766e',
     perms: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'] },
-  { id: 'warehouse', module: 'warehouse', name: 'SuXin Warehouse', href: '/warehouse/', icon: 'box', color: '#12385A',
+  { id: 'warehouse', module: 'warehouse', name: 'SuXin WMS', href: '/warehouse/', icon: 'box', color: '#12385A',
     perms: ['RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE', 'POS_MANAGE', 'VIEW_ALL_HISTORY'] },
 ];
 

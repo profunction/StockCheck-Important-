@@ -1,5 +1,5 @@
 {
-  "name": "SuXin Warehouse",
+  "name": "SuXin WMS",
   "short_name": "Warehouse",
   "description": "Receiving, transfers, purchase orders and stock control for SuXin.",
   "start_url": "/warehouse/#/home",

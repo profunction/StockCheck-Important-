@@ -8,7 +8,7 @@
  *              telegramChats/, which shows here with its report switch.
  *   Email      workspaces/{ws}/meta/notify { emailDaily, emails }: admins.
  *   Push       this browser's token under users/{uid}/pushTokens/; the
- *              SuXin Count phone app registers itself when signed in.
+ *              SuXin Barcode Scan phone app registers itself when signed in.
  *              { pushDaily } in meta/notify: admins.
  */
 import {
@@ -28,7 +28,7 @@ addStrings({
     nfTgMine: 'My connected chats', nfTgNone: 'No chat connected yet.', nfDaily: 'Morning report', nfDisconnect: 'Disconnect',
     nfEmail: 'Report by email', nfEmailLead: 'Yesterday\'s sales and today\'s low stock, every morning at 8.',
     nfEmailOn: 'Send the morning report by email', nfEmailTo: 'To (one or more, separated by commas)',
-    nfPush: 'Phone and computer notifications', nfPushLead: 'The SuXin Count app asks once after you sign in, then receives the report by itself.',
+    nfPush: 'Phone and computer notifications', nfPushLead: 'The SuXin Barcode Scan app asks once after you sign in, then receives the report by itself.',
     nfPushHere: 'Turn on for this browser', nfPushOn: 'On in this browser', nfPushNo: 'Notifications in the browser are not switched on yet.',
     nfPushDenied: 'The browser said no. Allow notifications for this site in the browser\'s settings.',
     nfPushDaily: 'Send the morning report as a notification', nfAdminOnly: 'Only an admin may change this.',
@@ -40,7 +40,7 @@ addStrings({
     nfTgMine: '我连接的聊天', nfTgNone: '还没有连接。', nfDaily: '早上报告', nfDisconnect: '断开',
     nfEmail: 'Email 报告', nfEmailLead: '每天早上 8 点：昨天的销售和现在的低库存。',
     nfEmailOn: '每天早上用 email 寄营业报告', nfEmailTo: '寄给（可以几个，用逗号分开）',
-    nfPush: '手机和电脑通知', nfPushLead: 'SuXin Count app 登录后会问一次是否允许通知，之后自动收到报告。',
+    nfPush: '手机和电脑通知', nfPushLead: 'SuXin Barcode Scan app 登录后会问一次是否允许通知，之后自动收到报告。',
     nfPushHere: '在这个浏览器开启', nfPushOn: '这个浏览器已开启', nfPushNo: '浏览器通知还没开通。',
     nfPushDenied: '浏览器拒绝了。请在浏览器设置里允许这个网站的通知。',
     nfPushDaily: '用通知发早上的营业报告', nfAdminOnly: '只有管理员可以改。',
@@ -52,7 +52,7 @@ addStrings({
     nfTgMine: 'Sembang saya yang disambung', nfTgNone: 'Belum ada.', nfDaily: 'Laporan pagi', nfDisconnect: 'Putuskan',
     nfEmail: 'Laporan melalui e-mel', nfEmailLead: 'Jualan semalam dan stok rendah, setiap pagi jam 8.',
     nfEmailOn: 'Hantar laporan pagi melalui e-mel', nfEmailTo: 'Kepada (boleh beberapa, dipisah koma)',
-    nfPush: 'Pemberitahuan telefon dan komputer', nfPushLead: 'Aplikasi SuXin Count bertanya sekali selepas log masuk, kemudian menerima laporan sendiri.',
+    nfPush: 'Pemberitahuan telefon dan komputer', nfPushLead: 'Aplikasi SuXin Barcode Scan bertanya sekali selepas log masuk, kemudian menerima laporan sendiri.',
     nfPushHere: 'Hidupkan untuk pelayar ini', nfPushOn: 'Hidup di pelayar ini', nfPushNo: 'Pemberitahuan pelayar belum dihidupkan.',
     nfPushDenied: 'Pelayar menolak. Benarkan pemberitahuan untuk laman ini dalam tetapan pelayar.',
     nfPushDaily: 'Hantar laporan pagi sebagai pemberitahuan', nfAdminOnly: 'Hanya admin boleh menukar.',

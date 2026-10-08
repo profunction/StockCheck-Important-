@@ -1,5 +1,5 @@
 {
-  "name": "SuXin Count",
+  "name": "SuXin Barcode Scan",
   "short_name": "Count",
   "description": "Stock counting for SuXin, in the browser.",
   "start_url": "/count/#/",

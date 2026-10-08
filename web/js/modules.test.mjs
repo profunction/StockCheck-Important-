@@ -66,7 +66,7 @@ test('API token scopes: none means all; listed means only those', () => {
 
 test('the SuXin modules', () => {
   assert.deepEqual(moduleIds(), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'accounting', 'logistics', 'b2b']);
-  assert.equal(MODULES.count.displayName.en, 'SuXin Count');
+  assert.equal(MODULES.count.displayName.en, 'SuXin Barcode Scan');
   for (const id of ['accounting', 'logistics', 'b2b']) assert.equal(MODULES[id].status, 'planned');
 });
 

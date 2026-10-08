@@ -43,7 +43,7 @@ const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
 await og.setContent(`<body style="margin:0;width:1200px;height:630px;background:#0B1B2B;color:#E7EDF3;font-family:'Noto Sans','Noto Sans CJK SC',sans-serif;display:grid;align-content:center;padding:0 96px;box-sizing:border-box;gap:26px">
 <div style="width:420px;color:#FFFFFF">${word}</div>
 <div style="font-size:54px;font-weight:700;letter-spacing:-.5px">One Business. Connected.</div>
-<div style="font-size:26px;color:#93A1B1">SuXin POS · SuXin Count · SuXin Warehouse · SuXin Cloud</div>
+<div style="font-size:26px;color:#93A1B1">SuXin POS · SuXin Barcode Scan · SuXin WMS · SuXin Every Data</div>
 <div style="font-size:24px;color:#2DD4BF">收银 · 盘点 · 仓库 — Malaysia · Singapore</div></body>`);
 await og.screenshot({ path: join(WEB, 'img', 'og-image.png') });
 await browser.close();

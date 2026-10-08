@@ -1,6 +1,6 @@
 /**
  * The warehouse system: receiving, transfers, adjustments, purchasing and
- * stock control for the same company, products and stock as the SuXin Count
+ * stock control for the same company, products and stock as the SuXin Barcode Scan
  * app and the till. Laid out for a phone in a worker's hand (big buttons,
  * a bar along the bottom) and for a manager at a computer (a sidebar).
  */
@@ -80,7 +80,7 @@ function renderSignIn(message = '') {
       }
     },
   },
-  h('div', { class: 'brandmark' }, h('img', { src: '/icons/wh-192.png', alt: '', width: 40, height: 40 }), 'SuXin Warehouse'),
+  h('div', { class: 'brandmark' }, h('img', { src: '/icons/wh-192.png', alt: '', width: 40, height: 40 }), 'SuXin WMS'),
   h('h2', { style: { margin: '6px 0 0' } }, t('signIn')),
   h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')),
   h('label', { class: 'field' }, t('email'), email),
@@ -94,7 +94,7 @@ function renderSignIn(message = '') {
   langPicker());
   mount(app, h('div', { class: 'signin-split' },
     h('section', { class: 'signin-brand wh-brand' },
-      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/wh-192.png', alt: '', width: 36, height: 36 }), 'SuXin Warehouse'),
+      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/wh-192.png', alt: '', width: 36, height: 36 }), 'SuXin WMS'),
       h('div', { style: { display: 'grid', gap: '22px' } },
         h('h1', {}, t('whTagline')),
         h('ul', {},
@@ -140,7 +140,7 @@ function renderSide() {
   const { group } = currentRoute();
   const visible = MENU.filter(allowed);
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png', alt: '', width: 28, height: 28 }), 'SuXin Warehouse'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png', alt: '', width: 28, height: 28 }), 'SuXin WMS'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email),

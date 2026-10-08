@@ -365,7 +365,7 @@ function llms() {
 
 > ${en.description}
 
-${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **SuXin Count**, the Android app for counting stock by scanning barcodes; **SuXin POS**, the web cash register for the counter; **SuXin Warehouse** for receiving, transfers and purchase orders; and **SuXin Cloud**, the owner's back office. SuXin was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
+${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **SuXin Barcode Scan**, the Android app for counting stock by scanning barcodes; **SuXin POS**, the web cash register for the counter; **SuXin WMS** for receiving, transfers and purchase orders; and **SuXin Every Data**, the owner's back office. SuXin was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
 
 中文：${zh.description}
 
@@ -376,7 +376,7 @@ ${PAID.map(plan).join('\n')}
 ${['APP_ONLY', 'POS_ONLY', 'API_ONLY'].map((id) => `- ${PLANS[id].label} (standalone): ${rm(PLANS[id].monthlySen)} per month or ${rm(PLANS[id].yearlySen)} per year; ${en.standalone[id]}.`).join('\n')}
 - Lifetime licences are limited to 50 in total.
 - Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes ${LIFETIME_SUPPORT_MONTHS} months of updates and support.
-- Platforms: SuXin Count on Android; SuXin POS, SuXin Warehouse and SuXin Cloud in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
+- Platforms: SuXin Barcode Scan on Android; SuXin POS, SuXin WMS and SuXin Every Data in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
 - Works offline: sales are kept on the device and sent when the connection returns.
 
 ## How stock is calculated
@@ -388,7 +388,7 @@ ${en.features.map(([h, p]) => `- **${h}**: ${p}`).join('\n')}
 ## The four products (one shared stock)
 ${Object.values(PAGES.en.products).map((x) => `- **${x.name}** (${x.kind}): ${x.line} ${x.points.join('; ')}.`).join('\n')}
 
-Chinese names: 盘点通 (SuXin Count), 收银通 (SuXin POS), 仓管通 (SuXin Warehouse), 云后台 (SuXin Cloud).
+Chinese names: 盘点通 (SuXin Barcode Scan), 收银通 (SuXin POS), 仓管通 (SuXin WMS), 云后台 (SuXin Every Data).
 
 ## By kind of business
 ${INDUSTRY_IDS.map((id) => { const x = PAGES.en.industries[id]; return `- [${x.name}](${SITE}/en/${id}/): ${x.lead}${x.soon ? ` (${x.soon})` : ''}`; }).join('\n')}
@@ -406,7 +406,7 @@ ${en.faq.map(([q, a]) => `### ${q}\n${a}`).join('\n\n')}
 - Website (English): ${SITE}/en/
 - Website (Bahasa Melayu): ${SITE}/ms/
 - Sign in or sign up (all apps): ${SITE}/app/
-- SuXin Count on the web: ${SITE}/count/
+- SuXin Barcode Scan on the web: ${SITE}/count/
 - POS sign-in: ${POS_URL}
 - Android app download: ${APP_DOWNLOAD}
 - Warehouse system (web, works on phones): ${WAREHOUSE_URL}

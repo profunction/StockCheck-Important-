@@ -27,10 +27,10 @@ const PAGES_GUIDE = fromHelp(PAGES, [
 
 const TABS = {
   account: { guide: ACCOUNT_GUIDE, label: { zh: '账号和注册', en: 'Account & sign-up', ms: 'Akaun & daftar' } },
-  app: { guide: APP_GUIDE, label: { zh: 'SuXin Count（手机 + 网页）', en: 'SuXin Count (phone + web)', ms: 'SuXin Count (telefon + web)' } },
+  app: { guide: APP_GUIDE, label: { zh: 'SuXin Barcode Scan（手机 + 网页）', en: 'SuXin Barcode Scan (phone + web)', ms: 'SuXin Barcode Scan (telefon + web)' } },
   pos: { guide: POS_GUIDE, label: { zh: 'SuXin POS 收银', en: 'SuXin POS (till)', ms: 'SuXin POS (POS)' } },
-  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: 'SuXin Warehouse 仓库', en: 'SuXin Warehouse', ms: 'SuXin Warehouse (gudang)' } },
-  cloud: { guide: CLOUD_GUIDE, label: { zh: 'SuXin Cloud 老板总览', en: 'SuXin Cloud', ms: 'SuXin Cloud' } },
+  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: 'SuXin WMS 仓库', en: 'SuXin WMS', ms: 'SuXin WMS (gudang)' } },
+  cloud: { guide: CLOUD_GUIDE, label: { zh: 'SuXin Every Data 老板总览', en: 'SuXin Every Data', ms: 'SuXin Every Data' } },
   till: { guide: TILL_GUIDE, label: { zh: '收银每个按钮', en: 'Every till button', ms: 'Setiap butang kaunter' } },
   pages: { guide: PAGES_GUIDE, label: { zh: '每一页的教学', en: 'Every page', ms: 'Setiap halaman' } },
 };

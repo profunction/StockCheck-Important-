@@ -53,11 +53,11 @@ jobs:
       # debug key), so each new APK installs over the last one. Without the
       # secret, the runner's own fresh debug key: a new build then needs the
       # old app removed first.
-      - name: Use the fixed key for SuXin Count
+      - name: Use the fixed key for SuXin Barcode Scan
         env:
           WEBAPPS_KEYSTORE: ${{ secrets.WEBAPPS_KEYSTORE }}
         run: |
-          if [ -z "$WEBAPPS_KEYSTORE" ]; then echo "::warning::No WEBAPPS_KEYSTORE secret: SuXin Count is signed with a one-off key."; exit 0; fi
+          if [ -z "$WEBAPPS_KEYSTORE" ]; then echo "::warning::No WEBAPPS_KEYSTORE secret: SuXin Barcode Scan is signed with a one-off key."; exit 0; fi
           mkdir -p ~/.android
           printf '%s' "$WEBAPPS_KEYSTORE" | base64 -d > "$RUNNER_TEMP/k.p12"
           rm -f ~/.android/debug.keystore
@@ -73,7 +73,7 @@ jobs:
           mv app/build/outputs/apk/debug/app-debug.apk \
              "app/build/outputs/apk/debug/${{ steps.name.outputs.apk }}"
 
-      # SuXin, SuXin POS, SuXin Warehouse and SuXin Cloud: the website's apps as
+      # SuXin, SuXin POS, SuXin WMS and SuXin Every Data: the website's apps as
       # Android apps (webapps/), signed with the key in the WEBAPPS_KEYSTORE
       # secret so an installed copy takes the next one as an update.
       - name: Build the website apps
@@ -91,7 +91,7 @@ jobs:
           ./gradlew :webapps:assembleRelease --stacktrace || { rm -f "$KS"; exit 1; }
           rm -f "$KS"
           mkdir -p webapps-out
-          for f in hub:SuXin pos:SuXin-POS warehouse:SuXin-Warehouse cloud:SuXin-Cloud; do
+          for f in hub:SuXin pos:SuXin-POS warehouse:SuXin-WMS cloud:SuXin-EveryData; do
             cp "webapps/build/outputs/apk/${f%%:*}/release/webapps-${f%%:*}-release.apk" "webapps-out/${f##*:}.apk"
           done
           ls -l webapps-out
@@ -115,8 +115,8 @@ jobs:
           rm -f "$RUNNER_TEMP/upload.p12" webapps/jexo-webapps.keystore keystore.properties
           [ $status -eq 0 ] || exit $status
           mkdir -p aab-out
-          cp app/build/outputs/bundle/release/app-release.aab aab-out/SuXin-Count.aab
-          for f in hub:SuXin pos:SuXin-POS warehouse:SuXin-Warehouse cloud:SuXin-Cloud; do
+          cp app/build/outputs/bundle/release/app-release.aab aab-out/SuXin-BarcodeScan.aab
+          for f in hub:SuXin pos:SuXin-POS warehouse:SuXin-WMS cloud:SuXin-EveryData; do
             cp "webapps/build/outputs/bundle/${f%%:*}Release/webapps-${f%%:*}-release.aab" "aab-out/${f##*:}.aab"
           done
           ls -l aab-out

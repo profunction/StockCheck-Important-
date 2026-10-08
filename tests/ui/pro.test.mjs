@@ -120,9 +120,9 @@ await step('customers export to Excel', async () => {
   if (bytes[0] !== 0x50 || bytes[1] !== 0x4b || !/\.xlsx$/.test(x.suggestedFilename())) throw new Error('not an xlsx');
 });
 
-await step('SuXin Cloud: today, stock and the warehouse for a company with all three', async () => {
+await step('SuXin Every Data: today, stock and the warehouse for a company with all three', async () => {
   await page.goto(base + '/pos/#/cloud');
-  await page.waitForSelector('h1:has-text("SuXin Cloud")');
+  await page.waitForSelector('h1:has-text("SuXin Every Data")');
   await page.waitForSelector('.dash-part .stat:has-text("今天销售")');
   await page.waitForSelector('.dash-part .stat:has-text("低库存")');
   await page.waitForSelector('.dash-part .stat:has-text("待收货的采购单")');
@@ -150,15 +150,15 @@ await plan.step('Add more: what is on, what can be added, what is coming', async
   await plan.page.goto(plan.base + '/pos/#/settings/addons');
   await plan.page.waitForSelector('.addon');
   const text = await plan.page.$eval('main', (el) => el.innerText);
-  if (!/SuXin Count\s*已开启/.test(text) || !/SuXin POS\s*可以增加/.test(text) || !/SuXin Accounting\s*即将推出/.test(text)) throw new Error(text.slice(0, 600));
+  if (!/SuXin Barcode Scan\s*已开启/.test(text) || !/SuXin POS\s*可以增加/.test(text) || !/SuXin Accounting\s*即将推出/.test(text)) throw new Error(text.slice(0, 600));
   if (/module|API scope|feature flag/i.test(text)) throw new Error('technical words shown to the customer');
 });
-await plan.step('SuXin Cloud follows the plan: stock shown, no sales, no warehouse', async () => {
+await plan.step('SuXin Every Data follows the plan: stock shown, no sales, no warehouse', async () => {
   await plan.page.goto(plan.base + '/pos/#/cloud');
   await plan.page.waitForSelector('.dash-part .stat:has-text("低库存")');
   const text = await plan.page.$eval('main', (el) => el.innerText);
   if (/今天销售|待收货的采购单/.test(text)) throw new Error(text.slice(0, 400));
-  if (!/可以增加：[\s\S]*SuXin Warehouse/.test(text)) throw new Error('no add-more line: ' + text.slice(0, 400));
+  if (!/可以增加：[\s\S]*SuXin WMS/.test(text)) throw new Error('no add-more line: ' + text.slice(0, 400));
 });
 await plan.step('a plan without the warehouse: the warehouse says so', async () => {
   await plan.page.goto(plan.base + '/warehouse/#/receive');

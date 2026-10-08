@@ -1,6 +1,6 @@
 /**
- * SuXin Count on the web: stock counting in a browser, on a computer or a
- * phone, writing the very same stock checks as the SuXin Count Android app
+ * SuXin Barcode Scan on the web: stock counting in a browser, on a computer or a
+ * phone, writing the very same stock checks as the SuXin Barcode Scan Android app
  * (workspaces/{ws}/stockChecks/{id}, its lines under items/). A count
  * started here can be finished on a phone and the other way round; the
  * till, the warehouse and the back office read it the moment it is saved.
@@ -45,7 +45,7 @@ function shell() {
   mainEl = h('main', { class: 'cnt-main' });
   mount(app, h('div', { class: 'cnt' },
     h('header', { class: 'cnt-top' },
-      h('a', { class: 'brandmark', href: '#/' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 30, height: 30 }), 'SuXin Count'),
+      h('a', { class: 'brandmark', href: '#/' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 30, height: 30 }), 'SuXin Barcode Scan'),
       h('span', { class: 'grow' }),
       appSwitcher('count'),
       h('a', { class: 'btn ghost icon-btn', href: '/guide/#app', title: t('posGuide'), 'aria-label': t('posGuide'), 'data-act': 'guide' }, icon('book', 18)),
@@ -182,7 +182,7 @@ function newCount() {
 window.addEventListener('hashchange', () => { if (session.uid && mainEl) route(); });
 
 startApp(app, {
-  name: 'SuXin Count', logo: '/icons/icon-192.png', tagline: t('cAppHint'),
+  name: 'SuXin Barcode Scan', logo: '/icons/icon-192.png', tagline: t('cAppHint'),
   features: [['barcode', t('cScan')], ['wifiOff', t('signFeat3')], ['apps', t('appSwitch')]],
   foot: 'SuXin · One Business. Connected.',
 }, shell, { stop: () => { stopPage?.(); stopPage = null; mainEl = null; } });

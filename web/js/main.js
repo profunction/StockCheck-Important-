@@ -2,7 +2,7 @@
  * The POS website: sign in, then a back office with a register in it.
  *
  * Same accounts, same company and the same products and stock as the
- * SuXin Count app -- both read and write one database, so there is nothing to
+ * SuXin Barcode Scan app -- both read and write one database, so there is nothing to
  * connect or sync.
  */
 import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from './fb.js';
@@ -20,7 +20,7 @@ const app = document.getElementById('app');
 /** The menu, Loyverse-style: groups with pages under them. */
 const MENU = [
   { id: 'pos', icon: 'cart', label: 'navRegister', may: 'pos.sell', page: () => import('./register.js') },
-  // SuXin Cloud: what is shown inside follows the company's modules (dashboard.js).
+  // SuXin Every Data: what is shown inside follows the company's modules (dashboard.js).
   { id: 'cloud', icon: 'chart', label: 'navCloud', perm: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'], page: () => import('./dashboard.js') },
   {
     id: 'reports', icon: 'chart', label: 'navReports', may: 'pos.reports', children: [

@@ -165,7 +165,7 @@ enum class Plan(
     STARTER("Starter", 5, 4_800, 48_000, 168_000, "ALL_IN_ONE", true, true, true, false, false, false, Int.MAX_VALUE),
     BUSINESS("Business", 20, 11_800, 118_000, 418_000, "ALL_IN_ONE", true, true, true, false, true, true, Int.MAX_VALUE),
     UNLIMITED("Unlimited", Int.MAX_VALUE, 22_800, 228_000, 798_000, "ALL_IN_ONE", true, true, true, true, true, true, Int.MAX_VALUE),
-    APP_ONLY("SuXin Count", 3, 2_800, 28_000, null, "STANDALONE", true, false, false, false, false, true, 0),
+    APP_ONLY("SuXin Barcode Scan", 3, 2_800, 28_000, null, "STANDALONE", true, false, false, false, false, true, 0),
     POS_ONLY("POS", 5, 3_800, 38_000, null, "STANDALONE", false, true, true, false, false, false, 2),
     API_ONLY("API", 1, 6_800, 68_000, null, "STANDALONE", false, false, false, true, false, false, 0);
 
