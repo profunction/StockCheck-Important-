@@ -59,7 +59,7 @@ function render() {
 }
 
 startApp(app, {
-  name: 'SuXin', logo: '/icons/icon-192.png', tagline: 'One Business. Connected.',
+  name: 'SuXin', logo: '/icons/icon-192.png', tagline: t('brandTagline'),
   features: APPS.map((a) => [a.icon, `${a.name} — ${t(`app_${a.id}`)}`]),
   foot: 'SuXin · Malaysia',
 }, render);

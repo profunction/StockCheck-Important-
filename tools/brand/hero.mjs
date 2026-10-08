@@ -17,9 +17,9 @@ const tmp = join(root, 'tools', 'brand', '_hero');
 mkdirSync(tmp, { recursive: true });
 
 const LABELS = {
-  zh: { pos: 'SuXin POS · 收银', wh: 'SuXin WMS · 仓库', count: 'SuXin Barcode Scan · 盘点', stock: '一份库存' },
-  en: { pos: 'SuXin POS', wh: 'SuXin WMS', count: 'SuXin Barcode Scan', stock: 'One stock' },
-  ms: { pos: 'SuXin POS · Kaunter', wh: 'SuXin WMS · Gudang', count: 'SuXin Barcode Scan · Kira stok', stock: 'Satu stok' },
+  zh: { pos: 'SuXin POS · 收银', wh: 'SuXin WMS · 仓库', count: 'SuXin Barcode Scan · 盘点', stock: '一份库存', tag: '一盘生意，一套系统。' },
+  en: { pos: 'SuXin POS', wh: 'SuXin WMS', count: 'SuXin Barcode Scan', stock: 'One stock', tag: 'One Business. Connected.' },
+  ms: { pos: 'SuXin POS · Kaunter', wh: 'SuXin WMS · Gudang', count: 'SuXin Barcode Scan · Kira stok', stock: 'Satu stok', tag: 'Satu Perniagaan. Semua Bersambung.' },
 };
 
 async function screens(lang) {
@@ -69,7 +69,7 @@ function scene(lang) {
   <svg class="net" viewBox="0 0 1400 900"><g stroke="rgba(45,212,191,.35)" stroke-width="2" fill="none">
     <path d="M220 850 C 500 760, 760 820, 1050 700"/><path d="M660 830 C 800 860, 900 870, 1000 860"/><path d="M1180 120 L 1350 210"/></g>
     <g fill="#2dd4bf"><circle cx="220" cy="850" r="7"/><circle cx="1050" cy="700" r="7"/><circle cx="1300" cy="860" r="6"/><circle cx="1180" cy="120" r="6"/><circle cx="1350" cy="210" r="6"/></g></svg>
-  <div class="tag"><svg viewBox="0 0 64 64" width="40" height="40"><rect width="64" height="64" rx="14" fill="#fff"/><path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#0B1B2B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="44" r="6" fill="#14B8A6"/><circle cx="42" cy="20" r="6" fill="#14B8A6"/></svg>SuXin<small>One Business. Connected.</small></div>
+  <div class="tag"><svg viewBox="0 0 64 64" width="40" height="40"><rect width="64" height="64" rx="14" fill="#fff"/><path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#0B1B2B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="44" r="6" fill="#14B8A6"/><circle cx="42" cy="20" r="6" fill="#14B8A6"/></svg>SuXin<small>${L.tag}</small></div>
   <div class="laptop"><div class="screen"><img src="${dataUrl(join(tmp, `pos-${lang}.png`))}"></div><div class="base"></div></div>
   <div class="phone"><img src="${dataUrl(join(tmp, `wh-${lang}.png`))}"></div>
   <div class="chip" style="left:110px;top:760px"><i></i>${L.pos}</div>

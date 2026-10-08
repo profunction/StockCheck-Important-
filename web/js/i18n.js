@@ -92,7 +92,7 @@ const zh = {
   errNoCompany: '这个账号还没有加入公司，请先在 SuXin Barcode Scan app 注册。', errInactive: '这个账号已被管理员停用。',
   errNoPosPermission: '你的角色没有收银权限。请管理员在「员工 → 权限」打开。', errPage: '这个页面打不开', errLoad: '读取失败',
   navRegister: '收银', navReports: '报表', navItems: '商品', navInventory: '库存管理', navEmployees: '员工', navSettings: '设置',
-  repSummary: '销售总结', repItems: '按商品', repCategories: '按分类', repEmployees: '按员工', repPayments: '按付款方式',
+  repSummary: '销售报表', repItems: '按商品', repCategories: '按分类', repEmployees: '按员工', repPayments: '按付款方式',
   repReceipts: '收据', repModifiers: '按加料', repDiscounts: '折扣', repTaxes: '税',
   itemList: '商品清单', itemCategories: '分类', itemModifiers: '加料 / 选项', itemDiscounts: '折扣',
   setFeatures: '功能', setPayments: '付款方式', setTaxes: '税和服务费', setReceipt: '收据', setStores: '分店', setDevice: '这台电脑', setNotify: '通知和机器人',

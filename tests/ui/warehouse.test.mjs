@@ -165,50 +165,6 @@ await step('count differences: the count is listed and opens', async () => {
   await page.waitForSelector('.cards .stat');
 });
 
-await step('online purchase: a pasted Pinduoduo order becomes an ordered purchase order', async () => {
-  await page.goto(base + '/warehouse/#/online');
-  await page.waitForSelector('textarea');
-  await page.click('.wh-chips button:has-text("拼多多")');
-  await page.fill('textarea', ['拼多多', '订单编号：PDD240915001', 'Milo 1kg 麦芽饮料 大包装', '¥10.00', 'x5',
-    '一次性塑料袋 50个装', '规格：中号', '¥5.00', 'x2', '运费 ¥6.00', '实付 ¥66.00', '快递单号：YT1234567890'].join('\n'));
-  await page.click('button:has-text("读取订单")');
-  await page.waitForSelector('.wh-online-line:has-text("Milo 1kg") .pill:has-text("系统猜的")');
-  // The bag is not a product yet: make it from the order line.
-  await page.click('.wh-online-line:has-text("塑料袋") button:has-text("新增商品")');
-  await page.waitForSelector('.dialog input');
-  await page.click('.dialog .actions button.primary');
-  await page.waitForFunction(() => !document.querySelector('.wh-online-total')?.innerText.includes('还没配对'));
-  await shot('wh-online-1-check');
-  await page.click('.wh-bar button.primary:has-text("保存采购单")');
-  await page.waitForFunction(() => [...window.__store].some(([k, v]) => k.includes('/purchaseOrders/') && v.source === 'ONLINE'));
-  const po = (await docs(`${W}purchaseOrders/`)).find((x) => x.source === 'ONLINE');
-  const milo = po.lines.find((l) => l.name === 'Milo 1kg');
-  const bag = po.lines.find((l) => l.sourceTitle.includes('塑料袋'));
-  // ¥ at 0.65: goods RM 32.50 + 6.50, shipping RM 3.90 shared 3.25 / 0.65.
-  if (po.status !== 'ORDERED' || po.onlinePlatform !== 'pdd' || po.onlineOrderNo !== 'PDD240915001' || po.trackingNo !== 'YT1234567890'
-    || po.currency !== 'CNY' || po.shippingSen !== 390 || milo.qtyMilli !== 5000 || milo.costSen !== 715 || bag.qtyMilli !== 2000 || bag.costSen !== 358) throw new Error(JSON.stringify(po));
-  const made = await store(`${W}products/${bag.barcode}`);
-  if (!made || !made.name.includes('塑料袋') || made.costSen !== 358) throw new Error(JSON.stringify(made));
-});
-
-await step('online purchase: the same order pasted again is refused', async () => {
-  await page.goto(base + '/warehouse/#/online');
-  await page.waitForSelector('textarea');
-  await page.waitForTimeout(400);
-  await page.fill('textarea', '拼多多\n订单编号：PDD240915001\nMilo 1kg\n¥10.00\nx5');
-  await page.click('button:has-text("读取订单")');
-  await page.waitForSelector('text=这张订单已经记过了');
-});
-
-await step('online purchase: scanning the parcel label opens it for receiving', async () => {
-  await page.goto(base + '/warehouse/#/receive');
-  await page.waitForSelector('.wh-card:has-text("YT1234567890")');
-  await page.click('input.scan');
-  await scan('YT1234567890');
-  await page.waitForFunction(() => /#\/receive\/.+/.test(location.hash) && !location.hash.endsWith('/free'));
-  await page.waitForSelector('text=Milo 1kg');
-});
-
 await step('places: add a warehouse', async () => {
   await page.goto(base + '/warehouse/#/places');
   await page.click('button:has-text("新增地点")');
@@ -249,8 +205,9 @@ await step('cost calculator: yuan to ringgit, shipping spread, costs saved', asy
   if (!log || log.newValue !== '15.00') throw new Error(JSON.stringify(log));
 });
 
-await step('guide page opens', async () => {
+await step('the guide menu item opens the one guide page, at the warehouse', async () => {
   await page.goto(base + '/warehouse/#/guide');
+  await page.waitForFunction(() => location.pathname === '/guide/' && location.hash === '#warehouse');
   await page.waitForSelector('.guide');
 });
 

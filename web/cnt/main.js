@@ -184,5 +184,5 @@ window.addEventListener('hashchange', () => { if (session.uid && mainEl) route()
 startApp(app, {
   name: 'SuXin Barcode Scan', logo: '/icons/icon-192.png', tagline: t('cAppHint'),
   features: [['barcode', t('cScan')], ['wifiOff', t('signFeat3')], ['apps', t('appSwitch')]],
-  foot: 'SuXin · One Business. Connected.',
+  foot: `SuXin · ${t('brandTagline')}`,
 }, shell, { stop: () => { stopPage?.(); stopPage = null; mainEl = null; } });

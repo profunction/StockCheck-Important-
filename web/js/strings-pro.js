@@ -78,7 +78,7 @@ const zh = {
   modeLocked: '收银模式已经选定。要更换：管理员到「我的 Profile」输入密码才可以换。',
   modeLockFirst: '请想清楚再选：选了以后，只有管理员到「我的 Profile」输入密码才可以换。',
   // SuXin Every Data dashboard
-  navCloud: 'SuXin Every Data 云后台', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
+  navCloud: 'SuXin Every Data 老板数据', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
   dashToday: '今天', dashSales: '今天销售', dashReceipts: '收据', dashAverage: '平均每单', dashVoided: '已作废',
   dashRecent: '最近的收据', dashNoSales: '今天还没有销售。', dashStock: '库存', dashItems: '有库存的商品',
   dashStockValue: '库存价值（成本）', dashLow: '低库存', dashOut: '没货', dashLowList: '库存不足',

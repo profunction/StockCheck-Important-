@@ -1,7 +1,7 @@
 /**
  * The customer-first structure of the public SuXin site: what SuXin is in
- * one line ("One Business. Connected."), then "what is your business?",
- * then the four products (SuXin Barcode Scan, POS, Warehouse, Cloud), then the
+ * one line (the slogan, in the page's language), then "what is your business?",
+ * then the four products (SuXin Barcode Scan, POS, WMS, Every Data), then the
  * solutions that can be added as the business grows. site/build.mjs
  * renders it; the product names come from web/js/brand.js.
  *
@@ -17,10 +17,10 @@ export const PAGES = {
   zh: {
     nav: { home: '首页', industries: '适合我的生意', products: '产品', addons: '解决方案', pricing: '价格', guide: '资源', login: '登录', trial: '免费试用' },
     hero: {
-      eyebrow: 'SuXin · 手机盘点 · 收银 · 仓库 · 云后台',
-      h1: 'One Business. Connected.',
-      sub: '一个系统，连接你的盘点、收银、仓库和后台',
-      lead: '用手机盘点，柜台收银，仓库进出货，老板在云后台看全部。同一份库存，一个地方管理。生意扩大后，再按需要增加功能。',
+      eyebrow: 'SuXin · 扫码盘点 · 收银 · 仓库 · 老板数据',
+      h1: '一盘生意，一套系统。',
+      sub: '扫码盘点、收银、仓库和老板数据，全部连在一起',
+      lead: '用手机盘点，柜台收银，仓库进出货，老板在 Every Data 看全部。同一份库存，一个地方管理。生意扩大后，再按需要增加功能。',
       cta: '开始免费试用', cta2: '了解 SuXin',
       note: '不用信用卡 · 中文 / English / Bahasa Melayu · 马来西亚',
     },
@@ -46,13 +46,13 @@ export const PAGES = {
       stocktake: { name: 'SuXin Barcode Scan', kind: '盘点通 · Android App + 网页', line: '用手机快速完成库存盘点。', points: ['手机扫码', '语音输入数量', '离线盘点', '库存核对：短少多少', '照片记录', 'Loyverse 同步'], cta: '我要开始盘点' },
       pos: { name: 'SuXin POS', kind: '收银通 · 网页 / 可安装', line: '让柜台收银更快、更简单。', points: ['零售：扫码、SST、现金四舍五入、收据、离线', '餐饮：堂食外带、加料、厨房单、服务费'], cta: '我是零售店', cta2: '我是餐饮店' },
       warehouse: { name: 'SuXin WMS', kind: '仓管通 · 网页 / 手机', line: '管理仓库、进出货和门店调货。', points: ['采购单和批准', '扫码收货', '调货（在途）', '库存调整', '补货建议'], cta: '看仓库方案' },
-      backoffice: { name: 'SuXin Every Data', kind: '云后台 · 网页', line: '老板查看生意、管理员工、开启扩展功能。', points: ['销售和交班报表', '员工和权限', '商品、价格、税', '每月 LHDN 电子发票', '按生意显示的仪表板'], cta: '登录后台' },
+      backoffice: { name: 'SuXin Every Data', kind: '老板数据 · 网页', line: '老板查看生意、管理员工、开启扩展功能。', points: ['销售和交班报表', '员工和权限', '商品、价格、税', '每月 LHDN 电子发票', '按生意显示的仪表板'], cta: '登录后台' },
     },
     addonsTitle: '解决方案：生意扩大了，再增加功能',
     addonsLead: '一开始只需要盘点和收银。需要的时候再加，不用换系统，资料都在。',
     addons: [
       { name: 'SuXin WMS · 仓库与订货', ask: '需要管理中央仓库？', what: '仓库、采购单、调货、补货建议。', state: 'live' },
-      { name: 'SuXin Procurement · 网购进货', ask: '在拼多多、淘宝、Shopee、TikTok 进货？', what: '把订单贴进来就变成采购单：商品、数量、价钱、运费、人民币汇率自动算好；包裹到了扫运单号收货，库存马上加上去。', state: 'live' },
+      { name: 'SuXin Procurement · 采购和成本', ask: '进货要算清楚成本？', what: '采购单、审批、补货建议，加上成本计算器：运费、关税、代理费分摊到每件货，算出真正成本和建议售价，一键存进商品。' },
       { name: 'SuXin Tax · 会计与电子发票', ask: '要交 LHDN 电子发票？', what: '每月 MyInvois 合并电子发票已包含。SQL Account、AutoCount 连接即将推出。', state: 'part' },
       { name: 'SuXin Logistics · 配送', ask: '要安排送货？', what: 'Lalamove、GrabExpress。', state: 'soon' },
     ],
@@ -62,7 +62,7 @@ export const PAGES = {
   en: {
     nav: { home: 'Home', industries: 'For Your Business', products: 'Products', addons: 'Solutions', pricing: 'Pricing', guide: 'Resources', login: 'Login', trial: 'Free Trial' },
     hero: {
-      eyebrow: 'SuXin · Stock counting · POS · Warehouse · Cloud',
+      eyebrow: 'SuXin · Barcode Scan · POS · WMS · Every Data',
       h1: 'One Business. Connected.',
       sub: 'One system that connects your stock counts, checkout, warehouse and back office',
       lead: 'Count stock on your phone, sell at the counter, move goods through the warehouse, and see it all in the cloud. One stock, managed in one place. Add more as the business grows.',
@@ -97,7 +97,7 @@ export const PAGES = {
     addonsLead: 'Start with counting and checkout. Add more when you need it — no new system, your data stays.',
     addons: [
       { name: 'SuXin WMS · Warehouse & ordering', ask: 'Need a central warehouse?', what: 'Warehouses, purchase orders, transfers, reorder suggestions.', state: 'live' },
-      { name: 'SuXin Procurement · Online purchases', ask: 'Buying stock on Pinduoduo, Taobao, Shopee or TikTok?', what: 'Paste the order and it becomes a purchase order — items, quantities, prices, shipping and the yuan rate worked out. When the parcel arrives, scan its tracking number to receive it into stock.', state: 'live' },
+      { name: 'SuXin Procurement · Purchasing and costs', ask: 'Need to know what your stock really costs?', what: 'Purchase orders with approval and reorder suggestions, plus a cost calculator: shipping, duty and fees shared over each item, the real cost and a suggested price, saved to the items in one press.' },
       { name: 'SuXin Tax · Accounting & e-invoice', ask: 'Submitting LHDN e-invoices?', what: 'The monthly MyInvois consolidated e-invoice is included. SQL Account and AutoCount links are coming.', state: 'part' },
       { name: 'SuXin Logistics · Delivery', ask: 'Sending orders out?', what: 'Lalamove, GrabExpress.', state: 'soon' },
     ],
@@ -107,8 +107,8 @@ export const PAGES = {
   ms: {
     nav: { home: 'Utama', industries: 'Perniagaan Anda', products: 'Produk', addons: 'Penyelesaian', pricing: 'Harga', guide: 'Sumber', login: 'Log masuk', trial: 'Cuba Percuma' },
     hero: {
-      eyebrow: 'SuXin · Kira stok · POS · Gudang · Awan',
-      h1: 'One Business. Connected.',
+      eyebrow: 'SuXin · Imbas kod bar · POS · Gudang · Semua data',
+      h1: 'Satu Perniagaan. Semua Bersambung.',
       sub: 'Satu sistem yang menyambung kiraan stok, kaunter, gudang dan pejabat belakang anda',
       lead: 'Kira stok dengan telefon, jual di kaunter, urus barang masuk dan keluar gudang, dan lihat semuanya di awan. Satu stok, diurus di satu tempat. Tambah fungsi bila perniagaan berkembang.',
       cta: 'Mula Cuba Percuma', cta2: 'Terokai SuXin',
@@ -142,7 +142,7 @@ export const PAGES = {
     addonsLead: 'Mula dengan kira stok dan kaunter. Tambah bila perlu — tiada sistem baharu, data anda kekal.',
     addons: [
       { name: 'SuXin WMS · Gudang & pesanan', ask: 'Perlu gudang pusat?', what: 'Gudang, pesanan belian, pindahan, cadangan tambah stok.', state: 'live' },
-      { name: 'SuXin Procurement · Belian dalam talian', ask: 'Beli stok di Pinduoduo, Taobao, Shopee atau TikTok?', what: 'Tampal pesanan dan ia jadi pesanan belian — barang, kuantiti, harga, penghantaran dan kadar yuan dikira. Bila bungkusan sampai, imbas nombor penjejakan untuk terima ke stok.', state: 'live' },
+      { name: 'SuXin Procurement · Belian dan kos', ask: 'Perlu tahu kos sebenar stok anda?', what: 'Pesanan belian dengan kelulusan dan cadangan tambah stok, serta kalkulator kos: penghantaran, duti dan yuran diagih ke setiap barang, kos sebenar dan harga dicadang, disimpan ke barang dengan satu tekan.' },
       { name: 'SuXin Tax · Akaun & e-Invois', ask: 'Hantar e-Invois LHDN?', what: 'e-Invois disatukan MyInvois bulanan sudah termasuk. Sambungan SQL Account dan AutoCount akan datang.', state: 'part' },
       { name: 'SuXin Logistics · Penghantaran', ask: 'Hantar pesanan?', what: 'Lalamove, GrabExpress.', state: 'soon' },
     ],

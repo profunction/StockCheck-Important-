@@ -5,13 +5,13 @@
  * SuXin Barcode Scan app -- both read and write one database, so there is nothing to
  * connect or sync.
  */
-import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from './fb.js';
-import { h, local, mount, toast } from './dom.js';
+import { auth, signOut } from './fb.js';
+import { h, local, mount } from './dom.js';
 import { icon } from './icons.js';
 import { getLang, LANGS, setLang, t } from './i18n.js';
-import { endSession, loadSession, onChange, session } from './session.js';
+import { onChange, session } from './session.js';
 import './strings-pro.js';
-import { appSwitcher } from './apps.js';
+import { appSwitcher, startApp } from './apps.js';
 import { isTillLocked, tillLockButton, toggleTillLock } from './tilllock.js';
 import { helpFab, stopTillHelp } from './pagehelp.js';
 
@@ -21,7 +21,8 @@ const app = document.getElementById('app');
 const MENU = [
   { id: 'pos', icon: 'cart', label: 'navRegister', may: 'pos.sell', page: () => import('./register.js') },
   // SuXin Every Data: what is shown inside follows the company's modules (dashboard.js).
-  { id: 'cloud', icon: 'chart', label: 'navCloud', perm: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'], page: () => import('./dashboard.js') },
+  // Every Data is its own page now (/data/); the old address goes there.
+  { id: 'cloud', icon: 'chart', label: 'navCloud', perm: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'], href: '/data/', hidden: true },
   {
     id: 'reports', icon: 'chart', label: 'navReports', may: 'pos.reports', children: [
       ['summary', 'repSummary'], ['items', 'repItems'], ['categories', 'repCategories'],
@@ -50,7 +51,8 @@ const MENU = [
       ['tokens', 'intTokens'], ['api', 'intApi'],
     ], page: () => import('./integrations.js'),
   },
-  { id: 'guide', icon: 'check', label: 'posGuide', perm: null, page: () => import('./posguide.js') },
+  // The one guide page for every app, opened at the till's tab.
+  { id: 'guide', icon: 'book', label: 'posGuide', perm: null, href: '/guide/#pos' },
   { id: 'profile', icon: 'user', label: 'navProfile', perm: null, page: () => import('./profile.js') },
   {
     id: 'settings', icon: 'sliders', label: 'navSettings', perm: null, children: [
@@ -79,60 +81,6 @@ function currentRoute() {
   return { group, sub };
 }
 
-// ------------------------------------------------------------------- sign in
-
-function renderSignIn(message = '') {
-  const email = h('input', { type: 'email', autocomplete: 'username', required: true, autofocus: true });
-  const password = h('input', { type: 'password', autocomplete: 'current-password', required: true });
-  const error = h('p', { class: 'muted', style: { color: 'var(--danger)', margin: 0 } }, message);
-  const submit = h('button', { class: 'primary', type: 'submit' }, t('signIn'));
-  const form = h('form', {
-    onsubmit: async (e) => {
-      e.preventDefault();
-      submit.disabled = true;
-      error.textContent = '';
-      try {
-        await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
-      } catch (err) {
-        error.textContent = friendlyAuthError(err);
-        submit.disabled = false;
-      }
-    },
-  },
-  h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 40, height: 40 }), 'SuXin POS'),
-  h('h2', { style: { margin: '6px 0 0' } }, t('signIn')),
-  h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')),
-  h('label', { class: 'field' }, t('email'), email),
-  h('label', { class: 'field' }, t('password'), password),
-  error,
-  submit,
-  // Forgotten password (email + company code) and registering live on the
-  // shared sign-in screen of the app centre.
-  h('a', { class: 'btn ghost', href: '/app/#reset', 'data-link': 'reset' }, t('forgotPassword')),
-  h('p', { class: 'muted', style: { margin: 0, textAlign: 'center' } }, `${t('suNoAccount')} `,
-    h('a', { href: '/app/#join', 'data-link': 'join' }, t('suJoin')), ' · ', h('a', { href: '/app/#create', 'data-link': 'create' }, t('suCreate'))),
-  langPicker());
-  mount(app, h('div', { class: 'signin-split' },
-    h('section', { class: 'signin-brand' },
-      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/icon-192.png', alt: '', width: 36, height: 36 }), 'SuXin POS'),
-      h('div', { style: { display: 'grid', gap: '22px' } },
-        h('h1', {}, t('signInTagline')),
-        h('ul', {},
-          h('li', {}, icon('barcode', 18), t('signFeat1')),
-          h('li', {}, icon('store', 18), t('signFeat2')),
-          h('li', {}, icon('wifiOff', 18), t('signFeat3')))),
-      h('div', { class: 'foot' }, t('signFoot'))),
-    h('section', { class: 'signin-form signin' }, form)));
-}
-
-function friendlyAuthError(err) {
-  const code = err?.code || '';
-  if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return t('errWrongPassword');
-  if (code.includes('too-many-requests')) return t('errTooMany');
-  if (code.includes('network')) return t('errNetwork');
-  return err?.message || String(err);
-}
-
 function langPicker() {
   return h('select', {
     'aria-label': 'Language',
@@ -155,7 +103,7 @@ function renderShell() {
   // Every page's own tutorial; the till has its tutorial mode instead.
   helpFab(() => {
     const { group, sub } = currentRoute();
-    return group === 'pos' || group === 'guide' ? '' : `pos-${group}${sub ? `-${sub}` : ''}`;
+    return group === 'pos' ? '' : `pos-${group}${sub ? `-${sub}` : ''}`;
   });
   renderSide();
   route();
@@ -164,10 +112,10 @@ function renderShell() {
 function renderSide() {
   const { group, sub } = currentRoute();
   const nav = h('nav', {});
-  for (const item of MENU.filter(allowed)) {
+  for (const item of MENU.filter(allowed).filter((m) => !m.hidden)) {
     if (!item.children) {
       nav.append(h('div', { class: 'group' },
-        h('a', { class: `top${group === item.id ? ' current' : ''}`, href: `#/${item.id}` },
+        h('a', { class: `top${group === item.id ? ' current' : ''}`, href: item.href || `#/${item.id}` },
           icon(item.icon, 19), t(item.label))));
       continue;
     }
@@ -206,8 +154,10 @@ async function route() {
   if (group !== 'pos') stopTillHelp();
   const visible = MENU.filter(allowed);
   let item = visible.find((m) => m.id === group);
+  // A page that lives elsewhere now (#/cloud, #/guide): go there.
+  if (item?.href) { location.replace(item.href); return; }
   if (!item) {
-    item = visible[0];
+    item = visible.find((m) => !m.href);
     if (!item) return mount(mainEl, h('div', { class: 'card' }, t('errNoPosPermission')));
     location.replace(`#/${item.id}${item.children ? `/${item.children[0][0]}` : ''}`);
     return;
@@ -296,29 +246,16 @@ onChange(() => {
   if (session.uid && sideEl) renderSide();
 });
 
-(async () => {
-  try {
-    await initFirebase();
-  } catch (err) {
-    mount(app, h('div', { class: 'signin' }, h('div', { class: 'card' }, String(err.message || err))));
-    return;
-  }
-  onAuthStateChanged(auth, async (user) => {
-    stopPage?.();
-    stopPage = null;
-    endSession();
-    if (!user) return renderSignIn();
-    mount(app, h('div', { class: 'signin' }, h('p', { class: 'muted' }, t('loading'))));
-    try {
-      await loadSession(user);
-      // The cashier's open shift, if any; the till asks before the first sale.
-      await import('./shifts.js').then((m) => m.loadOpenShift()).catch(() => {});
-      // A receipt printer chosen before on this computer, without asking again.
-      import('./rawprint.js').then((m) => m.reconnect()).catch(() => {});
-      renderShell();
-    } catch (err) {
-      await signOut(auth);
-      renderSignIn(err.message || String(err));
-    }
-  });
-})();
+// Signing in is the same screen in every SuXin app (apps.js): one account,
+// one place to sign in, register or reset a password.
+startApp(app, {
+  name: 'SuXin POS', logo: '/icons/icon-192.png', tagline: t('signInTagline'),
+  features: [['barcode', t('signFeat1')], ['store', t('signFeat2')], ['wifiOff', t('signFeat3')]],
+  foot: t('signFoot'),
+}, async () => {
+  // The cashier's open shift, if any; the till asks before the first sale.
+  await import('./shifts.js').then((m) => m.loadOpenShift()).catch(() => {});
+  // A receipt printer chosen before on this computer, without asking again.
+  import('./rawprint.js').then((m) => m.reconnect()).catch(() => {});
+  renderShell();
+}, { stop: () => { stopPage?.(); stopPage = null; sideEl = null; } });

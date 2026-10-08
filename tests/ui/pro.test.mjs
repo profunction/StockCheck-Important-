@@ -121,8 +121,8 @@ await step('customers export to Excel', async () => {
 });
 
 await step('SuXin Every Data: today, stock and the warehouse for a company with all three', async () => {
-  await page.goto(base + '/pos/#/cloud');
-  await page.waitForSelector('h1:has-text("SuXin Every Data")');
+  await page.goto(base + '/data/');
+  await page.waitForSelector('.cnt-top .brandmark:has-text("SuXin Every Data")');
   await page.waitForSelector('.dash-part .stat:has-text("今天销售")');
   await page.waitForSelector('.dash-part .stat:has-text("低库存")');
   await page.waitForSelector('.dash-part .stat:has-text("待收货的采购单")');
@@ -154,7 +154,7 @@ await plan.step('Add more: what is on, what can be added, what is coming', async
   if (/module|API scope|feature flag/i.test(text)) throw new Error('technical words shown to the customer');
 });
 await plan.step('SuXin Every Data follows the plan: stock shown, no sales, no warehouse', async () => {
-  await plan.page.goto(plan.base + '/pos/#/cloud');
+  await plan.page.goto(plan.base + '/data/');
   await plan.page.waitForSelector('.dash-part .stat:has-text("低库存")');
   const text = await plan.page.$eval('main', (el) => el.innerText);
   if (/今天销售|待收货的采购单/.test(text)) throw new Error(text.slice(0, 400));

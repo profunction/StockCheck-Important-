@@ -16,7 +16,6 @@ import { session, ws } from './session.js';
 import { isLow } from './ledger.js';
 import { levelsFor, loadStockData } from './stockdata.js';
 import { MODULES } from './modules.js';
-import { menuButton } from './main.js';
 
 const inList = () => [...session.branchIds, ''].slice(0, 30);
 const done = (list) => list.filter((s) => s.status !== 'VOIDED');
@@ -69,11 +68,10 @@ export function render(main) {
   const whBox = h('div', {}, pending());
 
   mount(main,
-    h('div', { class: 'page-head' }, menuButton(), h('h1', {}, 'SuXin Every Data'), h('span', { class: 'grow' }),
-      h('span', { class: 'muted' }, session.companyName || '')),
+    h('div', { class: 'page-head' }, h('h1', {}, session.companyName || 'SuXin Every Data')),
     h('p', { class: 'muted', style: { marginTop: '-6px' } }, t('dashLead')),
-    show.sales ? section(t('dashToday'), h('a', { href: '#/reports/summary' }, `${t('repSummary')} →`), salesBox) : null,
-    show.stock ? section(t('dashStock'), h('a', { href: '#/inventory/levels' }, `${t('invLevels')} →`), stockBox) : null,
+    show.sales ? section(t('dashToday'), h('a', { href: '/pos/#/reports/summary' }, `${t('repSummary')} →`), salesBox) : null,
+    show.stock ? section(t('dashStock'), h('a', { href: '/pos/#/inventory/levels' }, `${t('invLevels')} →`), stockBox) : null,
     show.warehouse ? section(MODULES.warehouse.displayName.en, h('a', { href: '/warehouse/' }, `${t('whApp')} →`), whBox) : null,
     addMore());
 
@@ -83,8 +81,8 @@ export function render(main) {
       const total = ok.reduce((s, x) => s + (x.totalSen || 0), 0);
       mount(salesBox,
         h('div', { class: 'cards' },
-          stat(t('dashSales'), rm(total), { href: '#/reports/summary' }),
-          stat(t('dashReceipts'), String(ok.length), { href: '#/reports/receipts' }),
+          stat(t('dashSales'), rm(total), { href: '/pos/#/reports/summary' }),
+          stat(t('dashReceipts'), String(ok.length), { href: '/pos/#/reports/receipts' }),
           stat(t('dashAverage'), ok.length ? rm(Math.round(total / ok.length)) : '—'),
           stat(t('dashVoided'), String(all.length - ok.length), { tone: all.length > ok.length ? 'warn' : '' })),
         h('div', { class: 'card' },
@@ -108,7 +106,7 @@ export function render(main) {
       const value = levels.reduce((s, l) => s + Math.round(Math.max(0, l.onHand) * (catalogue.get(l.key)?.costSen || 0) / 1000), 0);
       mount(stockBox,
         h('div', { class: 'cards' },
-          stat(t('dashItems'), String(levels.length), { href: '#/inventory/levels' }),
+          stat(t('dashItems'), String(levels.length), { href: '/pos/#/inventory/levels' }),
           stat(t('dashStockValue'), rm(value)),
           stat(t('dashLow'), String(low.length), { tone: low.length ? 'warn' : '' }),
           stat(t('dashOut'), String(out.length), { tone: out.length ? 'bad' : '' })),
@@ -136,7 +134,7 @@ function addMore() {
   const off = ['count', 'pos', 'warehouse', 'api'].filter((id) => MODULES[id].status === 'live' && !session.has(id));
   if (!off.length) return null;
   const lang = getLang();
-  return h('a', { class: 'card dash-more', href: '#/settings/addons' },
+  return h('a', { class: 'card dash-more', href: '/pos/#/settings/addons' },
     h('b', {}, t('dashGrow')), ' ',
     h('span', { class: 'muted' }, off.map((id) => (MODULES[id].displayName[lang] || MODULES[id].displayName.en)).join(' · ')), ' →');
 }

@@ -51,7 +51,7 @@ export const POS_GUIDE = {
         '堂食才收服务费；收款可以分开付。',
       ] },
       { id: 'reports', title: '报表、作废和导出', video: V('pos-6-reports'), steps: [
-        '报表 → 销售总结：今天卖了多少、毛利、单数。',
+        '报表 → 销售报表：今天卖了多少、毛利、单数。',
         '按商品、分类、员工、付款方式、加料、折扣、税，各有一页。',
         '收据：点一张可以重印；作废要写原因，记录不会被删除。',
         '每一页都可以按「导出」变成 Excel 给会计。',
@@ -112,8 +112,8 @@ export const POS_GUIDE = {
         '设置 → 通知和机器人 → 按「连接 Telegram」，再按「打开 Telegram」，在 Telegram 按 Start。',
         '在 Telegram 问：「Milo 还有多少？」「今天卖了多少」「昨天卖了多少」「低库存」「报告」。',
         '每天早上 8 点自动收到：昨天的销售和现在的低库存。员工只看到他可以看的。',
-        '老板：打开「每天早上用 email 寄营业报告」，填 email，按保存。',
-        'SuXin Barcode Scan 手机 app 登录后允许通知，就会收到报告；电脑按「在这个浏览器开启」。',
+        '老板：打开「每天早上用 email 寄每日报告」，填 email，按保存。',
+        'SuXin Barcode Scan 手机 app 登录后允许通知，就会收到每日报告；电脑按「在这个浏览器开启」。',
       ], tip: 'Telegram 和 email 都免费。' },
       { id: 'hardware', title: '扫码枪、打印机、NFC', steps: [
         'USB 扫码枪：插上就能用，不用装软件。',
@@ -369,13 +369,12 @@ export const WAREHOUSE_GUIDE = {
         '没有审批权限的人按「提交审批」；老板按「批准」。',
         '批准后按「确认下单」，再按「复制发 WhatsApp」发给供应商。',
       ] },
-      { id: 'online', title: '网购进货（拼多多、淘宝、Shopee、TikTok、Lazada）', video: V('wh-6-online'), steps: [
-        '在购物 app 打开订单，长按文字 → 全选 → 复制（或复制订单邮件）。',
-        '仓库系统 → 网购进货：选平台，把订单贴进去，按「读取订单」。',
-        '核对：每一样配对到你的商品（系统会猜，下次同一样会记得）；新东西按「新增商品」；赠品勾「不入库」。',
-        '人民币订单填今天的汇率；运费可以算进成本。按「保存采购单」。',
-        '包裹到了：收货 → 扫包裹上的运单号 → 一样一样扫 → 完成收货，库存才增加。',
-      ], tip: '这些平台没有开放买家订单接口，所以是复制贴上，不是自动拉取；同一张订单贴两次会被挡下。' },
+      { id: 'cost', title: '成本计算器', steps: [
+        '仓库系统 → 成本计算器；或者打开采购单，按「算真正成本」。',
+        '选用什么钱买（马币、人民币……），填汇率。',
+        '填运费、关税、代理费，选按货价、数量或重量分摊。',
+        '看每件真正成本、利润率和建议售价；按「把成本存进商品」才会改。',
+      ], tip: '存成本时可以选「跟现有库存平均」，货还没收进库存时用。' },
       { id: 'receive', title: '收货', video: V('wh-2-receive'), steps: [
         '收货 → 选这批货的采购单（没有采购单也可以收）。',
         '填送货单号，然后一样一样扫；同一样扫几次就是几件。',
@@ -420,13 +419,12 @@ export const WAREHOUSE_GUIDE = {
         'Without approval rights, press Send for approval; the owner presses Approve.',
         'Once approved, mark it ordered and Copy for WhatsApp to send to the supplier.',
       ] },
-      { id: 'online', title: 'Online purchases (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', video: V('wh-6-online'), steps: [
-        'In the shopping app open the order, press and hold the text, Select all, Copy (or copy the order email).',
-        'Warehouse → Online purchases: pick the platform, paste the order, press Read the order.',
-        'Check it: match each item to one of your products (a best guess is offered, and remembered next time); New product for something new; tick Not stock for free gifts.',
-        'For orders in yuan, enter today\'s rate; shipping can go into the cost. Press Save purchase order.',
-        'When the parcel arrives: Receive → scan the tracking number on the label → scan the items → Complete. Only then does stock go up.',
-      ], tip: 'These platforms have no way for another program to read a buyer\'s orders, so it is copy and paste, not automatic; the same order pasted twice is refused.' },
+      { id: 'cost', title: 'Cost calculator', steps: [
+        'Warehouse → Cost calculator; or open a purchase order and press Work out the real cost.',
+        'Choose what it was bought in (ringgit, yuan…) and the rate.',
+        'Enter shipping, duty and agent fees, and share them by value, quantity or weight.',
+        'See each item\'s real cost, margin and a suggested price; nothing changes until you save the costs.',
+      ], tip: 'When saving, Average with stock on hand mixes old and new costs; use it before the goods are received.' },
       { id: 'receive', title: 'Receiving', video: V('wh-2-receive'), steps: [
         'Receive → pick the purchase order for the delivery (or receive without one).',
         'Enter the delivery note number, then scan each item; scanning twice is two.',
@@ -471,13 +469,12 @@ export const WAREHOUSE_GUIDE = {
         'Tanpa hak kelulusan, tekan Hantar untuk kelulusan; pemilik tekan Luluskan.',
         'Selepas diluluskan, tandakan sudah dipesan dan Salin untuk WhatsApp kepada pembekal.',
       ] },
-      { id: 'online', title: 'Belian dalam talian (Pinduoduo, Taobao, Shopee, TikTok, Lazada)', video: V('wh-6-online'), steps: [
-        'Dalam aplikasi beli-belah buka pesanan, tekan lama teks, Pilih semua, Salin (atau salin e-mel pesanan).',
-        'Gudang → Belian dalam talian: pilih platform, tampal pesanan, tekan Baca pesanan.',
-        'Semak: padankan setiap barang dengan barang anda (tekaan diberi, dan diingati lain kali); Barang baharu untuk yang baru; tanda Bukan stok untuk hadiah percuma.',
-        'Untuk pesanan dalam yuan, masukkan kadar hari ini; kos penghantaran boleh dimasukkan ke kos. Tekan Simpan pesanan belian.',
-        'Bila bungkusan sampai: Terima → imbas nombor penjejakan pada label → imbas barang → Selesai. Barulah stok bertambah.',
-      ], tip: 'Platform ini tidak membenarkan program lain membaca pesanan pembeli, jadi ia salin dan tampal, bukan automatik; pesanan yang sama ditampal dua kali ditolak.' },
+      { id: 'cost', title: 'Kalkulator kos', steps: [
+        'Gudang → Kalkulator kos; atau buka pesanan belian dan tekan Kira kos sebenar.',
+        'Pilih mata wang (ringgit, yuan…) dan kadar tukaran.',
+        'Isi penghantaran, duti dan yuran ejen, dan agih ikut nilai, kuantiti atau berat.',
+        'Lihat kos sebenar, margin dan harga dicadang; tiada apa berubah sehingga anda simpan kos.',
+      ], tip: 'Semasa simpan, Purata dengan stok sedia ada campur kos lama dan baharu; guna sebelum barang diterima.' },
       { id: 'receive', title: 'Terima barang', video: V('wh-2-receive'), steps: [
         'Terima → pilih pesanan belian untuk penghantaran (atau terima tanpa PO).',
         'Isi no. nota hantaran, kemudian imbas setiap barang; imbas dua kali ialah dua.',
@@ -686,7 +683,7 @@ export const CLOUD_GUIDE = {
 
 export const ACCOUNT_GUIDE = {
   zh: {
-    intro: '一个账号用全部 SuXin：手机 app、收银、仓库、网页版盘点和 Cloud。',
+    intro: '一个账号用全部 SuXin：手机 app、收银、仓库、网页版扫码盘点和 Every Data。',
     sections: [
       { id: 'signup', title: '注册、加入公司、忘记密码', video: V('acc-1-signup'), steps: [
         '老板：按「注册」，填名字、email、密码、公司名，再自己定一个公司代码（至少 4 个字，例如 KEDAIMAJU）。你就是管理员，有 14 天试用。',
@@ -702,7 +699,7 @@ export const ACCOUNT_GUIDE = {
     ],
   },
   en: {
-    intro: 'One account for all of SuXin: the phone app, the till, the warehouse, Count on the web and Cloud.',
+    intro: 'One account for all of SuXin: the phone app, the till, the warehouse, Barcode Scan on the web and Every Data.',
     sections: [
       { id: 'signup', title: 'Signing up, joining, forgotten password', video: V('acc-1-signup'), steps: [
         'Owner: press Register: name, email, password, company name, and a company code you choose (at least 4 characters, e.g. KEDAIMAJU). You are its admin, with a 14-day trial.',
@@ -718,7 +715,7 @@ export const ACCOUNT_GUIDE = {
     ],
   },
   ms: {
-    intro: 'Satu akaun untuk semua SuXin: aplikasi telefon, kaunter, gudang, Count di web dan Cloud.',
+    intro: 'Satu akaun untuk semua SuXin: aplikasi telefon, kaunter, gudang, Barcode Scan di web dan Every Data.',
     sections: [
       { id: 'signup', title: 'Daftar, sertai, lupa kata laluan', video: V('acc-1-signup'), steps: [
         'Pemilik: tekan Daftar: nama, e-mel, kata laluan, nama syarikat, dan kod syarikat pilihan anda (sekurang-kurangnya 4 aksara, cth. KEDAIMAJU). Anda admin, dengan percubaan 14 hari.',

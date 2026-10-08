@@ -44,7 +44,7 @@ On hand = the last finished count + goods received since − sales and goods out
 - **SuXin WMS** (Web and phone): Warehouse stock, goods in and out, transfers to shops. Purchase orders and approval; Receiving by scan; Transfers in transit; Adjustments; Reorder suggestions.
 - **SuXin Every Data** (Web): For the owner: the business at a glance, staff, and adding more. Sales and shift reports; Staff and permissions; Items, prices, taxes; Monthly LHDN e-invoice; A dashboard that fits your business.
 
-Chinese names: 盘点通 (SuXin Barcode Scan), 收银通 (SuXin POS), 仓管通 (SuXin WMS), 云后台 (SuXin Every Data).
+Chinese names: 盘点通 (SuXin Barcode Scan), 收银通 (SuXin POS), 仓管通 (SuXin WMS), 老板数据 (SuXin Every Data).
 
 ## By kind of business
 - [Retail / Mini market](https://stockcheck-fb58e.web.app/en/retail/): Scan and sell, and every sale comes off the stock. Count with your phone and see what is missing at once.

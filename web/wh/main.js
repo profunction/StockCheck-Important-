@@ -4,14 +4,14 @@
  * app and the till. Laid out for a phone in a worker's hand (big buttons,
  * a bar along the bottom) and for a manager at a computer (a sidebar).
  */
-import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from '../js/fb.js';
+import { auth, signOut } from '../js/fb.js';
 import { h, mount, toast } from '../js/dom.js';
 import { addStrings, getLang, LANGS, setLang, t } from '../js/i18n.js';
 import { icon } from '../js/icons.js';
-import { endSession, loadSession, onChange, session } from '../js/session.js';
+import { onChange, session } from '../js/session.js';
 import { STRINGS } from './strings.js';
 import '../js/strings-pro.js';
-import { appSwitcher } from '../js/apps.js';
+import { appSwitcher, startApp } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 
@@ -25,13 +25,13 @@ const MENU = [
   { id: 'adjust', icon: 'sliders', label: 'whAdjust', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./adjust.js') },
   { id: 'stock', icon: 'barcode', label: 'whStock', perm: null, page: () => import('./stock.js'), bottom: true },
   { id: 'purchase', icon: 'receipt', label: 'whPurchase', may: 'procurement.purchase', page: () => import('./purchase.js') },
-  { id: 'online', icon: 'download', label: 'whOnline', may: 'procurement.purchase', page: () => import('./online.js') },
   { id: 'cost', icon: 'calc', label: 'whCost', perm: null, page: () => import('./cost.js') },
   { id: 'suppliers', icon: 'users', label: 'whSuppliers', may: 'procurement.suppliers', page: () => import('./suppliers.js') },
   { id: 'variance', icon: 'percent', label: 'whVariance', perm: null, page: () => import('./variance.js') },
   { id: 'places', icon: 'store', label: 'whPlaces', perm: 'ADMIN', page: () => import('./places.js') },
   { id: 'audit', icon: 'idcard', label: 'whAudit', perm: 'VIEW_AUDIT_LOG', page: () => import('./audit.js') },
-  { id: 'guide', icon: 'check', label: 'whGuide', perm: null, page: () => import('./guide.js') },
+  // The one guide page for every app, opened at the warehouse tab.
+  { id: 'guide', icon: 'book', label: 'whGuide', perm: null, href: '/guide/#warehouse' },
 ];
 
 function allowed(item) {
@@ -47,62 +47,11 @@ function currentRoute() {
   return { group, sub: rest.join('/') };
 }
 
-// ------------------------------------------------------------------- sign in
+// ------------------------------------------------------------------ language
 
 function langPicker() {
   return h('select', { 'aria-label': 'Language', onchange: (e) => { setLang(e.target.value); location.reload(); } },
     LANGS.map(([code, name]) => h('option', { value: code, selected: code === getLang() }, name)));
-}
-
-function friendlyAuthError(err) {
-  const code = err?.code || '';
-  if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return t('errWrongPassword');
-  if (code.includes('too-many-requests')) return t('errTooMany');
-  if (code.includes('network')) return t('errNetwork');
-  return err?.message || String(err);
-}
-
-function renderSignIn(message = '') {
-  const email = h('input', { type: 'email', autocomplete: 'username', required: true, autofocus: true });
-  const password = h('input', { type: 'password', autocomplete: 'current-password', required: true });
-  const error = h('p', { class: 'muted', style: { color: 'var(--danger)', margin: 0 } }, message);
-  const submit = h('button', { class: 'primary', type: 'submit' }, t('signIn'));
-  const form = h('form', {
-    onsubmit: async (e) => {
-      e.preventDefault();
-      submit.disabled = true;
-      error.textContent = '';
-      try {
-        await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
-      } catch (err) {
-        error.textContent = friendlyAuthError(err);
-        submit.disabled = false;
-      }
-    },
-  },
-  h('div', { class: 'brandmark' }, h('img', { src: '/icons/wh-192.png', alt: '', width: 40, height: 40 }), 'SuXin WMS'),
-  h('h2', { style: { margin: '6px 0 0' } }, t('signIn')),
-  h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')),
-  h('label', { class: 'field' }, t('email'), email),
-  h('label', { class: 'field' }, t('password'), password),
-  error, submit,
-  // Forgotten password (email + company code) and registering live on the
-  // shared sign-in screen of the app centre.
-  h('a', { class: 'btn ghost', href: '/app/#reset', 'data-link': 'reset' }, t('forgotPassword')),
-  h('p', { class: 'muted', style: { margin: 0, textAlign: 'center' } }, `${t('suNoAccount')} `,
-    h('a', { href: '/app/#join', 'data-link': 'join' }, t('suJoin')), ' · ', h('a', { href: '/app/#create', 'data-link': 'create' }, t('suCreate'))),
-  langPicker());
-  mount(app, h('div', { class: 'signin-split' },
-    h('section', { class: 'signin-brand wh-brand' },
-      h('div', { class: 'brandmark', style: { color: '#fff' } }, h('img', { src: '/icons/wh-192.png', alt: '', width: 36, height: 36 }), 'SuXin WMS'),
-      h('div', { style: { display: 'grid', gap: '22px' } },
-        h('h1', {}, t('whTagline')),
-        h('ul', {},
-          h('li', {}, icon('download', 18), t('whFeat1')),
-          h('li', {}, icon('box', 18), t('whFeat2')),
-          h('li', {}, icon('receipt', 18), t('whFeat3')))),
-      h('div', { class: 'foot' }, t('whFoot'))),
-    h('section', { class: 'signin-form signin' }, form)));
 }
 
 // --------------------------------------------------------------------- shell
@@ -123,7 +72,7 @@ function renderShell() {
     h('div', { class: 'scrim', onclick: () => shell.classList.remove('menu') }));
   mount(app, shell);
   // Each page's own tutorial; above the phone's bottom buttons.
-  helpFab(() => (currentRoute().group === 'guide' ? '' : `wh-${currentRoute().group || 'home'}`), { lift: true });
+  helpFab(() => `wh-${currentRoute().group || 'home'}`, { lift: true });
   route();
 }
 
@@ -146,7 +95,7 @@ function renderSide() {
       h('div', { class: 'sm' }, session.companyName || session.email),
       h('div', { class: 'sm' }, `${t('whAt')}: ${session.branchName()}`)),
     h('nav', {}, visible.map((item) => h('div', { class: 'group' },
-      h('a', { class: `top${group === item.id ? ' current' : ''}`, href: `#/${item.id}` }, icon(item.icon, 19), t(item.label))))),
+      h('a', { class: `top${group === item.id ? ' current' : ''}`, href: item.href || `#/${item.id}` }, icon(item.icon, 19), t(item.label))))),
     h('div', { class: 'foot' },
       placePicker(),
       h('a', { class: 'side-link', href: '/pos/' }, icon('cart', 17), t('whOpenPos')),
@@ -163,8 +112,10 @@ async function route() {
   const { group, sub } = currentRoute();
   const visible = MENU.filter(allowed);
   const item = visible.find((m) => m.id === group);
+  // The guide lives on the guide page now: an old link goes there.
+  if (item?.href) { location.replace(item.href); return; }
   if (!item) {
-    location.replace(`#/${visible[0].id}`);
+    location.replace(`#/${visible.find((m) => !m.href).id}`);
     return;
   }
   renderSide();
@@ -172,8 +123,8 @@ async function route() {
   stopPage?.();
   stopPage = null;
   mainEl.scrollTop = 0;
-  // The guide is open to everyone; the rest needs a plan with the warehouse in it.
-  if (!session.has('warehouse') && group !== 'guide') {
+  // Every page needs a plan with the warehouse in it.
+  if (!session.has('warehouse')) {
     mount(mainEl, h('div', { class: 'card' }, menuButton(), h('p', {}, t('planNoWarehouse'))));
     return;
   }
@@ -230,25 +181,9 @@ onChange(() => {
   sideTimer = setTimeout(() => { if (session.uid && sideEl) renderSide(); }, 50);
 });
 
-(async () => {
-  try {
-    await initFirebase();
-  } catch (err) {
-    mount(app, h('div', { class: 'signin' }, h('div', { class: 'card' }, String(err.message || err))));
-    return;
-  }
-  onAuthStateChanged(auth, async (user) => {
-    stopPage?.();
-    stopPage = null;
-    endSession();
-    if (!user) return renderSignIn();
-    mount(app, h('div', { class: 'signin' }, h('p', { class: 'muted' }, t('loading'))));
-    try {
-      await loadSession(user);
-      renderShell();
-    } catch (err) {
-      await signOut(auth);
-      renderSignIn(err.message || String(err));
-    }
-  });
-})();
+// Signing in is the same screen in every SuXin app (apps.js).
+startApp(app, {
+  name: 'SuXin WMS', logo: '/icons/wh-64.png', tagline: t('whTagline'),
+  features: [['download', t('whFeat1')], ['box', t('whFeat2')], ['receipt', t('whFeat3')]],
+  foot: 'SuXin · Malaysia',
+}, renderShell, { stop: () => { stopPage?.(); stopPage = null; sideEl = null; } });

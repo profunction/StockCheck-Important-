@@ -144,11 +144,11 @@ const SALES = { world: { mode: 'RETAIL', withSales: true } };
 const R = (sub, title, steps) => [`pos-reports-${sub}`, T(title, `/pos/#/reports/${sub}`, steps, SALES)];
 
 export const PAGES = Object.fromEntries([
-  ['pos-cloud', T(['SuXin Every Data 总览', 'SuXin Every Data', 'SuXin Every Data'], '/pos/#/cloud', [
+  ['data-home', T(['SuXin Every Data 老板数据', 'SuXin Every Data', 'SuXin Every Data'], '/data/', [
     S('老板一页看全部：今天销售、单数、平均每单', 'The whole business on one page: today\'s sales, receipts, average', 'Seluruh perniagaan: jualan hari ini, resit, purata', { point: '.dash-part' }),
     S('往下看：低库存、没货、仓库待处理', 'Scroll on: low stock, out of stock, the warehouse', 'Tatal: stok rendah, habis, gudang', { scroll: 500 }),
   ], SALES)],
-  R('summary', ['销售总结', 'Sales summary', 'Ringkasan jualan'], [
+  R('summary', ['销售报表', 'Sales summary', 'Ringkasan jualan'], [
     S('选日期：今天、昨天、这个月', 'Pick the dates: today, yesterday, this month', 'Pilih tarikh: hari ini, semalam, bulan ini', { point: 'input[type=date] >> nth=0' }),
     S('销售额、毛利、单数、平均每单', 'Sales, gross profit, receipts, average', 'Jualan, untung kasar, resit, purata', { point: '.card >> nth=1' }),
     S('按「导出」变 Excel 给会计', 'Export to Excel for the accountant', 'Eksport ke Excel untuk akauntan', { point: 'button:has-text("导出")' }),
@@ -275,7 +275,7 @@ export const PAGES = Object.fromEntries([
   ], RETAIL)],
   ['pos-settings-notify', T(['通知和机器人', 'Notifications & bot', 'Pemberitahuan & bot'], '/pos/#/settings/notify', [
     S('连接 Telegram：问库存和销售', 'Connect Telegram to ask about stock and sales', 'Sambung Telegram untuk tanya stok dan jualan', { point: 'button[data-act="tg-connect"]' }),
-    S('每天早上 8 点：email 或手机通知收报告', 'Every morning at 8: the report by email or notification', 'Setiap pagi jam 8: laporan melalui e-mel atau pemberitahuan', { scroll: 400 }),
+    S('每天早上 8 点：email 或手机通知收每日报告', 'Every morning at 8: the report by email or notification', 'Setiap pagi jam 8: laporan melalui e-mel atau pemberitahuan', { scroll: 400 }),
   ], RETAIL)],
   ['pos-settings-addons', T(['附加功能', 'Add-ons', 'Tambahan'], '/pos/#/settings/addons', [
     S('你的配套有什么、还可以加什么', 'What your plan has, and what can be added', 'Apa pakej anda ada, dan apa boleh ditambah', { point: '.addon >> nth=0' }),
@@ -305,10 +305,6 @@ export const PAGES = Object.fromEntries([
   ['wh-purchase', T(['采购单', 'Purchase orders', 'Pesanan belian'], '/warehouse/#/purchase', [
     S('草稿、待批准、已下单、已收货', 'Draft, to approve, ordered, received', 'Draf, untuk lulus, dipesan, diterima', { point: '.wh-tabs' }),
     S('补货建议：低于补货点的，自动算要订多少', 'Reorder: how much to order, worked out', 'Tambah stok: berapa perlu dipesan'),
-  ], { world: { branch: 'gudang' } })],
-  ['wh-online', T(['网购进货', 'Online purchases', 'Belian dalam talian'], '/warehouse/#/online', [
-    S('拼多多、淘宝、Shopee、TikTok 的订单贴进来', 'Paste an order from Pinduoduo, Taobao, Shopee, TikTok', 'Tampal pesanan dari Pinduoduo, Taobao, Shopee, TikTok', { point: 'textarea' }),
-    S('按「读取订单」，变成采购单', 'Read the order: it becomes a purchase order', 'Baca pesanan: jadi pesanan belian'),
   ], { world: { branch: 'gudang' } })],
   ['wh-cost', T(['成本计算器', 'Cost calculator', 'Kalkulator kos'], '/warehouse/#/cost/po-demo', [
     S('选采购单，或扫商品，填每件多少钱', 'Pick a purchase order or scan items, and the price of each', 'Pilih pesanan belian atau imbas barang, dan harga seunit', { point: 'select[data-act="cc-po"]' }),

@@ -530,3 +530,7 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
   /* The lock keeps its padlock; its name is in the button's title. */
   .reg-bar .till-lock > span:not(.ic) { display: none; }
 }
+
+/* SuXin Every Data on its own page: the count page's frame, in its own colour. */
+.cnt.data .cnt-top { background: #0b5f59; }
+.data-main { max-width: 1100px; }

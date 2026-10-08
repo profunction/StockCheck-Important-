@@ -400,7 +400,7 @@ let failed = 0;
     if (!(await page.isVisible('.auth-card:has-text("公司代码")'))) throw new Error('no company code on register');
   });
   await step('guide: every app\'s guide opens that app', async () => {
-    for (const [tab, href] of [['pos', '/pos/#/pos'], ['warehouse', '/warehouse/'], ['app', '/count/'], ['cloud', '/pos/#/cloud']]) {
+    for (const [tab, href] of [['pos', '/pos/#/pos'], ['warehouse', '/warehouse/'], ['app', '/count/'], ['cloud', '/data/']]) {
       await page.goto(`${base}/guide/#${tab}`);
       await page.reload();
       await page.waitForSelector(`.acct a.primary[href="${href}"]`);

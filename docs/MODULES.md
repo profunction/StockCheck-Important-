@@ -12,7 +12,7 @@ Underneath, every part is a **module** in one registry.
 | SuXin Barcode Scan 盘点通 (Android) | `count` | `app` | live |
 | SuXin POS 收银通 (web) | `pos` | `pos` | live |
 | SuXin WMS 仓管通 | `warehouse` | `warehouse` | live |
-| SuXin Procurement (purchase orders, suppliers, 网购进货 online purchases) | `procurement` (needs `warehouse`) | `warehouse` | live |
+| SuXin Procurement (purchase orders, suppliers, cost calculator) | `procurement` (needs `warehouse`) | `warehouse` | live |
 | SuXin Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
 | Open API | `api` | `api` | live |
 | SuXin Accounting | `accounting` | `accounting` | planned |
@@ -77,22 +77,20 @@ without scopes (all made before scopes existed) keeps every right.
 7. Tests: registry (on/off/dependency), API (module off → 403), UI
    (off → hidden), rules.
 
-## Online purchases (网购进货)
+## Cost calculator (成本计算器)
 
-Stock bought on Pinduoduo, Taobao, Shopee, TikTok Shop or Lazada becomes a
-purchase order (`web/wh/online.js`, reader in `web/js/onlineorder.js`).
-These platforms give buyers no API for their orders, so the order is pasted
-as text and read; the person checks it before saving. The order keeps
-`source: 'ONLINE'`, `onlinePlatform`, `onlineOrderNo`, `trackingNo`,
-`currency`, `fxRateMicro` (RM per unit x 1e6) and `shippingSen`; each line
-keeps `sourceTitle`, which is how a product is matched again next time. Stock
-changes only when the parcel is received (scan its tracking number on
-Receive). Part of the procurement module: `may: 'procurement.purchase'`.
+`web/wh/cost.js`, sums in `web/js/costcalc.js`: goods in any currency at the
+buyer's rate, shipping, duty and fees spread by value, quantity or weight,
+each item's real (landed) cost, its margin at today's price and a suggested
+price. Starts from a purchase order (`#/cost/<po id>`) or items scanned in.
+Saving writes `costSen` to the products (new, or averaged with stock on hand)
+with an audit entry. Online-purchase import (Pinduoduo, Shopee and the rest)
+was removed; old purchase orders it made still show and receive normally.
 
 ## Apps, sign-up and locks
 
 - **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then SuXin Barcode Scan,
-  POS, Cloud and Warehouse. An app the plan does not include is shown locked with where to add
+  POS, Every Data (`/data/`) and WMS. Every app shows the same sign-in screen (`startApp`). An app the plan does not include is shown locked with where to add
   it; every app's sidebar carries the same switcher.
 - **SuXin Barcode Scan on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
   the Android app (reference numbers from `meta/counters`, increments for edits), so a count can

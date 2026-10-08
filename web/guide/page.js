@@ -47,7 +47,7 @@ const SIDE = {
   warehouse: [['/warehouse/', { zh: '打开仓库', en: 'Open the warehouse', ms: 'Buka gudang' }], ['/download/', { zh: '下载 app', en: 'Get the app', ms: 'Muat turun aplikasi' }]],
   till: [['/pos/#/pos', { zh: '打开收银', en: 'Open the till', ms: 'Buka kaunter' }], ['/download/', { zh: '下载 app', en: 'Get the app', ms: 'Muat turun aplikasi' }]],
   pages: [['/app/', { zh: '打开应用中心', en: 'Open the app centre', ms: 'Buka pusat aplikasi' }], ['/download/', { zh: '下载 app', en: 'Get the app', ms: 'Muat turun aplikasi' }]],
-  cloud: [['/pos/#/cloud', { zh: '打开 Cloud', en: 'Open Cloud', ms: 'Buka Cloud' }], ['/download/', { zh: '下载 app', en: 'Get the app', ms: 'Muat turun aplikasi' }]],
+  cloud: [['/data/', { zh: '打开 Every Data', en: 'Open Every Data', ms: 'Buka Every Data' }], ['/download/', { zh: '下载 app', en: 'Get the app', ms: 'Muat turun aplikasi' }]],
 };
 
 function sidePanel(tab, lang) {

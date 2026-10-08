@@ -43,7 +43,7 @@ android {
             listOf("hub", "com.suxin.apps", "SuXin", "$site/app/"),
             listOf("pos", "com.suxin.pos", "SuXin POS", "$site/pos/"),
             listOf("warehouse", "com.suxin.warehouse", "SuXin WMS", "$site/warehouse/"),
-            listOf("cloud", "com.suxin.cloud", "SuXin Every Data", "$site/pos/#/cloud"),
+            listOf("cloud", "com.suxin.cloud", "SuXin Every Data", "$site/data/"),
         ).forEach { (id, pkg, label, url) ->
             create(id) {
                 dimension = "app"

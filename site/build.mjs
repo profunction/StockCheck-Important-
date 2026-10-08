@@ -293,7 +293,7 @@ ${contact}
 <section class="final"><div class="wrap"><h2>${esc(t.finalTitle)}</h2><p class="lead" style="margin-inline:auto">${esc(t.finalLead)}</p>
 <div class="ctas"><a class="btn primary" href="${SIGNUP}">${esc(t.hero.cta)}</a></div></div></section>
 </main>
-<footer><div class="wrap"><span>© ${new Date().getFullYear()} ${BRAND.name} · ${esc(BRAND.tagline)} · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
+<footer><div class="wrap"><span>© ${new Date().getFullYear()} ${BRAND.name} · ${esc(P.hero.h1)} · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
 </body>
 </html>
 `;
@@ -351,7 +351,7 @@ ${x.soon ? `<p class="soonnote">${esc(x.soon)}</p>` : ''}
 <section><div class="wrap"><h2>${esc(P.planTitle)}</h2><p class="lead">${esc(x.plan)}</p>
 <div class="ctas"><a class="btn primary" href="${SIGNUP}">${esc(P.ctaPage)}</a><a class="btn ghost" href="${t.path}#pricing">${esc(P.ctaTalk)}</a></div></div></section>
 </main>
-<footer><div class="wrap"><span>© ${new Date().getFullYear()} ${BRAND.name} · ${esc(BRAND.tagline)} · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}${id}/" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
+<footer><div class="wrap"><span>© ${new Date().getFullYear()} ${BRAND.name} · ${esc(P.hero.h1)} · ${esc(t.footer)}</span><span>${Object.values(LANGS).map((o) => `<a href="${o.path}${id}/" hreflang="${o.htmlLang}">${esc(o.label)}</a>`).join(' · ')}</span></div></footer>
 </body>
 </html>
 `;
@@ -388,7 +388,7 @@ ${en.features.map(([h, p]) => `- **${h}**: ${p}`).join('\n')}
 ## The four products (one shared stock)
 ${Object.values(PAGES.en.products).map((x) => `- **${x.name}** (${x.kind}): ${x.line} ${x.points.join('; ')}.`).join('\n')}
 
-Chinese names: 盘点通 (SuXin Barcode Scan), 收银通 (SuXin POS), 仓管通 (SuXin WMS), 云后台 (SuXin Every Data).
+Chinese names: 盘点通 (SuXin Barcode Scan), 收银通 (SuXin POS), 仓管通 (SuXin WMS), 老板数据 (SuXin Every Data).
 
 ## By kind of business
 ${INDUSTRY_IDS.map((id) => { const x = PAGES.en.industries[id]; return `- [${x.name}](${SITE}/en/${id}/): ${x.lead}${x.soon ? ` (${x.soon})` : ''}`; }).join('\n')}

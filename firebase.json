@@ -29,6 +29,10 @@
         "destination": "/count/index.html"
       },
       {
+        "source": "/data/**",
+        "destination": "/data/index.html"
+      },
+      {
         "source": "/app/**",
         "destination": "/app/index.html"
       }
