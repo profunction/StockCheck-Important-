@@ -182,7 +182,7 @@ await tills.step('POS pack with both tills taken: a third computer is told', asy
 await tills.step('the owner frees a place under Settings -> This device', async () => {
   await tills.page.goto(tills.base + '/pos/#/settings/device');
   await tills.page.waitForSelector('.card h2:has-text("收银机")');
-  await tills.page.click('tr:has-text("Counter A") button:has-text("移除")');
+  await tills.page.click('.till-row:has-text("Counter A") button:has-text("移除")');
   await tills.page.goto(tills.base + '/pos/#/pos');
   await tills.page.waitForSelector('.tile');
   await tills.page.waitForTimeout(500);

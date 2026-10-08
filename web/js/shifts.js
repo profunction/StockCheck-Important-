@@ -242,7 +242,7 @@ function moveDialog(type, done) {
 
 /** A button for the register's bar: the shift's state; tap to open or close it. */
 export function shiftButton(onChange) {
-  const btn = h('button', { class: 'shift-btn', onclick: () => shiftDialog(() => { draw(); onChange?.(); }) });
+  const btn = h('button', { class: 'shift-btn', 'data-help': 'shift', onclick: () => shiftDialog(() => { draw(); onChange?.(); }) });
   const draw = () => {
     btn.classList.toggle('open', !!session.shift);
     mount(btn, h('span', { class: 'dot' }), session.shift ? `${t('shift')} · ${new Date(session.shift.openedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : t('shiftNone'));

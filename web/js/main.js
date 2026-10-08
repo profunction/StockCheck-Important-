@@ -13,6 +13,7 @@ import { endSession, loadSession, onChange, session } from './session.js';
 import './strings-pro.js';
 import { appSwitcher } from './apps.js';
 import { isTillLocked, tillLockButton, toggleTillLock } from './tilllock.js';
+import { helpFab, stopTillHelp } from './pagehelp.js';
 
 const app = document.getElementById('app');
 
@@ -148,6 +149,11 @@ function renderShell() {
   mainEl = h('main', { class: 'main' });
   shell = h('div', { class: `shell${local.get('pos.sideCollapsed', false) ? ' collapsed' : ''}` }, sideEl, mainEl);
   mount(app, shell);
+  // Every page's own tutorial; the till has its tutorial mode instead.
+  helpFab(() => {
+    const { group, sub } = currentRoute();
+    return group === 'pos' || group === 'guide' ? '' : `pos-${group}${sub ? `-${sub}` : ''}`;
+  });
   renderSide();
   route();
 }
@@ -194,6 +200,7 @@ function renderSide() {
 
 async function route() {
   let { group, sub } = currentRoute();
+  if (group !== 'pos') stopTillHelp();
   const visible = MENU.filter(allowed);
   let item = visible.find((m) => m.id === group);
   if (!item) {
@@ -225,7 +232,7 @@ async function route() {
 /** A "☰" button pages put in their header, for narrow screens. */
 export function menuButton() {
   return h('button', {
-    class: 'menu-toggle ghost icon-btn', 'aria-label': 'Menu',
+    class: 'menu-toggle ghost icon-btn', 'aria-label': 'Menu', 'data-help': 'menu',
     // On a wide screen with the menu put away, this brings it back; on a narrow one it slides over.
     onclick: () => (shell?.classList.contains('collapsed') && window.innerWidth > 960 ? setCollapsed(false) : shell?.classList.add('menu')),
   }, icon('menu', 20));

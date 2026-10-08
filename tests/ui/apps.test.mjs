@@ -210,9 +210,22 @@ let failed = 0;
     await page.waitForSelector('.till-badge:has-text("收银机 1")');
     await page.goto(base + '/pos/#/settings/device');
     await page.waitForSelector('.this-till:has-text("收银机 1")');
-    await page.fill('input[aria-label="收银机名称"]', 'Kaunter A');
-    await page.click('.card:has(.this-till) button:has-text("保存")');
+    await page.click('.till-row.on [data-act="till-edit"]');
+    await page.fill('.dialog input[aria-label="收银机名称"]', 'Kaunter A');
+    await page.click('[data-act="till-save"]');
     await page.waitForSelector('.this-till:has-text("Kaunter A")');
+    // Another till, added ahead; this computer becomes it, then goes back.
+    await page.click('[data-act="till-add"]');
+    await page.click('.till-row[data-till="2"] [data-act="till-use"]');
+    await page.waitForSelector('.this-till:has-text("收银机 2")');
+    await page.click('.till-row[data-till="1"] [data-act="till-use"]');
+    await page.waitForSelector('.this-till:has-text("Kaunter A")');
+    // Two tills cannot share a number.
+    await page.click('.till-row[data-till="2"] [data-act="till-edit"]');
+    await page.fill('.dialog input[type=number]', '1');
+    await page.click('[data-act="till-save"]');
+    await page.waitForSelector('.toast:has-text("已经有收银机用这个号码")');
+    await page.keyboard.press('Escape');
     await page.goto(base + '/pos/#/pos');
     await page.waitForSelector('.till-badge:has-text("Kaunter A")');
     await page.fill('input.scan', '9555012345678');
@@ -302,6 +315,56 @@ let failed = 0;
   failed += await s.done();
 }
 
+// ------------------------------------------------ every page's own tutorial
+{
+  const s = await start({ seedPatch: { merge: { [`${W}pos/settings`]: { mode: 'SUPERMARKET' } } } });
+  const { page, base, step, docs } = s;
+  const videoSrc = () => page.getAttribute('.dialog video', 'src');
+  await step('help: a back-office page plays its own video', async () => {
+    await page.goto(base + '/pos/#/reports/summary');
+    await page.click('#help-fab');
+    await page.waitForSelector('.dialog .help-steps li');
+    if (!(await videoSrc()).includes('/videos/help/pos-reports-summary.webm')) throw new Error(await videoSrc());
+    await page.click('[data-act="help-close"]');
+    await page.goto(base + '/pos/#/settings/stores');
+    await page.click('#help-fab');
+    if (!(await videoSrc()).includes('/help/pos-settings-stores.webm')) throw new Error(await videoSrc());
+    await page.click('[data-act="help-close"]');
+  });
+  await step('help: the till has tutorial mode instead; tapping Charge plays its video and sells nothing', async () => {
+    await page.goto(base + '/pos/#/pos');
+    await page.waitForSelector('.market');
+    if (await page.isVisible('#help-fab')) throw new Error('corner button on the till');
+    await page.fill('input.scan', '9555012345678');
+    await page.press('input.scan', 'Enter');
+    const before = (await docs(`${W}sales/`)).length;
+    await page.click('[data-act="till-help"]');
+    await page.waitForSelector('.help-banner');
+    for (const k of ['scan', 'qty', 'price-check', 'quick', 'customer', 'hold', 'recall', 'clear', 'pay', 'shift', 'lock', 'no']) {
+      await page.waitForSelector(`.help-spot[data-help-spot="${k}"]`);
+    }
+    await page.click('.help-spot[data-help-spot="pay"]');
+    await page.waitForSelector('.dialog .help-steps');
+    if (!(await videoSrc()).includes('/help/till-pay.webm')) throw new Error(await videoSrc());
+    await page.click('[data-act="help-close"]');
+    if (await page.isVisible('.dialog .paymethods')) throw new Error('payment opened');
+    await page.click('[data-act="help-exit"]');
+    await page.waitForFunction(() => !document.querySelector('.help-layer'));
+    if ((await docs(`${W}sales/`)).length !== before) throw new Error('sold something');
+    await page.waitForSelector('.mlines td:has-text("Milo")');
+  });
+  await step('help: the warehouse, Count and the app centre each have theirs', async () => {
+    for (const [path, key] of [['/warehouse/#/stock', 'wh-stock'], ['/count/', 'cnt-list'], ['/app/', 'hub']]) {
+      await page.goto(base + path);
+      await page.waitForSelector('#help-fab:not([hidden])');
+      await page.click('#help-fab');
+      if (!(await videoSrc()).includes(`/help/${key}.webm`)) throw new Error(`${path}: ${await videoSrc()}`);
+      await page.click('[data-act="help-close"]');
+    }
+  });
+  failed += await s.done();
+}
+
 // ------------------------------------------------ guides that talk
 {
   const s = await start({});
@@ -318,7 +381,7 @@ let failed = 0;
     } });
   });
   await step('guide: every tab, every section with a video has its voice switch', async () => {
-    for (const tab of ['account', 'app', 'pos', 'warehouse', 'cloud']) {
+    for (const tab of ['account', 'app', 'pos', 'warehouse', 'cloud', 'till', 'pages']) {
       await page.goto(`${base}/guide/#${tab}`);
       await page.reload();
       await page.waitForSelector('.guide section');

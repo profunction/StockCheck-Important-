@@ -23,6 +23,7 @@ import { isLocked } from './pdpa.js';
 import { listenForTags, nfcSupported, normalizeTag } from './nfc.js';
 import { scanWithCamera } from './camera.js';
 import { menuButton, tillButton } from './main.js';
+import { tillHelpButton } from './pagehelp.js';
 import { icon } from './icons.js';
 import { layoutFor, modeCards } from './modes.js';
 import { shiftButton, shiftReady } from './shifts.js';
@@ -56,7 +57,7 @@ function defaultOrderType() {
 
 const layout = () => layoutFor(session.settings);
 /** "Till 3" in the top bar, filled in once this computer is registered. */
-const tillBadge = () => h('span', { class: 'till-badge', title: t('tillN') }, tillLabel(thisTill));
+const tillBadge = () => h('span', { class: 'till-badge', title: t('tillN'), 'data-help': 'no' }, tillLabel(thisTill));
 const isFnb = () => layout() === 'fnb';
 const kitchenOn = () => isFnb() && session.settings.kitchenTicket !== false;
 
@@ -204,7 +205,7 @@ function scanParts(big) {
   });
   els.qtyFlag = h('span', { class: 'qtyflag hidden', title: t('qtyX') });
   els.nfc = nfcSupported() ? h('button', {
-    class: 'icon-btn', title: 'NFC',
+    class: 'icon-btn', title: 'NFC', 'data-help': 'nfc',
     onclick: async () => {
       if (stopNfc) { stopNfc(); stopNfc = null; els.nfc.classList.remove('primary'); return; }
       try {
@@ -219,10 +220,10 @@ function scanParts(big) {
     },
   }, icon('nfc', 20)) : null;
   return [
-    h('div', { class: 'search-box' }, icon('barcode', big ? 22 : 18), els.scan),
+    h('div', { class: 'search-box', 'data-help': 'scan' }, icon('barcode', big ? 22 : 18), els.scan),
     els.qtyFlag,
     h('button', {
-      class: 'icon-btn', title: t('scanCamera'), style: big ? { width: '56px' } : {},
+      class: 'icon-btn', title: t('scanCamera'), style: big ? { width: '56px' } : {}, 'data-help': 'camera',
       onclick: async () => { const code = await scanWithCamera(); if (code) addByCode(code); else els.scan.focus(); },
     }, icon('camera', 20)),
     els.nfc,
@@ -247,7 +248,7 @@ function build(kind) {
   els = {};
   els.online = h('div', { class: `offline${navigator.onLine ? ' hidden' : ''}` }, icon('wifiOff', 16), t('offlineNote'));
   els.orderInfo = h('div', { class: 'orderinfo' });
-  els.lines = h('div', { class: kind === 'market' ? 'mlines' : 'lines' });
+  els.lines = h('div', { class: kind === 'market' ? 'mlines' : 'lines', ...(kind === 'market' ? {} : { 'data-help': 'lines' }) });
   els.sums = h('div', { class: 'sums' });
   els.openCount = h('span', { class: 'count' }, String(openOrders.length));
 
@@ -255,16 +256,16 @@ function build(kind) {
     els.last = h('div', { class: 'lastitem' });
     els.total = h('div', { class: 'big' });
     els.totalLabel = h('div', { class: 'k' });
-    els.pay = h('button', { class: 'primary pay' });
-    els.qtyKey = h('button', { onclick: askNextQty }, icon('times', 22), t('qtyX'));
-    els.recallKey = h('button', { onclick: openTicketsList }, icon('receipt', 22), h('span', {}, t('recall'), ' ', els.openCount));
-    els.holdKey = h('button', { onclick: () => saveTicket() }, icon('pause', 22), t('hold'));
-    els.discKey = h('button', { onclick: chooseDiscounts }, icon('percent', 22), t('discount'));
-    els.clearKey = h('button', { class: 'danger', onclick: clearTicket }, icon('trash', 22), t('clear'));
+    els.pay = h('button', { class: 'primary pay', 'data-help': 'pay' });
+    els.qtyKey = h('button', { onclick: askNextQty, 'data-help': 'qty' }, icon('times', 22), t('qtyX'));
+    els.recallKey = h('button', { onclick: openTicketsList, 'data-help': 'recall' }, icon('receipt', 22), h('span', {}, t('recall'), ' ', els.openCount));
+    els.holdKey = h('button', { onclick: () => saveTicket(), 'data-help': 'hold' }, icon('pause', 22), t('hold'));
+    els.discKey = h('button', { onclick: chooseDiscounts, 'data-help': 'discount' }, icon('percent', 22), t('discount'));
+    els.clearKey = h('button', { class: 'danger', onclick: clearTicket, 'data-help': 'clear' }, icon('trash', 22), t('clear'));
     mount(root, h('div', { class: 'market' },
       h('section', { class: 'left' },
         els.online,
-        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), tillBadge(), shiftButton(() => els.scan?.focus()), tillButton()),
+        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), tillBadge(), shiftButton(() => els.scan?.focus()), tillHelpButton(), tillButton()),
         els.orderInfo,
         els.lines),
       h('aside', { class: 'mpanel' },
@@ -272,30 +273,31 @@ function build(kind) {
         h('div', { class: 'totalcard' }, els.totalLabel, els.total, els.sums),
         h('div', { class: 'fkeys' },
           els.qtyKey,
-          h('button', { onclick: priceCheck }, icon('barcode', 22), t('priceCheck')),
-          h('button', { onclick: quickItems }, icon('grid', 22), t('quickKeys')),
-          h('button', { onclick: chooseCustomer }, icon('user', 22), t('member')),
+          h('button', { onclick: priceCheck, 'data-help': 'price-check' }, icon('barcode', 22), t('priceCheck')),
+          h('button', { onclick: quickItems, 'data-help': 'quick' }, icon('grid', 22), t('quickKeys')),
+          h('button', { onclick: chooseCustomer, 'data-help': 'customer' }, icon('user', 22), t('member')),
           els.discKey, els.holdKey, els.recallKey,
-          directReady() ? h('button', { onclick: () => openDrawer().catch((e) => toast(e.message, 'error')) }, icon('box', 22), t('openDrawer')) : null,
+          directReady() ? h('button', { onclick: () => openDrawer().catch((e) => toast(e.message, 'error')), 'data-help': 'drawer' }, icon('box', 22), t('openDrawer')) : null,
           els.clearKey),
         els.pay)));
   } else {
     els.search = h('input', { type: 'search', placeholder: t('searchProducts'), value: search, oninput: (e) => { search = e.target.value; drawTiles(); } });
-    els.chips = h('div', { class: 'chips' });
-    els.tiles = h('div', { class: 'tiles' });
+    els.chips = h('div', { class: 'chips', 'data-help': 'categories' });
+    els.tiles = h('div', { class: 'tiles', 'data-help': 'tiles' });
     els.buttons = h('div', { class: 'buttons' });
-    els.tablesBtn = h('button', { onclick: openTables }, icon('dining', 18), t('tables'));
+    els.tablesBtn = h('button', { onclick: openTables, 'data-help': 'tables' }, icon('dining', 18), t('tables'));
     mount(root, h('div', { class: 'register' },
       h('section', { class: 'catalog' },
         els.online,
         h('div', { class: 'reg-bar' },
           menuButton(),
-          h('div', { class: 'search-box' }, icon('search', 18), els.search),
+          h('div', { class: 'search-box', 'data-help': 'search' }, icon('search', 18), els.search),
           h('span', { class: 'grow' }),
           tillBadge(),
           shiftButton(() => els.scan?.focus()),
           els.tablesBtn,
-          h('button', { onclick: openTicketsList }, icon('receipt', 18), t('openTickets'), els.openCount),
+          h('button', { onclick: openTicketsList, 'data-help': 'recall' }, icon('receipt', 18), t('openTickets'), els.openCount),
+          tillHelpButton(),
           tillButton()),
         els.chips,
         els.tiles),
@@ -658,12 +660,12 @@ function orderTypes() {
 function drawOrderInfo() {
   const fnb = isFnb();
   mount(els.orderInfo,
-    fnb ? h('div', { class: 'seg', role: 'group', 'aria-label': t('orderType') }, orderTypes().map((k) => h('button', {
+    fnb ? h('div', { class: 'seg', role: 'group', 'aria-label': t('orderType'), 'data-help': 'order-type' }, orderTypes().map((k) => h('button', {
       class: cart.orderType === k ? 'on' : '',
       onclick: () => { cart.orderType = k; drawTicket(); },
     }, t(`order_${k}`)))) : null,
     cart.table ? h('span', { class: 'tablechip' }, icon('dining', 15), `${t('table')} ${cart.table}`) : null,
-    built !== 'market' || cart.customer ? h('button', { onclick: chooseCustomer },
+    built !== 'market' || cart.customer ? h('button', { onclick: chooseCustomer, 'data-help': 'customer' },
       icon('user', 16), cart.customer ? `${cart.customer.name} · ${cart.customer.points} ${t('points')} ✕` : t('customer')) : null,
     cart.orderId ? h('span', { class: 'pill warn' }, t('savedTicket')) : null,
     h('span', { class: 'branch' }, session.branchName()));
@@ -752,13 +754,13 @@ function drawTicket() {
 
   const unsent = cart.lines.some((l) => !l.sent);
   mount(els.buttons,
-    h('button', { onclick: chooseDiscounts, disabled: empty || !session.discounts.length }, icon('percent', 17), t('discount')),
+    h('button', { onclick: chooseDiscounts, disabled: empty || !session.discounts.length, 'data-help': 'discount' }, icon('percent', 17), t('discount')),
     kitchenOn()
-      ? h('button', { onclick: sendToKitchen, disabled: empty || !unsent }, icon('chef', 17), t('sendKitchen'))
-      : h('button', { onclick: () => saveTicket(), disabled: empty }, icon('pause', 17), t('saveTicket')),
-    h('button', { class: 'danger', onclick: clearTicket, disabled: empty && !cart.orderId }, icon('trash', 17), t('clear')),
-    kitchenOn() ? h('button', { onclick: () => saveTicket(), disabled: empty, style: { gridColumn: '1 / -1' } }, icon('pause', 17), t('saveTicket')) : null,
-    h('button', { class: 'primary pay', disabled: empty, onclick: pay }, `${t('charge')} ${rm(totals.totalSen)}`));
+      ? h('button', { onclick: sendToKitchen, disabled: empty || !unsent, 'data-help': 'kitchen' }, icon('chef', 17), t('sendKitchen'))
+      : h('button', { onclick: () => saveTicket(), disabled: empty, 'data-help': 'hold' }, icon('pause', 17), t('saveTicket')),
+    h('button', { class: 'danger', onclick: clearTicket, disabled: empty && !cart.orderId, 'data-help': 'clear' }, icon('trash', 17), t('clear')),
+    kitchenOn() ? h('button', { onclick: () => saveTicket(), disabled: empty, style: { gridColumn: '1 / -1' }, 'data-help': 'hold' }, icon('pause', 17), t('saveTicket')) : null,
+    h('button', { class: 'primary pay', disabled: empty, onclick: pay, 'data-help': 'pay' }, `${t('charge')} ${rm(totals.totalSen)}`));
   if (flash) els.lines.querySelector('.flash')?.scrollIntoView({ block: 'nearest' });
 }
 

@@ -149,3 +149,20 @@ reads the company's data and sends it. Both run in the API on Cloud Run.
   and `telegram-secret` itself, gives the API the secrets that exist
   (`telegram-bot-token`, `smtp-user`, `smtp-pass`), points Telegram at the
   API (`/jobs/setup`) and creates or updates the scheduler job.
+
+## Every page's own tutorial
+
+`web/js/helpdata.js` lists a short tutorial for every page (back office,
+warehouse, SuXin Count on the web, the app centre) and for every button on
+the till: title and steps in three languages, and what the pointer does.
+`tools/videos/pages.mjs` films each into `web/videos/help/<key>.webm`, with
+its narration, from that same list.
+
+- Every page has a "▶ 教学" button in the corner (`pagehelp.js`, `helpFab`).
+- The till has a "▶ 教学" button instead: tutorial mode puts a ▶ on every
+  button, and tapping one plays that button's video instead of doing it.
+  Buttons say which video is theirs with `data-help`.
+- `/guide/#till` and `/guide/#pages` list them all.
+- Tills: Settings → This device adds tills ahead, renumbers and renames
+  them, and says which till this computer is (`useTill`), so a replaced
+  computer keeps the old number.

@@ -17,13 +17,28 @@
 import { collection, db, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc } from './fb.js';
 import { local } from './dom.js';
 import { session, ws } from './session.js';
-import { t } from './i18n.js';
+import { addStrings, t } from './i18n.js';
+
+addStrings({
+  en: {
+    tillUseHere: 'This computer is this one', tillAdd: 'Add till', tillEdit: 'Change till', tillNo: 'Number', tillNoTaken: 'Another till has that number.',
+    tillLastUsed: 'last used', tillNotUsed: 'no computer yet', tillsHelp2: 'Each computer picks which till it is. Add a till here, then on that computer press "This computer is this one".',
+  },
+  zh: {
+    tillUseHere: '这台电脑用这一台', tillAdd: '新增收银机', tillEdit: '修改收银机', tillNo: '号码', tillNoTaken: '已经有收银机用这个号码。',
+    tillLastUsed: '上次使用', tillNotUsed: '还没有电脑用', tillsHelp2: '每台电脑选它是哪一台收银机。先在这里「新增收银机」，再到那台电脑按「这台电脑用这一台」。',
+  },
+  ms: {
+    tillUseHere: 'Komputer ini yang ini', tillAdd: 'Tambah kaunter', tillEdit: 'Ubah kaunter', tillNo: 'Nombor', tillNoTaken: 'Kaunter lain sudah guna nombor itu.',
+    tillLastUsed: 'kali terakhir', tillNotUsed: 'belum ada komputer', tillsHelp2: 'Setiap komputer pilih kaunter mana ia. Tambah kaunter di sini, kemudian di komputer itu tekan "Komputer ini yang ini".',
+  },
+});
 
 export function tillId() {
   const key = `pos.till.${session.ws}`;
   let id = local.get(key, null);
   if (!id) {
-    id = `t-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    id = newId();
     local.set(key, id);
   }
   return id;
@@ -74,6 +89,30 @@ export async function renameTill(id, name) {
 }
 
 export const removeTill = (id) => deleteDoc(doc(db, ws(`tills/${id}`)));
+
+const newId = () => `t-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+/** A till made ahead of time, with the next number; no computer is it yet. */
+export async function addTill() {
+  const no = Math.max(0, ...numbered(await listTills()).map((x) => x.no)) + 1;
+  await setDoc(doc(db, ws(`tills/${newId()}`)), { no, name: '', branchId: session.branchId, createdAt: Date.now() });
+  return no;
+}
+
+/** A till's number and name; false when another till has that number. */
+export async function editTill(id, { no, name }) {
+  const others = numbered(await listTills()).filter((x) => x.id !== id);
+  if (others.some((x) => x.no === no)) return false;
+  await updateDoc(doc(db, ws(`tills/${id}`)), { no, name: String(name || '').trim().slice(0, 40) });
+  if (id === thisTill.id) Object.assign(thisTill, { no, name: String(name || '').trim().slice(0, 40) });
+  return true;
+}
+
+/** This computer becomes till [id] from now on (its sales and receipts say so). */
+export async function useTill(id) {
+  local.set(`pos.till.${session.ws}`, id);
+  return registerTill();
+}
 
 /** Whether this computer may sell under the plan's till limit. */
 export async function tillAllowed() {

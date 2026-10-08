@@ -13,6 +13,7 @@ import { STRINGS } from './strings.js';
 import '../js/strings-pro.js';
 import { appSwitcher } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
+import { helpFab } from '../js/pagehelp.js';
 
 addStrings(STRINGS);
 const app = document.getElementById('app');
@@ -120,6 +121,8 @@ function renderShell() {
   shell = h('div', { class: 'shell wh' }, sideEl, mainEl, bottomEl,
     h('div', { class: 'scrim', onclick: () => shell.classList.remove('menu') }));
   mount(app, shell);
+  // Each page's own tutorial; above the phone's bottom buttons.
+  helpFab(() => (currentRoute().group === 'guide' ? '' : `wh-${currentRoute().group || 'home'}`), { lift: true });
   route();
 }
 

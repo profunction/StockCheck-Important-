@@ -20,6 +20,7 @@ import { session, ws } from '../js/session.js';
 import { appSwitcher, langPicker, signOutNow, startApp } from '../js/apps.js';
 import { period, refNo, tempRefNo } from '../js/counting.js';
 import { guardTillLock } from '../js/tilllock.js';
+import { helpFab } from '../js/pagehelp.js';
 import { STRINGS } from './strings.js';
 import '../js/strings-pro.js';
 
@@ -51,6 +52,10 @@ function shell() {
       langPicker(),
       h('button', { class: 'ghost icon-btn', title: t('signOut'), 'aria-label': t('signOut'), onclick: signOutNow }, icon('logout', 18))),
     mainEl));
+  helpFab(() => {
+    const page = location.hash.replace(/^#\/?/, '').split('/')[0];
+    return page === 'new' ? 'cnt-new' : page === 'c' ? 'cnt-count' : 'cnt-list';
+  });
   route();
 }
 

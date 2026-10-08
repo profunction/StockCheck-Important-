@@ -44,19 +44,22 @@ export function helpers(page, cues = [], t0 = Date.now()) {
   const wait = (ms) => page.waitForTimeout(ms);
   const overlay = () => page.evaluate(OVERLAY);
   /** Something to say [after] ms from now. */
-  const cue = (zh, en, after = 0) => { if (zh || en) cues.push({ t: Date.now() - t0 + after, zh: plain(zh), en: plain(en) }); };
+  const cue = (zh, en, after = 0, bm = '') => {
+    if (zh || en) cues.push({ t: Date.now() - t0 + after, zh: plain(zh), en: plain(en), ...(bm ? { ms: plain(bm) } : {}) });
+  };
   return {
     wait,
     cue,
-    async caption(zh, en = '', ms = 2300) {
+    /** Shows [zh] with [en] under it for [ms]; [bm] is only spoken (Malay pages). */
+    async caption(zh, en = '', ms = 2300, bm = '') {
       await overlay();
-      cue(zh, en);
+      cue(zh, en, 0, bm);
       await page.evaluate(([a, b]) => { const c = document.getElementById('demo-cap'); c.innerHTML = a ? `${a}${b ? `<small>${b}</small>` : ''}` : ''; }, [zh, en]);
       await wait(ms);
     },
-    async title(big, small, en, { bg = '' } = {}) {
+    async title(big, small, en, { bg = '', bm = '' } = {}) {
       await overlay();
-      cue(`${plain(big)}。${plain(small)}`, en);
+      cue(`${plain(big)}。${plain(small)}`, en, 0, bm);
       await page.evaluate(([b, s, e, g]) => {
         const t = document.createElement('div'); t.id = 'demo-title'; if (g) t.style.setProperty('--demo-bg', g);
         t.innerHTML = `<div>${b}<small>${s}</small><em>${e}</em></div>`; document.body.append(t);

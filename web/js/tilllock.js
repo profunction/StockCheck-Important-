@@ -96,7 +96,7 @@ export function toggleTillLock(after = () => {}) {
 export function tillLockButton(after) {
   const locked = isTillLocked();
   return h('button', {
-    class: `till-lock${locked ? ' on' : ''}`, 'data-act': 'till-lock', title: locked ? t('tlLocked') : t('tlLock'),
+    class: `till-lock${locked ? ' on' : ''}`, 'data-act': 'till-lock', 'data-help': 'lock', title: locked ? t('tlLocked') : t('tlLock'),
     onclick: () => toggleTillLock(after),
   }, icon('lock', 18), h('span', {}, locked ? t('tlUnlock') : t('tlLock')));
 }

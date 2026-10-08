@@ -3,7 +3,7 @@
  * company -- except "This device", which is about this computer only.
  */
 import { db, doc, setDoc } from './fb.js';
-import { dateTime, h, local, mount, toast } from './dom.js';
+import { dateTime, h, local, modal, mount, toast } from './dom.js';
 import { icon } from './icons.js';
 import { getLang, paymentLabel, t } from './i18n.js';
 import { DEFAULT_SETTINGS, session, ws } from './session.js';
@@ -12,7 +12,7 @@ import { addBranchDialog, saveBranch } from './branches.js';
 import { taxList } from './money.js';
 import { chosenMode, modeCards } from './modes.js';
 import { choosePrinter, directName, directReady, directSupported, forget, openDrawer, printDirect } from './rawprint.js';
-import { listTills, numbered, registerTill, removeTill, renameTill, thisTill, tillId, tillLabel } from './tills.js';
+import { addTill, editTill, listTills, numbered, registerTill, removeTill, thisTill, tillId, tillLabel, useTill } from './tills.js';
 import { MODULES } from './modules.js';
 
 export function render(main, sub) {
@@ -280,28 +280,60 @@ const testSale = () => ({
  */
 function tillsCard() {
   const box = h('div');
-  const card = h('div', { class: 'card', style: { maxWidth: '640px', marginTop: '16px' } }, h('h2', {}, t('tills')), box);
-  const draw = async () => {
+  const card = h('div', { class: 'card', style: { maxWidth: '760px', marginTop: '16px' } }, h('h2', {}, t('tills')), box);
+  const manage = session.can('POS_MANAGE');
+  const run = (fn) => async () => { try { await fn(); draw(); } catch (err) { toast(err.message || String(err), 'error'); } };
+  const edit = (x) => modal((close) => {
+    const no = h('input', { type: 'number', min: 1, step: 1, value: String(x.no), 'aria-label': t('tillNo') });
+    const name = h('input', { value: x.name || '', placeholder: `${t('tillN')} ${x.no}`, 'aria-label': t('tillName') });
+    return [
+      h('h2', {}, t('tillEdit')),
+      h('div', { class: 'grid2' }, h('label', { class: 'field' }, t('tillNo'), no), h('label', { class: 'field' }, t('tillName'), name)),
+      h('div', { class: 'actions' }, h('button', { onclick: close }, t('cancel')), h('button', {
+        class: 'primary', 'data-act': 'till-save',
+        onclick: async () => {
+          const n = Math.round(Number(no.value));
+          if (!(n >= 1)) { toast(t('tillNo'), 'error'); return; }
+          if (!await editTill(x.id, { no: n, name: name.value })) { toast(t('tillNoTaken'), 'error'); return; }
+          toast(t('saved'), 'ok');
+          close();
+          refreshBadges();
+          draw();
+        },
+      }, t('save'))),
+    ];
+  });
+  const refreshBadges = () => document.querySelectorAll('.till-badge').forEach((el) => { el.textContent = tillLabel(thisTill); });
+  async function draw() {
     await registerTill().catch(() => {});
     const limit = session.plan?.tills;
     const counted = limit && limit < 1e9;
-    const list = numbered(await listTills());
-    const name = h('input', { value: thisTill.name, placeholder: `${t('tillN')} ${thisTill.no}`, 'aria-label': t('tillName') });
+    const list = numbered(await listTills()).sort((a, b) => a.no - b.no);
+    const mine = tillId();
     mount(box,
-      h('p', {}, t('thisComputerIs'), ' ', h('strong', { class: 'this-till' }, tillLabel(thisTill))),
-      h('div', { class: 'row' },
-        h('label', { class: 'field grow' }, t('tillName'), name),
-        h('button', { style: { alignSelf: 'end' }, onclick: async () => {
-          try { await renameTill(thisTill.id, name.value); toast(t('saved'), 'ok'); draw(); } catch (err) { toast(err.message || String(err), 'error'); }
-        } }, t('save'))),
-      counted ? h('p', { class: 'muted' }, `${list.length} / ${limit}`) : h('p', { class: 'muted' }, `${list.length} ${t('tillsInUse')}`),
-      h('table', { class: 'list' }, h('tbody', {}, list.sort((a, b) => a.no - b.no).map((x) => h('tr', {},
-        h('td', {}, h('strong', {}, `#${x.no}`), ' ', x.name || '', x.id === tillId() ? h('span', { class: 'pill good', style: { marginLeft: '8px' } }, t('thisTill')) : ''),
-        h('td', { class: 'muted' }, x.branchId ? session.branchName(x.branchId) : ''),
-        h('td', { class: 'muted' }, x.lastSeenAt ? dateTime(x.lastSeenAt) : ''),
-        h('td', { class: 'num' }, session.can('POS_MANAGE') && x.id !== tillId()
-          ? h('button', { class: 'danger', onclick: async () => { await removeTill(x.id); draw(); } }, t('removeTill')) : ''))))));
-  };
+      h('p', { style: { margin: 0, fontSize: '17px' } }, t('thisComputerIs'), ' ', h('strong', { class: 'this-till' }, tillLabel(thisTill))),
+      h('p', { class: 'muted' }, t('tillsHelp2')),
+      h('p', { class: 'muted', style: { margin: 0 } }, counted ? `${list.length} / ${limit}` : `${list.length} ${t('tillsInUse')}`),
+      h('div', { class: 'till-list' }, list.map((x) => h('div', { class: `till-row${x.id === mine ? ' on' : ''}`, 'data-till': x.no },
+        h('div', { class: 'grow' },
+          h('strong', {}, tillLabel(x)), x.name ? h('span', { class: 'muted' }, ` · ${t('tillN')} ${x.no}`) : null,
+          h('div', { class: 'muted', style: { fontSize: '13px' } }, [x.branchId ? session.branchName(x.branchId) : '',
+            x.lastSeenAt ? `${t('tillLastUsed')} ${dateTime(x.lastSeenAt)}` : t('tillNotUsed')].filter(Boolean).join(' · '))),
+        x.id === mine ? h('span', { class: 'pill good' }, t('thisTill'))
+          : h('button', { 'data-act': 'till-use', onclick: run(async () => { await useTill(x.id); refreshBadges(); toast(`${t('thisComputerIs')} ${tillLabel(thisTill)}`, 'ok'); }) }, t('tillUseHere')),
+        manage ? h('button', { class: 'ghost', 'data-act': 'till-edit', onclick: () => edit(x) }, t('tillEdit')) : null,
+        manage && x.id !== mine ? h('button', { class: 'ghost danger', onclick: run(() => removeTill(x.id)) }, t('removeTill')) : null))),
+      manage ? h('div', { class: 'actions', style: { justifyContent: 'flex-start' } },
+        h('button', {
+          class: 'primary', 'data-act': 'till-add',
+          onclick: run(async () => {
+            // The plan's tills are all taken: a new one could never sell.
+            if (counted && list.length >= limit) { toast(t('tillLimit').replace('{n}', limit), 'error'); return; }
+            const no = await addTill();
+            toast(`${t('tillN')} ${no}`, 'ok');
+          }),
+        }, icon('plus', 17), t('tillAdd'))) : null);
+  }
   draw().catch(() => card.classList.add('hidden'));
   return card;
 }

@@ -10,6 +10,7 @@ import { PLANS } from '../js/plans.js';
 import { session } from '../js/session.js';
 import { APPS, appState, langPicker, signOutNow, startApp } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
+import { helpFab } from '../js/pagehelp.js';
 import '../js/strings-pro.js';
 
 const app = document.getElementById('app');
@@ -47,6 +48,7 @@ function render() {
               h('a', { href: session.isAdmin ? '/pos/#/settings/addons' : '/#pricing' }, `${t('appBuy')} →`))
             : h('span', { class: 'hub-lock' }, t('appDenied')));
       })))));
+  helpFab(() => 'hub');
 }
 
 startApp(app, {
