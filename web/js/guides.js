@@ -7,7 +7,7 @@
  */
 // ?v= changes when the videos are filmed again, so week-old cached copies are not shown
 // with new narration.
-const V = (name) => `/videos/${name}.webm?v=3`;
+const V = (name) => `/videos/${name}.webm?v=4`;
 
 export const POS_GUIDE = {
   zh: {
@@ -108,6 +108,13 @@ export const POS_GUIDE = {
         '集成 → API 说明：商品、库存、收据、顾客怎样读写。',
         '不用了按「撤销」，对方马上不能再用。',
       ] },
+      { id: 'notify', title: 'Telegram 机器人和每日报告', video: V('pos-15-notify'), steps: [
+        '设置 → 通知和机器人 → 按「连接 Telegram」，再按「打开 Telegram」，在 Telegram 按 Start。',
+        '在 Telegram 问：「Milo 还有多少？」「今天卖了多少」「昨天卖了多少」「低库存」「报告」。',
+        '每天早上 8 点自动收到：昨天的销售和现在的低库存。员工只看到他可以看的。',
+        '老板：打开「每天早上用 email 寄营业报告」，填 email，按保存。',
+        'SuXin Count 手机 app 登录后允许通知，就会收到报告；电脑按「在这个浏览器开启」。',
+      ], tip: 'Telegram 和 email 都免费。' },
       { id: 'hardware', title: '扫码枪、打印机、NFC', steps: [
         'USB 扫码枪：插上就能用，不用装软件。',
         '收据打印机（58 / 80mm 热敏）：先装好驱动，第一次打印时选它，页边距选「无」。',
@@ -214,6 +221,13 @@ export const POS_GUIDE = {
         'Integrations → API: how to read and write items, stock, receipts and customers.',
         'Revoke it when it is no longer needed and it stops working at once.',
       ] },
+      { id: 'notify', title: 'The Telegram bot and the morning report', video: V('pos-15-notify'), steps: [
+        'Settings → Notifications & bot → Connect Telegram, then Open Telegram and press Start.',
+        'Ask in Telegram: "How many Milo?", "sales today", "sales yesterday", "low stock", "report".',
+        'Every morning at 8: yesterday\'s sales and today\'s low stock. Staff see only what their role allows.',
+        'Owner: tick "Send the morning report by email", add the emails, Save.',
+        'The SuXin Count phone app gets it once notifications are allowed; on a computer press Turn on for this browser.',
+      ], tip: 'Telegram and email are free.' },
       { id: 'hardware', title: 'Scanner, printer, NFC', steps: [
         'USB barcode scanner: plug it in, nothing to install.',
         'Receipt printer (58 / 80 mm thermal): install its driver, choose it the first time you print, margins "None".',
@@ -320,6 +334,13 @@ export const POS_GUIDE = {
         'Integrasi → API: cara baca dan tulis barang, stok, resit dan pelanggan.',
         'Batalkan bila tidak diperlukan dan ia berhenti serta-merta.',
       ] },
+      { id: 'notify', title: 'Bot Telegram dan laporan pagi', video: V('pos-15-notify'), steps: [
+        'Tetapan → Pemberitahuan & bot → Sambung Telegram, kemudian Buka Telegram dan tekan Start.',
+        'Tanya di Telegram: "berapa stok Milo", "jualan hari ini", "jualan semalam", "stok rendah", "laporan".',
+        'Setiap pagi jam 8: jualan semalam dan stok rendah. Pekerja hanya nampak apa yang dibenarkan.',
+        'Pemilik: tanda "Hantar laporan pagi melalui e-mel", isi e-mel, Simpan.',
+        'Aplikasi SuXin Count menerimanya selepas pemberitahuan dibenarkan; di komputer tekan Hidupkan untuk pelayar ini.',
+      ], tip: 'Telegram dan e-mel percuma.' },
       { id: 'hardware', title: 'Pengimbas, pencetak, NFC', steps: [
         'Pengimbas kod bar USB: pasang sahaja, tiada perisian.',
         'Pencetak resit (58 / 80 mm terma): pasang pemacunya, pilih kali pertama mencetak, margin "Tiada".',

@@ -449,6 +449,25 @@ await film('pos-14-api', world({ mode: 'RETAIL' }), async (page, x, base) => {
   await x.caption('不用了按「撤销」，对方马上不能再用', 'Revoke it and it stops working at once', 2200);
 });
 
+await film('pos-15-notify', (() => {
+  const w = world({ mode: 'RETAIL' });
+  w.set['publicConfig/telegram'] = { username: 'SuXinBot' };
+  w.set['publicConfig/push'] = { vapidKey: 'demo' };
+  return w;
+})(), async (page, x, base) => {
+  await x.go(base, '/pos/#/settings/notify', 1500);
+  await x.title('Telegram 机器人和每日报告', 'SuXin · 设置 → 通知和机器人', 'The Telegram bot and the morning report');
+  await x.caption('在 Telegram 问「Milo 还有多少」「今天卖了多少」，机器人马上回答', 'Ask in Telegram: how many Milo, sales today — the bot answers', 2600);
+  await x.click('button[data-act="tg-connect"]', 1200);
+  await x.caption('按「连接 Telegram」，再按「打开 Telegram」，按 Start 就连上', 'Connect Telegram, Open Telegram, press Start', 2600);
+  await x.point('.nf-start');
+  await x.caption('每天早上 8 点：昨天卖了多少、哪些低库存', 'Every morning at 8: yesterday\'s sales and low stock', 2400);
+  await x.point('.nf-card:has-text("Email") input[type=checkbox]');
+  await x.caption('老板也可以用 email 收报告，填几个 email 都可以', 'Owners can get it by email too', 2400);
+  await x.point('button[data-act="push-here"]');
+  await x.caption('手机 app 登录后会自动收到通知；电脑按这里开启', 'The phone app gets notifications after sign-in; computers turn it on here', 2800);
+});
+
 await film('cloud-1-dashboard', world({ mode: 'RETAIL', withSales: true }), async (page, x, base) => {
   await x.go(base, '/pos/#/cloud', 1800);
   await x.title('SuXin Cloud 总览', 'SuXin Cloud · 老板一页看全部', 'SuXin Cloud: the whole business on one page');

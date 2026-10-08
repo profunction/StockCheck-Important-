@@ -11,6 +11,12 @@ on:
 permissions:
   contents: write
 
+# One build per branch at a time: two replacing the same download release at
+# once leave it broken. A newer push cancels the older build.
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
