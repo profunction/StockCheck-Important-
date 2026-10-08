@@ -1,0 +1,105 @@
+/* Ordering by QR code, on the customer's own phone: one column, big targets,
+   the basket always one tap away at the bottom. */
+:root {
+  --bg: #f4f6f8; --card: #ffffff; --ink: #14202c; --muted: #5d6877; --line: #e1e6eb;
+  --brand: #0f766e; --brand-ink: #ffffff; --brand-soft: #e2f3f0; --warn: #b54708; --bad: #b3261e; --good: #127a3f;
+  --radius: 14px; --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0c1520; --card: #13202e; --ink: #e6edf3; --muted: #9aa8b6; --line: #24364a; --brand: #2dd4bf; --brand-ink: #062a27; --brand-soft: #103a37; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font-size: 16px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.so { max-width: 560px; margin: 0 auto; min-height: 100vh; padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+.so-loading, .so-error { padding: 40px 20px; text-align: center; color: var(--muted); }
+.so-error b { display: block; color: var(--ink); font-size: 18px; margin-bottom: 6px; }
+
+/* Top: the shop and where the food goes. */
+.so-top { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px; display: grid; gap: 8px; }
+.so-shop { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; }
+.so-shop h1 { font-size: 18px; margin: 0; flex: 1 1 60%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.so-where { font-size: 13px; font-weight: 600; background: var(--brand-soft); color: var(--brand); border: 0; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+.so-lang { display: flex; gap: 4px; }
+.so-lang button { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 2px 7px; font-size: 12px; color: var(--muted); }
+.so-lang button.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.so-search { width: 100%; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 15px; }
+.so-cats { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+.so-cats::-webkit-scrollbar { display: none; }
+.so-cats button { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.so-cats button.on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.so-msg { margin: 12px 16px 0; padding: 10px 12px; border-radius: 10px; background: var(--brand-soft); font-size: 14px; }
+
+/* The menu. */
+.so-section { padding: 14px 16px 0; }
+.so-section h2 { font-size: 15px; color: var(--muted); margin: 6px 0 10px; letter-spacing: .02em; }
+.so-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.so-item { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; border: 0; padding: 0; text-align: left; }
+.so-pic { aspect-ratio: 4 / 3; background: var(--line) center / cover no-repeat; display: grid; place-items: center; font-size: 26px; font-weight: 800; color: rgba(255,255,255,.9); }
+.so-info { padding: 9px 11px 11px; display: grid; gap: 4px; flex: 1; }
+.so-name { font-weight: 650; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.so-desc { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.so-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.so-price { color: var(--brand); font-weight: 750; font-variant-numeric: tabular-nums; }
+.so-add { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--brand); color: var(--brand-ink); font-size: 22px; line-height: 1; display: grid; place-items: center; flex: none; }
+.so-qtybadge { min-width: 34px; height: 34px; border-radius: 17px; background: var(--brand); color: var(--brand-ink); font-weight: 700; display: grid; place-items: center; padding: 0 8px; }
+.so-empty { color: var(--muted); padding: 30px 16px; text-align: center; }
+
+/* The basket bar and sheets. */
+.so-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--bg) 30%); }
+.so-bar button { width: 100%; max-width: 528px; margin: 0 auto; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 16px; padding: 14px 18px; background: var(--brand); color: var(--brand-ink); font-weight: 700; font-size: 16px; box-shadow: 0 6px 20px rgba(15, 118, 110, .3); }
+.so-bar .n { min-width: 26px; height: 26px; border-radius: 13px; background: var(--brand-ink); color: var(--brand); display: grid; place-items: center; font-size: 14px; }
+.so-bar .grow { flex: 1; text-align: left; }
+.so-sheet-bg { position: fixed; inset: 0; z-index: 20; background: rgba(10, 16, 24, .45); display: flex; align-items: flex-end; justify-content: center; }
+.so-sheet { width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; background: var(--card); border-radius: 20px 20px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px; }
+.so-sheet h2 { margin: 0; font-size: 19px; }
+.so-sheet .so-pic { border-radius: 12px; aspect-ratio: 16 / 9; }
+.so-group h3 { margin: 0 0 8px; font-size: 15px; }
+.so-group h3 small { color: var(--muted); font-weight: 500; margin-left: 6px; }
+.so-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.so-opts button { border: 1.5px solid var(--line); background: var(--card); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+.so-opts button.on { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); font-weight: 650; }
+.so-note { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 15px; background: var(--bg); color: var(--ink); resize: vertical; min-height: 44px; }
+.so-step { display: flex; align-items: center; gap: 14px; }
+.so-step button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); font-size: 20px; }
+.so-step b { min-width: 28px; text-align: center; font-size: 18px; font-variant-numeric: tabular-nums; }
+.so-primary { border: 0; border-radius: 14px; padding: 14px 18px; background: var(--brand); color: var(--brand-ink); font-weight: 700; font-size: 16px; width: 100%; }
+.so-primary:disabled { opacity: .5; }
+.so-ghost { border: 1px solid var(--line); background: transparent; border-radius: 14px; padding: 12px 18px; font-weight: 600; width: 100%; }
+.so-lines { display: grid; gap: 10px; }
+.so-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.so-line .m { font-size: 13px; color: var(--muted); grid-column: 1; }
+.so-line .so-step { grid-row: 1 / span 2; grid-column: 2; gap: 8px; }
+.so-line .so-step button { width: 32px; height: 32px; font-size: 17px; }
+.so-sum { display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+.so-sum div { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; }
+.so-sum .total { color: var(--ink); font-size: 19px; font-weight: 800; }
+.so-fine { color: var(--muted); font-size: 12.5px; text-align: center; margin: 0; }
+.so-err { color: var(--bad); font-size: 14px; margin: 0; }
+
+/* The first questions: eat here or take away; which table. */
+.so-ask { padding: 28px 16px; display: grid; gap: 14px; }
+.so-ask h2 { margin: 0; font-size: 22px; text-align: center; }
+.so-ask p { margin: 0; text-align: center; color: var(--muted); }
+.so-big { border: 0; border-radius: 18px; padding: 22px; background: var(--card); box-shadow: var(--shadow); font-size: 19px; font-weight: 700; display: flex; align-items: center; gap: 14px; }
+.so-big span { font-size: 30px; }
+.so-tables { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 10px; }
+.so-tables button { border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 16px 6px; font-size: 18px; font-weight: 700; }
+
+/* After sending: the number, and how it is going. */
+.so-done { padding: 28px 16px; display: grid; gap: 16px; text-align: center; }
+.so-ticket { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 22px 18px; display: grid; gap: 8px; }
+.so-ticket .label { color: var(--muted); font-size: 14px; }
+.so-ticket .big { font-size: 64px; font-weight: 850; letter-spacing: .04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.so-ticket.ready .big { color: var(--good); }
+.so-track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; font-size: 13px; color: var(--muted); }
+.so-track div { padding-top: 10px; border-top: 4px solid var(--line); }
+.so-track div.on { color: var(--ink); font-weight: 650; border-color: var(--brand); }
+.so-status { font-size: 18px; font-weight: 700; }
+.so-status.bad { color: var(--bad); }
+.so-receipt { text-align: left; background: var(--card); border-radius: 16px; padding: 14px 16px; display: grid; gap: 6px; font-size: 14px; }
+.so-receipt div { display: flex; justify-content: space-between; gap: 10px; }
+@media (prefers-reduced-motion: no-preference) { .so-sheet { animation: soUp .18s ease-out; } @keyframes soUp { from { transform: translateY(24px); opacity: .6; } } }

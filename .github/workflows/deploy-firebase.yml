@@ -190,6 +190,7 @@ jobs:
         continue-on-error: true
         run: |
           diff -u web/js/ledger.js api/ledger.js
+          diff -u web/js/money.js api/money.js
           # The bot's and the report's secrets live in Secret Manager, never
           # here. Two are made on the first run (random, nobody needs to know
           # them); the others are added by the owner when they want that

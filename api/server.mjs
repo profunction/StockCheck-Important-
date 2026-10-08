@@ -16,11 +16,13 @@ import { initializeApp } from 'firebase-admin/app';
 import { FieldPath, getFirestore } from 'firebase-admin/firestore';
 import { levels as ledgerLevels, merge } from './ledger.js';
 import {
-  ApiError, customerIn, customerOut, itemIn, itemOut, offlineOpIn, pageSize, receiptOut, stockChange,
+  ApiError, customerIn, customerOut, itemIn, itemOut, offlineOpIn, pageSize, rateKey, receiptOut, stockChange,
 } from './lib.mjs';
 import { notifier, sameSecret } from './notify.mjs';
 import { mergeOfflineTransactions } from './offline.js';
 import { createRateLimiterMiddleware } from './ratelimit.mjs';
+import { rateLimit } from 'express-rate-limit';
+import { selfOrdering } from './selforder.mjs';
 import { authenticate, requireModule, requireScope, tenant } from './middleware.mjs';
 
 // Secrets arrive from Secret Manager as they were stored; one made with
@@ -361,6 +363,30 @@ app.get('/v1/stores', requireScope('stores.read'), wrap(async (req, res) => {
   res.json({
     stores: [{ id: '', name: 'Main shop' }, ...(config.branches || []).map((b) => ({ id: b.id, name: b.name, active: b.active !== false }))],
   });
+}));
+
+// ------------------------------------------------- ordering by QR code
+//
+// Open to anyone with the shop's code (selforder.mjs): the menu, sending
+// an order, and how it is going. Kept slow for one phone: a menu read every
+// second at most, and a handful of orders in ten minutes.
+const selfOrder = selfOrdering(db);
+const limited = (windowMs, limit) => rateLimit({
+  windowMs, limit, keyGenerator: rateKey, standardHeaders: 'draft-7', legacyHeaders: false,
+  handler: (_req, res) => res.status(429).json({ error: { message: 'Too many requests. Wait a minute.' } }),
+});
+const readLimit = limited(60_000, 90);
+const orderLimit = limited(10 * 60_000, 8);
+app.get('/public/order/:shop', readLimit, wrap(async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(await selfOrder.menu(req.params.shop));
+}));
+app.post('/public/order/:shop', orderLimit, wrap(async (req, res) => {
+  res.status(201).json(await selfOrder.place(req.params.shop, req.body));
+}));
+app.get('/public/order/:shop/:id', readLimit, wrap(async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(await selfOrder.status(req.params.shop, req.params.id));
 }));
 
 // ------------------------------------------- the bot and the morning report

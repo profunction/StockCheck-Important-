@@ -534,3 +534,21 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 /* SuXin Every Data on its own page: the count page's frame, in its own colour. */
 .cnt.data .cnt-top { background: #0b5f59; }
 .data-main { max-width: 1100px; }
+
+/* Orders sent by QR code: the bell at the till, and the settings page. */
+.qr-bell[hidden] { display: none; }
+.qr-bell.ringing { background: var(--accent-soft, #fbf1df); border-color: var(--accent, #b7791f); color: var(--accent, #b7791f); font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) { .qr-bell.ringing { animation: qrRing 1.2s ease-in-out infinite; } @keyframes qrRing { 50% { box-shadow: 0 0 0 4px rgba(183, 121, 31, .25); } } }
+.qr-card { display: grid; gap: 8px; }
+.qr-ready-row { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.qrs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.qrs-card { display: grid; gap: 10px; justify-items: center; text-align: center; }
+.qrs-pic { width: 160px; max-width: 100%; aspect-ratio: 1; display: grid; place-items: center; }
+.qrs-pic svg { width: 100%; height: auto; }
+.qrs-printsheet { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8mm; padding: 6mm; }
+.qrs-printcard { border: 1px dashed #999; border-radius: 4mm; padding: 6mm; text-align: center; display: grid; gap: 3mm; justify-items: center; break-inside: avoid; }
+.qrs-printname { font-size: 22pt; font-weight: 800; }
+.qrs-printpic { width: 55mm; }
+.qrs-printpic svg { width: 100%; height: auto; }
+.qrs-printhint { font-size: 11pt; }
+.qrs-printshop { font-size: 10pt; color: #555; }

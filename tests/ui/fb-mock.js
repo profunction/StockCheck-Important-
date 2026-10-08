@@ -137,7 +137,11 @@ export function onSnapshot(ref, cb) {
   return () => listeners.delete(l);
 }
 const changed = () => setTimeout(() => listeners.forEach((l) => l.fire()), 0);
-export async function setDoc(ref, data) { store.set(ref.path, structuredClone(data)); changed(); }
+window.__put = (path, data) => { store.set(path, structuredClone(data)); changed(); };
+export async function setDoc(ref, data, opts) {
+  store.set(ref.path, structuredClone(opts?.merge ? { ...(store.get(ref.path) || {}), ...data } : data));
+  changed();
+}
 export async function updateDoc(ref, data) {
   if (!store.has(ref.path)) throw new Error('No document to update: ' + ref.path);
   store.set(ref.path, applyPatch(store.get(ref.path), data)); changed();

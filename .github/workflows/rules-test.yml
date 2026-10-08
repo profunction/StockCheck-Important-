@@ -57,6 +57,7 @@ jobs:
       - name: The API's stock maths, plans and offline merge are the website's
         run: |
           diff -u web/js/ledger.js api/ledger.js
+          diff -u web/js/money.js api/money.js
           diff -u platform/plans.mjs api/plans.js
           diff -u web/js/offline.js api/offline.js
           diff -u web/js/modules.js api/modules.js
@@ -64,7 +65,7 @@ jobs:
         working-directory: rules-test
       - run: npm install --no-audit --no-fund
         working-directory: api
-      - run: node lib.test.mjs && node middleware.test.mjs && node bot.test.mjs && node answers.test.mjs && node notify.test.mjs
+      - run: node lib.test.mjs && node middleware.test.mjs && node bot.test.mjs && node answers.test.mjs && node notify.test.mjs && node selforder.test.mjs
         working-directory: api
       - name: End to end
         working-directory: rules-test

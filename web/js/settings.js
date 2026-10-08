@@ -19,6 +19,8 @@ export function render(main, sub) {
   const pages = { features, payments, taxes, loyalty, receipt, stores, device, addons };
   // Notifications have their own file: Telegram, email and push (notify.js).
   if (sub === 'notify') { import('./notify.js').then((m) => m.render(main)); return null; }
+  // Ordering by QR code: its own file too (qrsettings.js).
+  if (sub === 'qr') { import('./qrsettings.js').then((m) => m.render(main)); return null; }
   (pages[sub] || features)(main);
   return null;
 }

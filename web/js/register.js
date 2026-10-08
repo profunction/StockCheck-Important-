@@ -17,6 +17,7 @@ import { t, paymentLabel } from './i18n.js';
 import { billTotals, formatQty, formatSen, lineAmount, lineTotal, parseQty, parseSen, productTaxIds, rm, taxList, UNIT } from './money.js';
 import { DEFAULT_SETTINGS, onChange, session, ws } from './session.js';
 import { kitchenView, printView } from './receipt.js';
+import { qrOn, watchQrOrders } from './qrorders.js';
 import { openPayment } from './pay.js';
 import { freshCustomer, loadCustomers, pickCustomer } from './customers.js';
 import { isLocked } from './pdpa.js';
@@ -38,6 +39,9 @@ let cart = newCart();
 let category = '';
 let search = '';
 let openOrders = [];
+let ordersLoaded = false;
+/** Orders sent by QR code (qrorders.js): the bell in the bar, and its watch. */
+let qr = null;
 /** "3*" typed before a scan: how many the next item is. */
 let pendingQty = null;
 /** The last thing added, shown big on the supermarket screen. */
@@ -106,13 +110,29 @@ export function render(main) {
   const goOnline = () => els.online?.classList.toggle('hidden', navigator.onLine);
   window.addEventListener('online', goOnline);
   window.addEventListener('offline', goOnline);
-  const stopChange = onChange(() => drawAll());
+  qr = watchQrOrders({
+    openOrders: () => openOrders,
+    ordersLoaded: () => ordersLoaded,
+    currentOrderId: () => cart.orderId,
+    addToCurrent: (lines, note) => {
+      cart.lines.push(...lines);
+      if (note) cart.note = [cart.note, note].filter(Boolean).join(' · ');
+      saveTicket({ quiet: true });
+      drawTicket();
+    },
+    kitchenOn,
+  });
+  const showBell = () => { qr.button.hidden = !qrOn(); };
+  showBell();
+  const stopChange = onChange(() => { showBell(); drawAll(); });
 
   const ordersQuery = session.branchIds.length || session.branchId
     ? query(collection(db, ws('orders')), where('branchId', '==', session.branchId))
     : collection(db, ws('orders'));
   const stopOrders = onSnapshot(ordersQuery, (snap) => {
     openOrders = snap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((o) => (o.branchId || '') === session.branchId);
+    ordersLoaded = true;
+    window.dispatchEvent(new CustomEvent('qr-orders'));
     drawOpenCount();
   }, (err) => console.warn('orders', err));
 
@@ -133,6 +153,9 @@ export function render(main) {
     window.removeEventListener('offline', goOnline);
     stopChange();
     stopOrders();
+    qr?.stop();
+    qr = null;
+    ordersLoaded = false;
     els = {};
   };
 }
@@ -265,7 +288,7 @@ function build(kind) {
     mount(root, h('div', { class: 'market' },
       h('section', { class: 'left' },
         els.online,
-        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), tillBadge(), shiftButton(() => els.scan?.focus()), tillHelpButton(), tillButton()),
+        h('div', { class: 'scanbar' }, menuButton(), ...scanParts(true), tillBadge(), shiftButton(() => els.scan?.focus()), qr?.button, tillHelpButton(), tillButton()),
         els.orderInfo,
         els.lines),
       h('aside', { class: 'mpanel' },
@@ -297,6 +320,7 @@ function build(kind) {
           shiftButton(() => els.scan?.focus()),
           els.tablesBtn,
           h('button', { onclick: openTicketsList, 'data-help': 'recall' }, icon('receipt', 18), t('openTickets'), els.openCount),
+          qr?.button,
           tillHelpButton(),
           tillButton()),
         els.chips,
@@ -846,6 +870,7 @@ function orderDoc() {
     discountIds: cart.discountIds,
     note: cart.note,
     customer: cart.customer,
+    pickupNo: cart.pickupNo || '',
     openedByUid: session.uid,
     openedByName: session.name,
     updatedAt: Date.now(),
@@ -882,6 +907,7 @@ function loadOrder(order) {
     discountIds: order.discountIds || [],
     note: order.note || '',
     customer: order.customer || null,
+    pickupNo: order.pickupNo || '',
   });
   drawTicket();
 }
@@ -919,7 +945,7 @@ function openTicketsList() {
       ? h('table', { class: 'list' }, h('tbody', {}, openOrders
         .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
         .map((o) => h('tr', { class: 'click', onclick: () => { close(); loadOrder(o); } },
-          h('td', {}, o.table ? `${t('table')} ${o.table}` : t(`order_${o.orderType || 'RETAIL'}`)),
+          h('td', {}, o.table ? `${t('table')} ${o.table}` : o.pickupNo ? `${t('qrPickup')} ${o.pickupNo}` : t(`order_${o.orderType || 'RETAIL'}`)),
           h('td', { class: 'muted' }, `${(o.lines || []).length} ${t('itemsCount')} · ${o.openedByName || ''}`),
           h('td', { class: 'num' }, rm(totalsFor({ ...newCart(), ...o, discountIds: o.discountIds || [] }).totalSen))))))
       : h('p', { class: 'muted' }, t('noOpenTickets')),

@@ -11,8 +11,9 @@ import { confirmBox, dateTime, h, modal, mount, toast } from './dom.js';
 import { t } from './i18n.js';
 import { session } from './session.js';
 import { menuButton } from './main.js';
+import { API_ORIGIN } from './apiorigin.js';
 
-export const API_BASE = 'https://stockcheck-api-52988097941.asia-southeast1.run.app/v1';
+export const API_BASE = `${API_ORIGIN}/v1`;
 
 export function render(main, sub) {
   if (sub === 'api') apiPage(main);

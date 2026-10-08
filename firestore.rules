@@ -601,6 +601,23 @@ service cloud.firestore {
         allow delete: if can('POS_SELL') && inMyBranch(resource.data);
       }
 
+      // Orders customers send from their own phones by QR code. Only the
+      // API writes them (it prices them from the items, never the phone);
+      // the till reads them and accepts, marks ready or turns one down --
+      // and may change nothing else on it.
+      match /selfOrders/{id} {
+        allow read: if can('POS_SELL') && inMyBranch(resource.data);
+        allow update: if can('POS_SELL') && inMyBranch(resource.data)
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'open', 'mergedInto', 'rejectReason', 'handledByName', 'updatedAt'])
+                      && request.resource.data.status in ['ACCEPTED', 'READY', 'DONE', 'REJECTED'];
+        allow create, delete: if false;
+      }
+      // The pickup numbers' daily counters: the API's alone.
+      match /selfOrderDays/{id} {
+        allow read, write: if false;
+      }
+
       // ------------------------------------------------- POS: customers
       //
       // Names, phone numbers and loyalty points. Anyone at the till looks a

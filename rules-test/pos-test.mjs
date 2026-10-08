@@ -82,6 +82,8 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, ws('sales/old1')), sale('cashier2', ''));
   await setDoc(doc(db, ws('sales/klSale')), sale('cashier2', 'kl'));
   await setDoc(doc(db, ws('orders/t1')), { branchId: '', table: 'T1', lines: [], updatedAt: 1 });
+  await setDoc(doc(db, ws('selfOrders/q1')), { branchId: '', table: '5', orderType: 'DINE_IN', lines: [{ barcode: '9555', qtyMilli: 1000, unitPriceSen: 1590 }], status: 'NEW', open: true, totalSen: 1590, createdAt: 1 });
+  await setDoc(doc(db, ws('selfOrders/qKl')), { branchId: 'kl', table: '', orderType: 'TAKEAWAY', lines: [], status: 'NEW', createdAt: 1 });
   await setDoc(doc(db, ws('pos/settings')), { shopName: 'Kedai' });
 });
 
@@ -207,6 +209,24 @@ await expect('ipoh cashier: every branch\'s tables refused', false,
   () => getDocs(collection(as('ipohCashier'), ws('orders'))));
 await expect('worker without POS: open tables refused', false,
   () => getDocs(collection(as('worker1'), ws('orders'))));
+
+// Orders sent by QR code ------------------------------------------------------
+await expect('cashier: see orders sent by QR', true,
+  () => getDocs(collection(as('cashier1'), ws('selfOrders'))));
+await expect('cashier: accept one into a table', true,
+  () => updateDoc(doc(as('cashier1'), ws('selfOrders/q1')), { status: 'ACCEPTED', open: false, mergedInto: 't1', handledByName: 'C', updatedAt: 2 }));
+await expect('cashier: change the prices on it refused', false,
+  () => updateDoc(doc(as('cashier1'), ws('selfOrders/q1')), { totalSen: 1, updatedAt: 3 }));
+await expect('cashier: a made-up status refused', false,
+  () => updateDoc(doc(as('cashier1'), ws('selfOrders/q1')), { status: 'PAID', updatedAt: 3 }));
+await expect('cashier: write an order as if a customer sent it refused', false,
+  () => setDoc(doc(as('cashier1'), ws('selfOrders/fake')), { branchId: '', status: 'NEW', lines: [] }));
+await expect('ipoh cashier: KL\'s QR orders refused', false,
+  () => getDocs(collection(as('ipohCashier'), ws('selfOrders'))));
+await expect('worker without POS: QR orders refused', false,
+  () => getDocs(collection(as('worker1'), ws('selfOrders'))));
+await expect('nobody: the pickup counter', false,
+  () => getDoc(doc(as('admin1'), ws('selfOrderDays/-_2026-10-08'))));
 
 // Customers and points ------------------------------------------------------
 await expect('cashier: look up customers', true, () => getDocs(collection(as('cashier1'), ws('customers'))));
