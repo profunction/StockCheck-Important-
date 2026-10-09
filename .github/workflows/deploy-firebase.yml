@@ -31,6 +31,7 @@ on:
       - 'rules-test/**'
       - 'tools/videos/voice.mjs'
       - 'tools/videos/mp4.mjs'
+      - 'tools/videos/sound.mjs'
       - '.github/workflows/deploy-firebase.yml'
 
 permissions:
@@ -202,7 +203,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: web/videos/promo-*.mp4
-          key: mp4-${{ hashFiles('web/videos/promo-*.webm', 'web/videos/promo-*.webm.json', 'web/videos/voice/*.mp3', 'tools/videos/mp4.mjs') }}
+          key: mp4-${{ hashFiles('web/videos/promo-*.webm', 'web/videos/promo-*.webm.json', 'web/videos/voice/*.mp3', 'tools/videos/mp4.mjs', 'tools/videos/sound.mjs') }}
 
       - name: Make the marketing MP4s
         if: steps.setup.outputs.ready == 'true'

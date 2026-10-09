@@ -12,6 +12,7 @@ on:
       - 'platform/**'
       - 'api/**'
       - 'tests/xlsx_check.py'
+      - 'tools/videos/sound*.mjs'
       - '.github/workflows/unit-tests.yml'
 
 jobs:
@@ -33,6 +34,8 @@ jobs:
           diff -u web/js/modules.js api/modules.js
       - name: Website (money, tax, stock, shifts, ESC/POS, labels, plans, offline, PDPA)
         run: for f in web/js/*.test.mjs; do echo "== $f"; node "$f" || exit 1; done
+      - name: The marketing films' sound (bright, not dark)
+        run: node tools/videos/sound.test.mjs
       - name: Payments and licences
         run: node platform/billing.test.mjs
       - name: API shapes and the request chain
