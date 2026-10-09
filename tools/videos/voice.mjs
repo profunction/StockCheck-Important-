@@ -28,7 +28,9 @@ const VOICES = {
   en: [['en-GB', 'en-GB-Chirp3-HD-Charon'], ['en-GB', 'en-GB-Neural2-B'], ['en-GB', 'en-GB-Wavenet-B'], ['en-US', 'en-US-Neural2-D']],
   ms: [['ms-MY', 'ms-MY-Chirp3-HD-Charon'], ['ms-MY', 'ms-MY-Wavenet-B'], ['ms-MY', 'ms-MY-Wavenet-D'], ['ms-MY', 'ms-MY-Standard-B']],
 };
-const SAY = { zh: (c) => c.zh || c.en || '', en: (c) => c.en || c.zh || '', ms: (c) => c.ms || c.en || c.zh || '' };
+// Symbols are for the eye only: a voice would read them out.
+const clean = (t) => String(t || '').replace(/[\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF\u{1F300}-\u{1FAFF}\uFE0F]/gu, '').replace(/\s+/g, ' ').trim();
+const SAY = { zh: (c) => clean(c.zh || c.en), en: (c) => clean(c.en || c.zh), ms: (c) => clean(c.ms || c.en || c.zh) };
 
 async function synth(lang, voice, text) {
   const res = await fetch('https://texttospeech.googleapis.com/v1/text:synthesize', {

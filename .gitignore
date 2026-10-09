@@ -48,3 +48,4 @@ web/download/*.apk
 webapps-out/
 web/videos/voice/
 web/videos/**/*.voice.json
+web/videos/*.mp4

@@ -30,6 +30,7 @@ on:
       - 'api/**'
       - 'rules-test/**'
       - 'tools/videos/voice.mjs'
+      - 'tools/videos/mp4.mjs'
       - '.github/workflows/deploy-firebase.yml'
 
 permissions:
@@ -192,6 +193,26 @@ jobs:
             || echo "::warning::Could not switch on Text-to-Speech; switch it on once at https://console.cloud.google.com/apis/library/texttospeech.googleapis.com?project=$PROJECT"
           GCP_TOKEN=$(gcloud auth print-access-token) node tools/videos/voice.mjs
           du -sh web/videos/voice 2>/dev/null || true
+
+      # The marketing films as MP4 with the voice laid over them, for TikTok,
+      # Instagram, Facebook and WhatsApp (tools/videos/mp4.mjs). Made again
+      # only when a film or its voice changes.
+      - name: Keep the marketing MP4s between deploys
+        if: steps.setup.outputs.ready == 'true'
+        uses: actions/cache@v4
+        with:
+          path: web/videos/promo-*.mp4
+          key: mp4-${{ hashFiles('web/videos/promo-*.webm', 'web/videos/promo-*.webm.json', 'web/videos/voice/*.mp3', 'tools/videos/mp4.mjs') }}
+
+      - name: Make the marketing MP4s
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+        run: |
+          if ! ls web/videos/promo-*.mp4 >/dev/null 2>&1; then
+            which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          fi
+          node tools/videos/mp4.mjs
+          ls -l web/videos/promo-*.mp4 || true
 
       - name: Deploy database rules, indexes and the website
         if: steps.setup.outputs.ready == 'true'

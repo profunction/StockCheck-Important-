@@ -101,13 +101,15 @@ export function helpers(page, cues = [], t0 = Date.now()) {
   };
 }
 
-export async function film(name, seed, fn, { path = '/pos/', size = SIZE, lang = 'zh' } = {}) {
+export async function film(name, seed, fn, { path = '/pos/', size = SIZE, lang = 'zh', prep = null } = {}) {
   if (ONLY.length && !ONLY.includes(name)) return;
   const dir = join(OUT, `_raw_${name}`);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   const s = await start({ seedPatch: seed, viewport: size, recordVideo: dir, lang });
   if (seed?.branch) await s.page.addInitScript((b) => localStorage.setItem('pos.branch.w1', JSON.stringify(b)), seed.branch);
+  // Anything to set up before the first page shows (a promo's opening colour).
+  if (prep) await prep(s.page);
   const cues = [];
   const x = helpers(s.page, cues, Date.now());
   try {
