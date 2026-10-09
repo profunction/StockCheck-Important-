@@ -7,6 +7,8 @@ import { item, world } from './world.mjs';
 import { selfOrdering } from '../../api/selforder.mjs';
 
 export const SITE = 'stockcheck-fb58e.web.app';
+/** Where people ask for the free trial: the owner's WhatsApp. */
+export const WA = { show: '+65 8926 3660', link: 'wa.me/6589263660' };
 export const PHONE = { width: 540, height: 960 };
 export const W = 'workspaces/w1/';
 export const DAY = 86_400_000;

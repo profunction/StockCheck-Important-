@@ -20,7 +20,7 @@ import { item } from './world.mjs';
 import { film, SIZE } from './studio.mjs';
 import { reportText, summarize } from '../../api/bot.mjs';
 import {
-  CODE, DAY, GOLD, NAVY, PHONE, RED, SITE, TEAL, fx, memDb, phoneStyle, prep, punch, routeOrders, routeReadOrder, shop, telegramCard, unpunch,
+  CODE, DAY, GOLD, NAVY, PHONE, RED, SITE, TEAL, WA, fx, memDb, phoneStyle, prep, punch, routeOrders, routeReadOrder, shop, telegramCard, unpunch,
 } from './promo-kit.mjs';
 
 const DARK = 'radial-gradient(circle at 50% 40%,#2a0b10,#0a0406 70%)';
@@ -124,8 +124,8 @@ const A = {
     limit: '终身版<br>全马只卖',
     limitN: 50,
     limitSub: '套 · 卖完就没有',
-    cta: `<span class="tag">SuXin · One Business. Connected.</span><br>先免费用 <em>14 天</em><small>收银每月 RM38 起 · 全套 RM48 起</small><span class="cta">👉 私信「试用」· 马上帮你装</span><small>${SITE}</small>`,
-    ctaSay: '先免费用 14 天。私信「试用」，我们马上帮你装好。',
+    cta: `<span class="tag">SuXin · One Business. Connected.</span><br>先免费用 <em>14 天</em><small>收银每月 RM38 起 · 全套 RM48 起</small><span class="cta">👉 WhatsApp ${WA.show}</span><small>说「试用」· 马上免费帮你装好</small><small>${WA.link} · ${SITE}</small>`,
+    ctaSay: '先免费用 14 天。WhatsApp 8926 3660，说「试用」，我们马上免费帮你装好。',
   },
   ms: {
     badge: '👀 Tonton sampai habis — tawaran terhad',
@@ -164,8 +164,8 @@ const A = {
     limit: 'Pakej seumur hidup<br>hanya',
     limitN: 50,
     limitSub: 'set di seluruh Malaysia',
-    cta: `<span class="tag">SuXin · One Business. Connected.</span><br>Cuba <em>percuma 14 hari</em><small>POS dari RM38 sebulan · Pakej penuh RM48</small><span class="cta">👉 DM "CUBA" · kami pasang untuk anda</span><small>${SITE}</small>`,
-    ctaSay: 'Cuba percuma 14 hari. DM CUBA, kami pasangkan untuk anda.',
+    cta: `<span class="tag">SuXin · One Business. Connected.</span><br>Cuba <em>percuma 14 hari</em><small>POS dari RM38 sebulan · Pakej penuh RM48</small><span class="cta">👉 WhatsApp ${WA.show}</span><small>Tulis "CUBA" · kami pasang percuma</small><small>${WA.link} · ${SITE}</small>`,
+    ctaSay: 'Cuba percuma 14 hari. WhatsApp 8926 3660, tulis CUBA, kami pasangkan percuma.',
   },
 };
 

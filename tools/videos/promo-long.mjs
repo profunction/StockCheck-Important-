@@ -20,7 +20,7 @@ import { item } from './world.mjs';
 import { film, SIZE } from './studio.mjs';
 import { reportText, summarize } from '../../api/bot.mjs';
 import {
-  CODE, DAY, GOLD, NAVY, PHONE, RED, SITE, TEAL, fx, memDb, phoneStyle, prep, punch, routeOrders, routeReadOrder, shop, telegramCard, unpunch,
+  CODE, DAY, GOLD, NAVY, PHONE, RED, SITE, TEAL, WA, fx, memDb, phoneStyle, prep, punch, routeOrders, routeReadOrder, shop, telegramCard, unpunch,
 } from './promo-kit.mjs';
 
 // ------------------------------------------------------------ the words
@@ -52,7 +52,7 @@ const T = {
     offline: '断网？<br><em>照样卖</em><small>有网自动同步</small>',
     langs: '中文 · English<br>Bahasa Melayu<small>员工是外劳也会用</small>',
     end: ['14 天免费试用', '收银每月 RM38 起 · 全套 RM48 起', '终身版全马<em>只卖 50 套</em>', SITE],
-    endSay: '14 天免费试用。收银每月 RM38 起。终身版全马只卖 50 套，卖完就没有。',
+    endSay: '14 天免费试用。终身版全马只卖 50 套。WhatsApp 8926 3660 马上帮你装。',
   },
   ms: {
     hook: ['Bos, dengar sini!', 'Berapa duit kedai anda<br><em>hilang</em> setiap bulan?'],
@@ -80,7 +80,7 @@ const T = {
     offline: 'Internet putus?<br><em>Terus jual</em><small>Disegerak bila online</small>',
     langs: 'Bahasa Melayu · English<br>中文<small>Semua pekerja boleh guna</small>',
     end: ['Cuba percuma 14 hari', 'POS dari RM38 sebulan · Pakej penuh RM48', 'Seumur hidup: <em>terhad 50 set</em>', SITE],
-    endSay: 'Cuba percuma 14 hari. POS dari RM38 sebulan. Pakej seumur hidup terhad 50 set sahaja.',
+    endSay: 'Cuba percuma 14 hari. Pakej seumur hidup terhad 50 set. WhatsApp 8926 3660.',
   },
 };
 
@@ -201,7 +201,7 @@ const longFilm = (lang, phone) => async (page, x, base) => {
   // 8. Two more reasons, and the offer.
   await hit(w.offline, { bg: NAVY, ms: 1900, en: 'Internet down? Keep selling' });
   await hit(w.langs, { bg: TEAL, ms: 1900, en: 'Chinese, English, Malay' });
-  await hit(`<span class="tag">SuXin · One Business. Connected.</span><br>${w.end[0]}<small>${w.end[1]}</small><small style="font-size:.5em;color:#ffd166;font-weight:900">${w.end[2]}</small><small>${w.end[3]}</small>`,
+  await hit(`<span class="tag">SuXin · One Business. Connected.</span><br>${w.end[0]}<small>${w.end[1]}</small><small style="font-size:.5em;color:#ffd166;font-weight:900">${w.end[2]}</small><span class="cta" style="display:inline-block;margin-top:18px;background:#25d366;color:#fff;border-radius:999px;padding:12px 22px;font-size:.45em;font-weight:900">📱 WhatsApp ${WA.show}</span><small>${w.end[3]}</small>`,
     { bg: NAVY, ms: 6500, say: w.endSay, en: 'Free for 14 days' });
 };
 

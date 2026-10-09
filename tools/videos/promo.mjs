@@ -12,6 +12,7 @@ import { item, world } from './world.mjs';
 import { film } from './studio.mjs';
 
 const SITE = 'stockcheck-fb58e.web.app';
+const WA = 'WhatsApp +65 8926 3660';
 const PHONE = { width: 540, height: 960 };
 const NAVY = 'linear-gradient(160deg,#0b1b2b,#12385a 60%,#0f4c4a)';
 
@@ -81,7 +82,7 @@ await film('promo-1-wide', shop({ mode: 'SUPERMARKET', withSales: true }), async
   await x.caption('仓库系统：库存、在途、订购中，一目了然', 'Sistem gudang: stok, dalam transit, dipesan', 2400);
   await x.go(base, '/warehouse/#/purchase/reorder', 1400);
   await x.caption('低库存自动建议补货，一键生成采购单', 'Stok rendah? Cadangan pesanan automatik', 2400);
-  await endCard(page, x, ['免费试用 14 天', '每月 RM48 起 · 收银 + 盘点 app + 仓库', '终身版限量 50 套', SITE], 5000);
+  await endCard(page, x, ['免费试用 14 天', '每月 RM48 起 · 收银 + 盘点 app + 仓库', '终身版限量 50 套 · ' + SITE, WA], 5000);
 });
 
 // ------------------------------------------------------------ 9:16, zh + BM
@@ -104,7 +105,7 @@ await film('promo-2-reel-zh', shop({ mode: 'SUPERMARKET' }), async (page, x, bas
   await x.go(base, '/warehouse/#/stock', 1300);
   await phoneStyle(page);
   await x.caption('什么在哪里、还剩多少，一查就知道', 'Stok di mana, berapa tinggal — terus tahu', 2200);
-  await endCard(page, x, ['14 天免费试用', '每月 RM48 起', '终身版限量 50 套', SITE], 4500);
+  await endCard(page, x, ['14 天免费试用', '每月 RM48 起', '终身版限量 50 套 · ' + SITE, WA], 4500);
 }, { size: PHONE });
 
 // --------------------------------------------------------------- 9:16, BM
@@ -124,5 +125,5 @@ await film('promo-3-reel-bm', shop({ mode: 'SUPERMARKET' }), async (page, x, bas
   await x.go(base, '/warehouse/#/purchase/reorder', 1400);
   await phoneStyle(page);
   await x.caption('Stok rendah? Pesanan dicadang automatik', 'Low stock? Reorder suggested', 2200);
-  await endCard(page, x, ['Cuba percuma 14 hari', 'Dari RM48 sebulan', 'Seumur hidup: terhad 50 set', SITE], 4500);
+  await endCard(page, x, ['Cuba percuma 14 hari', 'Dari RM48 sebulan', 'Seumur hidup: terhad 50 set · ' + SITE, WA], 4500);
 }, { size: PHONE, lang: 'ms' });
