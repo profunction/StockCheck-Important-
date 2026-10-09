@@ -50,6 +50,8 @@ export function helpers(page, cues = [], t0 = Date.now()) {
   return {
     wait,
     cue,
+    /** A sound effect for the MP4 (tools/videos/mp4.mjs), [after] ms from now: whoosh, ding, beep, cash, hit. */
+    mark(sfx, after = 0) { cues.push({ t: Date.now() - t0 + after, sfx }); },
     /** Shows [zh] with [en] under it for [ms]; [bm] is only spoken (Malay pages). */
     async caption(zh, en = '', ms = 2300, bm = '') {
       await overlay();
@@ -73,7 +75,7 @@ export function helpers(page, cues = [], t0 = Date.now()) {
       const el = page.locator(selector).first();
       await el.scrollIntoViewIfNeeded();
       const box = await el.boundingBox();
-      await page.evaluate(([x, y]) => { const c = document.getElementById('demo-cursor'); c.style.left = `${x}px`; c.style.top = `${y}px`; }, [box.x + box.width / 2, box.y + box.height / 2]);
+      await page.evaluate(([x, y]) => { const c = document.getElementById('demo-cursor'); c.style.display = ''; c.style.left = `${x}px`; c.style.top = `${y}px`; }, [box.x + box.width / 2, box.y + box.height / 2]);
       await wait(600);
     },
     async click(selector, after = 650) {
