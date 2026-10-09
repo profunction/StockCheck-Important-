@@ -416,6 +416,22 @@ let failed = 0;
     const [text, lang] = await page.evaluate(() => window.__spoken[0]);
     if (!/收银/.test(text) || !lang.startsWith('zh')) throw new Error(`${text} ${lang}`);
   });
+  await step('guide: the recorded voice is played when there is one, the device\'s otherwise', async () => {
+    const asked = [];
+    await page.route(/\.webm\.voice\.json/, (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify(Array.from({ length: 20 }, (_, i) => ({ zh: `voice/step${i}.mp3` }))) }));
+    // The recording cannot be played here: the device's voice takes over.
+    await page.route(/\/videos\/voice\/.*\.mp3/, (r) => { asked.push(r.request().url()); return r.fulfill({ status: 404 }); });
+    await page.goto(`${base}/guide/#pos`);
+    await page.reload();
+    await page.waitForSelector('.guide video');
+    await page.evaluate(() => { window.__spoken.length = 0; const v = document.querySelector('.guide video'); v.muted = true; v.play(); });
+    await page.waitForFunction(() => window.__spoken.length > 0, null, { timeout: 20000 });
+    if (!asked.some((u) => u.endsWith('/videos/voice/step0.mp3'))) throw new Error(`recording not asked for: ${asked.join(' ')}`);
+    const rate = await page.evaluate(() => document.querySelector('.guide video').playbackRate);
+    if (!(rate > 0)) throw new Error(`rate ${rate}`);
+    await page.unroute(/\.webm\.voice\.json/);
+    await page.unroute(/\/videos\/voice\/.*\.mp3/);
+  });
   await step('guide: the voice can be switched off', async () => {
     await page.click('.guide [data-act="narrate"] >> nth=0');
     await page.waitForSelector('.guide [data-act="narrate"]:has-text("关")');

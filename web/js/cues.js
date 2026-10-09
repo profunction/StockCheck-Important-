@@ -18,3 +18,8 @@ export function cuesBetween(cues, from, to) {
 export function cuesUrl(src) {
   return String(src).replace(/(\.webm)(\?[^#]*)?$/, '$1.json$2');
 }
+
+/** Where a video's recorded voice is listed: <video>.voice.json (made by tools/videos/voice.mjs). */
+export function voiceUrl(src) {
+  return String(src).replace(/(\.webm)(\?[^#]*)?$/, '$1.voice.json$2');
+}

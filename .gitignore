@@ -46,3 +46,5 @@ platform/node_modules/
 # APKs are put on the website by the deploy, never committed.
 web/download/*.apk
 webapps-out/
+web/videos/voice/
+web/videos/**/*.voice.json

@@ -29,6 +29,7 @@ on:
       - 'site/**'
       - 'api/**'
       - 'rules-test/**'
+      - 'tools/videos/voice.mjs'
       - '.github/workflows/deploy-firebase.yml'
 
 permissions:
@@ -160,6 +161,37 @@ jobs:
               target: { namespace: "android_app", package_name: p, sha256_cert_fingerprints: fps } })), null, 2));
           ' > web/.well-known/assetlinks.json
           cat web/.well-known/assetlinks.json
+
+      # The guide videos' voice: a recorded male voice (Google Cloud
+      # Text-to-Speech, tools/videos/voice.mjs), made once per step and kept
+      # between deploys. If it cannot be made, the pages use the device's
+      # own voice and the website still goes out.
+      - name: Keep the guide voice recordings between deploys
+        if: steps.setup.outputs.ready == 'true'
+        uses: actions/cache@v4
+        with:
+          path: web/videos/voice
+          key: voice-${{ hashFiles('web/videos/**/*.webm.json', 'tools/videos/voice.mjs') }}
+          restore-keys: voice-
+
+      - uses: google-github-actions/auth@v2
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+
+      - name: Record the guide videos' voice
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+        run: |
+          gcloud services enable texttospeech.googleapis.com --project "$PROJECT" \
+            || echo "::warning::Could not switch on Text-to-Speech; switch it on once at https://console.cloud.google.com/apis/library/texttospeech.googleapis.com?project=$PROJECT"
+          GCP_TOKEN=$(gcloud auth print-access-token) node tools/videos/voice.mjs
+          du -sh web/videos/voice 2>/dev/null || true
 
       - name: Deploy database rules, indexes and the website
         if: steps.setup.outputs.ready == 'true'
