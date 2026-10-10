@@ -9,7 +9,10 @@
  * website is exactly the files in web/.
  */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword as signInOn, signOut as signOutOf } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {
+  createUserWithEmailAndPassword, getAuth, GoogleAuthProvider, linkWithPopup, reauthenticateWithPopup, signInWithEmailAndPassword as signInOn,
+  signInWithPopup, signInWithRedirect, signOut as signOutOf,
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
   doc as docOn,
   getDoc as getDocOn,
@@ -104,6 +107,60 @@ export async function verifyAdmin(email, password, wsId) {
   checkApp ??= initializeApp(config, 'check');
   const checkAuth = getAuth(checkApp);
   const result = await signInOn(checkAuth, email, password);
+  try {
+    const snap = await getDocOn(docOn(getFirestore(checkApp), 'workspaces', wsId, 'users', result.user.uid));
+    const p = snap.exists() ? snap.data() : null;
+    if (!p || p.roleId !== 'admin' || p.active !== true) {
+      const err = new Error('not an admin');
+      err.code = 'not-admin';
+      throw err;
+    }
+  } finally {
+    await signOutOf(checkAuth).catch(() => {});
+  }
+}
+
+// ------------------------------------------------------------- Google
+
+/** Google's account chooser, every time (a shared counter computer has several). */
+function google() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  return provider;
+}
+
+/**
+ * Signs in with a Google account. A pop-up first; where pop-ups are blocked
+ * (some phones, in-app browsers) the whole page goes to Google and back.
+ */
+export async function signInWithGoogle() {
+  try {
+    return await signInWithPopup(auth, google());
+  } catch (err) {
+    if (/popup-blocked|operation-not-supported/.test(err?.code || '')) return signInWithRedirect(auth, google());
+    throw err;
+  }
+}
+
+/** Adds Google to the signed-in account, so either way of signing in opens it. */
+export const linkGoogle = () => linkWithPopup(auth.currentUser, google());
+
+/** Proves it is still the account's owner, for an account that signs in with Google. */
+export const reauthGoogle = () => reauthenticateWithPopup(auth.currentUser, google());
+
+const providers = () => (auth?.currentUser?.providerData || []).map((p) => p.providerId);
+/** Whether the signed-in account has a password (else it signs in with Google only). */
+export const hasPassword = () => providers().includes('password');
+export const hasGoogle = () => providers().includes('google.com');
+
+/**
+ * verifyAdmin for an admin who signs in with Google: their Google account
+ * chosen on a second app, so the cashier stays signed in.
+ */
+export async function verifyAdminGoogle(wsId) {
+  checkApp ??= initializeApp(config, 'check');
+  const checkAuth = getAuth(checkApp);
+  const result = await signInWithPopup(checkAuth, google());
   try {
     const snap = await getDocOn(docOn(getFirestore(checkApp), 'workspaces', wsId, 'users', result.user.uid));
     const p = snap.exists() ? snap.data() : null;

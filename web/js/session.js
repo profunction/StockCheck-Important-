@@ -122,7 +122,7 @@ export const ws = (...path) => ['workspaces', session.ws, ...path].join('/');
 
 export async function loadSession(user) {
   const index = await getDoc(doc(db, 'userIndex', user.uid));
-  if (!index.exists()) throw new Error(t('errNoCompany'));
+  if (!index.exists()) throw Object.assign(new Error(t('errNoCompany')), { code: 'no-company' });
   const wsId = index.data().workspaceId;
 
   const profileSnap = await getDoc(doc(db, 'workspaces', wsId, 'users', user.uid));

@@ -579,3 +579,9 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .theme-toggle > span { display: inline-flex; align-items: center; gap: 8px; }
 .theme-toggle .when-light, :root[data-theme="light"] .theme-toggle .when-dark { display: none; }
 :root[data-theme="light"] .theme-toggle .when-light { display: inline-flex; }
+
+/* Signing in with Google */
+.google-btn { width: 100%; background: #fff; color: #1f1f1f; border-color: #dadce0; font-weight: 600; }
+.google-btn:hover { background: #f8faff; border-color: #c6cbd1; }
+.or-line { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+.or-line::before, .or-line::after { content: ""; flex: 1; border-top: 1px solid var(--line); }

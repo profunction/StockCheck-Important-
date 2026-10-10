@@ -12,7 +12,7 @@
  * It is a lock on the screens, for the counter. What each person may do is
  * still decided by their role and the database rules, locked or not.
  */
-import { verifyAdmin } from './fb.js';
+import { verifyAdmin, verifyAdminGoogle } from './fb.js';
 import { h, local, modal, toast } from './dom.js';
 import { addStrings, t } from './i18n.js';
 import { icon } from './icons.js';
@@ -28,21 +28,21 @@ addStrings({
     tlUnlockTitle: 'Unlock this till', tlHelp: 'Locked, this computer shows only the till. An admin’s email and password are needed to lock and to unlock.',
     tlAdminEmail: 'Admin email', tlAdminPassword: 'Admin password', tlWrong: 'Wrong password, or that account is not this company’s admin.',
     tlDoneLock: 'Till locked: only the till is open on this computer.', tlDoneUnlock: 'Till unlocked',
-    tlOnlyTill: 'This computer is locked to the till. An admin can unlock it.',
+    tlOnlyTill: 'This computer is locked to the till. An admin can unlock it.', tlGoogle: 'Admin: confirm with Google',
   },
   zh: {
     tlLock: '锁定收银', tlUnlock: '解锁', tlLocked: '收银已锁定', tlLockTitle: '锁定这台收银机',
     tlUnlockTitle: '解锁这台收银机', tlHelp: '锁定后，这台电脑只能用收银页面。锁定和解锁都要输入管理员的 email 和密码。',
     tlAdminEmail: '管理员 email', tlAdminPassword: '管理员密码', tlWrong: '密码不对，或这个账号不是这间公司的管理员。',
     tlDoneLock: '已锁定：这台电脑只能用收银。', tlDoneUnlock: '已解锁',
-    tlOnlyTill: '这台电脑已锁定，只能用收银。管理员可以解锁。',
+    tlOnlyTill: '这台电脑已锁定，只能用收银。管理员可以解锁。', tlGoogle: '管理员用 Google 确认',
   },
   ms: {
     tlLock: 'Kunci kaunter', tlUnlock: 'Buka kunci', tlLocked: 'Kaunter dikunci', tlLockTitle: 'Kunci kaunter ini',
     tlUnlockTitle: 'Buka kunci kaunter ini', tlHelp: 'Bila dikunci, komputer ini hanya tunjuk kaunter. E-mel dan kata laluan admin diperlukan untuk kunci dan buka.',
     tlAdminEmail: 'E-mel admin', tlAdminPassword: 'Kata laluan admin', tlWrong: 'Kata laluan salah, atau akaun itu bukan admin syarikat ini.',
     tlDoneLock: 'Kaunter dikunci: hanya kaunter dibuka di komputer ini.', tlDoneUnlock: 'Kunci dibuka',
-    tlOnlyTill: 'Komputer ini dikunci pada kaunter. Admin boleh membukanya.',
+    tlOnlyTill: 'Komputer ini dikunci pada kaunter. Admin boleh membukanya.', tlGoogle: 'Admin: sahkan dengan Google',
   },
 });
 
@@ -79,6 +79,22 @@ export function toggleTillLock(after = () => {}) {
       after(locking);
     };
     ok.onclick = submit;
+    // An admin who signs in with Google confirms with their Google account.
+    const viaGoogle = h('button', { 'data-act': 'till-lock-google', onclick: async () => {
+      error.textContent = '';
+      viaGoogle.disabled = true;
+      try {
+        await verifyAdminGoogle(session.ws);
+      } catch (err) {
+        if (!/popup-closed|cancelled-popup/.test(err?.code || '')) error.textContent = t('tlWrong');
+        viaGoogle.disabled = false;
+        return;
+      }
+      local.set(KEY, locking);
+      toast(locking ? t('tlDoneLock') : t('tlDoneUnlock'), 'ok');
+      close();
+      after(locking);
+    } }, t('tlGoogle'));
     password.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
     setTimeout(() => (email.value ? password : email).focus(), 50);
     return [
@@ -87,7 +103,7 @@ export function toggleTillLock(after = () => {}) {
       h('label', { class: 'field' }, t('tlAdminEmail'), email),
       h('label', { class: 'field' }, t('tlAdminPassword'), password),
       error,
-      h('div', { class: 'actions' }, h('button', { onclick: close }, t('cancel')), ok),
+      h('div', { class: 'actions' }, h('button', { onclick: close }, t('cancel')), viaGoogle, ok),
     ];
   });
 }

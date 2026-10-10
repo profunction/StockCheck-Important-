@@ -10,7 +10,7 @@ const en = {
   sideHide: 'Hide menu', navProfile: 'Profile', profCompany: 'Company', profRole: 'Role', profStaff: 'Staff', profCode: 'Company code',
   profCodeHelp: 'Staff join with this code: on the sign-in page, Join company.', profMode: 'Till mode', profNoMode: 'Not chosen yet: the first time the till is opened it asks.',
   profChangeMode: 'Change mode', profAdminOnly: 'Only an admin can change the till mode.', profPassword: 'Your password, to confirm it is you',
-  profWrongPw: 'That password is not right.', profModeChanged: 'Till mode changed', profPickNew: 'Choose the new till mode',
+  profWrongPw: 'That password is not right.', profGoogle: 'Google account', profGoogleOn: 'Linked: you can sign in with Google', profGoogleLink: 'Link Google', profGoogleLinked: 'Google linked. Next time you can press "Sign in with Google".', profGoogleConfirm: 'Confirm with Google', profModeChanged: 'Till mode changed', profPickNew: 'Choose the new till mode',
   modeLocked: 'The till mode is set. To change it, an admin goes to Profile and enters their password.',
   modeLockFirst: 'Choose carefully: once set, only an admin can change it, on Profile, with their password.',
   // SuXin Every Data dashboard
@@ -74,7 +74,7 @@ const zh = {
   sideHide: '收起菜单', navProfile: '我的 Profile', profCompany: '公司', profRole: '角色', profStaff: '员工', profCode: '公司代码',
   profCodeHelp: '员工用这个代码加入：在登录页按「加入公司」。', profMode: '收银模式', profNoMode: '还没选：第一次打开收银时会问。',
   profChangeMode: '更换模式', profAdminOnly: '只有管理员可以更换收银模式。', profPassword: '输入你的密码，确认是你本人',
-  profWrongPw: '密码不对。', profModeChanged: '收银模式已更换', profPickNew: '选新的收银模式',
+  profWrongPw: '密码不对。', profGoogle: 'Google 账号', profGoogleOn: '已绑定：可以用 Google 登录', profGoogleLink: '绑定 Google', profGoogleLinked: '已绑定 Google。下次可以直接按「用 Google 登录」。', profGoogleConfirm: '用 Google 确认', profModeChanged: '收银模式已更换', profPickNew: '选新的收银模式',
   modeLocked: '收银模式已经选定。要更换：管理员到「我的 Profile」输入密码才可以换。',
   modeLockFirst: '请想清楚再选：选了以后，只有管理员到「我的 Profile」输入密码才可以换。',
   // SuXin Every Data dashboard
@@ -132,7 +132,7 @@ const ms = {
   sideHide: 'Sembunyi menu', navProfile: 'Profil', profCompany: 'Syarikat', profRole: 'Peranan', profStaff: 'Pekerja', profCode: 'Kod syarikat',
   profCodeHelp: 'Pekerja sertai dengan kod ini: di halaman log masuk, Sertai syarikat.', profMode: 'Mod kaunter', profNoMode: 'Belum dipilih: kali pertama kaunter dibuka ia akan bertanya.',
   profChangeMode: 'Tukar mod', profAdminOnly: 'Hanya admin boleh menukar mod kaunter.', profPassword: 'Kata laluan anda, untuk mengesahkan diri',
-  profWrongPw: 'Kata laluan itu salah.', profModeChanged: 'Mod kaunter ditukar', profPickNew: 'Pilih mod kaunter baharu',
+  profWrongPw: 'Kata laluan itu salah.', profGoogle: 'Akaun Google', profGoogleOn: 'Dipautkan: boleh log masuk dengan Google', profGoogleLink: 'Pautkan Google', profGoogleLinked: 'Google dipautkan. Lain kali tekan "Log masuk dengan Google".', profGoogleConfirm: 'Sahkan dengan Google', profModeChanged: 'Mod kaunter ditukar', profPickNew: 'Pilih mod kaunter baharu',
   modeLocked: 'Mod kaunter sudah ditetapkan. Untuk menukar, admin pergi ke Profil dan masukkan kata laluan.',
   modeLockFirst: 'Pilih dengan teliti: selepas ditetapkan, hanya admin boleh menukarnya di Profil dengan kata laluan.',
   // SuXin Every Data dashboard

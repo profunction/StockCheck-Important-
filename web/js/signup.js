@@ -14,6 +14,10 @@
  * waits for. Anything failing removes the account again, so a half-made
  * registration never blocks the email address.
  *
+ * With Google: the account already exists (signed in with Google), so only
+ * the company part is written, and nothing is taken back if it fails -- the
+ * person simply tries again.
+ *
  * Forgotten password: the email and the company code. Firebase sends the
  * reset link to the email only, so it reaches only the account's owner.
  */
@@ -29,10 +33,12 @@ export const TRIAL_MS = 14 * 24 * 60 * 60 * 1000;
 export const normaliseCode = (raw) => String(raw || '').trim().toUpperCase();
 
 /** What is wrong with a registration form, or '' when nothing is. */
-export function checkForm({ email, password, password2, code, companyName }, kind) {
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(email || '').trim())) return t('suErrEmail');
-  if (String(password || '').length < 6) return t('suErrPassword');
-  if (password !== password2) return t('suErrPassword2');
+export function checkForm({ email, password, password2, code, companyName }, kind, { google = false } = {}) {
+  if (!google) {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(email || '').trim())) return t('suErrEmail');
+    if (String(password || '').length < 6) return t('suErrPassword');
+    if (password !== password2) return t('suErrPassword2');
+  }
   const c = normaliseCode(code);
   if (kind === 'create') {
     if (!String(companyName || '').trim()) return t('suErrCompany');
@@ -53,9 +59,16 @@ function profileOf(user, name, email, roleId, code, now) {
   };
 }
 
-export async function createCompany({ name, email, password, companyName, code }) {
+/** The account for a registration: the Google one already signed in, or a new one with a password. */
+async function account({ user, email, password }) {
+  if (user) return { user, email: user.email || email || '', fresh: false };
+  const made = await createUserWithEmailAndPassword(auth, email.trim(), password);
+  return { user: made.user, email: email.trim(), fresh: true };
+}
+
+export async function createCompany({ name, email: typed, password, companyName, code, user: signedIn = null }) {
   const CODE = normaliseCode(code);
-  const { user } = await createUserWithEmailAndPassword(auth, email.trim(), password);
+  const { user, email, fresh } = await account({ user: signedIn, email: typed, password });
   try {
     if ((await getDoc(doc(db, 'workspaceCodes', CODE))).exists()) throw new Error(t('suErrCodeTaken'));
     const wsId = doc(collection(db, 'workspaces')).id;
@@ -73,14 +86,14 @@ export async function createCompany({ name, email, password, companyName, code }
     await setDoc(doc(db, 'userIndex', user.uid), { workspaceId: wsId, joinedAt: now });
     return wsId;
   } catch (err) {
-    await undo(user);
+    if (fresh) await undo(user);
     throw err;
   }
 }
 
-export async function joinCompany({ name, email, password, code }) {
+export async function joinCompany({ name, email: typed, password, code, user: signedIn = null }) {
   const CODE = normaliseCode(code);
-  const { user } = await createUserWithEmailAndPassword(auth, email.trim(), password);
+  const { user, email, fresh } = await account({ user: signedIn, email: typed, password });
   try {
     const found = await getDoc(doc(db, 'workspaceCodes', CODE)).catch(() => null);
     if (!found?.exists()) throw new Error(t('suErrCodeUnknown'));
@@ -90,7 +103,7 @@ export async function joinCompany({ name, email, password, code }) {
     await setDoc(doc(db, 'userIndex', user.uid), { workspaceId, joinedAt: now });
     return companyName || '';
   } catch (err) {
-    await undo(user);
+    if (fresh) await undo(user);
     throw err;
   }
 }
@@ -106,6 +119,9 @@ export async function resetPassword({ email, code }) {
 export function signupError(err) {
   const code = err?.code || '';
   if (code.includes('email-already-in-use')) return t('suErrTaken');
+  if (code.includes('account-exists-with-different-credential')) return t('errGoogleExists');
+  if (code.includes('operation-not-allowed') || code.includes('unauthorized-domain')) return t('errGoogleOff');
+  if (code.includes('credential-already-in-use')) return t('errGoogleTaken');
   if (code.includes('invalid-email')) return t('suErrEmail');
   if (code.includes('weak-password')) return t('suErrPassword');
   if (code.includes('too-many-requests')) return t('errTooMany');

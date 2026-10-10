@@ -7,7 +7,8 @@
  * company mid-day, so only an admin may, here, after typing their password
  * again. The database rules hold the admin half of that (pos/settings).
  */
-import { auth, db, doc, EmailAuthProvider, reauthenticateWithCredential, setDoc } from './fb.js';
+import { auth, db, doc, EmailAuthProvider, hasGoogle, hasPassword, linkGoogle, reauthenticateWithCredential, reauthGoogle, setDoc } from './fb.js';
+import { signupError } from './signup.js';
 import { h, modal, mount, toast } from './dom.js';
 import { t } from './i18n.js';
 import { icon } from './icons.js';
@@ -29,7 +30,18 @@ export function render(main) {
       row(t('profRole'), session.isAdmin ? 'Admin' : t('profStaff')),
       row(t('branch'), session.branchName()),
       session.isAdmin ? row(t('profCode'), session.joinCode) : null,
-      session.isAdmin ? h('p', { class: 'muted', style: { margin: 0 } }, t('profCodeHelp')) : null),
+      session.isAdmin ? h('p', { class: 'muted', style: { margin: 0 } }, t('profCodeHelp')) : null,
+      // Signing in with Google as well as the password.
+      hasGoogle() ? row(t('profGoogle'), t('profGoogleOn'))
+        : h('div', { class: 'prof-row' }, h('span', { class: 'muted' }, t('profGoogle')),
+          h('button', { 'data-act': 'link-google', onclick: async (e) => {
+            const b = e.currentTarget;
+            b.disabled = true;
+            try { await linkGoogle(); toast(t('profGoogleLinked'), 'ok'); render(main); } catch (err) {
+              if (!/popup-closed|cancelled-popup/.test(err?.code || '')) toast(signupError(err), 'error');
+              b.disabled = false;
+            }
+          } }, t('profGoogleLink')))),
     h('section', { class: 'card prof', 'data-part': 'mode' },
       h('h2', { style: { margin: 0 } }, t('profMode')),
       mode ? h('div', { class: 'modepick', style: { padding: 0, minHeight: 0, justifyItems: 'stretch' } }, modeCards(mode, () => {}))
@@ -47,16 +59,19 @@ function changeMode(main) {
     const cards = h('div', { class: 'modepick', style: { padding: 0, minHeight: 0, justifyItems: 'stretch' } });
     const draw = () => mount(cards, modeCards(picked, (m) => { picked = m; draw(); }));
     draw();
+    // An account without a password (Google only) confirms with Google instead.
+    const withPassword = hasPassword();
     const password = h('input', { type: 'password', autocomplete: 'current-password', 'aria-label': t('profPassword') });
     const error = h('p', { class: 'muted', style: { color: 'var(--danger)', margin: 0 } });
     const save = h('button', { class: 'primary' }, t('profChangeMode'));
     save.onclick = async () => {
       error.textContent = '';
       if (!picked) return;
-      if (!password.value) { error.textContent = t('profPassword'); return; }
+      if (withPassword && !password.value) { error.textContent = t('profPassword'); return; }
       save.disabled = true;
       try {
-        await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(session.email, password.value));
+        if (withPassword) await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(session.email, password.value));
+        else await reauthGoogle();
       } catch {
         error.textContent = t('profWrongPw');
         save.disabled = false;
@@ -78,7 +93,7 @@ function changeMode(main) {
     return [
       h('h2', {}, t('profPickNew')),
       cards,
-      h('label', { class: 'field' }, t('profPassword'), password),
+      withPassword ? h('label', { class: 'field' }, t('profPassword'), password) : h('p', { class: 'muted' }, t('profGoogleConfirm')),
       error,
       h('div', { class: 'actions' }, h('button', { onclick: close }, t('cancel')), save),
     ];

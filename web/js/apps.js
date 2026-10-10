@@ -13,7 +13,7 @@
  * Also the sign-in screen and start-up shared by the newer apps (the app
  * centre and SuXin Barcode Scan on the web).
  */
-import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signOut } from './fb.js';
+import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signInWithGoogle, signOut } from './fb.js';
 import { h, mount } from './dom.js';
 import { addStrings, getLang, LANGS, setLang, t } from './i18n.js';
 import { icon } from './icons.js';
@@ -22,7 +22,13 @@ import { checkForm, createCompany, joinCompany, resetPassword, signupError } fro
 
 addStrings({
   en: {
-    appCentre: 'SuXin apps', themeLight: 'Light mode', themeDark: 'Dark mode', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
+    appCentre: 'SuXin apps', themeLight: 'Light mode', themeDark: 'Dark mode',
+    gSignIn: 'Sign in with Google', gSignUp: 'Sign up with Google (no password)', gOr: 'or',
+    gStep: 'Signed in with Google as {email}. One more step: join your company with its code, or register a new company.',
+    gOther: 'Use another account',
+    errGoogleExists: 'This email already has a SuXin password. Sign in with the password, then open Profile and press "Link Google". After that Google works too.',
+    errGoogleOff: 'Google sign-in is not switched on yet. Use your email and password for now.',
+    errGoogleTaken: 'That Google account already belongs to another SuXin user.', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
     appLocked: 'Not in your plan', appBuy: 'See plans', appDenied: 'Ask your admin for access',
     appCentreLead: 'One sign-in for everything. Open what your plan includes; the rest can be added any time.',
     appPlan: 'Your plan', appNoPlan: 'Trial / no plan yet', appAddMore: 'Add more',
@@ -45,7 +51,13 @@ addStrings({
     suErrTaken: 'This email already has an account. Sign in, or use Forgot password.',
   },
   zh: {
-    appCentre: 'SuXin 应用', themeLight: '白天模式', themeDark: '夜间模式', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
+    appCentre: 'SuXin 应用', themeLight: '白天模式', themeDark: '夜间模式',
+    gSignIn: '用 Google 登录', gSignUp: '用 Google 注册（不用设密码）', gOr: '或',
+    gStep: '已用 Google 登录：{email}。还差一步：用公司代码加入你的公司，或注册新公司。',
+    gOther: '换一个账号',
+    errGoogleExists: '这个 email 已经设了 SuXin 密码。请先用密码登录，再到「我的 Profile」按「绑定 Google」，之后就可以用 Google 登录。',
+    errGoogleOff: 'Google 登录还没开通，请先用 email 和密码登录。',
+    errGoogleTaken: '这个 Google 账号已经是另一个 SuXin 用户的。', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
     appLocked: '你的配套没有包括', appBuy: '看配套', appDenied: '没有权限，请问管理员',
     appCentreLead: '一个账号用全部。配套包括的就能打开；没有的，随时可以增加。',
     appPlan: '你的配套', appNoPlan: '试用 / 还没有配套', appAddMore: '增加功能',
@@ -68,7 +80,13 @@ addStrings({
     suErrTaken: '这个 email 已经有账号了。请直接登录，或按「忘记密码」。',
   },
   ms: {
-    appCentre: 'Aplikasi SuXin', themeLight: 'Mod cerah', themeDark: 'Mod gelap', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
+    appCentre: 'Aplikasi SuXin', themeLight: 'Mod cerah', themeDark: 'Mod gelap',
+    gSignIn: 'Log masuk dengan Google', gSignUp: 'Daftar dengan Google (tanpa kata laluan)', gOr: 'atau',
+    gStep: 'Log masuk dengan Google sebagai {email}. Satu langkah lagi: sertai syarikat anda dengan kodnya, atau daftar syarikat baharu.',
+    gOther: 'Guna akaun lain',
+    errGoogleExists: 'E-mel ini sudah ada kata laluan SuXin. Log masuk dengan kata laluan, kemudian buka Profil dan tekan "Pautkan Google". Selepas itu Google juga boleh.',
+    errGoogleOff: 'Log masuk Google belum dihidupkan. Guna e-mel dan kata laluan dahulu.',
+    errGoogleTaken: 'Akaun Google itu sudah milik pengguna SuXin lain.', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
     appLocked: 'Tiada dalam pelan anda', appBuy: 'Lihat pelan', appDenied: 'Minta akses daripada admin',
     appCentreLead: 'Satu log masuk untuk semua. Buka apa yang ada dalam pelan; yang lain boleh ditambah bila-bila masa.',
     appPlan: 'Pelan anda', appNoPlan: 'Percubaan / belum ada pelan', appAddMore: 'Tambah fungsi',
@@ -169,6 +187,27 @@ function friendlyAuthError(err) {
 
 let registering = false;
 
+const G_LOGO = '<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+
+/** "Sign in with Google": a new account comes back to the "one more step" form. */
+function googleButton(label, error) {
+  const logo = h('span', { class: 'ic' });
+  logo.innerHTML = G_LOGO;
+  return h('button', {
+    type: 'button', class: 'google-btn', 'data-act': 'google',
+    onclick: async (e) => {
+      const b = e.currentTarget;
+      b.disabled = true; error.textContent = '';
+      try {
+        await signInWithGoogle();
+      } catch (err) {
+        // Closing Google's window is not an error.
+        if (!/popup-closed|cancelled-popup/.test(err?.code || '')) error.textContent = signupError(err);
+      } finally { b.disabled = false; }
+    },
+  }, logo, label);
+}
+
 /**
  * The sign-in screen, branded for one app, with registering and the
  * forgotten password beside it: #signin, #join, #create or #reset in the
@@ -202,7 +241,9 @@ export function signInScreen(app, brand, message = '', tab = '') {
           try { await signInWithEmailAndPassword(auth, email.value.trim(), password.value); } catch (err) { error.textContent = friendlyAuthError(err); busy(false); }
         },
       }, h('p', { class: 'muted', style: { margin: 0 } }, t('signInHint')), emailF, passF, error, submit,
-      h('button', { type: 'button', class: 'ghost', 'data-tab': 'reset', onclick: () => { mode = 'reset'; draw(); } }, t('forgotPassword'))));
+      h('button', { type: 'button', class: 'ghost', 'data-tab': 'reset', onclick: () => { mode = 'reset'; draw(); } }, t('forgotPassword')),
+      h('div', { class: 'or-line' }, h('span', {}, t('gOr'))),
+      googleButton(t('gSignIn'), error)));
       return;
     }
     if (mode === 'reset') {
@@ -249,6 +290,7 @@ export function signInScreen(app, brand, message = '', tab = '') {
         }
       },
     }, h('p', { class: 'muted', style: { margin: 0 } }, creating ? t('suCreateHelp') : t('suJoinHelp')),
+    googleButton(t('gSignUp'), error), h('div', { class: 'or-line' }, h('span', {}, t('gOr'))),
     personF, emailF, passF, pass2F, creating ? companyF : null, codeF, error, submit));
   };
   draw(message);
@@ -266,6 +308,50 @@ export function signInScreen(app, brand, message = '', tab = '') {
     h('section', { class: 'signin-form signin' },
       h('div', { class: 'auth-card' }, brandmark(40), tabs, box, langPicker()))));
 }
+
+/**
+ * A Google account with no company yet: join one with its code, or register
+ * a new one -- the same two ways as with a password, without the password.
+ */
+function googleFinishScreen(app, brand, user, message = '') {
+  signInScreen(app, brand, '', 'signin');
+  const card = app.querySelector('.auth-card');
+  let creating = /create/.test(location.hash);
+  const box = h('div', { style: { display: 'grid', gap: '14px' } });
+  const tabs = h('div', { class: 'seg auth-tabs' });
+  const draw = (note = message) => {
+    mount(tabs, [['join', 'suJoin'], ['create', 'suCreate']].map(([id, key]) =>
+      h('button', { type: 'button', class: (id === 'create') === creating ? 'on' : '', 'data-tab': id, onclick: () => { creating = id === 'create'; draw(''); } }, t(key))));
+    const field = (label, attrs) => { const input = h('input', { required: true, ...attrs }); return [input, h('label', { class: 'field' }, label, input)]; };
+    const [person, personF] = field(t('suName'), { autocomplete: 'name', value: user.displayName || '' });
+    const [company, companyF] = field(t('suCompany'), { autocomplete: 'organization' });
+    const [code, codeF] = field(creating ? t('suCodeNew') : t('suCode'), { autocapitalize: 'characters', autocomplete: 'off', autofocus: true });
+    const error = h('p', { class: 'muted auth-note', style: { color: 'var(--danger)', margin: 0 } }, note);
+    const submit = h('button', { class: 'primary', type: 'submit', 'data-act': 'google-finish' }, creating ? t('suCreateBtn') : t('suJoinBtn'));
+    mount(box, h('form', {
+      onsubmit: async (e) => {
+        e.preventDefault();
+        const form = { name: person.value, code: code.value, companyName: company.value, user };
+        const wrong = checkForm(form, creating ? 'create' : 'join', { google: true });
+        if (wrong) { error.textContent = wrong; return; }
+        submit.disabled = true; error.textContent = '';
+        try {
+          if (creating) await createCompany(form); else await joinCompany(form);
+          onUser?.(user);
+        } catch (err) {
+          error.textContent = signupError(err);
+          submit.disabled = false;
+        }
+      },
+    }, h('p', { class: 'muted', style: { margin: 0 } }, t('gStep').replace('{email}', user.email || '')),
+    personF, creating ? companyF : null, codeF, error, submit,
+    h('button', { type: 'button', class: 'ghost', 'data-act': 'google-other', onclick: () => signOut(auth) }, t('gOther'))));
+  };
+  draw();
+  mount(card, card.querySelector('.brandmark'), tabs, box, langPicker());
+}
+
+const isGoogle = (user) => (user?.providerData || []).some((p) => p.providerId === 'google.com');
 
 let onUser = null;
 
@@ -287,6 +373,8 @@ export function startApp(app, brand, render, { stop = () => {} } = {}) {
       if (location.hash.match(/^#\/?(signin|join|create|reset)$/)) history.replaceState(null, '', location.pathname);
       render();
     } catch (err) {
+      // Signed in with Google for the first time: finish registering instead.
+      if (err?.code === 'no-company' && isGoogle(user)) return googleFinishScreen(app, brand, user);
       await signOut(auth);
       signInScreen(app, brand, err.message || String(err), 'signin');
     }

@@ -63,6 +63,21 @@ export async function createUserWithEmailAndPassword(_a, email) {
   authCb?.(user);
   return { user };
 }
+// Google: the account chosen is window.__google (a test sets it), else Gina's.
+const googleUser = () => ({ uid: 'g1', email: 'g@gmail.com', displayName: 'Gina', ...(window.__google || {}), providerData: [{ providerId: 'google.com' }] });
+export async function signInWithGoogle() {
+  if (window.__googleError) { const e = new Error(window.__googleError); e.code = window.__googleError; throw e; }
+  const user = googleUser();
+  window.__signedOut = false;
+  auth.currentUser = user;
+  authCb?.(user);
+  return { user };
+}
+export async function linkGoogle() { window.__linkedGoogle = (window.__linkedGoogle || 0) + 1; auth.currentUser = { ...(auth.currentUser || {}), providerData: [{ providerId: 'password' }, { providerId: 'google.com' }] }; }
+export async function reauthGoogle() { window.__reauthed = (window.__reauthed || 0) + 1; }
+export const hasPassword = () => !(auth.currentUser?.providerData || [{ providerId: 'password' }]).every((p) => p.providerId !== 'password');
+export const hasGoogle = () => (auth.currentUser?.providerData || []).some((p) => p.providerId === 'google.com');
+export async function verifyAdminGoogle() { window.__googleChecked = (window.__googleChecked || 0) + 1; }
 // This browser's notification address: always granted here.
 export async function webPushToken(vapidKey) { window.__pushKey = vapidKey; return 'web-token-test'; }
 export async function idToken() { return 'test-id-token'; }
