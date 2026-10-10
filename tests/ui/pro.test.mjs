@@ -148,6 +148,8 @@ await step('SuXin Every Data: today, stock and the warehouse for a company with 
   await page.goto(base + '/data/');
   await page.waitForSelector('.cnt-top .brandmark:has-text("SuXin Every Data")');
   await page.waitForSelector('.dash-part .stat:has-text("今天销售")');
+  await page.waitForSelector('.dash-chart h3:has-text("每小时销售")');
+  await page.waitForSelector('.dash-side h3:has-text("顾客怎么付款")');
   await page.waitForSelector('.dash-part .stat:has-text("低库存")');
   await page.waitForSelector('.dash-part .stat:has-text("待收货的采购单")');
   await shot('pro-4-cloud');

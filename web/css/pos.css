@@ -663,3 +663,95 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .market .scanbar > .till-help::before { content: "▶"; font-size: 15px; }
 .market .scanbar .search-box { min-width: 300px; }
 .market .scanbar input.scan { border-radius: 999px; }
+
+/* SuXin Every Data, after the Square and Lightspeed back offices: a greeting,
+   big figures with how they compare with yesterday, sales by the hour, how
+   people paid, the best sellers and the latest receipts. */
+.data-main { gap: 4px; }
+.dash-hello { display: grid; gap: 2px; margin-bottom: 14px; }
+.dash-hello h1 { margin: 2px 0 0; font-family: var(--f-display); font-size: 28px; letter-spacing: -.02em; }
+.dash-hello p { margin: 4px 0 0; }
+.dash-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.dash-head h2 { margin: 0; font-family: var(--f-display); font-size: 18px; }
+.dash-link { color: var(--brand); font-weight: 600; text-decoration: none; font-size: 14px; white-space: nowrap; }
+.dash-link:hover { text-decoration: underline; }
+.dash-part .cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.stat.kpi { gap: 6px; padding: 16px 18px; border-radius: var(--radius); text-decoration: none; color: inherit; box-shadow: var(--shadow-1); transition: border-color .15s, transform .15s; }
+a.stat.kpi:hover { transform: translateY(-1px); }
+.kpi-top { display: flex; align-items: center; gap: 9px; }
+.kpi-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--brand-soft); color: var(--brand); flex-shrink: 0; }
+.stat.kpi .value { font-family: var(--f-display); font-size: 28px; line-height: 1.15; }
+.stat.kpi.lead { background: var(--grad-soft), var(--surface); border-color: color-mix(in srgb, var(--brand) 40%, var(--line)); }
+.stat.kpi.warn .kpi-ic { background: var(--accent-soft); color: var(--accent); }
+.stat.kpi.warn .value { color: var(--accent); }
+.stat.kpi.bad .kpi-ic { background: var(--danger-soft); color: var(--danger); }
+.stat.kpi.bad .value { color: var(--danger); }
+.stat.kpi.skeleton { min-height: 104px; opacity: .6; }
+.kpi-sub { font-size: 13px; }
+.kpi-sub.up b { color: var(--ok); }
+.kpi-sub.down b { color: var(--danger); }
+
+.dash-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; margin-bottom: 12px; }
+.dash-card-head { display: flex; align-items: center; gap: 10px; justify-content: space-between; margin-bottom: 12px; }
+.dash-card-head h3, .dash-side h3 { margin: 0; font-size: 15px; }
+.dash-side { display: grid; gap: 10px; align-content: start; }
+.dash-side h3 + * { margin-top: -2px; }
+.dash-side .meter + h3 { margin-top: 10px; }
+.legend { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-left: 6px; }
+.legend .sw.today { background: var(--brand); }
+.legend .sw.yday { background: color-mix(in srgb, var(--brand) 22%, var(--surface-2)); }
+.dash-peak { margin: -6px 0 12px; font-size: 13px; }
+.dash-chart { display: flex; flex-direction: column; }
+.bars { display: flex; align-items: stretch; gap: 4px; flex: 1; min-height: 200px; }
+.bar { flex: 1 1 0; display: grid; grid-template-rows: 1fr auto; gap: 6px; min-width: 0; }
+.bar .col { position: relative; border-bottom: 1px solid var(--line-strong); }
+.bar .col span { position: absolute; bottom: 0; border-radius: 6px 6px 2px 2px; }
+.bar .col .y { left: 6%; right: 6%; background: color-mix(in srgb, var(--brand) 22%, var(--surface-2)); }
+.bar .col .t { left: 18%; right: 18%; background: var(--grad); }
+.bar.now .col { outline: 1.5px dashed color-mix(in srgb, var(--brand) 60%, transparent); outline-offset: 2px; }
+.bar .hr { font-size: 11px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; height: 14px; }
+
+.meter { display: grid; gap: 5px; }
+.meter-row { display: flex; align-items: baseline; gap: 10px; justify-content: space-between; font-size: 14px; }
+.meter-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meter-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.meter-track { height: 7px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+.meter-track span { display: block; height: 100%; border-radius: 99px; background: var(--grad); }
+.meter.warn .meter-track span { background: var(--accent); }
+.meter.bad .meter-track span { background: var(--danger); }
+.low-list { display: grid; gap: 12px; }
+
+.dash-receipts { padding-bottom: 6px; }
+.rc-list { display: grid; }
+.rc-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 11px 2px; border-top: 1px solid var(--line); }
+.rc-time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; }
+.rc-main { display: grid; min-width: 0; }
+.rc-main b { font-variant-numeric: tabular-nums; }
+.rc-main .muted { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-pay { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.rc-pay .chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; }
+.rc-total { font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 84px; text-align: right; }
+.dash-empty { display: grid; justify-items: center; gap: 6px; padding: 18px 0; color: var(--muted); }
+.dash-empty p { margin: 0; }
+
+@media (max-width: 760px) {
+  .dash-grid { grid-template-columns: 1fr; }
+  .dash-part .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat.kpi { padding: 13px 14px; }
+  .stat.kpi .value { font-size: 22px; }
+  .kpi-ic { width: 28px; height: 28px; }
+  .stat.kpi .label { font-size: 12.5px; }
+  .bars { min-height: 150px; gap: 3px; }
+  .dash-hello h1 { font-size: 23px; }
+  .rc-row { grid-template-columns: 44px minmax(0, 1fr) auto; }
+  .rc-pay { display: none; }
+}
+/* The dark header bar keeps a light-on-dark day/night button in both themes. */
+.cnt-top .theme-toggle { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .18); }
+.cnt-top .theme-toggle:hover { background: rgba(255, 255, 255, .08); }
+@media (max-width: 760px) {
+  .stat.kpi .value { font-size: 20px; white-space: nowrap; }
+  .rc-main b { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rc-total { min-width: 0; }
+}
