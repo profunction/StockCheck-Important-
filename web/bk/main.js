@@ -87,7 +87,10 @@ function seedChart() {
   saveChart(DEFAULT_ACCOUNTS).catch((err) => console.error(err));
 }
 
+let routing = 0;
 async function route() {
+  // Only the latest move draws: a page still loading from a moment ago gives way.
+  const mine = ++routing;
   const { group, sub } = currentRoute();
   const item = MENU.find((m) => m.id === group);
   if (!item) { location.replace('#/home'); return; }
@@ -108,6 +111,7 @@ async function route() {
   }
   try {
     const module = await item.page();
+    if (mine !== routing) return;
     // Each page draws from the live books, and again whenever they change.
     const draw = () => {
       if (!ready()) { mount(mainEl, h('div', { class: 'card' }, h('p', { class: 'muted' }, t('loading')))); return; }
