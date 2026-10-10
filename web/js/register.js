@@ -326,7 +326,7 @@ function build(kind) {
         els.chips,
         els.tiles),
       h('section', { class: 'ticket' },
-        h('div', { class: 'head' }, h('div', { class: 'scanwrap' }, ...scanParts(false)), els.orderInfo),
+        h('div', { class: 'head' }, h('div', { class: 'scanwrap' }, ...scanParts(false)), els.ticketTitle = h('div', { class: 'ttl' }), els.orderInfo),
         els.lines, els.sums, els.buttons)));
   }
   drawQtyFlag();
@@ -361,8 +361,9 @@ function tileFor(p, onPick) {
   const style = p.photoUrl
     ? { backgroundImage: `url("${p.photoUrl}")` }
     : cat?.color ? { background: `linear-gradient(135deg, ${cat.color}, color-mix(in srgb, ${cat.color} 70%, #000))` } : {};
-  return h('button', { class: 'tile', onclick: () => onPick(p) },
-    h('div', { class: `pic${p.photoUrl || cat?.color ? '' : ' plain'}`, style }, p.photoUrl ? '' : (p.name || p.barcode).slice(0, 2)),
+  return h('button', { class: 'tile', 'data-code': p.barcode, onclick: () => onPick(p) },
+    h('div', { class: `pic${p.photoUrl || cat?.color ? '' : ' plain'}`, style }, p.photoUrl ? '' : (p.name || p.barcode).slice(0, 2),
+      h('span', { class: 'in-cart', 'aria-hidden': 'true' })),
     h('div', { class: 'info' },
       h('span', { class: 'n' }, p.name || p.barcode),
       h('span', { class: 'p' }, p.priceSen != null ? rm(p.priceSen) : t('noPrice'))));
@@ -375,6 +376,28 @@ function drawTiles(target = els.tiles, q = search.trim().toLowerCase(), onPick =
     return;
   }
   mount(target, list.map((p) => tileFor(p, onPick)));
+  if (target === els.tiles) markTiles();
+}
+
+/** How many of each item are already in the order, on its tile (as Shopify POS shows it). */
+function markTiles() {
+  if (!els.tiles) return;
+  const inCart = new Map();
+  for (const l of cart.lines) inCart.set(l.barcode, (inCart.get(l.barcode) || 0) + (isWeighed(l.unit) ? UNIT : l.qtyMilli));
+  for (const tile of els.tiles.querySelectorAll('.tile[data-code]')) {
+    const qty = inCart.get(tile.dataset.code) || 0;
+    tile.classList.toggle('in', qty > 0);
+    const badge = tile.querySelector('.in-cart');
+    if (badge) badge.textContent = qty ? formatQty(qty) : '';
+  }
+}
+
+/** A small picture for an order line: the item's photo, else its category colour and first letters. */
+function thumbFor(line) {
+  const p = session.byCode.get(String(line.barcode || '').toLowerCase());
+  const cat = session.categories.find((c) => c.id === (p?.category || line.categoryId));
+  if (p?.photoUrl) return h('span', { class: 'thumb', style: { backgroundImage: `url("${p.photoUrl}")` } });
+  return h('span', { class: 'thumb plain', style: cat?.color ? { background: cat.color } : {} }, (line.name || '').slice(0, 2));
 }
 
 // ---------------------------------------------------------------- adding
@@ -765,6 +788,7 @@ function drawTicket() {
   mount(els.lines, empty
     ? h('div', { class: 'empty' }, icon(isFnb() ? 'dining' : 'cart', 34), h('span', {}, t('emptyTicket')))
     : cart.lines.map((line, index) => h('div', { class: `line${line.key === flash ? ' flash' : ''}`, onclick: () => editLine(index) },
+      thumbFor(line),
       h('span', { class: 'name' }, line.name, line.sent ? h('span', { class: 'sent', title: t('alreadySent') }, ' ✓') : ''),
       h('span', { class: 'num', style: { fontWeight: 700 } }, formatSen(lineTotal(line))),
       h('span', { class: 'sub' }, stepper(line), `× ${formatSen(line.unitPriceSen)}`,
@@ -775,6 +799,9 @@ function drawTicket() {
         : null)));
 
   mount(els.sums, sumRows(totals, r), r(t('total'), rm(totals.totalSen), 'total'));
+  const count = cart.lines.reduce((n, l) => n + (isWeighed(l.unit) ? 1 : l.qtyMilli / UNIT), 0);
+  if (els.ticketTitle) mount(els.ticketTitle, h('strong', {}, t('currentOrder')), h('span', { class: 'muted' }, empty ? '' : ` · ${formatQty(Math.round(count * UNIT))} ${t('itemsShort')}`));
+  markTiles();
 
   const unsent = cart.lines.some((l) => !l.sent);
   mount(els.buttons,

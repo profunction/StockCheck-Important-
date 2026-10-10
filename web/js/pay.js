@@ -53,9 +53,12 @@ export function openPayment(cart, totals, { onPaid }) {
     }, paymentLabel(m))));
 
     const due = suggested();
+    // Cash: the exact amount, then the notes a customer is likely to hand
+    // over -- the next ringgit, next 5, 10, 50 and 100 (as Square offers them).
+    const up = (step) => Math.ceil(due / step) * step;
+    const offers = [...new Set([100, 500, 1000, 5000, 10000].map(up))].filter((v) => v > due).sort((a, b) => a - b).slice(0, 4);
     mount(quick, method === 'CASH'
-      ? [due, ...[5, 10, 20, 50, 100].map((r) => r * 100).filter((v) => v > due)].slice(0, 5)
-        .map((v) => h('button', { type: 'button', onclick: () => { amount.value = formatSen(v); addPayment(); } }, v === due ? t('exact') : `RM ${v / 100}`))
+      ? [due, ...offers].map((v) => h('button', { type: 'button', onclick: () => { amount.value = formatSen(v); addPayment(); } }, v === due ? t('exact') : `RM ${formatSen(v).replace(/\.00$/, '')}`))
       : []);
 
     mount(list, payments.map((p, i) => h('div', { class: 'row' },
@@ -69,7 +72,7 @@ export function openPayment(cart, totals, { onPaid }) {
         `👤 ${cart.customer.name} · ${cart.customer.points} ${t('points')} (${rm(pointsValueSen(cart.customer.points))})`));
     }
     mount(status,
-      h('div', { class: 'bigsum' }, s.dueSen > 0 ? `${t('due')} ${rm(s.dueSen)}` : `${t('change')} ${rm(s.changeSen)}`),
+      h('div', { class: `bigsum ${s.dueSen > 0 ? 'due' : 'change'}` }, s.dueSen > 0 ? `${t('due')} ${rm(s.dueSen)}` : `${t('change')} ${rm(s.changeSen)}`),
       s.roundingSen ? h('div', { class: 'muted', style: { textAlign: 'center' } }, `${t('rounding')} ${formatSen(s.roundingSen)}`) : null);
     done.disabled = s.dueSen > 0 || payments.length === 0;
   }
@@ -109,14 +112,18 @@ export function openPayment(cart, totals, { onPaid }) {
         toast(err.message || String(err), 'error');
       }
     };
+    // Two columns, as on Square's checkout: what is owed and how, then the money.
     return [
-      h('h2', {}, `${t('charge')} ${rm(totals.totalSen)}`),
-      methodBox,
-      h('div', { class: 'row' }, h('div', { class: 'grow' }, amount), h('button', { type: 'button', onclick: addPayment }, t('addPayment'))),
-      quick,
-      list,
-      status,
-      h('div', { class: 'actions' }, h('button', { type: 'button', onclick: closeFn }, t('cancel')), done),
+      h('div', { class: 'paygrid' },
+        h('div', { class: 'pay-left' },
+          h('div', { class: 'pay-total' }, h('span', { class: 'muted' }, t('charge')), h('b', {}, rm(totals.totalSen))),
+          methodBox),
+        h('div', { class: 'pay-right' },
+          h('div', { class: 'row' }, h('div', { class: 'grow' }, amount), h('button', { type: 'button', onclick: addPayment }, t('addPayment'))),
+          quick,
+          list,
+          status,
+          h('div', { class: 'actions' }, h('button', { type: 'button', onclick: closeFn }, t('cancel')), done))),
     ];
   }, { wide: true });
   draw();
