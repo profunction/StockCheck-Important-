@@ -1,0 +1,80 @@
+/*
+ * SuXin Books, on top of pos.css and wh.css (the same shell as SuXin WMS):
+ * its own purple, invoice lines that fold onto a phone, and an A4 page for
+ * printing an invoice or a report.
+ */
+:root { --wh: #3b2f7a; --wh-soft: #ece9f7; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wh: #b3a8ec; --wh-soft: #221d3a; } }
+:root[data-theme="dark"] { --wh: #b3a8ec; --wh-soft: #221d3a; }
+
+.shell.bk .side { background: #221a47; }
+.shell.bk .side .group > a.top.current { background: rgba(179, 168, 236, .16); }
+.shell.bk .side .group > a.top.current .ic { color: #cfc6ff; }
+
+.bk-empty { padding: 18px 2px; }
+.bk-form h2 { margin: 18px 0 6px; font-size: 16px; }
+.bk-form h2:first-child { margin-top: 0; }
+.bk-form .row > select { flex: 1; min-width: 0; }
+.bk-lines { display: grid; gap: 10px; margin: 14px 0; }
+.bk-line { padding: 12px 14px; display: grid; gap: 10px; box-shadow: none; }
+.bk-line-top { display: flex; gap: 8px; align-items: center; }
+.bk-line-top .grow { flex: 1; min-width: 0; }
+.bk-line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px 10px; align-items: end; }
+.bk-line-grid .field { margin: 0; }
+.bk-line-amt { display: grid; justify-items: end; gap: 2px; padding-bottom: 8px; }
+.bk-line-amt strong { font-size: 17px; font-variant-numeric: tabular-nums; }
+input.num { text-align: right; font-variant-numeric: tabular-nums; }
+.bk-totals { display: grid; gap: 4px; margin: 0 0 14px auto; max-width: 320px; }
+.bk-totals > div { display: flex; justify-content: space-between; gap: 18px; font-variant-numeric: tabular-nums; }
+.bk-totals .grand { border-top: 1px solid var(--line); padding-top: 6px; font-size: 18px; }
+
+.bk-view { display: grid; gap: 14px; }
+.bk-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.bk-meta .muted { font-size: 12.5px; }
+.bk-owed { font-size: 17px; }
+.bk-warn { background: var(--accent-soft); border-radius: 12px; padding: 4px 14px; }
+.bk-einv h2, .bk-report h2 { margin-top: 0; }
+.sm { font-size: 12.5px; }
+.bk-neg { color: var(--danger); }
+.bk-ok { color: var(--brand); font-weight: 650; }
+.bk-in { color: var(--brand); }
+.bk-out { color: var(--danger); }
+.pill.bk-issued, .pill.bk-posted { background: var(--wh-soft); color: var(--wh); }
+.pill.bk-void { background: var(--danger-soft); color: var(--danger); text-decoration: line-through; }
+.bk-diff { font-weight: 650; font-variant-numeric: tabular-nums; }
+.bk-diff.ok { color: var(--brand); }
+.bk-diff.bad { color: var(--danger); }
+table.bk-je select, table.bk-je input { min-width: 110px; }
+.bk-range { align-items: end; margin-bottom: 14px; }
+.bk-range .field { margin: 0; }
+table.bk-fin tr.sec td { font-weight: 750; background: var(--surface-2); }
+table.bk-fin tr.sum td { font-weight: 650; }
+table.bk-fin tr.big td { font-weight: 800; font-size: 16px; border-top: 2px solid var(--line); }
+table.list tfoot td { font-weight: 750; background: var(--surface-2); border-top: 1px solid var(--line); }
+.bk-todo { display: grid; gap: 4px; margin-bottom: 16px; border-color: var(--wh); }
+.bk-todo h2 { margin: 0 0 6px; font-size: 16px; }
+.bk-todo-row { display: flex; gap: 10px; align-items: center; padding: 8px 4px; color: var(--text); text-decoration: none; border-radius: 8px; }
+.bk-todo-row:hover { background: var(--wh-soft); }
+.bk-todo-row .ic { color: var(--wh); }
+
+/* An invoice or a report on A4. */
+.bk-print { font: 12px/1.45 system-ui, "Noto Sans", "Noto Sans CJK SC", sans-serif; color: #000; padding: 10mm 12mm; }
+.bk-print .co { font-size: 18px; font-weight: 800; }
+.bk-print-head { display: flex; justify-content: space-between; gap: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 12px; }
+.bk-print .ttl { text-align: right; }
+.bk-print .ttl .big { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.bk-print .void { color: #b00; font-weight: 800; font-size: 16px; }
+.bk-print-to { margin-bottom: 12px; }
+.bk-print table { width: 100%; border-collapse: collapse; }
+.bk-print th, .bk-print td { border-bottom: 1px solid #999; padding: 5px 6px; text-align: left; }
+.bk-print th.num, .bk-print td.num { text-align: right; }
+.bk-print-tot { margin: 10px 0 0 auto; width: 260px; display: grid; gap: 3px; }
+.bk-print-tot > div { display: flex; justify-content: space-between; }
+.bk-print-tot .grand { font-weight: 800; font-size: 15px; border-top: 1px solid #000; padding-top: 4px; }
+.bk-print a { color: #000; text-decoration: none; }
+@media print { @page { size: A4; margin: 0; } }
+
+@media (max-width: 720px) {
+  .bk-line-grid { grid-template-columns: 1fr 1fr; }
+  .bk-totals { max-width: none; }
+}

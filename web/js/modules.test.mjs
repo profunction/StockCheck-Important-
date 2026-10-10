@@ -6,28 +6,28 @@ import { ERRORS, MODULES, can, enabledModules, getModule, isEnabled, moduleIds, 
 const lic = (plan, extra = {}) => ({ plan, status: 'ACTIVE', expiresAt: 0, ...extra });
 
 test('a plan with modules written on it: exactly those', () => {
-  assert.deepEqual(enabledModules(lic('STARTER', { modules: { app: true, pos: true, warehouse: false, api: false } })), ['count', 'pos', 'tax']);
+  assert.deepEqual(enabledModules(lic('STARTER', { modules: { app: true, pos: true, warehouse: false, api: false } })), ['count', 'pos', 'tax', 'accounting']);
   assert.deepEqual(enabledModules(lic('APP_ONLY', { modules: { app: true, pos: false, warehouse: false, api: false } })), ['count']);
 });
 
 test('a licence without a modules map: its plan decides', () => {
-  assert.deepEqual(enabledModules(lic('STARTER')), ['count', 'pos', 'warehouse', 'procurement', 'tax']);
-  assert.deepEqual(enabledModules(lic('UNLIMITED')), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api']);
-  assert.deepEqual(enabledModules(lic('POS_ONLY')), ['pos', 'warehouse', 'procurement', 'tax']);
+  assert.deepEqual(enabledModules(lic('STARTER')), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'accounting']);
+  assert.deepEqual(enabledModules(lic('UNLIMITED')), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'accounting']);
+  assert.deepEqual(enabledModules(lic('POS_ONLY')), ['pos', 'warehouse', 'procurement', 'tax', 'accounting']);
   assert.deepEqual(enabledModules(lic('API_ONLY')), ['api']);
 });
 
 test('no licence at all (shops from before plans): stock take, POS, warehouse', () => {
-  assert.deepEqual(enabledModules(null), ['count', 'pos', 'warehouse', 'procurement', 'tax']);
+  assert.deepEqual(enabledModules(null), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'accounting']);
 });
 
 test('an expired licence hides nothing: reports and exports stay open', () => {
-  assert.deepEqual(enabledModules({ plan: 'BUSINESS', status: 'EXPIRED', expiresAt: 1 }), ['count', 'pos', 'warehouse', 'procurement', 'tax']);
+  assert.deepEqual(enabledModules({ plan: 'BUSINESS', status: 'EXPIRED', expiresAt: 1 }), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'accounting']);
 });
 
 test('unknown and planned modules are off, even if a licence says on', () => {
   assert.equal(isEnabled(lic('UNLIMITED'), 'nope'), false);
-  assert.equal(isEnabled(lic('UNLIMITED', { modules: { accounting: true, pos: true } }), 'accounting'), false);
+  assert.equal(isEnabled(lic('UNLIMITED', { modules: { logistics: true, pos: true } }), 'logistics'), false);
   assert.throws(() => getModule('nope'), /Unknown module/);
 });
 
@@ -67,7 +67,8 @@ test('API token scopes: none means all; listed means only those', () => {
 test('the SuXin modules', () => {
   assert.deepEqual(moduleIds(), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'accounting', 'logistics', 'b2b']);
   assert.equal(MODULES.count.displayName.en, 'SuXin Barcode Scan');
-  for (const id of ['accounting', 'logistics', 'b2b']) assert.equal(MODULES[id].status, 'planned');
+  for (const id of ['logistics', 'b2b']) assert.equal(MODULES[id].status, 'planned');
+  assert.equal(MODULES.accounting.status, 'live');
 });
 
 test('every module is fully described', () => {

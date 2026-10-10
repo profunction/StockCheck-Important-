@@ -174,7 +174,7 @@ await plan.step('Add more: what is on, what can be added, what is coming', async
   await plan.page.goto(plan.base + '/pos/#/settings/addons');
   await plan.page.waitForSelector('.addon');
   const text = await plan.page.$eval('main', (el) => el.innerText);
-  if (!/SuXin Barcode Scan\s*已开启/.test(text) || !/SuXin POS\s*可以增加/.test(text) || !/SuXin Accounting\s*即将推出/.test(text)) throw new Error(text.slice(0, 600));
+  if (!/SuXin Barcode Scan\s*已开启/.test(text) || !/SuXin POS\s*可以增加/.test(text) || !/SuXin Books 账务\s*可以增加/.test(text) || !/SuXin Logistics\s*即将推出/.test(text)) throw new Error(text.slice(0, 600));
   if (/module|API scope|feature flag/i.test(text)) throw new Error('technical words shown to the customer');
 });
 await plan.step('SuXin Every Data follows the plan: stock shown, no sales, no warehouse', async () => {

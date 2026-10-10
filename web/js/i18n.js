@@ -81,7 +81,7 @@ const en = {
   move_RECEIVE: 'Goods received', move_WRITE_OFF: 'Write-off', move_SALE: 'Sale', move_REFUND: 'Return',
   employeesHelp: 'Staff sign in with the same account as the SuXin Barcode Scan app. Add new staff in the app: Profile → Users.',
   employeeList: 'Employee list', accessRights: 'Access rights', role: 'Role',
-  perm_POS_SELL: 'Use the register', perm_POS_VOID: 'Void sales', perm_POS_MANAGE: 'Manage items & settings', perm_POS_REPORTS: 'View reports',
+  perm_POS_SELL: 'Use the register', perm_POS_VOID: 'Void sales', perm_POS_MANAGE: 'Manage items & settings', perm_POS_REPORTS: 'View reports', perm_BOOKS_VIEW: 'See the accounts', perm_BOOKS_POST: 'Keep the accounts', perm_BOOKS_ADMIN: 'Run the accounts',
 };
 
 const zh = {
@@ -151,7 +151,7 @@ const zh = {
   move_RECEIVE: '进货', move_WRITE_OFF: '报损', move_SALE: '卖出', move_REFUND: '退货',
   employeesHelp: '员工用 SuXin Barcode Scan app 的同一个账号登录。新员工在 app 里新增：我的 → 用户管理。',
   employeeList: '员工名单', accessRights: '权限', role: '角色',
-  perm_POS_SELL: '可以收银', perm_POS_VOID: '可以作废', perm_POS_MANAGE: '管理商品和设置', perm_POS_REPORTS: '看报表',
+  perm_POS_SELL: '可以收银', perm_POS_VOID: '可以作废', perm_POS_MANAGE: '管理商品和设置', perm_POS_REPORTS: '看报表', perm_BOOKS_VIEW: '看账', perm_BOOKS_POST: '记账、开发票', perm_BOOKS_ADMIN: '管账（科目、结账）',
 };
 
 const ms = {
@@ -179,7 +179,7 @@ const ms = {
   paymentType: 'Cara bayaran', voidSale: 'Batal jualan', reason: 'Sebab', shopName: 'Nama kedai', address: 'Alamat', phone: 'Telefon',
   mode_RETAIL: 'Runcit / pasar raya / gudang', mode_FNB: 'Restoran / kafe (F&B)', mode_BOTH: 'Kedua-duanya',
   move_RECEIVE: 'Barang masuk', move_WRITE_OFF: 'Hapus kira', move_SALE: 'Jualan', move_REFUND: 'Pulangan',
-  perm_POS_SELL: 'Guna kaunter', perm_POS_VOID: 'Batal jualan', perm_POS_MANAGE: 'Urus barang & tetapan', perm_POS_REPORTS: 'Lihat laporan',
+  perm_POS_SELL: 'Guna kaunter', perm_POS_VOID: 'Batal jualan', perm_POS_MANAGE: 'Urus barang & tetapan', perm_POS_REPORTS: 'Lihat laporan', perm_BOOKS_VIEW: 'Lihat akaun', perm_BOOKS_POST: 'Simpan akaun', perm_BOOKS_ADMIN: 'Urus akaun',
   // Translated in one go when Malay was found falling back to English.
   email: "E-mel", enterEmailFirst: "Taip e-mel anda dahulu.", resetSent: "E-mel set semula kata laluan telah dihantar.",
   errTooMany: "Terlalu banyak cubaan. Tunggu seminit dan cuba lagi.", errNoCompany: "Akaun ini belum menyertai mana-mana syarikat. Daftar dalam aplikasi SuXin Barcode Scan dahulu.", errInactive: "Akaun ini telah dimatikan oleh admin anda.",

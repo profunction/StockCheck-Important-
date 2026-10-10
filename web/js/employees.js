@@ -11,7 +11,8 @@ import { t } from './i18n.js';
 import { session, ws } from './session.js';
 import { menuButton } from './main.js';
 
-const POS_PERMS = ['POS_SELL', 'POS_VOID', 'POS_MANAGE', 'POS_REPORTS'];
+// The till's permissions, and the accounts' (SuXin Books) beside them.
+const POS_PERMS = ['POS_SELL', 'POS_VOID', 'POS_MANAGE', 'POS_REPORTS', 'BOOKS_VIEW', 'BOOKS_POST', 'BOOKS_ADMIN'];
 
 export function render(main) {
   const usersBox = h('div', {}, h('p', { class: 'muted' }, t('loading')));

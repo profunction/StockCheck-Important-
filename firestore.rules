@@ -794,6 +794,100 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // ------------------------------------------------------ SuXin Books
+      //
+      // The company's accounts (web/bk/, the sums in web/js/books.js). Who
+      // keeps them: BOOKS_POST (and BOOKS_ADMIN, who also sets the company
+      // details, the chart and the lock date). BOOKS_VIEW only reads.
+      //
+      // The journal is written once and never changed: a mistake is put
+      // right by a reversing entry. Nothing is dated on or before the lock
+      // date (a closed period stays closed). An issued document only moves
+      // to void, or takes its e-invoice status; its lines never change.
+      function booksPath() {
+        return /databases/$(database)/documents/workspaces/$(ws)/bkMeta/settings;
+      }
+      function bookReader() {
+        return can('BOOKS_VIEW') || can('BOOKS_POST') || can('BOOKS_ADMIN');
+      }
+      function bookkeeper() {
+        return (can('BOOKS_POST') || can('BOOKS_ADMIN')) && !moduleOff('pos');
+      }
+      function lockDate() {
+        return exists(booksPath()) ? get(booksPath()).data.get('lockDate', 0) : 0;
+      }
+      function openDate(d) {
+        return d is int && d > lockDate();
+      }
+
+      match /bkMeta/{docId} {
+        allow read: if bookReader();
+        allow delete: if false;
+        allow create, update: if (docId == 'settings' && can('BOOKS_ADMIN') && !moduleOff('pos'))
+                     || (docId == 'chart' && (can('BOOKS_ADMIN') || (bookkeeper() && !exists(/databases/$(database)/documents/workspaces/$(ws)/bkMeta/chart))))
+                     || (docId == 'counters' && bookkeeper());
+      }
+
+      match /bkContacts/{contactId} {
+        allow read: if bookReader();
+        allow create, update: if bookkeeper() && request.resource.data.name is string && request.resource.data.name != '';
+        allow delete: if false;
+      }
+
+      match /bkJournal/{entryId} {
+        allow read: if bookReader();
+        allow create: if bookkeeper()
+                      && request.resource.data.lines is list
+                      && request.resource.data.lines.size() >= 2
+                      && request.resource.data.lines.size() <= 300
+                      && openDate(request.resource.data.date)
+                      && request.resource.data.createdByUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      match /bkDocs/{docId} {
+        allow read: if bookReader();
+        allow create: if bookkeeper()
+                      && request.resource.data.status in ['DRAFT', 'ISSUED']
+                      && request.resource.data.lines is list
+                      && request.resource.data.lines.size() <= 300
+                      && openDate(request.resource.data.date)
+                      && request.resource.data.createdByUid == request.auth.uid;
+        // A draft is still being written.
+        allow update: if bookkeeper()
+                      && resource.data.status == 'DRAFT'
+                      && request.resource.data.status in ['DRAFT', 'ISSUED']
+                      && request.resource.data.lines is list
+                      && request.resource.data.lines.size() <= 300
+                      && openDate(request.resource.data.date)
+                      && keepsAuthor(resource.data);
+        // An issued one: voided (in an open period), or its e-invoice noted.
+        allow update: if bookkeeper()
+                      && resource.data.status == 'ISSUED'
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'voidedAt', 'voidedByName', 'voidJournalId', 'einvoice', 'updatedAt'])
+                      && (request.resource.data.status == 'ISSUED'
+                          || (request.resource.data.status == 'VOID' && openDate(resource.data.date)));
+        allow delete: if bookkeeper() && resource.data.status == 'DRAFT';
+      }
+
+      match /bkPayments/{paymentId} {
+        allow read: if bookReader();
+        allow create: if bookkeeper()
+                      && request.resource.data.status == 'POSTED'
+                      && request.resource.data.amountSen is int
+                      && request.resource.data.amountSen > 0
+                      && openDate(request.resource.data.date)
+                      && request.resource.data.createdByUid == request.auth.uid;
+        allow update: if bookkeeper()
+                      && resource.data.status == 'POSTED'
+                      && request.resource.data.status == 'VOID'
+                      && openDate(resource.data.date)
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'voidedAt', 'voidedByName', 'voidJournalId', 'updatedAt']);
+        allow delete: if false;
+      }
+
       // -------------------------------------------- POS: register settings
       //
       // Receipt header, tax, service charge, payment methods, tables.

@@ -15,7 +15,7 @@ Underneath, every part is a **module** in one registry.
 | SuXin Procurement (purchase orders, suppliers, cost calculator) | `procurement` (needs `warehouse`) | `warehouse` | live |
 | SuXin Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
 | Open API | `api` | `api` | live |
-| SuXin Accounting | `accounting` | `accounting` | planned |
+| SuXin Books 账务 (e-invoices, bookkeeping, reports) | `accounting` | `pos` | live |
 | SuXin Logistics 配送 | `logistics` | `logistics` | planned |
 | SuXin B2B | `b2b` | `b2b` | planned |
 
@@ -26,6 +26,28 @@ SuXin Every Data 云后台 is not a module: it is the signed-in website itself. 
 dashboard (`web/js/dashboard.js`, menu `#/cloud`) shows today's sales only
 with the POS and `POS_REPORTS`, stock with Count or POS, and orders to
 receive / transfers on the way only with SuXin WMS.
+
+## SuXin Books (`/books/`, `web/bk/`)
+
+The company's own accounts, for the shop or its accountant. Permissions:
+`BOOKS_VIEW` (read), `BOOKS_POST` (issue, pay, post), `BOOKS_ADMIN`
+(company details, chart of accounts, lock date); an admin always may.
+
+- **Sums** — `web/js/books.js`: double entry in sen, the starting chart
+  (codes 1000–7000, each posting role one account), the entry each
+  document, payment and expense makes, and every report (trial balance,
+  profit and loss, balance sheet, ledger, aging, SST) worked out from the
+  journal, never stored.
+- **e-Invoice** — `web/js/einvoice-doc.js`: one document as LHDN MyInvois
+  UBL 2.1 JSON (v1.0): invoice 01, credit note 02, debit note 03, refund
+  note 04, self-billed 11. Downloaded for the portal; the validated UUID
+  is noted back on the document. Submitting through the MyInvois API is
+  the next step.
+- **Records** — `bkMeta/{settings,chart,counters}`, `bkContacts`, `bkDocs`
+  (DRAFT → ISSUED → VOID), `bkPayments` (POSTED → VOID), `bkJournal`
+  (create-only). Issuing, paying and voiding are one transaction with the
+  running number, so numbers are never taken twice. Nothing dated on or
+  before `bkMeta/settings.lockDate` is written (the rules hold it too).
 
 ## What SuXin WMS keeps beyond goods in and out
 

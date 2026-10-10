@@ -1,0 +1,16 @@
+{
+  "name": "SuXin Books",
+  "short_name": "Books",
+  "description": "e-Invoices, bookkeeping and financial reports for SuXin.",
+  "start_url": "/books/#/home",
+  "scope": "/books/",
+  "id": "/books/",
+  "display": "standalone",
+  "background_color": "#f1eff7",
+  "theme_color": "#3b2f7a",
+  "icons": [
+    { "src": "/icons/bk-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/bk-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/bk-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

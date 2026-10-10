@@ -87,7 +87,16 @@ enum class Permission(val group: PermissionGroup, val label: String) {
     // raising a purchase order commits the company's money, and whoever
     // approves one should not need to be the one who raised it.
     WH_PURCHASE(PermissionGroup.WAREHOUSE, "Raise purchase orders and manage suppliers"),
-    WH_APPROVE(PermissionGroup.WAREHOUSE, "Approve purchase orders");
+    WH_APPROVE(PermissionGroup.WAREHOUSE, "Approve purchase orders"),
+
+    // --- Accounts (SuXin Books, the website) ---
+    // Reading the books, keeping them (invoices, bills, payments, journal
+    // entries) and running them (the chart of accounts, closing a period,
+    // voiding) are separate: an accounts clerk keeps the books but must
+    // not be able to reopen a month the accountant has closed.
+    BOOKS_VIEW(PermissionGroup.ACCOUNTS, "View the accounts and reports"),
+    BOOKS_POST(PermissionGroup.ACCOUNTS, "Issue invoices and record payments and entries"),
+    BOOKS_ADMIN(PermissionGroup.ACCOUNTS, "Manage the chart of accounts and close periods");
 
     companion object {
         fun byNameOrNull(raw: String): Permission? = entries.firstOrNull { it.name == raw }
@@ -103,6 +112,7 @@ enum class PermissionGroup(val label: String) {
     ADMIN("Users & roles"),
     POS("Cash register (POS)"),
     WAREHOUSE("Warehouse"),
+    ACCOUNTS("Accounts"),
 }
 
 /**

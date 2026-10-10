@@ -31,6 +31,7 @@ addStrings({
     app_cloud: 'For the owner: today’s sales, stock, reports and staff.',
     brandTagline: 'One Business. Connected.',
     app_warehouse: 'Goods in and out, transfers, purchase orders, Pinduoduo purchases, cost calculator.',
+    app_books: 'e-Invoices for MyInvois, bookkeeping, profit and loss, who owes what.',
     suNoAccount: 'No account yet?', suJoin: 'Join company', suCreate: 'New company', suName: 'Your name', suPassword2: 'Password again', suCompany: 'Company name',
     suCode: 'Company code', suCodeNew: 'Choose a company code (4+ letters or numbers, e.g. KEDAIMAJU)',
     suJoinBtn: 'Join company', suCreateBtn: 'Create company and start the 14-day trial',
@@ -53,6 +54,7 @@ addStrings({
     app_cloud: '老板用：今天的销售、库存、报表和员工。',
     brandTagline: '一盘生意，一套系统。',
     app_warehouse: '进货出货、调货、采购单、拼多多进货、成本计算。',
+    app_books: 'MyInvois 电子发票、记账、损益表、应收应付。',
     suNoAccount: '还没有账号？', suJoin: '加入公司', suCreate: '注册新公司', suName: '你的名字', suPassword2: '再输入一次密码', suCompany: '公司名字',
     suCode: '公司代码', suCodeNew: '设一个公司代码（4 个字母或数字以上，例如 KEDAIMAJU）',
     suJoinBtn: '加入公司', suCreateBtn: '开公司，开始 14 天免费试用',
@@ -75,6 +77,7 @@ addStrings({
     app_cloud: 'Untuk pemilik: jualan hari ini, stok, laporan dan pekerja.',
     brandTagline: 'Satu Perniagaan. Semua Bersambung.',
     app_warehouse: 'Barang masuk dan keluar, pindahan, pesanan belian, belian Pinduoduo, kalkulator kos.',
+    app_books: 'e-Invois MyInvois, simpan kira, untung rugi, siapa berhutang.',
     suNoAccount: 'Belum ada akaun?', suJoin: 'Sertai syarikat', suCreate: 'Syarikat baharu', suName: 'Nama anda', suPassword2: 'Kata laluan sekali lagi', suCompany: 'Nama syarikat',
     suCode: 'Kod syarikat', suCodeNew: 'Pilih kod syarikat (4+ huruf atau nombor, cth. KEDAIMAJU)',
     suJoinBtn: 'Sertai syarikat', suCreateBtn: 'Buka syarikat dan mula percubaan 14 hari',
@@ -102,6 +105,8 @@ export const APPS = [
     perms: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'] },
   { id: 'warehouse', module: 'warehouse', name: 'SuXin WMS', href: '/warehouse/', icon: 'box', color: '#12385A',
     perms: ['RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE', 'POS_MANAGE', 'VIEW_ALL_HISTORY'] },
+  { id: 'books', module: 'accounting', name: 'SuXin Books', href: '/books/', icon: 'book', color: '#3B2F7A',
+    perms: ['BOOKS_VIEW', 'BOOKS_POST', 'BOOKS_ADMIN'] },
 ];
 
 /** 'open', 'locked' (the plan does not include it) or 'denied' (no permission). */

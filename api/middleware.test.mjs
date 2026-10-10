@@ -78,8 +78,8 @@ test('unknown modules and scopes are caught when the server starts', () => {
 });
 
 test('a module that is off answers with its id', async () => {
-  const { err } = await run([...chain, requireModule('accounting')]);
+  const { err } = await run([...chain, requireModule('logistics')]);
   assert.equal(err.code, 'MODULE_NOT_ENABLED');
-  assert.deepEqual(err.extra, { module: 'accounting' });
-  assert.match(err.message, /accounting module is not enabled/);
+  assert.deepEqual(err.extra, { module: 'logistics' });
+  assert.match(err.message, /logistics module is not enabled/);
 });

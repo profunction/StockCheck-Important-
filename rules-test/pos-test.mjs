@@ -53,6 +53,9 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
     approver: { name: 'Approver', permissions: ['WH_APPROVE'], builtIn: false },
     hr: { name: 'HR', permissions: ['VIEW_USERS', 'CREATE_USER', 'EDIT_USER', 'DELETE_USER', 'EDIT_ROLE', 'CHANGE_PERMISSION'], builtIn: false },
     warehouse_manager: { name: 'Warehouse Manager', permissions: ['POS_MANAGE', 'WH_APPROVE'], builtIn: true },
+    bookkeeper: { name: 'Bookkeeper', permissions: ['BOOKS_POST'], builtIn: false },
+    bookAdmin: { name: 'Accountant', permissions: ['BOOKS_ADMIN'], builtIn: false },
+    bookViewer: { name: 'Books viewer', permissions: ['BOOKS_VIEW'], builtIn: false },
   };
   for (const [id, data] of Object.entries(roles)) await setDoc(doc(db, ws(`roles/${id}`)), data);
 
@@ -72,6 +75,9 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, ws('users/buyer1')), user('buyer'));
   await setDoc(doc(db, ws('users/approver1')), user('approver'));
   await setDoc(doc(db, ws('users/hr1')), user('hr'));
+  await setDoc(doc(db, ws('users/bk1')), user('bookkeeper'));
+  await setDoc(doc(db, ws('users/bkAdmin')), user('bookAdmin'));
+  await setDoc(doc(db, ws('users/bkViewer')), user('bookViewer'));
   await setDoc(doc(db, ws('purchaseOrders/ordered')), { poNo: 'PO-9', branchId: '', status: 'ORDERED', lines: [{ barcode: '9555', qtyMilli: 10000, receivedMilli: 0, costSen: 1400 }], createdAt: 1 });
   await setDoc(doc(db, ws('purchaseOrders/submitted')), { poNo: 'PO-8', branchId: '', status: 'SUBMITTED', lines: [], createdAt: 1 });
   await setDoc(doc(db, ws('customers/c1')), { name: 'Ah Seng', points: 500 });
@@ -462,6 +468,49 @@ await expect('telegram: nobody files a chat but the bot', false,
 await expect('push: my own token', true, () => setDoc(doc(as('cashier1'), ws('users/cashier1/pushTokens/tok1')), { platform: 'web' }));
 await expect('push: not on someone else', false, () => setDoc(doc(as('cashier1'), ws('users/cashier2/pushTokens/tok1')), { platform: 'web' }));
 await expect('public config: readable, not writable', false, () => setDoc(doc(as('admin1'), 'publicConfig/telegram'), { username: 'x' }));
+
+// SuXin Books ----------------------------------------------------------------
+const LOCK = Date.UTC(2026, 0, 31);
+await testEnv.withSecurityRulesDisabled(async (ctx) => {
+  const db = ctx.firestore();
+  await setDoc(doc(db, ws('bkMeta/settings')), { lockDate: LOCK });
+  await setDoc(doc(db, ws('bkDocs/issued')), { type: 'INVOICE', status: 'ISSUED', no: 'INV-2026-00001', date: LOCK + 86400000, lines: [{ description: 'Milo', qtyMilli: 1000, unitPriceSen: 1590 }], createdByUid: 'bk1', createdAt: 1 });
+  await setDoc(doc(db, ws('bkDocs/old')), { type: 'INVOICE', status: 'ISSUED', no: 'INV-2026-00000', date: LOCK - 86400000, lines: [], createdByUid: 'bk1', createdAt: 1 });
+  await setDoc(doc(db, ws('bkDocs/draft')), { type: 'INVOICE', status: 'DRAFT', no: '', date: LOCK + 86400000, lines: [], createdByUid: 'bk1', createdAt: 1 });
+  await setDoc(doc(db, ws('bkJournal/j1')), { no: 'JE-1', date: LOCK + 86400000, lines: [{ account: '1100', debitSen: 1590, creditSen: 0 }, { account: '4000', debitSen: 0, creditSen: 1590 }], createdByUid: 'bk1', createdAt: 1 });
+  await setDoc(doc(db, ws('bkPayments/p1')), { direction: 'IN', status: 'POSTED', amountSen: 1590, date: LOCK + 86400000, allocations: [], createdByUid: 'bk1', createdAt: 1 });
+});
+const OPEN = LOCK + 2 * 86400000;
+const entry = (uid, date = OPEN) => ({ no: 'JE-2', date, memo: '', source: 'MANUAL', lines: [{ account: '6100', debitSen: 100000, creditSen: 0 }, { account: '1010', debitSen: 0, creditSen: 100000 }], createdByUid: uid, createdAt: 1 });
+const bkDoc = (uid, status = 'DRAFT', date = OPEN) => ({ type: 'INVOICE', status, no: '', date, lines: [], contactId: 'c1', createdByUid: uid, createdAt: 1 });
+await expect('books: viewer reads the journal', true, () => getDocs(collection(as('bkViewer'), ws('bkJournal'))));
+await expect('books: cashier reads the journal refused', false, () => getDocs(collection(as('cashier1'), ws('bkJournal'))));
+await expect('books: viewer posts an entry refused', false, () => setDoc(doc(as('bkViewer'), ws('bkJournal/v1')), entry('bkViewer')));
+await expect('books: bookkeeper posts an entry', true, () => setDoc(doc(as('bk1'), ws('bkJournal/k1')), entry('bk1')));
+await expect('books: an entry in a closed period refused', false, () => setDoc(doc(as('bk1'), ws('bkJournal/k2')), entry('bk1', LOCK)));
+await expect('books: an entry in somebody else\'s name refused', false, () => setDoc(doc(as('bk1'), ws('bkJournal/k3')), entry('bkAdmin')));
+await expect('books: change a posted entry refused', false, () => updateDoc(doc(as('bkAdmin'), ws('bkJournal/j1')), { memo: 'x' }));
+await expect('books: delete a posted entry refused', false, () => deleteDoc(doc(as('admin1'), ws('bkJournal/j1'))));
+await expect('books: bookkeeper writes a draft invoice', true, () => setDoc(doc(as('bk1'), ws('bkDocs/d2')), bkDoc('bk1')));
+await expect('books: bookkeeper issues the draft', true, () => updateDoc(doc(as('bk1'), ws('bkDocs/draft')), { status: 'ISSUED', no: 'INV-2026-00002' }));
+await expect('books: change an issued invoice\'s lines refused', false, () => updateDoc(doc(as('bk1'), ws('bkDocs/issued')), { lines: [] }));
+await expect('books: note the e-invoice on an issued invoice', true, () => updateDoc(doc(as('bk1'), ws('bkDocs/issued')), { einvoice: { status: 'DOWNLOADED' }, updatedAt: 2 }));
+await expect('books: void an issued invoice', true, () => updateDoc(doc(as('bk1'), ws('bkDocs/issued')), { status: 'VOID', voidedAt: 2, voidedByName: 'K', voidJournalId: 'j9', updatedAt: 2 }));
+await expect('books: un-void it refused', false, () => updateDoc(doc(as('bk1'), ws('bkDocs/issued')), { status: 'ISSUED' }));
+await expect('books: void one in a closed period refused', false, () => updateDoc(doc(as('bk1'), ws('bkDocs/old')), { status: 'VOID', voidedAt: 2 }));
+await expect('books: an invoice dated in a closed period refused', false, () => setDoc(doc(as('bk1'), ws('bkDocs/d3')), bkDoc('bk1', 'ISSUED', LOCK)));
+await expect('books: delete an issued invoice refused', false, () => deleteDoc(doc(as('bkAdmin'), ws('bkDocs/old'))));
+await expect('books: record money in', true, () => setDoc(doc(as('bk1'), ws('bkPayments/p2')), { direction: 'IN', status: 'POSTED', amountSen: 500, date: OPEN, allocations: [], createdByUid: 'bk1', createdAt: 1 }));
+await expect('books: a payment of nothing refused', false, () => setDoc(doc(as('bk1'), ws('bkPayments/p3')), { direction: 'IN', status: 'POSTED', amountSen: 0, date: OPEN, allocations: [], createdByUid: 'bk1', createdAt: 1 }));
+await expect('books: change a payment\'s amount refused', false, () => updateDoc(doc(as('bk1'), ws('bkPayments/p1')), { amountSen: 1 }));
+await expect('books: void a payment', true, () => updateDoc(doc(as('bk1'), ws('bkPayments/p1')), { status: 'VOID', voidedAt: 2, voidedByName: 'K', voidJournalId: 'j8', updatedAt: 2 }));
+await expect('books: bookkeeper moves the lock date refused', false, () => setDoc(doc(as('bk1'), ws('bkMeta/settings')), { lockDate: 0 }));
+await expect('books: accountant sets the company details', true, () => setDoc(doc(as('bkAdmin'), ws('bkMeta/settings')), { lockDate: LOCK, name: 'Kedai Maju' }));
+await expect('books: bookkeeper sets up the chart the first time', true, () => setDoc(doc(as('bk1'), ws('bkMeta/chart')), { list: [] }));
+await expect('books: bookkeeper rewrites the chart refused', false, () => setDoc(doc(as('bk1'), ws('bkMeta/chart')), { list: [{ code: '1' }] }));
+await expect('books: delete the running numbers refused', false, () => deleteDoc(doc(as('bkAdmin'), ws('bkMeta/counters'))));
+await expect('books: bookkeeper keeps a contact', true, () => setDoc(doc(as('bk1'), ws('bkContacts/c1')), { name: 'Syarikat ABC', kind: 'CUSTOMER' }));
+await expect('books: cashier keeps a contact refused', false, () => setDoc(doc(as('cashier1'), ws('bkContacts/c2')), { name: 'X' }));
 
 const width = Math.max(...results.map((r) => r.name.length));
 let failed = 0;

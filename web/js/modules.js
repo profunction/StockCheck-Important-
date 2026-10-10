@@ -94,11 +94,17 @@ export const MODULES = {
     apiScopes: ['items.read', 'items.write', 'inventory.read', 'inventory.write', 'receipts.read',
       'customers.read', 'customers.write', 'stores.read', 'sync.write'],
   },
+  // SuXin Books: e-invoices, bookkeeping and the financial reports
+  // (web/books/). Sold with the till for now: it rides on its licence key.
   accounting: {
-    id: 'accounting', licenceKey: 'accounting', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    displayName: { zh: 'SuXin Accounting', en: 'SuXin Accounting', ms: 'SuXin Accounting' },
-    description: { zh: 'SQL Account、AutoCount 连接', en: 'SQL Account and AutoCount links', ms: 'Sambungan SQL Account, AutoCount' },
-    actions: { view: [], export: ['POS_REPORTS'] },
+    id: 'accounting', licenceKey: 'pos', status: 'live', kind: 'addon', dependsOn: [],
+    displayName: { zh: 'SuXin Books 账务', en: 'SuXin Books', ms: 'SuXin Books' },
+    description: { zh: '电子发票、记账、财务报表', en: 'e-Invoices, bookkeeping, financial reports', ms: 'e-Invois, simpan kira, laporan kewangan' },
+    actions: {
+      view: ['BOOKS_VIEW', 'BOOKS_POST', 'BOOKS_ADMIN'],
+      post: ['BOOKS_POST', 'BOOKS_ADMIN'],
+      admin: ['BOOKS_ADMIN'],
+    },
     menuItems: [], routes: [], apiScopes: [],
   },
   logistics: {
@@ -118,7 +124,7 @@ export const MODULES = {
 };
 
 /** What a company with no licence document keeps (see the top of this file). */
-const WITHOUT_LICENCE = ['count', 'pos', 'warehouse', 'procurement', 'tax'];
+const WITHOUT_LICENCE = ['count', 'pos', 'warehouse', 'procurement', 'tax', 'accounting'];
 
 export const moduleIds = () => Object.keys(MODULES);
 

@@ -31,7 +31,7 @@ async function shoot(svg, size, out, { square = false } = {}) {
   await page.close();
 }
 
-for (const [prefix, bg] of [['icon', '#0B1B2B'], ['wh', '#12385A']]) {
+for (const [prefix, bg] of [['icon', '#0B1B2B'], ['wh', '#12385A'], ['bk', '#3B2F7A']]) {
   for (const size of [64, 192, 512]) await shoot(tinted(bg), size, `icons/${prefix}-${size}.png`);
   await shoot(maskable(bg), 512, `icons/${prefix}-512-maskable.png`, { square: true });
 }
