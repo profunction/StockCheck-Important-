@@ -2,13 +2,13 @@
    the basket always one tap away at the bottom. */
 /* The SuXin colours (web/assets/): light or dark as the customer's phone is set. */
 :root {
-  --bg: #f1f6f6; --card: #ffffff; --ink: #0b1b2b; --muted: #4e6474; --line: #dbe5e7;
-  --brand: #0d9488; --brand-ink: #ffffff; --brand-soft: #dcf3ef; --warn: #b54708; --bad: #b3261e; --good: #127a3f;
-  --radius: 16px; --shadow: 0 1px 2px rgba(11, 27, 43, .06), 0 10px 30px -20px rgba(11, 43, 43, .35);
+  --bg: #f5f6f8; --card: #ffffff; --ink: #12141d; --muted: #565e74; --line: #e2e8f0;
+  --brand: #714b67; --brand-ink: #ffffff; --brand-soft: #f7edf4; --warn: #b45309; --bad: #ba1a1a; --good: #15803d;
+  --radius: 10px; --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 10px 30px -20px rgba(15, 23, 42, .3);
   font-family: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #071420; --card: #0d2133; --ink: #eef6f7; --muted: #9fb3bd; --line: #1c3447; --brand: #2dd4bf; --brand-ink: #042f2e; --brand-soft: #0f3a3c; color-scheme: dark; }
+  :root { --bg: #121016; --card: #1b1820; --ink: #f2eef5; --muted: #a99fb1; --line: #2c2633; --brand: #d3a3c6; --brand-ink: #2f1029; --brand-soft: #3a2936; color-scheme: dark; }
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--ink); }
@@ -51,7 +51,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 
 /* The basket bar and sheets. */
 .so-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--bg) 30%); }
-.so-bar button { width: 100%; max-width: 528px; margin: 0 auto; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 16px; padding: 14px 18px; background: var(--brand); color: var(--brand-ink); font-weight: 700; font-size: 16px; box-shadow: 0 6px 20px rgba(15, 118, 110, .3); }
+.so-bar button { width: 100%; max-width: 528px; margin: 0 auto; display: flex; align-items: center; gap: 10px; border: 0; border-radius: var(--radius); padding: 14px 18px; background: var(--brand); color: var(--brand-ink); font-weight: 700; font-size: 16px; box-shadow: 0 6px 20px rgba(15, 118, 110, .3); }
 .so-bar .n { min-width: 26px; height: 26px; border-radius: 13px; background: var(--brand-ink); color: var(--brand); display: grid; place-items: center; font-size: 14px; }
 .so-bar .grow { flex: 1; text-align: left; }
 .so-sheet-bg { position: fixed; inset: 0; z-index: 20; background: rgba(10, 16, 24, .45); display: flex; align-items: flex-end; justify-content: center; }
@@ -67,9 +67,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .so-step { display: flex; align-items: center; gap: 14px; }
 .so-step button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); font-size: 20px; }
 .so-step b { min-width: 28px; text-align: center; font-size: 18px; font-variant-numeric: tabular-nums; }
-.so-primary { border: 0; border-radius: 14px; padding: 14px 18px; background: var(--brand); color: var(--brand-ink); font-weight: 700; font-size: 16px; width: 100%; }
+.so-primary { border: 0; border-radius: var(--radius); padding: 14px 18px; background: var(--brand); color: var(--brand-ink); font-weight: 700; font-size: 16px; width: 100%; }
 .so-primary:disabled { opacity: .5; }
-.so-ghost { border: 1px solid var(--line); background: transparent; border-radius: 14px; padding: 12px 18px; font-weight: 600; width: 100%; }
+.so-ghost { border: 1px solid var(--line); background: transparent; border-radius: var(--radius); padding: 12px 18px; font-weight: 600; width: 100%; }
 .so-lines { display: grid; gap: 10px; }
 .so-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .so-line .m { font-size: 13px; color: var(--muted); grid-column: 1; }
@@ -101,6 +101,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .so-track div.on { color: var(--ink); font-weight: 650; border-color: var(--brand); }
 .so-status { font-size: 18px; font-weight: 700; }
 .so-status.bad { color: var(--bad); }
-.so-receipt { text-align: left; background: var(--card); border-radius: 16px; padding: 14px 16px; display: grid; gap: 6px; font-size: 14px; }
+.so-receipt { text-align: left; background: var(--card); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 6px; font-size: 14px; }
 .so-receipt div { display: flex; justify-content: space-between; gap: 10px; }
 @media (prefers-reduced-motion: no-preference) { .so-sheet { animation: soUp .18s ease-out; } @keyframes soUp { from { transform: translateY(24px); opacity: .6; } } }

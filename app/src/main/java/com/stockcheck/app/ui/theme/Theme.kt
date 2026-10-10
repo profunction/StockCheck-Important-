@@ -23,30 +23,30 @@ import androidx.core.view.WindowCompat
  * often one-handed, sometimes under poor light. Dynamic colour is not used so
  * that the status colours below always mean the same thing on every device.
  *
- * SuXin Barcode Scan: the same deep navy and emerald-to-teal as the website and
+ * SuXin Barcode Scan: the same plum on white as the website and
  * every SuXin web app (web/css/pos.css), so the phone and the till look like
  * one product. Every role is set,
  * including the surface containers cards and the bottom bar are drawn on --
  * left out, Material fills them with its own purple-grey. Amber (tertiary)
  * is "look at this": a count that differs, a warning, a count in progress.
  */
-private val Teal40 = Color(0xFF0D9488)
-private val Teal80 = Color(0xFF2DD4BF)
+private val Plum40 = Color(0xFF714B67)
+private val Plum80 = Color(0xFFD3A3C6)
 private val Amber40 = Color(0xFF8A5100)
 private val Amber80 = Color(0xFFFFB86E)
 private val Red40 = Color(0xFFB3261E)
 private val Red80 = Color(0xFFF2B8B5)
 
 private val LightColors = lightColorScheme(
-    primary = Teal40,
+    primary = Plum40,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFDCF3EF),
-    onPrimaryContainer = Color(0xFF00201D),
-    inversePrimary = Teal80,
-    secondary = Color(0xFF475A6C),
+    primaryContainer = Color(0xFFF7EDF4),
+    onPrimaryContainer = Color(0xFF2F1029),
+    inversePrimary = Plum80,
+    secondary = Color(0xFF565E74),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD6E2EE),
-    onSecondaryContainer = Color(0xFF0B1B2B),
+    secondaryContainer = Color(0xFFDAE2FD),
+    onSecondaryContainer = Color(0xFF12141D),
     tertiary = Amber40,
     onTertiary = Color.White,
     tertiaryContainer = Color(0xFFFFDCBD),
@@ -55,36 +55,36 @@ private val LightColors = lightColorScheme(
     onError = Color.White,
     errorContainer = Color(0xFFF9DEDC),
     onErrorContainer = Color(0xFF410E0B),
-    background = Color(0xFFF1F6F6),
-    onBackground = Color(0xFF0B1B2B),
-    surface = Color(0xFFF1F6F6),
-    onSurface = Color(0xFF0B1B2B),
-    surfaceVariant = Color(0xFFDBE5E7),
-    onSurfaceVariant = Color(0xFF414B55),
-    surfaceTint = Teal40,
-    inverseSurface = Color(0xFF0B1B2B),
-    inverseOnSurface = Color(0xFFEAF0F5),
-    outline = Color(0xFF6F7A85),
-    outlineVariant = Color(0xFFC3D1D5),
-    surfaceBright = Color(0xFFF1F6F6),
-    surfaceDim = Color(0xFFD3DEDF),
+    background = Color(0xFFF5F6F8),
+    onBackground = Color(0xFF12141D),
+    surface = Color(0xFFF5F6F8),
+    onSurface = Color(0xFF12141D),
+    surfaceVariant = Color(0xFFE2E8F0),
+    onSurfaceVariant = Color(0xFF4E444A),
+    surfaceTint = Plum40,
+    inverseSurface = Color(0xFF12141D),
+    inverseOnSurface = Color(0xFFEAF1FF),
+    outline = Color(0xFF80747A),
+    outlineVariant = Color(0xFFCBD5E1),
+    surfaceBright = Color(0xFFF5F6F8),
+    surfaceDim = Color(0xFFDCE0E6),
     surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFEBF2F2),
-    surfaceContainer = Color(0xFFE5EEEE),
-    surfaceContainerHigh = Color(0xFFDFE9E9),
-    surfaceContainerHighest = Color(0xFFD9E4E4),
+    surfaceContainerLow = Color(0xFFF8FAFC),
+    surfaceContainer = Color(0xFFF1F5F9),
+    surfaceContainerHigh = Color(0xFFEDF0F4),
+    surfaceContainerHighest = Color(0xFFE6EAF0),
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Teal80,
-    onPrimary = Color(0xFF042F2E),
-    primaryContainer = Color(0xFF0F3A3C),
-    onPrimaryContainer = Color(0xFFB7F5EC),
-    inversePrimary = Teal40,
-    secondary = Color(0xFFB4C7DA),
-    onSecondary = Color(0xFF1E3142),
-    secondaryContainer = Color(0xFF12304A),
-    onSecondaryContainer = Color(0xFFD6E2EE),
+    primary = Plum80,
+    onPrimary = Color(0xFF2F1029),
+    primaryContainer = Color(0xFF3A2936),
+    onPrimaryContainer = Color(0xFFFFD7F1),
+    inversePrimary = Plum40,
+    secondary = Color(0xFFBEC6E0),
+    onSecondary = Color(0xFF283044),
+    secondaryContainer = Color(0xFF3F465C),
+    onSecondaryContainer = Color(0xFFDAE2FD),
     tertiary = Amber80,
     onTertiary = Color(0xFF4A2800),
     tertiaryContainer = Color(0xFF6A3C00),
@@ -93,24 +93,24 @@ private val DarkColors = darkColorScheme(
     onError = Color(0xFF601410),
     errorContainer = Color(0xFF8C1D18),
     onErrorContainer = Color(0xFFF9DEDC),
-    background = Color(0xFF071420),
-    onBackground = Color(0xFFEEF6F7),
-    surface = Color(0xFF071420),
-    onSurface = Color(0xFFEEF6F7),
-    surfaceVariant = Color(0xFF1C3447),
-    onSurfaceVariant = Color(0xFFB3C6CF),
-    surfaceTint = Teal80,
-    inverseSurface = Color(0xFFEEF6F7),
-    inverseOnSurface = Color(0xFF1B2733),
-    outline = Color(0xFF7D929D),
-    outlineVariant = Color(0xFF1C3447),
-    surfaceBright = Color(0xFF173149),
-    surfaceDim = Color(0xFF071420),
-    surfaceContainerLowest = Color(0xFF050F19),
-    surfaceContainerLow = Color(0xFF0B1C2C),
-    surfaceContainer = Color(0xFF0D2133),
-    surfaceContainerHigh = Color(0xFF11283D),
-    surfaceContainerHighest = Color(0xFF173149),
+    background = Color(0xFF121016),
+    onBackground = Color(0xFFF2EEF5),
+    surface = Color(0xFF121016),
+    onSurface = Color(0xFFF2EEF5),
+    surfaceVariant = Color(0xFF2C2633),
+    onSurfaceVariant = Color(0xFFC4B9C9),
+    surfaceTint = Plum80,
+    inverseSurface = Color(0xFFF2EEF5),
+    inverseOnSurface = Color(0xFF231E28),
+    outline = Color(0xFF988EA2),
+    outlineVariant = Color(0xFF2C2633),
+    surfaceBright = Color(0xFF2C2633),
+    surfaceDim = Color(0xFF121016),
+    surfaceContainerLowest = Color(0xFF0D0B10),
+    surfaceContainerLow = Color(0xFF17141B),
+    surfaceContainer = Color(0xFF1B1820),
+    surfaceContainerHigh = Color(0xFF221E28),
+    surfaceContainerHighest = Color(0xFF2C2633),
 )
 
 /** Status colours are resolved separately so they survive the dark swap. */

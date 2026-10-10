@@ -5,10 +5,10 @@
  */
 :root { --wh: var(--brand); --wh-soft: var(--brand-soft); }
 
-.shell.wh .side .group > a.top.current { background: rgba(45, 212, 191, .14); }
+.shell.wh .side .group > a.top.current { background: var(--side-hover); }
 .shell.wh .side .group > a.top.current .ic { color: var(--side-accent); }
-.wh-brand { background: radial-gradient(120% 90% at 0% 0%, rgba(16, 185, 129, .35) 0%, transparent 55%), var(--side-bg); }
-.side .foot label.field select { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); color: var(--side-text); }
+.wh-brand { background: var(--side-bg); }
+.side .foot label.field select { background: var(--side-chip); border-color: var(--side-line); color: var(--side-text); }
 
 .wh-bottom { display: none; }
 .scrim { display: none; }
@@ -66,7 +66,7 @@
 
 .wh-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .wh-chips button { border-radius: 99px; min-height: 40px; }
-.wh-chips button.on { background: var(--wh); border-color: var(--wh); color: #fff; }
+.wh-chips button.on { background: var(--btn); border-color: var(--btn); color: #fff; }
 .wh-onhand { display: grid; justify-items: end; }
 .wh-onhand strong { font-size: 26px; font-variant-numeric: tabular-nums; }
 input.big-num { font-size: 28px; font-weight: 800; min-height: 60px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -76,7 +76,7 @@ table.wh-ledger tr.total td { background: var(--surface-2); }
 table.wh-ledger tr.old td { color: var(--muted); }
 details summary { cursor: pointer; padding: 6px 0; }
 
-.shell.wh .guide section .steps li::before { background: var(--wh); color: #fff; }
+.shell.wh .guide section .steps li::before { background: var(--btn); color: #fff; }
 
 @media (max-width: 960px) {
   .shell.wh .main { padding-bottom: 148px; }
