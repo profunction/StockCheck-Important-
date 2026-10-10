@@ -1,15 +1,10 @@
 /*
  * SuXin Books, on top of pos.css and wh.css (the same shell as SuXin WMS):
- * its own purple, invoice lines that fold onto a phone, and an A4 page for
+ * the same colours as every SuXin app, invoice lines that fold onto a phone, and an A4 page for
  * printing an invoice or a report.
  */
-:root { --wh: #3b2f7a; --wh-soft: #ece9f7; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wh: #b3a8ec; --wh-soft: #221d3a; } }
-:root[data-theme="dark"] { --wh: #b3a8ec; --wh-soft: #221d3a; }
+:root { --wh: var(--brand); --wh-soft: var(--brand-soft); }
 
-.shell.bk .side { background: #221a47; }
-.shell.bk .side .group > a.top.current { background: rgba(179, 168, 236, .16); }
-.shell.bk .side .group > a.top.current .ic { color: #cfc6ff; }
 
 .bk-empty { padding: 18px 2px; }
 .bk-form h2 { margin: 18px 0 6px; font-size: 16px; }

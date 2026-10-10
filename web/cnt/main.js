@@ -17,7 +17,7 @@ import { addStrings, t } from '../js/i18n.js';
 import { icon } from '../js/icons.js';
 import { formatQty } from '../js/money.js';
 import { session, ws } from '../js/session.js';
-import { appSwitcher, langPicker, signOutNow, startApp } from '../js/apps.js';
+import { appSwitcher, langPicker, signOutNow, startApp, themeToggle } from '../js/apps.js';
 import { period, refNo, tempRefNo } from '../js/counting.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
@@ -49,6 +49,7 @@ function shell() {
       h('span', { class: 'grow' }),
       appSwitcher('count'),
       h('a', { class: 'btn ghost icon-btn', href: '/guide/#app', title: t('posGuide'), 'aria-label': t('posGuide'), 'data-act': 'guide' }, icon('book', 18)),
+      themeToggle(),
       langPicker(),
       h('button', { class: 'ghost icon-btn', title: t('signOut'), 'aria-label': t('signOut'), onclick: signOutNow }, icon('logout', 18))),
     mainEl));

@@ -1,99 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://stockcheck-fb58e.web.app/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/"/>
+    <lastmod>2026-10-10</lastmod>
   </url>
   <url>
-    <loc>https://stockcheck-fb58e.web.app/en/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/"/>
+    <loc>https://stockcheck-fb58e.web.app/products/pos/</loc>
+    <lastmod>2026-10-10</lastmod>
   </url>
   <url>
-    <loc>https://stockcheck-fb58e.web.app/ms/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/"/>
+    <loc>https://stockcheck-fb58e.web.app/products/barcode-scan/</loc>
+    <lastmod>2026-10-10</lastmod>
   </url>
   <url>
-    <loc>https://stockcheck-fb58e.web.app/retail/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/retail/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/retail/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/retail/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/retail/"/>
+    <loc>https://stockcheck-fb58e.web.app/products/wms/</loc>
+    <lastmod>2026-10-10</lastmod>
   </url>
   <url>
-    <loc>https://stockcheck-fb58e.web.app/en/retail/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/retail/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/retail/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/retail/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/retail/"/>
+    <loc>https://stockcheck-fb58e.web.app/products/every-data/</loc>
+    <lastmod>2026-10-10</lastmod>
   </url>
   <url>
-    <loc>https://stockcheck-fb58e.web.app/ms/retail/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/retail/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/retail/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/retail/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/retail/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/fnb/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/fnb/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/en/fnb/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/fnb/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/ms/fnb/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/fnb/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/fnb/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/wholesale/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/wholesale/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/en/wholesale/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/wholesale/"/>
-  </url>
-  <url>
-    <loc>https://stockcheck-fb58e.web.app/ms/wholesale/</loc>
-    <lastmod>2026-10-08</lastmod>
-    <xhtml:link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/wholesale/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/wholesale/"/>
+    <loc>https://stockcheck-fb58e.web.app/products/books/</loc>
+    <lastmod>2026-10-10</lastmod>
   </url>
 </urlset>

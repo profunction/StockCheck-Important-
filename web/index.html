@@ -1,181 +1,595 @@
-<!doctype html>
-<html lang="zh-Hans-MY">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SuXin｜手机盘点 + POS 收银 + 仓库系统，马来西亚商店、超市、仓库、餐厅</title>
-<meta name="description" content="用手机扫条码盘点，电脑收银，库存自动同步。支持 SST、DuitNow QR、现金四舍五入、多分店、会员积分、NFC/RFID 和 Loyverse 导入。14 天免费试用，每月 RM48 起。">
-<link rel="canonical" href="https://stockcheck-fb58e.web.app/">
-<link rel="alternate" hreflang="zh-Hans-MY" href="https://stockcheck-fb58e.web.app/">
-<link rel="alternate" hreflang="en-MY" href="https://stockcheck-fb58e.web.app/en/">
-<link rel="alternate" hreflang="ms-MY" href="https://stockcheck-fb58e.web.app/ms/">
-<link rel="alternate" hreflang="x-default" href="https://stockcheck-fb58e.web.app/">
-<meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="theme-color" content="#0b1b2b">
-<link rel="icon" type="image/png" href="/icons/icon-64.png">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="SuXin">
-<meta property="og:title" content="SuXin｜手机盘点 + POS 收银 + 仓库系统，马来西亚商店、超市、仓库、餐厅">
-<meta property="og:description" content="用手机扫条码盘点，电脑收银，库存自动同步。支持 SST、DuitNow QR、现金四舍五入、多分店、会员积分、NFC/RFID 和 Loyverse 导入。14 天免费试用，每月 RM48 起。">
-<meta property="og:url" content="https://stockcheck-fb58e.web.app/">
-<meta property="og:image" content="https://stockcheck-fb58e.web.app/img/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:locale" content="zh_MY">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="preload" as="image" href="/img/hero-zh.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://stockcheck-fb58e.web.app/#org","name":"SuXin","alternateName":"Pos Stock Check","url":"https://stockcheck-fb58e.web.app/","logo":"https://stockcheck-fb58e.web.app/icons/icon-512.png","areaServed":"MY"}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"SuXin","alternateName":["SuXin Barcode Scan","SuXin POS","SuXin WMS","SuXin Every Data","Pos Stock Check","Stock Check"],"applicationCategory":"BusinessApplication","operatingSystem":"Android, Windows, macOS, ChromeOS, iPadOS (web)","inLanguage":["zh","en","ms"],"description":"用手机扫条码盘点，电脑收银，库存自动同步。支持 SST、DuitNow QR、现金四舍五入、多分店、会员积分、NFC/RFID 和 Loyverse 导入。14 天免费试用，每月 RM48 起。","url":"https://stockcheck-fb58e.web.app/","image":"https://stockcheck-fb58e.web.app/img/pos-register.png","publisher":{"@id":"https://stockcheck-fb58e.web.app/#org"},"offers":{"@type":"AggregateOffer","priceCurrency":"MYR","lowPrice":"48.00","highPrice":"228.00","offerCount":3,"offers":[{"@type":"Offer","name":"Starter","price":"48.00","priceCurrency":"MYR","priceSpecification":{"@type":"UnitPriceSpecification","price":"48.00","priceCurrency":"MYR","unitCode":"MON"}},{"@type":"Offer","name":"Business","price":"118.00","priceCurrency":"MYR","priceSpecification":{"@type":"UnitPriceSpecification","price":"118.00","priceCurrency":"MYR","unitCode":"MON"}},{"@type":"Offer","name":"Unlimited","price":"228.00","priceCurrency":"MYR","priceSpecification":{"@type":"UnitPriceSpecification","price":"228.00","priceCurrency":"MYR","unitCode":"MON"}}]},"featureList":["手机扫码盘点","电脑收银（POS）","库存自动计算","餐厅功能","仓库系统","开班交班和钱箱","价格标签","电子发票 MyInvois","会员和积分","多分店、员工权限","连接别的收银系统","报表","开放 API"]}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"zh-Hans-MY","mainEntity":[{"@type":"Question","name":"SuXin POS 支持 SST 吗？","acceptedAnswer":{"@type":"Answer","text":"支持。可以设定一种或几种税（例如 SST 6%、8%），每样商品自己选收哪种税；米、糖这类不收税的商品可以设成免税。价格可以选已含税或另外加，收据和税务报表按税率分开显示。"}},{"@type":"Question","name":"可以收 DuitNow QR 和刷卡吗？","acceptedAnswer":{"@type":"Answer","text":"可以记录 DuitNow QR、刷卡、电子钱包、现金和银行转账。系统记录付款方式和金额，钱照你平常的 QR 或刷卡机收，不经过系统。"}},{"@type":"Question","name":"现金会四舍五入吗？","acceptedAnswer":{"@type":"Answer","text":"会，按马来西亚的 5 仙规定：.01 和 .02 舍去，.03 和 .04 变 .05，.06 和 .07 变 .05，.08 和 .09 进位。刷卡和 QR 收到仙为止。"}},{"@type":"Question","name":"没有网络还能收银吗？","acceptedAnswer":{"@type":"Answer","text":"可以。没有网络时销售先存在电脑里，网络回来后自动上传。"}},{"@type":"Question","name":"需要买什么设备？","acceptedAnswer":{"@type":"Answer","text":"一台电脑或平板加 Chrome 就能用。建议加 USB 扫码枪和 58mm 或 80mm 热敏收据打印机。手机盘点用一般 Android 手机。"}},{"@type":"Question","name":"支持 NFC 和 RFID 吗？","acceptedAnswer":{"@type":"Answer","text":"支持。Android 手机可以感应 NFC 标签和会员卡；USB NFC 读卡器和 UHF RFID 手持机开「键盘模式」就能直接用。"}},{"@type":"Question","name":"我已经用 Loyverse，可以一起用吗？","acceptedAnswer":{"@type":"Answer","text":"可以。贴上 Loyverse 的访问令牌，就会同步商品、库存数量和销售；盘点后也可以把正确数量写回 Loyverse。"}},{"@type":"Question","name":"其他收银系统（StoreHub、Qashier 等）呢？","acceptedAnswer":{"@type":"Answer","text":"从你的收银系统导出销售报表（Excel 或 CSV），在 app 里导入，系统会自动认出每一栏。"}},{"@type":"Question","name":"资料安全吗？","acceptedAnswer":{"@type":"Answer","text":"资料存在 Google Cloud（Firebase）。每个员工只看得到自己权限和分店范围内的资料，每一次修改都有记录。"}},{"@type":"Question","name":"有免费试用吗？","acceptedAnswer":{"@type":"Answer","text":"有，注册后自动有 14 天免费试用，最多 5 位用户，不用信用卡。"}},{"@type":"Question","name":"可以开 LHDN 电子发票吗？","acceptedAnswer":{"@type":"Answer","text":"可以。每个月在「报表 → 电子发票」下载合并电子发票（MyInvois 格式 JSON 和 CSV），上传到 MyInvois 网站。"}},{"@type":"Question","name":"顾客要求删除个人资料怎么办？","acceptedAnswer":{"@type":"Answer","text":"按「删除顾客资料 (PDPA)」：马上隐藏，90 天后永久删除，旧收据保留金额但删掉名字和电话，符合 PDPA 2010。"}},{"@type":"Question","name":"有教学视频吗？","acceptedAnswer":{"@type":"Answer","text":"有。每个系统都有一步一步的教学和视频，在网站的「使用教程」页面，app 里「我的 → 使用教程」也有。"}}]}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"SuXin","alternateName":"Pos Stock Check","url":"https://stockcheck-fb58e.web.app/","inLanguage":"zh-Hans-MY"}</script>
-<style>:root{--bg:#f5f7fa;--paper:#fff;--ink:#0b1b2b;--muted:#506070;--line:#dbe2ea;--brand:#0f766e;--brand-2:#12385a;--navy:#0b1b2b;--node:#2dd4bf;--soft:#e2f4f1;--accent:#b45309;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0a121b;--paper:#111b25;--ink:#e6edf3;--muted:#9aa8b6;--line:#243241;--brand:#2dd4bf;--brand-2:#7fb2dc;--navy:#060c12;--node:#2dd4bf;--soft:#12302e;--accent:#f0b35a;color-scheme:dark}}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
-a{color:var(--brand)}img{max-width:100%;height:auto}
-.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
-header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header.top .wrap{display:flex;align-items:center;gap:14px;min-height:64px;flex-wrap:wrap}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink);text-decoration:none;font-size:18px}
-.logo svg{width:34px;height:34px;flex:none}.logo span{letter-spacing:.14em;font-size:20px}
-nav.main{display:flex;gap:14px;flex-wrap:wrap;font-size:15px;margin-left:8px}nav.main a{color:var(--muted);text-decoration:none}nav.main a:hover{color:var(--ink)}
-.spacer{flex:1}.langs{display:flex;gap:8px;font-size:14px}.langs a{color:var(--muted);text-decoration:none;padding:2px 6px;border-radius:6px}.langs a[aria-current]{background:var(--soft);color:var(--brand);font-weight:700}
-.btn{display:inline-block;padding:12px 20px;border-radius:8px;font-weight:700;text-decoration:none;border:2px solid var(--brand)}
-.btn.primary{background:var(--brand);color:#fff}.btn.ghost{color:var(--brand)}
-@media (prefers-color-scheme:dark){.btn.primary{color:#04201d}}
-.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:56px 40px}
-.eyebrow{color:var(--brand);font-weight:700;font-size:14px;letter-spacing:.06em;display:flex;align-items:center;gap:8px}.eyebrow svg{width:20px;height:20px}
-h1{font-size:clamp(32px,4.8vw,52px);line-height:1.12;letter-spacing:-.02em;margin:10px 0 16px;text-wrap:balance}
-.lead{color:var(--muted);font-size:18px;max-width:58ch}
-.ctas{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 10px}.small{color:var(--muted);font-size:14px}
-.hero-img{border:0!important}.shot{border-radius:14px;border:1px solid var(--line);box-shadow:0 20px 40px -24px rgba(0,0,0,.4);background:var(--paper)}
-.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-block:8px 40px}
-.facts div{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px}.facts b{display:block;font-size:24px;color:var(--brand)}.facts span{color:var(--muted);font-size:14px}
-section{padding-block:48px;border-top:1px solid var(--line)}
-h2{font-size:clamp(24px,3vw,34px);line-height:1.25;letter-spacing:-.01em;margin:0 0 20px;text-wrap:balance}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
-.card h3{margin:0 0 6px;font-size:17px}.card p{margin:0;color:var(--muted);font-size:15px}
-ol.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;counter-reset:s}
-ol.steps li{counter-increment:s;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
-ol.steps li::before{content:counter(s);display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;margin-bottom:8px}
-@media (prefers-color-scheme:dark){ol.steps li::before{color:#04201d}}
-ol.steps h3{margin:0 0 4px;font-size:17px}ol.steps p{margin:0;color:var(--muted);font-size:15px}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.plan{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px}
-.plan.mid{border:2px solid var(--brand)}.plan h3{margin:0}.plan .price{font-size:34px;font-weight:800;margin:6px 0 0}.plan .price small{font-size:15px;color:var(--muted);font-weight:500}
-.plan ul{padding-left:18px;margin:10px 0 0;color:var(--muted);font-size:15px}
-details{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:10px}
-summary{cursor:pointer;font-weight:700}details p{margin:8px 0 0;color:var(--muted)}
-.final{text-align:center}.final .ctas{justify-content:center}
-footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:14px}
-footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
-header.top .btn{padding:7px 14px;font-size:15px}
-.hero h1{margin-bottom:4px}.hero .sub{font-size:clamp(20px,2.4vw,26px);line-height:1.4;font-weight:700;color:var(--brand);margin:0 0 14px}
-.inds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-a.ind{display:grid;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
-a.ind:hover{border-color:var(--brand);transform:translateY(-2px)}a.ind .em{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--soft);color:var(--brand)}a.ind .em svg{width:22px;height:22px}a.ind b{font-size:18px}a.ind span{color:var(--muted);font-size:15px}a.ind i{font-style:normal;color:var(--brand);font-weight:700;font-size:14px;margin-top:6px}
-.prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-.prod{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
-.prod h3{margin:0;font-size:20px}.prod .kind{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.04em}.prod .line{margin:0;font-weight:600}
-.prod ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}.prod .go{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.prod .go a{font-weight:700;font-size:15px}
-.addons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-.addon{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;align-content:start}
-.addon b{font-size:17px}.addon .ask{margin:0;font-weight:600}.addon .what{margin:0;color:var(--muted);font-size:15px}
-.st{justify-self:start;font-size:12px;font-weight:700;border-radius:99px;padding:1px 10px;background:var(--soft);color:var(--brand)}.st.soon{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
-.soonnote{margin-top:14px;padding:12px 16px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--ink);background:color-mix(in srgb,var(--accent) 8%,var(--paper))}
-.pts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
-.crumb{font-size:14px;margin:18px 0 0}.crumb a{text-decoration:none}
-.chips{display:flex;gap:8px;flex-wrap:wrap}.chips span{background:var(--soft);color:var(--brand);font-weight:700;border-radius:99px;padding:4px 12px;font-size:15px}
-@media (max-width:1320px){nav.main a:first-child{display:none}}
-@media (max-width:520px){header.top .btn.ghost{display:none}}
-@media (max-width:860px){header.top{position:static}.langs a{padding:2px 4px}.hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}nav.main{display:none}}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SuXin — One Business. Connected.</title>
+<meta name="description" content="SuXin POS, Barcode Scan, WMS, Every Data and Books on one account. Counter, stock, warehouse and accounts for shops in Malaysia and Singapore."/>
+<meta name="theme-color" content="#0B1B2B"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="SuXin"/>
+<meta property="og:title" content="SuXin — One Business. Connected."/>
+<meta property="og:description" content="SuXin POS · SuXin Barcode Scan · SuXin WMS · SuXin Every Data · SuXin Books. Counter, stock, warehouse and accounts for Malaysia and Singapore."/>
+<meta property="og:image" content="https://stockcheck-fb58e.web.app/assets/img/og-image.png"/>
+<meta property="og:url" content="https://stockcheck-fb58e.web.app/"/>
+<link rel="canonical" href="https://stockcheck-fb58e.web.app/"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="icon" type="image/svg+xml" href="assets/brand/suxin-mark.svg"/>
+<link rel="icon" type="image/png" sizes="64x64" href="assets/brand/icon-64.png"/>
+<link rel="apple-touch-icon" href="assets/brand/icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"/>
+<link rel="stylesheet" href="assets/site.css?v=a7d32435"/>
+<link rel="stylesheet" href="assets/suxin.css?v=08218cd3"/>
+<script src="assets/theme.js"></script>
 </head>
 <body>
-<header class="top"><div class="wrap">
-<a class="logo" href="/" aria-label="SuXin"><svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0B1B2B"/><path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="44" r="6" fill="#2DD4BF"/><circle cx="42" cy="20" r="6" fill="#2DD4BF"/></svg><span>SuXin</span></a>
-<nav class="main" aria-label="语言"><a href="/">首页</a><a href="/#industries">适合我的生意</a><a href="/#products">产品</a><a href="/#addons">解决方案</a><a href="/#pricing">价格</a><a href="/guide/">资源</a></nav>
-<span class="spacer"></span>
-<div class="langs"><a href="/" hreflang="zh-Hans-MY" title="中文" aria-current="page">中文</a><a href="/en/" hreflang="en-MY" title="English">EN</a><a href="/ms/" hreflang="ms-MY" title="Bahasa Melayu">BM</a></div>
-<a class="btn ghost" href="/app/" rel="nofollow">登录</a>
-<a class="btn primary" href="/app/#create">免费试用</a>
-</div></header>
-<main>
-<div class="wrap hero">
-<div>
-<div class="eyebrow">SuXin · 扫码盘点 · 收银 · 仓库 · 老板数据</div>
-<h1>一盘生意，一套系统。</h1>
-<p class="sub">扫码盘点、收银、仓库和老板数据，全部连在一起</p>
-<p class="lead">用手机盘点，柜台收银，仓库进出货，老板在 Every Data 看全部。同一份库存，一个地方管理。生意扩大后，再按需要增加功能。</p>
-<div class="ctas"><a class="btn primary" href="/app/#create">开始免费试用</a><a class="btn ghost" href="#products">了解 SuXin</a></div>
-<p class="small">不用信用卡 · 中文 / English / Bahasa Melayu · 马来西亚</p>
-</div>
-<img class="shot hero-img" src="/img/hero-zh.jpg" width="1400" height="900" alt="SuXin POS · SuXin WMS">
-</div>
-<div class="wrap facts"><div><b>14 天</b><span>免费试用</span></div><div><b>RM48</b><span>每月起</span></div><div><b>3 种语言</b><span>中文、英文、马来文</span></div><div><b>离线可用</b><span>没网络照样收银</span></div></div>
-<section id="industries"><div class="wrap"><h2>你的生意是什么？</h2><p class="lead" style="margin:-8px 0 20px">选一个，只看跟你有关的。</p>
-<div class="inds"><a class="ind" href="/retail/"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 7H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg></span><b>零售 / Mini Market</b><span>扫码收银、手机盘点、SST</span><i>看看适合的功能 →</i></a>
-<a class="ind" href="/fnb/"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8m-2-8v5a2 2 0 0 0 4 0V3M7 11v10"/><path d="M17 21V3c-2.2 1.2-3 3.5-3 6v4h3"/></svg></span><b>餐饮 / Cafe</b><span>点单、厨房单、服务费</span><i>看看适合的功能 →</i></a>
-<a class="ind" href="/wholesale/"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 4l9 5.5V20H3z"/><path d="M7 20v-6h10v6M7 17h10"/></svg></span><b>仓库 / 批发</b><span>进货、调货、库存</span><i>看看适合的功能 →</i></a></div></div></section>
-<section id="products"><div class="wrap"><h2>SuXin 产品：四个产品，一份库存</h2>
-<div class="prods"><article class="prod"><span class="kind">盘点通 · Android App + 网页</span><h3>SuXin Barcode Scan</h3><p class="line">用手机快速完成库存盘点。</p>
-<ul><li>手机扫码</li><li>语音输入数量</li><li>离线盘点</li><li>库存核对：短少多少</li><li>照片记录</li><li>Loyverse 同步</li></ul><div class="go"><a href="https://stockcheck-fb58e.web.app/download/StockCheck.apk">我要开始盘点 →</a></div></article>
-<article class="prod"><span class="kind">收银通 · 网页 / 可安装</span><h3>SuXin POS</h3><p class="line">让柜台收银更快、更简单。</p>
-<ul><li>零售：扫码、SST、现金四舍五入、收据、离线</li><li>餐饮：堂食外带、加料、厨房单、服务费</li></ul><div class="go"><a href="/retail/">我是零售店 →</a><a href="/fnb/">我是餐饮店 →</a></div></article>
-<article class="prod"><span class="kind">仓管通 · 网页 / 手机</span><h3>SuXin WMS</h3><p class="line">管理仓库、进出货和门店调货。</p>
-<ul><li>采购单和批准</li><li>扫码收货</li><li>调货（在途）</li><li>库存调整</li><li>补货建议</li></ul><div class="go"><a href="/wholesale/">看仓库方案 →</a></div></article>
-<article class="prod"><span class="kind">老板数据 · 网页</span><h3>SuXin Every Data</h3><p class="line">老板查看生意、管理员工、开启扩展功能。</p>
-<ul><li>销售和交班报表</li><li>员工和权限</li><li>商品、价格、税</li><li>每月 LHDN 电子发票</li><li>按生意显示的仪表板</li></ul><div class="go"><a href="/app/" rel="nofollow">登录后台 →</a></div></article></div></div></section>
-<section id="addons"><div class="wrap"><h2>解决方案：生意扩大了，再增加功能</h2><p class="lead" style="margin:-8px 0 20px">一开始只需要盘点和收银。需要的时候再加，不用换系统，资料都在。</p>
-<div class="addons"><div class="addon"><b>SuXin WMS · 仓库与订货</b><span class="st">现在可以用</span><p class="ask">需要管理中央仓库？</p><p class="what">仓库、采购单、调货、补货建议。</p></div>
-<div class="addon"><b>SuXin Procurement · 采购和成本</b><span class="st">undefined</span><p class="ask">进货要算清楚成本？</p><p class="what">采购单、审批、补货建议、拼多多截图进货，加上成本计算器：运费、关税、代理费分摊到每件货，算出真正成本和建议售价，一键存进商品。</p></div>
-<div class="addon"><b>SuXin Tax · 会计与电子发票</b><span class="st">部分已经可以用</span><p class="ask">要交 LHDN 电子发票？</p><p class="what">每月 MyInvois 合并电子发票已包含。SQL Account、AutoCount 连接即将推出。</p></div>
-<div class="addon"><b>SuXin Logistics · 配送</b><span class="st soon">即将推出</span><p class="ask">要安排送货？</p><p class="what">Lalamove、GrabExpress。</p></div></div></div></section>
-<section id="how"><div class="wrap"><h2>三步开始</h2>
-<ol class="steps"><li><h3>下载 app，注册公司</h3><p>在 Android 手机安装 SuXin Barcode Scan，第一个注册的人就是管理员，自动有 14 天试用。</p></li>
-<li><h3>盘点一次</h3><p>扫一遍店里的东西，或用 Excel 导入商品清单。</p></li>
-<li><h3>打开收银系统</h3><p>柜台电脑用 Chrome 打开 SuXin POS，用同一个账号登录，插上扫码枪和打印机就能卖。</p></li></ol></div></section>
-<section id="pricing"><div class="wrap"><h2>价格</h2>
-<div class="plans"><div class="plan"><h3>Starter</h3>
-<p class="price">RM48 <small>/ 月</small></p>
-<ul><li>5 位用户</li><li>RM480 / 年</li><li>RM1,680 终身</li></ul></div>
-<div class="plan mid"><h3>Business</h3>
-<p class="price">RM118 <small>/ 月</small></p>
-<ul><li>20 位用户</li><li>RM1,180 / 年</li><li>RM4,180 终身</li></ul></div>
-<div class="plan"><h3>Unlimited</h3>
-<p class="price">RM228 <small>/ 月</small></p>
-<ul><li>用户不限</li><li>RM2,280 / 年</li><li>RM7,980 终身</li></ul></div></div>
-<h3 style="margin-top:28px">只需要其中一样？单独配套</h3>
-<div class="plans"><div class="plan"><h3>SuXin Barcode Scan</h3>
-<p class="price">RM28 <small>/ 月</small></p>
-<ul><li>只要手机盘点 app（3 位用户，可写回 Loyverse）</li><li>RM280 / 年</li></ul></div>
-<div class="plan"><h3>POS</h3>
-<p class="price">RM38 <small>/ 月</small></p>
-<ul><li>只要收银系统（2 台收银机，SST、报表）</li><li>RM380 / 年</li></ul></div>
-<div class="plan"><h3>API</h3>
-<p class="price">RM68 <small>/ 月</small></p>
-<ul><li>只要 API（连接网店、会计软件）</li><li>RM680 / 年</li></ul></div></div>
-<p class="small">全功能配套包括盘点 app、收银系统和仓库系统。年付等于送 2 个月；终身版只限 50 套，包括 24 个月更新和支援。</p></div></section>
-<section id="faq"><div class="wrap"><h2>常见问题</h2>
-<details><summary>SuXin POS 支持 SST 吗？</summary><p>支持。可以设定一种或几种税（例如 SST 6%、8%），每样商品自己选收哪种税；米、糖这类不收税的商品可以设成免税。价格可以选已含税或另外加，收据和税务报表按税率分开显示。</p></details>
-<details><summary>可以收 DuitNow QR 和刷卡吗？</summary><p>可以记录 DuitNow QR、刷卡、电子钱包、现金和银行转账。系统记录付款方式和金额，钱照你平常的 QR 或刷卡机收，不经过系统。</p></details>
-<details><summary>现金会四舍五入吗？</summary><p>会，按马来西亚的 5 仙规定：.01 和 .02 舍去，.03 和 .04 变 .05，.06 和 .07 变 .05，.08 和 .09 进位。刷卡和 QR 收到仙为止。</p></details>
-<details><summary>没有网络还能收银吗？</summary><p>可以。没有网络时销售先存在电脑里，网络回来后自动上传。</p></details>
-<details><summary>需要买什么设备？</summary><p>一台电脑或平板加 Chrome 就能用。建议加 USB 扫码枪和 58mm 或 80mm 热敏收据打印机。手机盘点用一般 Android 手机。</p></details>
-<details><summary>支持 NFC 和 RFID 吗？</summary><p>支持。Android 手机可以感应 NFC 标签和会员卡；USB NFC 读卡器和 UHF RFID 手持机开「键盘模式」就能直接用。</p></details>
-<details><summary>我已经用 Loyverse，可以一起用吗？</summary><p>可以。贴上 Loyverse 的访问令牌，就会同步商品、库存数量和销售；盘点后也可以把正确数量写回 Loyverse。</p></details>
-<details><summary>其他收银系统（StoreHub、Qashier 等）呢？</summary><p>从你的收银系统导出销售报表（Excel 或 CSV），在 app 里导入，系统会自动认出每一栏。</p></details>
-<details><summary>资料安全吗？</summary><p>资料存在 Google Cloud（Firebase）。每个员工只看得到自己权限和分店范围内的资料，每一次修改都有记录。</p></details>
-<details><summary>有免费试用吗？</summary><p>有，注册后自动有 14 天免费试用，最多 5 位用户，不用信用卡。</p></details>
-<details><summary>可以开 LHDN 电子发票吗？</summary><p>可以。每个月在「报表 → 电子发票」下载合并电子发票（MyInvois 格式 JSON 和 CSV），上传到 MyInvois 网站。</p></details>
-<details><summary>顾客要求删除个人资料怎么办？</summary><p>按「删除顾客资料 (PDPA)」：马上隐藏，90 天后永久删除，旧收据保留金额但删掉名字和电话，符合 PDPA 2010。</p></details>
-<details><summary>有教学视频吗？</summary><p>有。每个系统都有一步一步的教学和视频，在网站的「使用教程」页面，app 里「我的 → 使用教程」也有。</p></details></div></section>
+<div class="site">
+<a href="#main" class="skip">Skip to content</a>
 
-<section class="final"><div class="wrap"><h2>今天就开始盘点</h2><p class="lead" style="margin-inline:auto">先免费用 14 天，满意再付费。</p>
-<div class="ctas"><a class="btn primary" href="/app/#create">免费试用 14 天</a></div></div></section>
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" aria-label="SuXin home" href="#top"><img src="assets/brand/suxin-mark.svg" alt="" width="40" height="40"/><span>SuXin<small>One Business. Connected.</small></span></a>
+    <nav class="nav-links" aria-label="Primary">
+      <div class="mega-wrap">
+        <button type="button" class="navlink has-mega" aria-expanded="false" aria-controls="mega">Products <i class="caret" aria-hidden="true"></i></button>
+        <div class="mega" id="mega">
+          <div class="mega-grid">
+            <a class="mega-item" href="products/pos/"><span class="tag">POS</span><span><b>SuXin POS</b><span>Counter checkout for retail, supermarkets and F&amp;B.</span></span></a>
+            <a class="mega-item" href="products/barcode-scan/"><span class="tag">SCAN</span><span><b>SuXin Barcode Scan</b><span>Stock-take with a phone or a computer.</span></span></a>
+            <a class="mega-item" href="products/wms/"><span class="tag">WMS</span><span><b>SuXin WMS</b><span>Receiving, transfers, purchase orders, costing.</span></span></a>
+            <a class="mega-item" href="products/every-data/"><span class="tag">DATA</span><span><b>SuXin Every Data</b><span>The owner's view: sales, stock, reports, staff.</span></span></a>
+            <a class="mega-item" href="products/books/"><span class="tag">BOOKS</span><span><b>SuXin Books</b><span>MyInvois e-invoices, bookkeeping, P&amp;L.</span></span></a>
+          </div>
+          <div class="mega-foot"><span class="mono dim">One account for every app</span><a href="#products">See all products →</a></div>
+        </div>
+      </div>
+      <a href="#screens">Screens</a>
+      <a href="#flow">How it works</a>
+      <a href="#built-for">Who it's for</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+    <div class="nav-right">
+      <div class="lang-switch" role="group" aria-label="Language"><button type="button" data-lang="zh" lang="zh-Hans">中文</button><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="ms" lang="ms">BM</button></div>
+      <button type="button" class="icon-btn theme-btn" aria-label="Switch colour theme" title="Switch colour theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" class="i-sun"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7" stroke-linecap="round"></path></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" class="i-moon"><path d="M20 14.2A8.4 8.4 0 1 1 9.8 4a6.9 6.9 0 0 0 10.2 10.2Z" stroke-linejoin="round"></path></svg>
+      </button>
+      <a class="btn btn-ghost btn-sm signin-btn" href="#start" data-link="signin">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="#start" data-link="signup">Start free trial</a>
+      <button type="button" class="icon-btn burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"></path></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="drawer" id="drawer">
+  <nav aria-label="Mobile menu">
+    <span class="dlabel">Products</span>
+    <a class="sub" href="products/pos/">SuXin POS — Counter</a>
+    <a class="sub" href="products/barcode-scan/">SuXin Barcode Scan — Stock-take</a>
+    <a class="sub" href="products/wms/">SuXin WMS — Warehouse</a>
+    <a class="sub" href="products/every-data/">SuXin Every Data — Owner's view</a>
+    <a class="sub" href="products/books/">SuXin Books — Accounts</a>
+    <span class="dlabel">Explore</span>
+    <a href="#screens">Screens</a>
+    <a href="#flow">How it works</a>
+    <a href="#built-for">Who it's for</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://wa.me/6589263660" data-wa>WhatsApp</a>
+  </nav>
+  <div class="drawer-lang"><div class="lang-switch" role="group" aria-label="Language"><button type="button" data-lang="zh" lang="zh-Hans">中文</button><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="ms" lang="ms">BM</button></div></div>
+  <a class="btn btn-ghost btn-block btn-lg drawer-signin" href="#start" data-link="signin">Sign in</a>
+  <a class="btn btn-primary btn-block btn-lg" href="#start" data-link="signup">Start free trial</a>
+</div>
+
+<main id="main">
+<div class="page-in" id="top">
+
+<!-- HERO -->
+<section class="hero grid-bg">
+  <span class="glow ora" style="width:520px;height:520px;top:-180px;left:-120px"></span>
+  <span class="glow red" style="width:420px;height:420px;bottom:-200px;right:-80px"></span>
+  <div class="wrap hero-in">
+    <div>
+      <span class="eyebrow">POS · Stock · Warehouse · Accounts</span>
+      <h1 class="display">One Business. <span class="grad-tx">Connected.</span></h1>
+      <p class="lead">SuXin runs your counter, your stock, your warehouse and your books on one account. Ring up a sale at the till: the stock drops in the warehouse, you see it on your phone, and the e-invoice is ready in your accounts.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href="#start" data-link="signup">Start free trial
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+        <a class="btn btn-ghost btn-lg" href="#products">Explore products</a>
+      </div>
+      <div class="chips hero-chips" role="list" aria-label="SuXin apps">
+        <span class="chip" role="listitem"><i class="dot"></i>POS</span>
+        <span class="chip" role="listitem"><i class="dot"></i>Barcode Scan</span>
+        <span class="chip" role="listitem"><i class="dot"></i>WMS</span>
+        <span class="chip" role="listitem"><i class="dot"></i>Every Data</span>
+        <span class="chip" role="listitem"><i class="dot"></i>Books</span>
+      </div>
+      <p class="hero-note">Five apps · one account · web and Android · Chinese, English, Malay · Malaysia &amp; Singapore</p>
+    </div>
+
+    <div class="trail-stage" aria-hidden="true">
+      <svg viewBox="0 0 560 560" role="presentation">
+        <defs>
+          <linearGradient id="trailGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#10B981"></stop><stop offset=".55" stop-color="#14B8A6"></stop><stop offset="1" stop-color="#5EEAD4"></stop></linearGradient>
+          <radialGradient id="nodeG"><stop offset="0" stop-color="#5EEAD4"></stop><stop offset="1" stop-color="#10B981"></stop></radialGradient>
+        </defs>
+        <path class="trail-path" d="M72 154 C 20 250, 40 370, 120 500" stroke-dasharray="3 9"></path>
+        <path id="trailA" class="trail-path" d="M72 154 C 150 150, 212 130, 268 168 C 322 218, 236 268, 214 330 C 190 398, 320 424, 452 468"></path>
+        <path id="trailB" class="trail-path" d="M268 168 C 340 200, 420 214, 470 268" stroke-dasharray="2 8" opacity=".35"></path>
+        <use href="#trailA" class="trail-dash"></use>
+        <use href="#trailA" class="trail-dash b"></use>
+        <use href="#trailA" class="trail-dash c"></use>
+        <circle class="packet" r="4" fill="#5EEAD4"><animateMotion dur="6.2s" repeatCount="indefinite" rotate="auto"><mpath href="#trailA"></mpath></animateMotion></circle>
+        <circle class="packet" r="3.2" fill="#10B981"><animateMotion dur="6.2s" begin="-2.1s" repeatCount="indefinite"><mpath href="#trailA"></mpath></animateMotion></circle>
+        <circle class="packet" r="3.2" fill="#2DD4BF"><animateMotion dur="6.2s" begin="-4.2s" repeatCount="indefinite"><mpath href="#trailA"></mpath></animateMotion></circle>
+        <!-- Supplier -->
+        <g class="node" style="color:#10B981"><circle class="node-ring" cx="72" cy="154" r="17"></circle><circle cx="72" cy="154" r="8" fill="url(#nodeG)"></circle><text class="node-t" x="72" y="124" text-anchor="middle">SUPPLIER</text><text class="node-lab" x="72" y="188" text-anchor="middle">PURCHASE ORDER</text></g>
+        <!-- WMS -->
+        <g class="node" style="color:#2DD4BF"><circle class="node-ring" cx="268" cy="168" r="19"></circle><path d="M268 157l10 5.5v11L268 179l-10-5.5v-11zM258 162.5l10 5.5 10-5.5M268 168v11" fill="none" stroke="#2DD4BF" stroke-width="1.7" stroke-linejoin="round"></path><text class="node-t" x="268" y="132" text-anchor="middle">SUXIN WMS</text><text class="node-lab" x="268" y="206" text-anchor="middle">RECEIVE · STOCK</text></g>
+        <!-- POS -->
+        <g class="node" style="color:#14B8A6"><circle class="node-ring" cx="214" cy="330" r="19"></circle><path d="M203 322h3l3 12h12l3-9h-16M211 339h.1M220 339h.1" fill="none" stroke="#14B8A6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path><text class="node-t" x="214" y="298" text-anchor="middle">SUXIN POS</text><text class="node-lab" x="214" y="368" text-anchor="middle">COUNTER SALE</text></g>
+        <!-- Books -->
+        <g class="node" style="color:#5EEAD4"><circle class="node-ring" cx="452" cy="468" r="19"></circle><path d="M444 458h12l4 4v15h-16zM448 466h8M448 471h8" fill="none" stroke="#5EEAD4" stroke-width="1.7" stroke-linejoin="round"></path><text class="node-t" x="452" y="436" text-anchor="middle">SUXIN BOOKS</text><text class="node-lab" x="452" y="506" text-anchor="middle">MYINVOIS</text></g>
+        <!-- Every Data -->
+        <g class="node" style="color:#7D929D"><circle class="node-ring" cx="470" cy="268" r="14"></circle><path d="M464 273l4-5 3 3 5-6" fill="none" stroke="#7D929D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><text class="node-lab" x="470" y="242" text-anchor="middle">EVERY DATA</text></g>
+      </svg>
+      <div class="hero-floats">
+        <div class="fpm a"><span class="k">Today's sales</span><span class="v">RM <span data-count="1273.16" data-dec="2">1,273.16</span></span><span class="d">▲ 35 receipts · Every Data</span></div>
+        <div class="fpm b"><span class="k">Stock value (cost)</span><span class="v">RM <span data-count="2129" data-dec="2">2,129.00</span></span><span class="d">SuXin WMS · 2 low stock</span></div>
+        <div class="fpm c"><span class="k">Checkout modes</span><span class="v"><em><span data-count="3">3</span></em> in 1</span><span class="d">F&amp;B · Supermarket · Retail</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="sec-tight">
+  <div class="wrap">
+    <div class="strip rv">
+      <div><div class="n"><s><span data-count="5">5</span></s></div><div class="l">Apps on one SuXin account</div></div>
+      <div><div class="n"><s><span data-count="3">3</span></s></div><div class="l">Checkout modes sharing one item list</div></div>
+      <div><div class="n"><s><span data-count="3">3</span></s></div><div class="l">Languages: Chinese, English, Malay</div></div>
+      <div><div class="n"><s><span data-count="1">1</span></s></div><div class="l">Stock count across every branch and warehouse</div></div>
+    </div>
+  </div>
+</section>
+<hr class="rule"/>
+
+<!-- PRODUCTS -->
+<section class="sec" id="products">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">Five apps. One account.</span>
+      <h2 class="h2">Open what your plan includes. Add the rest any time.</h2>
+      <p class="lead">One sign-in for everything. The till, the stock-take, the warehouse, the owner's dashboard and the accounts all read the same items, the same branches and the same receipts.</p>
+    </div>
+    <div class="grid g3">
+      <a class="card pcard rv" id="pos" href="products/pos/"><span class="glowline"></span>
+        <div class="pcard-top"><span class="pcard-tag">POS</span><span class="badge neutral">Counter</span></div>
+        <h3 class="h3">SuXin POS</h3>
+        <p class="muted text-(length:--fs-sm)">Counter checkout for shops, supermarkets and restaurants.</p>
+        <ul>
+          <li>F&amp;B, supermarket or retail mode</li>
+          <li>Tables, add-ons, kitchen slips, dine-in / takeaway / delivery</li>
+          <li>Keep scanning, 3× quantity, weighed items, hold &amp; recall</li>
+          <li>Shift open / close with cash-drawer count</li>
+          <li>Keeps selling offline, uploads when back online</li>
+        </ul>
+        <div class="pcard-foot"><span class="mono dim">Counter checkout</span><span class="link-arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div>
+      </a>
+      <a class="card pcard rv d1" id="scan" href="products/barcode-scan/"><span class="glowline"></span>
+        <div class="pcard-top"><span class="pcard-tag">SCAN</span><span class="badge neutral">Stock-take</span></div>
+        <h3 class="h3">SuXin Barcode Scan</h3>
+        <p class="muted text-(length:--fs-sm)">Scan to count stock, on a phone or a computer.</p>
+        <ul>
+          <li>Phone camera or a barcode scanner</li>
+          <li>Count per branch or warehouse</li>
+          <li>Count differences land in SuXin WMS</li>
+          <li>Same email and password as every app</li>
+        </ul>
+        <div class="pcard-foot"><span class="mono dim">Scan to count</span><span class="link-arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div>
+      </a>
+      <a class="card pcard rv d2" id="wms" href="products/wms/"><span class="glowline"></span>
+        <div class="pcard-top"><span class="pcard-tag">WMS</span><span class="badge neutral">Warehouse</span></div>
+        <h3 class="h3">SuXin WMS</h3>
+        <p class="muted text-(length:--fs-sm)">Goods in, goods out, across every branch.</p>
+        <ul>
+          <li>Receiving, transfers, stock adjustments</li>
+          <li>Purchase orders with reorder suggestions</li>
+          <li>Pinduoduo buying and cost calculator</li>
+          <li>Reservations, supplier returns, month-end stock</li>
+        </ul>
+        <div class="pcard-foot"><span class="mono dim">Stock in · transfers · cost</span><span class="link-arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div>
+      </a>
+      <a class="card pcard rv" id="data" href="products/every-data/"><span class="glowline"></span>
+        <div class="pcard-top"><span class="pcard-tag">DATA</span><span class="badge neutral">Owner</span></div>
+        <h3 class="h3">SuXin Every Data</h3>
+        <p class="muted text-(length:--fs-sm)">Today's business, in one place.</p>
+        <ul>
+          <li>Sales, receipts, average per sale, voids</li>
+          <li>Stock on hand, low stock, out of stock</li>
+          <li>Purchase orders waiting, transfers in transit</li>
+          <li>Shows only what your plan includes</li>
+        </ul>
+        <div class="pcard-foot"><span class="mono dim">Owner's dashboard</span><span class="link-arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div>
+      </a>
+      <a class="card pcard rv d1" id="books" href="products/books/"><span class="glowline"></span>
+        <div class="pcard-top"><span class="pcard-tag">BOOKS</span><span class="badge neutral">Accounts</span></div>
+        <h3 class="h3">SuXin Books</h3>
+        <p class="muted text-(length:--fs-sm)">E-invoices and accounts, for the owner or the accountant.</p>
+        <ul>
+          <li>Invoices, credit notes, MyInvois e-invoice files</li>
+          <li>Money in, money out, expenses, double-entry</li>
+          <li>P&amp;L, balance sheet, who owes, who we owe</li>
+          <li>SST report</li>
+        </ul>
+        <div class="pcard-foot"><span class="mono dim">E-invoice · bookkeeping</span><span class="link-arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div>
+      </a>
+      <a class="card pcard pcard-cta rv d2" href="#start"><span class="glowline"></span>
+        <div class="pcard-top"><span class="pcard-tag">ALL</span><span class="badge">One account</span></div>
+        <h3 class="h3">Start on the trial</h3>
+        <p class="muted text-(length:--fs-sm)">Sign up once and open every app in your plan. Upgrade when you need more. Nothing to install on the web; Android app for the counter and stock-take.</p>
+        <div class="pcard-foot"><span class="mono dim">One account for all</span><span class="link-arrow">Get started <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENS -->
+<section class="sec sec-tight pt-0" id="screens">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">See it, don't read about it</span>
+      <h2 class="h2">The screens your shop actually works from</h2>
+      <p class="lead">Same items, same branch, same receipts across every tab, because it's one system, not four apps stitched together.</p>
+    </div>
+    <div class="tabs rv" role="tablist" aria-label="Product preview">
+      <button type="button" class="tab" role="tab" id="tab-pos" aria-controls="panel-pos" aria-selected="true" tabindex="0">POS <span class="tag-o">01</span></button>
+      <button type="button" class="tab" role="tab" id="tab-wms" aria-controls="panel-wms" aria-selected="false" tabindex="-1">WMS <span class="tag-o">02</span></button>
+      <button type="button" class="tab" role="tab" id="tab-data" aria-controls="panel-data" aria-selected="false" tabindex="-1">Every Data <span class="tag-o">03</span></button>
+      <button type="button" class="tab" role="tab" id="tab-books" aria-controls="panel-books" aria-selected="false" tabindex="-1">Books <span class="tag-o">04</span></button>
+    </div>
+    <div class="mt-5">
+      <!-- POS -->
+      <div class="tabpanel" id="panel-pos" role="tabpanel" aria-labelledby="tab-pos" tabindex="0">
+        <div class="preview-frame">
+          <div class="stack"><span class="badge">POS · Register</span>
+            <h3 class="h3">Scan, scan, scan. Charge. Next customer.</h3>
+            <p class="muted text-(length:--fs-sm)">Pick the mode that fits the shop: F&amp;B with tables and kitchen slips, supermarket with a big always-on scan box, or retail with photos and categories. All three share the same items, stock, receipts and reports.</p>
+            <ul class="tick">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>SST and service charge worked out on the bill</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>No internet? Sales save on the device and upload later</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Members &amp; points, discounts, QR table ordering, LHDN e-invoice</li>
+            </ul>
+          </div>
+          <div class="mock">
+            <div class="mock-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">SuXin POS</span></div>
+            <div class="mock-body">
+              <div class="mock-row"><span class="mock-h">Till 1 · <span class="code">Ipoh Shop</span></span><span class="st ok">Shift open</span></div>
+              <div class="kpis">
+                <div class="kpi gold"><b>RM 47.43</b><span>Total</span></div>
+                <div class="kpi"><b>3</b><span>Items</span></div>
+                <div class="kpi"><b>0</b><span>Open tickets</span></div>
+              </div>
+              <table class="tbl"><thead><tr><th>Item</th><th>Qty</th><th class="hide-sm">Price</th><th class="text-right">Amount</th></tr></thead><tbody>
+                <tr><td>Malt Drink 1kg</td><td>1</td><td class="hide-sm">15.90</td><td class="text-right"><b>15.90</b></td></tr>
+                <tr><td>Ground Coffee 500g</td><td>1</td><td class="hide-sm">12.90</td><td class="text-right"><b>12.90</b></td></tr>
+                <tr><td>Rice 5kg</td><td>1</td><td class="hide-sm">16.90</td><td class="text-right"><b>16.90</b></td></tr>
+                <tr><td class="sk">SST 6%</td><td></td><td class="hide-sm"></td><td class="text-right">1.73</td></tr>
+              </tbody></table>
+              <div class="mock-row border-t border-(--line) pt-[0.6rem]"><span class="mono dim">Subtotal 45.70 · scan or type a barcode</span><span class="badge">Charge RM 47.43</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- WMS -->
+      <div class="tabpanel" id="panel-wms" role="tabpanel" aria-labelledby="tab-wms" tabindex="0" hidden="">
+        <div class="preview-frame">
+          <div class="stack"><span class="badge">WMS · Home</span>
+            <h3 class="h3">Know what's where, and what to buy next.</h3>
+            <p class="muted text-(length:--fs-sm)">Stock value at cost, low-stock and out-of-stock counts, purchase orders waiting to be received and transfers on the road, for one branch or all of them. Reorder suggestions turn into a purchase order in one tap.</p>
+            <ul class="tick">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Head office, warehouse and shops in one list</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Adjust for damaged, expired or found stock</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Landed-cost calculator for Pinduoduo buying</li>
+            </ul>
+          </div>
+          <div class="mock">
+            <div class="mock-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">SuXin WMS</span></div>
+            <div class="mock-body">
+              <div class="mock-row"><span class="mock-h">Kedai Maju Sdn Bhd · <span class="code">Central Warehouse</span></span><span class="st info">1 PO to receive</span></div>
+              <div class="kpis">
+                <div class="kpi gold"><b>RM 2,129.00</b><span>Stock value (cost)</span></div>
+                <div class="kpi"><b>2</b><span>Low stock</span></div>
+                <div class="kpi"><b>0</b><span>Out of stock</span></div>
+              </div>
+              <table class="tbl"><thead><tr><th>Reorder suggestion</th><th>On hand</th><th class="hide-sm">Reorder at</th><th class="text-right">Buy</th></tr></thead><tbody>
+                <tr><td>Rice 5kg</td><td>20</td><td class="hide-sm">20</td><td class="text-right"><b>+80</b></td></tr>
+                <tr><td>Bread</td><td>15</td><td class="hide-sm">15</td><td class="text-right"><b>+25</b></td></tr>
+                <tr><td>Eggs (10)</td><td>39</td><td class="hide-sm">30</td><td class="text-right"><span class="st ok">OK</span></td></tr>
+              </tbody></table>
+              <div class="mock-row border-t border-(--line) pt-[0.6rem]"><span class="mono dim">PO-261003-0915-MJ · Syarikat Borong Maju · ordered</span><span class="badge">Create PO</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- EVERY DATA -->
+      <div class="tabpanel" id="panel-data" role="tabpanel" aria-labelledby="tab-data" tabindex="0" hidden="">
+        <div class="preview-frame">
+          <div class="stack"><span class="badge">Every Data · Today</span>
+            <h3 class="h3">Today's business, on one screen.</h3>
+            <p class="muted text-(length:--fs-sm)">Sales, receipts and voids from every till; stock value and low-stock items from the warehouse; purchase orders waiting for approval. What you see follows the apps you've switched on.</p>
+            <ul class="tick">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Latest receipts with the cashier's name</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Sales by item, category, staff or payment method</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Check it from your phone, wherever you are</li>
+            </ul>
+          </div>
+          <div class="mock">
+            <div class="mock-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">SuXin Every Data</span></div>
+            <div class="mock-body">
+              <div class="mock-row"><span class="mock-h">Today · <span class="code">Kedai Maju Sdn Bhd</span></span><span class="st ok">Live</span></div>
+              <div class="kpis">
+                <div class="kpi gold"><b>RM 1,273.16</b><span>Sales today</span></div>
+                <div class="kpi"><b>35</b><span>Receipts</span></div>
+                <div class="kpi"><b>RM 36.38</b><span>Avg per sale</span></div>
+              </div>
+              <table class="tbl"><thead><tr><th>Time</th><th class="hide-sm">Receipt</th><th>Cashier</th><th class="text-right">Amount</th></tr></thead><tbody>
+                <tr><td class="sk">02:59</td><td class="sk hide-sm">261010-025937-DX</td><td>Siti</td><td class="text-right"><b>38.25</b></td></tr>
+                <tr><td class="sk">02:59</td><td class="sk hide-sm">261010-025937-3U</td><td>Ah Hock</td><td class="text-right"><b>3.82</b></td></tr>
+                <tr><td class="sk">02:59</td><td class="sk hide-sm">261010-025937-TW</td><td>Ah Hock</td><td class="text-right"><b>15.65</b></td></tr>
+                <tr><td class="sk">02:59</td><td class="sk hide-sm">261010-025937-7W</td><td>Siti</td><td class="text-right"><b>62.37</b></td></tr>
+              </tbody></table>
+              <div class="mock-row border-t border-(--line) pt-[0.6rem]"><span class="mono dim">1 voided · 1 PO waiting to be received</span><span class="badge">Sales report</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- BOOKS -->
+      <div class="tabpanel" id="panel-books" role="tabpanel" aria-labelledby="tab-books" tabindex="0" hidden="">
+        <div class="preview-frame">
+          <div class="stack"><span class="badge">Books · Invoice</span>
+            <h3 class="h3">Issue the invoice. Download the MyInvois file. Done.</h3>
+            <p class="muted text-(length:--fs-sm)">Fill in your company TIN, registration number and MSIC once. Every invoice can then export the e-invoice JSON for MyInvois, or go to your accountant. Record the UUID once LHDN validates it.</p>
+            <ul class="tick">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Credit notes and debit notes from the same invoice</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Receive money, pay suppliers, log rent, utilities, fuel</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>P&amp;L, balance sheet, trial balance, ledger, SST, as PDF or CSV</li>
+            </ul>
+          </div>
+          <div class="mock">
+            <div class="mock-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">SuXin Books</span></div>
+            <div class="mock-body">
+              <div class="mock-row"><span class="mock-h">Invoice <span class="code">INV-2026-00001</span></span><span class="st ok">Issued</span></div>
+              <div class="kpis">
+                <div class="kpi gold"><b>RM 194.90</b><span>Total</span></div>
+                <div class="kpi"><b>RM 15.90</b><span>Tax</span></div>
+                <div class="kpi"><b>30 d</b><span>Due 2026-11-09</span></div>
+              </div>
+              <table class="tbl"><thead><tr><th>Item</th><th>Qty</th><th class="hide-sm">Price</th><th class="text-right">Disc.</th></tr></thead><tbody>
+                <tr><td>Milo 1kg <span class="bin">4000 Sales</span></td><td>10</td><td class="hide-sm">15.90</td><td class="text-right">10%</td></tr>
+                <tr><td>Delivery <span class="bin">4000 Sales</span></td><td>1</td><td class="hide-sm">20.00</td><td class="text-right">—</td></tr>
+                <tr><td class="sk">Syarikat ABC Sdn Bhd</td><td colspan="2" class="sk">TIN C10000000000</td><td class="text-right"><b>194.90</b></td></tr>
+              </tbody></table>
+              <div class="mock-row border-t border-(--line) pt-[0.6rem]"><span class="mono dim">MyInvois e-invoice · JSON ready</span><span class="badge">Download JSON</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="hero-note mt-4">Previews use sample records from SuXin's demo company.</p>
+  </div>
+</section>
+
+<!-- FLOW -->
+<section class="sec grid-bg border-t border-(--line)" id="flow">
+  <span class="glow gold" style="width:460px;height:460px;top:10%;left:40%"></span>
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="eyebrow no-rule">How it fits together</span>
+      <h2 class="h2">One sale. Every app knows. Zero re-typing.</h2>
+      <p class="lead">Stock comes in through the warehouse, goes out at the till, shows up on the owner's phone and lands in the accounts. SuXin Barcode Scan keeps the count honest underneath it all.</p>
+    </div>
+    <div class="colony rv d1" aria-hidden="true">
+      <svg viewBox="0 0 1000 300" role="presentation">
+        <defs><linearGradient id="colG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#10B981"></stop><stop offset="1" stop-color="#0D9488"></stop></linearGradient></defs>
+        <path id="colPath" d="M90 118 H910" fill="none" stroke="url(#colG)" stroke-width="2" opacity=".5"></path>
+        <path class="trail-dash" d="M90 118 H910" fill="none"></path>
+        <path class="trail-dash b" d="M90 118 H910" fill="none"></path>
+        <circle class="packet" r="4" fill="#5EEAD4"><animateMotion dur="7s" repeatCount="indefinite"><mpath href="#colPath"></mpath></animateMotion></circle>
+        <circle class="packet" r="3" fill="#fff" opacity=".9"><animateMotion dur="7s" begin="-3.4s" repeatCount="indefinite"><mpath href="#colPath"></mpath></animateMotion></circle>
+        <path d="M90 232 H910" fill="none" stroke="#5EEAD4" stroke-width="1.4" stroke-dasharray="4 8" opacity=".45"></path>
+        <text class="node-lab tracking-[0.2em]" x="500" y="264" text-anchor="middle">SUXIN BARCODE SCAN · ONE ITEM LIST · ONE STOCK COUNT · EVERY BRANCH</text>
+        <g class="node" style="color:#10B981"><circle cx="90" cy="118" r="26" fill="none" stroke="#10B981" stroke-width="2"></circle><text class="node-code" x="90" y="124" text-anchor="middle" fill="#10B981" font-size="15">WMS</text><text class="node-t" x="90" y="66" text-anchor="middle">Stock received</text><text class="node-lab" x="90" y="180" text-anchor="middle">WAREHOUSE</text></g>
+        <g class="node" style="color:#2DD4BF"><circle cx="363" cy="118" r="26" fill="none" stroke="#2DD4BF" stroke-width="2"></circle><text class="node-code" x="363" y="124" text-anchor="middle" fill="#2DD4BF" font-size="15">POS</text><text class="node-t" x="363" y="66" text-anchor="middle">Sold at the counter</text><text class="node-lab" x="363" y="180" text-anchor="middle">SHOP / KOPITIAM</text></g>
+        <g class="node" style="color:#14B8A6"><circle cx="637" cy="118" r="26" fill="none" stroke="#14B8A6" stroke-width="2"></circle><text class="node-code" x="637" y="124" text-anchor="middle" fill="#14B8A6" font-size="13">DATA</text><text class="node-t" x="637" y="66" text-anchor="middle">Owner sees it</text><text class="node-lab" x="637" y="180" text-anchor="middle">EVERY DATA</text></g>
+        <g class="node" style="color:#5EEAD4"><circle cx="910" cy="118" r="26" fill="none" stroke="#5EEAD4" stroke-width="2"></circle><text class="node-code" x="910" y="124" text-anchor="middle" fill="#5EEAD4" font-size="12">BOOKS</text><text class="node-t" x="910" y="66" text-anchor="middle">Booked &amp; e-invoiced</text><text class="node-lab" x="910" y="180" text-anchor="middle">ACCOUNTS</text></g>
+      </svg>
+    </div>
+    <div class="chains rv d2">
+      <div class="c"><b>Stock received</b><span>Purchase order received into the warehouse, costs worked out, stock moved to the shops.</span></div>
+      <div class="c"><b>Sold at the counter</b><span>Scanned at the till, SST added, stock drops at that branch the moment it's paid.</span></div>
+      <div class="c"><b>Owner sees it</b><span>Today's sales, receipts, low stock and pending orders, live on Every Data.</span></div>
+      <div class="c"><b>Booked &amp; e-invoiced</b><span>Sales post to the accounts, MyInvois file ready, P&amp;L and SST up to date.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ONE PLATFORM -->
+<section class="sec">
+  <div class="wrap">
+    <div class="grid g2 items-center gap-[clamp(1.5rem,4vw,3.5rem)]">
+      <div class="stack rv"><span class="eyebrow">On one account</span>
+        <h2 class="h2">Not five apps bolted together</h2>
+        <p class="lead">One item record. One barcode. One price. Change it once and the till, the warehouse, the stock-take and the accounts all know, because there's only one copy.</p>
+        <div class="chips"><span class="chip"><i class="dot"></i>Web + Android</span><span class="chip"><i class="dot"></i>3 languages</span><span class="chip"><i class="dot"></i>Multi-branch</span><span class="chip"><i class="dot"></i>Works offline</span><span class="chip"><i class="dot"></i>MyInvois ready</span><span class="chip"><i class="dot"></i>Dark mode</span></div>
+      </div>
+      <div class="card glass card-pad-lg rv d1">
+        <div class="mock-row mb-[0.9rem]"><span class="mock-h">Item · <span class="code">2909000000028</span></span><span class="st warn">Low stock</span></div>
+        <table class="tbl"><tbody>
+          <tr><td class="mono dim">Name</td><td>Rice 5kg</td></tr>
+          <tr><td class="mono dim">Selling price</td><td>RM 16.90 <span class="bin">Groceries</span></td></tr>
+          <tr><td class="mono dim">On hand</td><td>20 pcs <span class="bin">reorder at 20</span></td></tr>
+          <tr><td class="mono dim">Value (cost)</td><td>RM 290.00</td></tr>
+          <tr><td class="mono dim">Branches</td><td>Central Warehouse · Ipoh Shop</td></tr>
+          <tr><td class="mono dim">Used by</td><td>POS · Scan · WMS · Every Data · Books</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILT FOR -->
+<section class="sec-tight" id="built-for">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">Who it's for</span>
+      <h2 class="h2">Built for the shops that keep Malaysia running</h2></div>
+    <div class="grid g4">
+      <div class="card rv"><span class="case-num">F&amp;B mode</span><h3 class="h3 text-[1.05rem] mt-2">Restaurants, cafés &amp; kopitiam</h3><p class="muted mt-2 text-(length:--fs-sm)">Tables and open tickets, add-ons like sweetness or extra egg, kitchen slips, dine-in, takeaway and delivery, service charge.</p></div>
+      <div class="card rv d1"><span class="case-num">Supermarket mode</span><h3 class="h3 text-[1.05rem] mt-2">Supermarkets &amp; mini-markets</h3><p class="muted mt-2 text-(length:--fs-sm)">Big scan box that never loses focus, 3× then scan for quantity, price check, weighed items, hold and recall.</p></div>
+      <div class="card rv d2"><span class="case-num">Retail mode</span><h3 class="h3 text-[1.05rem] mt-2">Retail shops</h3><p class="muted mt-2 text-(length:--fs-sm)">Clothing, hardware, stationery, phone shops: tap photos to sell, members and points, discounts, barcodes and NFC.</p></div>
+      <div class="card rv d3"><span class="case-num">WMS + Books</span><h3 class="h3 text-[1.05rem] mt-2">Wholesale &amp; multi-branch</h3><p class="muted mt-2 text-(length:--fs-sm)">A central warehouse feeding the shops, purchase orders to suppliers, transfers between branches, invoices to trade customers.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO START -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">Getting started</span>
+      <h2 class="h2">From sign-up to first sale, the same day</h2></div>
+    <div class="grid g3">
+      <div class="card rv"><span class="case-num">Step 01</span><h3 class="h3 mt-[0.6rem] mb-2">Register your company</h3><p class="muted text-(length:--fs-sm)">Create an account on the trial, or join your company's existing one. Add your branches and staff.</p></div>
+      <div class="card rv d1"><span class="case-num">Step 02</span><h3 class="h3 mt-[0.6rem] mb-2">Bring in your items</h3><p class="muted text-(length:--fs-sm)">Scan barcodes with SuXin Barcode Scan, set prices and categories, enter opening stock per branch.</p></div>
+      <div class="card rv d2"><span class="case-num">Step 03</span><h3 class="h3 mt-[0.6rem] mb-2">Open the till</h3><p class="muted text-(length:--fs-sm)">Pick your checkout mode, open a shift and start selling. Every screen has a built-in ▶ guide.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec" id="pricing">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">Pricing</span>
+      <h2 class="h2">One price list. No surprises.</h2>
+      <p class="lead">Prices in ringgit. Every plan starts with a 14-day free trial, no card needed. Pay yearly and get two months free.</p></div>
+    <div class="grid g3">
+      <div class="card price rv"><span class="case-num">Starter</span>
+        <div class="price-n"><b>RM 48</b><span>/ month</span></div>
+        <p class="muted text-(length:--fs-sm)">One shop · up to 5 users</p>
+        <ul class="tick">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>POS, Barcode Scan, WMS, Every Data and Books</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Unlimited tills</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>RM 480 a year</li>
+        </ul>
+        <a class="btn btn-ghost btn-block" href="#start" data-link="signup">Start free trial</a>
+      </div>
+      <div class="card price price-hot rv d1"><span class="case-num">Business</span><span class="badge">Most shops</span>
+        <div class="price-n"><b>RM 118</b><span>/ month</span></div>
+        <p class="muted text-(length:--fs-sm)">Several branches · up to 20 users</p>
+        <ul class="tick">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Everything in Starter</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Branches and a central warehouse</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Loyverse sync</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>RM 1,180 a year</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="#start" data-link="signup">Start free trial</a>
+      </div>
+      <div class="card price rv d2"><span class="case-num">Unlimited</span>
+        <div class="price-n"><b>RM 228</b><span>/ month</span></div>
+        <p class="muted text-(length:--fs-sm)">Unlimited users</p>
+        <ul class="tick">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Everything in Business</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Open API for your web shop or accounting program</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"></path></svg>RM 2,280 a year</li>
+        </ul>
+        <a class="btn btn-ghost btn-block" href="#start" data-link="signup">Start free trial</a>
+      </div>
+    </div>
+    <div class="grid g2 mt-5">
+      <div class="card rv"><span class="case-num">Just one app</span>
+        <p class="mt-2">SuXin Barcode Scan alone: RM 28 / month, 3 users.</p>
+        <p class="mt-2">SuXin POS alone: RM 38 / month, 2 tills, Books included.</p></div>
+      <div class="card rv d1"><span class="case-num">Lifetime</span>
+        <p class="mt-2">Pay once from RM 1,680. Only 50 sets, with 24 months of updates and support.</p>
+        <p class="mt-2"><a class="link-arrow" href="https://wa.me/6589263660" data-wa>Ask us on WhatsApp <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="sec-tight" id="start">
+  <div class="wrap">
+    <div class="band rv">
+      <div class="band-in">
+        <div>
+          <h2 class="h2">Run the whole shop on one account</h2>
+          <p>Start on the free trial with SuXin POS, Barcode Scan, WMS, Every Data and Books. Keep what you use, add the rest when you're ready.</p>
+        </div>
+        <div class="band-cta">
+          <a class="btn btn-light btn-lg" href="#start" data-link="signup">Start free trial</a>
+          <a class="btn btn-ghost btn-lg" href="#start" data-link="android">Get the Android app</a>
+          <a class="btn btn-ghost btn-lg wa-btn" href="https://wa.me/6589263660" data-wa><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg>WhatsApp us</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
 </main>
-<footer><div class="wrap"><span>© 2026 SuXin · 一盘生意，一套系统。 · 马来西亚商店、超市、仓库和餐厅的盘点与收银系统。</span><span><a href="/" hreflang="zh-Hans-MY">中文</a> · <a href="/en/" hreflang="en-MY">English</a> · <a href="/ms/" hreflang="ms-MY">Bahasa Melayu</a></span></div></footer>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand mb-4" aria-label="SuXin home" href="#top"><img src="assets/brand/suxin-mark.svg" alt="" width="40" height="40"/><span>SuXin<small>One Business. Connected.</small></span></a>
+        <p class="muted max-w-[34ch] text-(length:--fs-sm)">Counter, stock, warehouse and accounts for shops in Malaysia and Singapore.</p>
+        <div class="chips mt-4"><a class="chip" href="#start"><i class="dot"></i>Start free trial</a></div>
+      </div>
+      <div><h4>Products</h4>
+        <ul>
+          <li><a href="products/pos/">SuXin POS</a></li>
+          <li><a href="products/barcode-scan/">SuXin Barcode Scan</a></li>
+          <li><a href="products/wms/">SuXin WMS</a></li>
+          <li><a href="products/every-data/">SuXin Every Data</a></li>
+          <li><a href="products/books/">SuXin Books</a></li>
+        </ul>
+      </div>
+      <div><h4>For</h4>
+        <ul>
+          <li><a href="#built-for">Restaurants &amp; kopitiam</a></li>
+          <li><a href="#built-for">Supermarkets &amp; mini-markets</a></li>
+          <li><a href="#built-for">Retail shops</a></li>
+          <li><a href="#built-for">Wholesale &amp; multi-branch</a></li>
+        </ul>
+      </div>
+      <div><h4>Explore</h4>
+        <ul>
+          <li><a href="#screens">Screens</a></li>
+          <li><a href="#flow">How it works</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#start">Get started</a></li>
+        </ul>
+      </div>
+      <div><h4>Contact</h4>
+        <ul>
+          <li><a href="https://wa.me/6589263660" data-wa>WhatsApp +65 8926 3660</a></li>
+          <li><a href="/guide/">Guides &amp; videos</a></li>
+          <li><a href="/app/">Sign in</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot"><span>© <span data-year>2026</span> SuXin. All rights reserved.</span><span class="mono">POS · SCAN · WMS · DATA · BOOKS · one account</span></div>
+  </div>
+</footer>
+<a class="wa-float" href="https://wa.me/6589263660" data-wa aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg><span>WhatsApp</span></a>
+</div>
+<script src="assets/i18n.js?v=5d3a6d45" defer></script>
+<script src="assets/site.js?v=8bfa9d03" defer></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ import { icon } from './icons.js';
 import { getLang, LANGS, setLang, t } from './i18n.js';
 import { onChange, session } from './session.js';
 import './strings-pro.js';
-import { appSwitcher, startApp } from './apps.js';
+import { appSwitcher, startApp, themeToggle } from './apps.js';
 import { isTillLocked, tillLockButton, toggleTillLock } from './tilllock.js';
 import { helpFab, stopTillHelp } from './pagehelp.js';
 
@@ -145,6 +145,7 @@ function renderSide() {
       isTillLocked() ? null : appSwitcher('pos'),
       installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
       h('button', { 'data-act': 'side-till-lock', onclick: () => toggleTillLock(afterLock) }, icon('lock', 17), isTillLocked() ? t('tlUnlock') : t('tlLock')),
+      themeToggle(),
       langPicker(),
       isTillLocked() ? null : h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));
 }

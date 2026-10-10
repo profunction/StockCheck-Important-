@@ -7,7 +7,7 @@ import { h, mount } from '../js/dom.js';
 import { t } from '../js/i18n.js';
 import { icon } from '../js/icons.js';
 import { session } from '../js/session.js';
-import { APPS, appState, appSwitcher, langPicker, signOutNow, startApp } from '../js/apps.js';
+import { APPS, appState, appSwitcher, langPicker, signOutNow, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 import { render as dashboard } from '../js/dashboard.js';
@@ -25,6 +25,7 @@ function shell() {
       h('span', { class: 'grow' }),
       appSwitcher('cloud'),
       h('a', { class: 'btn ghost icon-btn', href: '/guide/#cloud', title: t('posGuide'), 'aria-label': t('posGuide'), 'data-act': 'guide' }, icon('book', 18)),
+      themeToggle(),
       langPicker(),
       h('button', { class: 'ghost icon-btn', title: t('signOut'), 'aria-label': t('signOut'), onclick: signOutNow }, icon('logout', 18))),
     main));

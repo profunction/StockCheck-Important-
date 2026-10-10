@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SuXin">
+  <rect width="64" height="64" rx="14" fill="#0B1B2B"/>
+  <path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="42" cy="20" r="6" fill="#2DD4BF"/>
+  <circle cx="22" cy="44" r="6" fill="#2DD4BF"/>
+</svg>

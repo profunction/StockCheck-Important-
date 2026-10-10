@@ -5,8 +5,8 @@
   "start_url": "/pos/#/pos",
   "scope": "/pos/",
   "display": "standalone",
-  "background_color": "#f4f5f2",
-  "theme_color": "#1f6b45",
+  "background_color": "#071420",
+  "theme_color": "#071420",
   "icons": [
     {
       "src": "/icons/icon-192.png",

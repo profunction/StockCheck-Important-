@@ -6,8 +6,8 @@
   "scope": "/data/",
   "id": "/data/",
   "display": "standalone",
-  "background_color": "#f3f5f8",
-  "theme_color": "#0f766e",
+  "background_color": "#071420",
+  "theme_color": "#071420",
   "icons": [
     { "src": "/brand/suxin-mark-512.png", "sizes": "512x512", "type": "image/png" }
   ]

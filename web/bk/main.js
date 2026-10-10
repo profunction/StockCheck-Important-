@@ -12,7 +12,7 @@ import { icon } from '../js/icons.js';
 import { onChange, session } from '../js/session.js';
 import { STRINGS } from './strings.js';
 import '../js/strings-pro.js';
-import { appSwitcher, startApp } from '../js/apps.js';
+import { appSwitcher, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { books, canPost, canView, onBooks, ready, saveChart, stopBooks, watchBooks } from './data.js';
 import { DEFAULT_ACCOUNTS } from '../js/books.js';
@@ -72,6 +72,7 @@ function renderSide() {
       h('a', { class: `top${group === item.id ? ' current' : ''}`, href: `#/${item.id}` }, icon(item.icon, 19), t(item.label))))),
     h('div', { class: 'foot' },
       appSwitcher('books'),
+      themeToggle(),
       langPicker(),
       h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));
   mount(bottomEl,

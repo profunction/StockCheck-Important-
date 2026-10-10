@@ -15,7 +15,7 @@ export const GUIDE_URL = `${SITE}/guide/`;
 export const POS_URL = `${SITE}/pos/`;
 
 /** Shown only when filled in. */
-export const CONTACT = { whatsapp: '', email: '' };
+export const CONTACT = { whatsapp: '6589263660', email: '' };
 
 export const LANGS = {
   zh: {

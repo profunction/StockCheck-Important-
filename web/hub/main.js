@@ -8,7 +8,7 @@ import { addStrings, t } from '../js/i18n.js';
 import { icon } from '../js/icons.js';
 import { PLANS } from '../js/plans.js';
 import { session } from '../js/session.js';
-import { APPS, appState, langPicker, signOutNow, startApp } from '../js/apps.js';
+import { APPS, appState, langPicker, signOutNow, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 import '../js/strings-pro.js';
@@ -30,6 +30,7 @@ function render() {
       h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 34, height: 34 }), 'SuXin'),
       h('span', { class: 'grow' }),
       h('a', { class: 'btn ghost', href: '/guide/#account', 'data-act': 'guide' }, icon('book', 17), t('posGuide')),
+      themeToggle(),
       langPicker(),
       h('button', { class: 'ghost', onclick: signOutNow }, icon('logout', 17), t('signOut'))),
     h('main', { class: 'hub-main' },

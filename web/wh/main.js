@@ -11,7 +11,7 @@ import { icon } from '../js/icons.js';
 import { onChange, session } from '../js/session.js';
 import { STRINGS } from './strings.js';
 import '../js/strings-pro.js';
-import { appSwitcher, startApp } from '../js/apps.js';
+import { appSwitcher, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 
@@ -105,6 +105,7 @@ function renderSide() {
       h('a', { class: 'side-link', href: '/pos/' }, icon('cart', 17), t('whOpenPos')),
       appSwitcher('warehouse'),
       installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
+      themeToggle(),
       langPicker(),
       h('button', { onclick: () => signOut(auth) }, icon('logout', 17), t('signOut'))));
   mount(bottomEl,

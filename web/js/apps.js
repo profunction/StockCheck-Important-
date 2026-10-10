@@ -22,7 +22,7 @@ import { checkForm, createCompany, joinCompany, resetPassword, signupError } fro
 
 addStrings({
   en: {
-    appCentre: 'SuXin apps', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
+    appCentre: 'SuXin apps', themeLight: 'Light mode', themeDark: 'Dark mode', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
     appLocked: 'Not in your plan', appBuy: 'See plans', appDenied: 'Ask your admin for access',
     appCentreLead: 'One sign-in for everything. Open what your plan includes; the rest can be added any time.',
     appPlan: 'Your plan', appNoPlan: 'Trial / no plan yet', appAddMore: 'Add more',
@@ -45,7 +45,7 @@ addStrings({
     suErrTaken: 'This email already has an account. Sign in, or use Forgot password.',
   },
   zh: {
-    appCentre: 'SuXin 应用', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
+    appCentre: 'SuXin 应用', themeLight: '白天模式', themeDark: '夜间模式', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
     appLocked: '你的配套没有包括', appBuy: '看配套', appDenied: '没有权限，请问管理员',
     appCentreLead: '一个账号用全部。配套包括的就能打开；没有的，随时可以增加。',
     appPlan: '你的配套', appNoPlan: '试用 / 还没有配套', appAddMore: '增加功能',
@@ -68,7 +68,7 @@ addStrings({
     suErrTaken: '这个 email 已经有账号了。请直接登录，或按「忘记密码」。',
   },
   ms: {
-    appCentre: 'Aplikasi SuXin', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
+    appCentre: 'Aplikasi SuXin', themeLight: 'Mod cerah', themeDark: 'Mod gelap', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
     appLocked: 'Tiada dalam pelan anda', appBuy: 'Lihat pelan', appDenied: 'Minta akses daripada admin',
     appCentreLead: 'Satu log masuk untuk semua. Buka apa yang ada dalam pelan; yang lain boleh ditambah bila-bila masa.',
     appPlan: 'Pelan anda', appNoPlan: 'Percubaan / belum ada pelan', appAddMore: 'Tambah fungsi',
@@ -114,6 +114,25 @@ export function appState(who, app) {
   if (app.module && !who.has(app.module)) return 'locked';
   if (who.isAdmin || app.perms.some((p) => who.can(p))) return 'open';
   return 'denied';
+}
+
+const SUN = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7" stroke-linecap="round"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 1 1 9.8 4a6.9 6.9 0 0 0 10.2 10.2Z" stroke-linejoin="round"/></svg>';
+
+/**
+ * Dark (the default) or light, for every SuXin app and the website: stored
+ * as suxin-theme, applied before the page draws by /assets/theme.js.
+ */
+export function themeToggle() {
+  const icon = (svg) => { const s = h('span', { class: 'ic' }); s.innerHTML = svg; return s; };
+  return h('button', {
+    type: 'button', class: 'theme-toggle', 'data-act': 'theme',
+    onclick: () => {
+      const light = document.documentElement.getAttribute('data-theme') !== 'light';
+      if (light) document.documentElement.setAttribute('data-theme', 'light'); else document.documentElement.removeAttribute('data-theme');
+      try { localStorage.setItem('suxin-theme', light ? 'light' : 'dark'); } catch { /* remembered or not, it switched */ }
+    },
+  }, h('span', { class: 'when-dark' }, icon(SUN), t('themeLight')), h('span', { class: 'when-light' }, icon(MOON), t('themeDark')));
 }
 
 /** The switcher in an app's sidebar: every app, the locked ones marked. */

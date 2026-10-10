@@ -1,0 +1,80 @@
+/* SuXin additions on top of site.css (the shared layout system). */
+
+.site .skip { position: absolute; top: 0; left: -9999px; z-index: 200; border-bottom-right-radius: .5rem; background: var(--grad); color: #fff; padding: .7rem 1.1rem; }
+.site .skip:focus { left: 0; }
+
+/* Square app-icon logo instead of a tall mark */
+.site .brand { gap: .6rem; }
+.site .brand img { height: 40px; width: 40px; border-radius: 10px; }
+.site .brand small { letter-spacing: .12em; font-size: .54rem; }
+
+/* Product code inside the flow circles */
+.site .node-code { font-family: var(--f-mono); font-weight: 600; }
+
+/* Sixth product card: the "start here" card */
+.site .pcard-cta { background: var(--grad-soft); border-color: var(--line-strong); }
+
+/* Small-screen tidy-ups for the longer SuXin labels */
+@media (width <= 620px) {
+  .site .brand small { display: none; }
+  .site .hero-chips { flex-wrap: wrap; }
+}
+
+/* Light theme: the mint/teal accents need more contrast on a pale background */
+:root[data-theme=light] .site { --gold: #0d9488; --amber: #0f766e; }
+
+/* Language switch: 中文 / EN / BM, a single segmented pill */
+.site .lang-switch { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); margin-right: .25rem; }
+.site .lang-switch button { font: 500 .78rem/1 var(--f-body); color: var(--tx-3); min-width: 2.4rem; padding: .5rem .65rem; border-radius: var(--r-pill); cursor: pointer; transition: color .18s, background .18s; }
+.site .lang-switch button:hover { color: var(--tx); }
+.site .lang-switch button[aria-pressed="true"] { color: #fff; background: var(--grad); font-weight: 600; }
+.site .lang-switch button[lang="zh-Hans"] { font-family: "Noto Sans SC", var(--f-body); }
+.site .signin-btn { border-color: color-mix(in srgb, var(--orange) 55%, transparent); color: var(--tx); }
+.site .drawer-lang { margin-top: 1.5rem; }
+.site .drawer-lang .lang-switch button { font-size: .95rem; padding: .6rem .9rem; }
+.site .drawer .drawer-signin { margin-top: 1rem; }
+.site .drawer .drawer-signin + .btn { margin-top: .6rem; }
+/* Keep the header from crowding: language + sign-in move into the menu below 1080px */
+@media (width <= 1080px) {
+  .site .nav-right > .lang-switch, .site .nav-right > .signin-btn { display: none; }
+}
+/* Chinese headings: break between phrases, not in the middle of one */
+html[lang="zh-Hans"] .site :is(.display, .h1, .h2) { word-break: keep-all; text-wrap: balance; }
+
+/* ------------------------------------------------ added on the SuXin site */
+
+/* Header: five links, the language switch and two buttons fit in one row
+   down to 1081px (below that the menu button takes over). */
+@media (1081px <= width <= 1340px) {
+  .site .nav-in { gap: .6rem; }
+  .site .nav-links > a, .site .nav-links button.navlink { padding: .5rem .5rem; }
+  .site .nav-right { gap: .35rem; margin-left: .25rem; }
+  .site .brand small { display: none; }
+}
+
+/* Hero: the stock-value card sits clear of the Every Data node. */
+.site .fpm.b { top: 12%; }
+
+/* Pricing */
+.site .price { display: flex; flex-direction: column; gap: .7rem; position: relative; }
+.site .price .badge { position: absolute; top: 1.1rem; right: 1.1rem; }
+.site .price-n { display: flex; align-items: baseline; gap: .4rem; margin-top: .3rem; }
+.site .price-n b { font-family: var(--f-display); font-size: clamp(2rem, 3.4vw, 2.6rem); letter-spacing: -.03em; line-height: 1; }
+.site .price-n span { color: var(--tx-3); font-size: var(--fs-sm); }
+.site .price ul.tick { flex: 1; }
+.site .price-hot { border-color: color-mix(in srgb, var(--orange) 55%, transparent); background: var(--grad-soft); }
+.site .btn-block { width: 100%; justify-content: center; }
+
+/* WhatsApp */
+.site .wa-btn svg, .site .wa-float svg { width: 1.15em; height: 1.15em; flex: none; }
+.site .wa-btn { gap: .5rem; }
+.site .wa-float {
+  position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 90;
+  display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.1rem; border-radius: var(--r-pill);
+  background: #25d366; color: #05301a; font-weight: 700; font-size: .92rem; box-shadow: 0 10px 30px -10px #000a;
+  transition: transform .18s var(--ease);
+}
+.site .wa-float:hover { transform: translateY(-2px); }
+@media (width <= 620px) { .site .wa-float span { display: none; } .site .wa-float { padding: .85rem; } }
+/* Footer: products, who for, explore and contact beside the brand. */
+@media (width > 1080px) { .site .foot-grid { grid-template-columns: 1.4fr repeat(4, 1fr); } }

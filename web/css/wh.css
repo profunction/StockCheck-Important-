@@ -1,16 +1,13 @@
 /*
- * The warehouse system, on top of pos.css. Its own blue so a worker never
- * mistakes it for the till; big targets and a bar along the bottom on a
- * phone, because it is used standing up with a box in the other hand.
+ * The warehouse system, on top of pos.css, in the same colours as every
+ * SuXin app: big targets and a bar along the bottom on a phone, because it
+ * is used standing up with a box in the other hand.
  */
-:root { --wh: #12385a; --wh-soft: #e4ecf4; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wh: #7fb2dc; --wh-soft: #142433; } }
-:root[data-theme="dark"] { --wh: #7fb2dc; --wh-soft: #142433; }
+:root { --wh: var(--brand); --wh-soft: var(--brand-soft); }
 
-.shell.wh .side { background: #0f2537; }
-.shell.wh .side .group > a.top.current { background: rgba(106, 168, 219, .16); }
-.shell.wh .side .group > a.top.current .ic { color: #9cc9ee; }
-.wh-brand { background: radial-gradient(120% 90% at 0% 0%, #2f78b5 0%, transparent 55%), #0f2537; }
+.shell.wh .side .group > a.top.current { background: rgba(45, 212, 191, .14); }
+.shell.wh .side .group > a.top.current .ic { color: var(--side-accent); }
+.wh-brand { background: radial-gradient(120% 90% at 0% 0%, rgba(16, 185, 129, .35) 0%, transparent 55%), var(--side-bg); }
 .side .foot label.field select { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); color: var(--side-text); }
 
 .wh-bottom { display: none; }

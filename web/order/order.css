@@ -1,13 +1,14 @@
 /* Ordering by QR code, on the customer's own phone: one column, big targets,
    the basket always one tap away at the bottom. */
+/* The SuXin colours (web/assets/): light or dark as the customer's phone is set. */
 :root {
-  --bg: #f4f6f8; --card: #ffffff; --ink: #14202c; --muted: #5d6877; --line: #e1e6eb;
-  --brand: #0f766e; --brand-ink: #ffffff; --brand-soft: #e2f3f0; --warn: #b54708; --bad: #b3261e; --good: #127a3f;
-  --radius: 14px; --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
-  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --bg: #f1f6f6; --card: #ffffff; --ink: #0b1b2b; --muted: #4e6474; --line: #dbe5e7;
+  --brand: #0d9488; --brand-ink: #ffffff; --brand-soft: #dcf3ef; --warn: #b54708; --bad: #b3261e; --good: #127a3f;
+  --radius: 16px; --shadow: 0 1px 2px rgba(11, 27, 43, .06), 0 10px 30px -20px rgba(11, 43, 43, .35);
+  font-family: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #0c1520; --card: #13202e; --ink: #e6edf3; --muted: #9aa8b6; --line: #24364a; --brand: #2dd4bf; --brand-ink: #062a27; --brand-soft: #103a37; color-scheme: dark; }
+  :root { --bg: #071420; --card: #0d2133; --ink: #eef6f7; --muted: #9fb3bd; --line: #1c3447; --brand: #2dd4bf; --brand-ink: #042f2e; --brand-soft: #0f3a3c; color-scheme: dark; }
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--ink); }

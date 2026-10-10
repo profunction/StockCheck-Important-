@@ -2,7 +2,7 @@
 
 > Count stock by scanning with your phone, sell at the counter, and keep stock levels in step automatically. SST, DuitNow QR, 5-sen cash rounding, multiple branches, loyalty points, NFC/RFID and Loyverse import. 14-day free trial, from RM48 a month.
 
-SuXin is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **SuXin Barcode Scan**, the Android app for counting stock by scanning barcodes; **SuXin POS**, the web cash register for the counter; **SuXin WMS** for receiving, transfers and purchase orders; and **SuXin Every Data**, the owner's back office. SuXin was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
+SuXin is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **SuXin Barcode Scan**, the Android app for counting stock by scanning barcodes; **SuXin POS**, the web cash register for the counter; **SuXin WMS** for receiving, transfers and purchase orders; **SuXin Every Data**, the owner's back office; and **SuXin Books**, e-invoices (LHDN MyInvois) and the company's accounts. SuXin was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
 
 中文：用手机扫条码盘点，电脑收银，库存自动同步。支持 SST、DuitNow QR、现金四舍五入、多分店、会员积分、NFC/RFID 和 Loyverse 导入。14 天免费试用，每月 RM48 起。
 
@@ -47,9 +47,9 @@ On hand = the last finished count + goods received since − sales and goods out
 Chinese names: 盘点通 (SuXin Barcode Scan), 收银通 (SuXin POS), 仓管通 (SuXin WMS), 老板数据 (SuXin Every Data).
 
 ## By kind of business
-- [Retail / Mini market](https://stockcheck-fb58e.web.app/en/retail/): Scan and sell, and every sale comes off the stock. Count with your phone and see what is missing at once.
-- [Restaurant / Café](https://stockcheck-fb58e.web.app/en/fnb/): Quick ordering, clear kitchen tickets, service charge and SST worked out for you.
-- [Warehouse / Wholesale](https://stockcheck-fb58e.web.app/en/wholesale/): One stock for the warehouse and the shops: what came in, what is on the way, and where it went missing. (Coming soon: store order requests, pick lists.)
+- [Retail / Mini market](https://stockcheck-fb58e.web.app/#built-for): Scan and sell, and every sale comes off the stock. Count with your phone and see what is missing at once.
+- [Restaurant / Café](https://stockcheck-fb58e.web.app/#built-for): Quick ordering, clear kitchen tickets, service charge and SST worked out for you.
+- [Warehouse / Wholesale](https://stockcheck-fb58e.web.app/#built-for): One stock for the warehouse and the shops: what came in, what is on the way, and where it went missing. (Coming soon: store order requests, pick lists.)
 
 ## Malaysia-specific
 - SST, with prices tax-inclusive or tax added on top.
@@ -97,12 +97,18 @@ Press Remove (PDPA): hidden at once, erased for good after 90 days; old receipts
 Yes. Every part has step-by-step guides with videos on the website's Guide page, and in the app under Profile → How to use.
 
 ## Links
-- Website (中文): https://stockcheck-fb58e.web.app/
-- Website (English): https://stockcheck-fb58e.web.app/en/
-- Website (Bahasa Melayu): https://stockcheck-fb58e.web.app/ms/
+- Website (中文): https://stockcheck-fb58e.web.app/?lang=zh
+- Website (English): https://stockcheck-fb58e.web.app/?lang=en
+- Website (Bahasa Melayu): https://stockcheck-fb58e.web.app/?lang=ms
+- SuXin POS: https://stockcheck-fb58e.web.app/products/pos/
+- SuXin Barcode Scan: https://stockcheck-fb58e.web.app/products/barcode-scan/
+- SuXin WMS: https://stockcheck-fb58e.web.app/products/wms/
+- SuXin Every Data: https://stockcheck-fb58e.web.app/products/every-data/
+- SuXin Books: https://stockcheck-fb58e.web.app/products/books/
 - Sign in or sign up (all apps): https://stockcheck-fb58e.web.app/app/
 - SuXin Barcode Scan on the web: https://stockcheck-fb58e.web.app/count/
 - POS sign-in: https://stockcheck-fb58e.web.app/pos/
 - Android app download: https://stockcheck-fb58e.web.app/download/StockCheck.apk
 - Warehouse system (web, works on phones): https://stockcheck-fb58e.web.app/warehouse/
 - Step-by-step guides with videos: https://stockcheck-fb58e.web.app/guide/
+- WhatsApp: +6589263660
