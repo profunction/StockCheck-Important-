@@ -160,7 +160,7 @@ export function render(main, id, params = new URLSearchParams()) {
       drawAdd();
       if (check.templateId) getDoc(doc(db, ws(`templates/${check.templateId}`))).then((s) => {
         const tpl = s.data();
-        if (tpl?.photoRequired) head.append(h('div', { class: 'cnt-chip soon ph-need' }, t('cNeedPhotos').replace('{n}', tpl.minPhotos || 1)));
+        if (tpl?.photoRequired && (check.photoCount || 0) < (tpl.minPhotos || 1)) head.append(h('div', { class: 'cnt-chip soon ph-need' }, t('cNeedPhotos').replace('{n}', tpl.minPhotos || 1)));
       }).catch(() => {});
     }
   }, (err) => mount(main, h('p', { class: 'card' }, `${t('errLoad')}: ${err.message || err}`)));
