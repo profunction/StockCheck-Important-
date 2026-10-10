@@ -185,5 +185,6 @@ export async function runTransaction(_db, fn) {
   return out;
 }
 export function ref(_s, path) { return { path }; }
-export async function uploadBytes() {}
+export async function uploadBytes(r, blob) { (window.__uploads ||= []).push(r?.path || ''); }
+export async function deleteObject(r) { (window.__deleted ||= []).push(r?.path || ''); }
 export async function getDownloadURL(r) { return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="%23f90"/></svg>'; }

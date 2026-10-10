@@ -50,7 +50,7 @@ export {
   where,
   writeBatch,
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-export { getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+export { deleteObject, getDownloadURL, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
 
 export let auth;
 export let db;

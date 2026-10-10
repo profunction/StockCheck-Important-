@@ -94,7 +94,7 @@ write('404.html', `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>404 · ${BRAND.name}</title>
 <meta name="robots" content="noindex"/>
-<link rel="icon" type="image/svg+xml" href="/assets/brand/suxin-mark.svg"/>
+<link rel="icon" type="image/svg+xml" href="/assets/brand/suxin-mark.svg?v=3"/>
 <script src="/assets/theme.js"></script>
 <link rel="stylesheet" href="/assets/site.css"/>
 <link rel="stylesheet" href="/assets/suxin.css"/>

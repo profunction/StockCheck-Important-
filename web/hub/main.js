@@ -27,7 +27,7 @@ function render() {
   const plan = session.licence ? planName(session.licence.plan) : '';
   mount(app, h('div', { class: 'hub' },
     h('header', { class: 'hub-top' },
-      h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 34, height: 34 }), 'SuXin'),
+      h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png?v=3', alt: '', width: 34, height: 34 }), 'SuXin'),
       h('span', { class: 'grow' }),
       h('a', { class: 'btn ghost', href: '/guide/#account', 'data-act': 'guide' }, icon('book', 17), t('posGuide')),
       themeToggle(),
@@ -60,7 +60,7 @@ function render() {
 }
 
 startApp(app, {
-  name: 'SuXin', logo: '/icons/icon-192.png', tagline: t('brandTagline'),
+  name: 'SuXin', logo: '/icons/icon-192.png?v=3', tagline: t('brandTagline'),
   features: APPS.map((a) => [a.icon, `${a.name} — ${t(`app_${a.id}`)}`]),
   foot: 'SuXin · Malaysia',
 }, render);

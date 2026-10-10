@@ -298,8 +298,8 @@ def page(p, num, home):
 <meta property="og:image" content="{SITE}/assets/img/og-image.png"/>
 <meta property="og:url" content="{SITE}/products/{p["slug"]}/"/>
 <link rel="canonical" href="{SITE}/products/{p["slug"]}/"/>
-<link rel="icon" type="image/svg+xml" href="{UP}assets/brand/suxin-mark.svg"/>
-<link rel="apple-touch-icon" href="{UP}assets/brand/icon-192.png"/>
+<link rel="icon" type="image/svg+xml" href="{UP}assets/brand/suxin-mark.svg?v=3"/>
+<link rel="apple-touch-icon" href="{UP}assets/brand/icon-192.png?v=3"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"/>

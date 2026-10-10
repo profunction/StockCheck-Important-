@@ -80,7 +80,7 @@ let failed = 0;
     await page.click('button[data-act="finish"]');
     await page.click('.dialog .actions button.primary >> nth=-1');
     await page.waitForSelector('.pill:has-text("已完成")');
-    await page.waitForSelector('text=只能看');
+    await page.waitForSelector('.cnt-note:has-text("修改记录")');
     const c = await store(`${W}stockChecks/${id}`);
     if (c.status !== 'COMPLETED' || !c.completedAt) throw new Error(JSON.stringify(c));
     const audit = (await docs(`${W}auditLog/`)).filter((a) => a.stockCheckId === id);

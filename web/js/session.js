@@ -149,6 +149,7 @@ export async function loadSession(user) {
     name: profile.displayName || user.email || '',
     ws: wsId,
     isAdmin,
+    roleId: profile.roleId || '',
     permissions,
     branchIds: profile.branchIds || [],
     branches: config.branches || [],

@@ -64,7 +64,7 @@ function renderShell() {
 function renderSide() {
   const { group } = currentRoute();
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/bk-64.png', alt: '', width: 28, height: 28 }), 'SuXin Books'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/bk-64.png?v=3', alt: '', width: 28, height: 28 }), 'SuXin Books'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email)),
@@ -154,7 +154,7 @@ onChange(() => {
 });
 
 startApp(app, {
-  name: 'SuXin Books', logo: '/icons/bk-64.png', tagline: t('bkTagline'),
+  name: 'SuXin Books', logo: '/icons/bk-64.png?v=3', tagline: t('bkTagline'),
   features: [['receipt', t('bkFeat1')], ['calc', t('bkFeat2')], ['percent', t('bkFeat3')]],
   foot: 'SuXin · Malaysia',
 }, renderShell, { stop: () => { stopPage?.(); stopPage = null; stopRedraw?.(); stopRedraw = null; stopBooks(); sideEl = null; } });

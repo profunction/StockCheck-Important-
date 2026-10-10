@@ -21,7 +21,7 @@ function shell() {
   const main = h('main', { class: 'cnt-main data-main' });
   mount(app, h('div', { class: 'cnt data' },
     h('header', { class: 'cnt-top' },
-      h('a', { class: 'brandmark', href: '/data/' }, h('img', { src: '/icons/icon-192.png', alt: '', width: 30, height: 30 }), ME.name),
+      h('a', { class: 'brandmark', href: '/data/' }, h('img', { src: '/icons/icon-192.png?v=3', alt: '', width: 30, height: 30 }), ME.name),
       h('span', { class: 'grow' }),
       appSwitcher('cloud'),
       h('a', { class: 'btn ghost icon-btn', href: '/guide/#cloud', title: t('posGuide'), 'aria-label': t('posGuide'), 'data-act': 'guide' }, icon('book', 18)),
@@ -36,7 +36,7 @@ function shell() {
 }
 
 startApp(app, {
-  name: ME.name, logo: '/icons/icon-192.png', tagline: t('dashLead'),
+  name: ME.name, logo: '/icons/icon-192.png?v=3', tagline: t('dashLead'),
   features: [['chart', t('dashToday')], ['box', t('dashStock')], ['apps', t('appSwitch')]],
   foot: 'SuXin · Malaysia',
 }, shell);

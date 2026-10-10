@@ -31,3 +31,47 @@ test('spoken quantities, digits and Chinese', () => {
   assert.equal(spokenQty('两千'), 2000000);
   assert.equal(spokenQty('hello'), null);
 });
+
+import { daysToExpiry, decodeInk, encodeInk, expectedOf, finding, formatExpiry, isSigned, largeVariance, parseExpiry, unlisted, variance } from './counting.js';
+
+test('expected, variance and the lines worth a second look, as the app says', () => {
+  const listed = (exp, got) => ({ onList: true, expectedMilli: exp * 1000, quantityMilli: got * 1000 });
+  assert.equal(expectedOf({ expected: 3 }), 3000);
+  assert.equal(variance(listed(10, 7)), -3000);
+  assert.equal(variance({ quantityMilli: 4000 }), 0);
+  assert.equal(unlisted({ quantityMilli: 4000 }), true);
+  assert.equal(largeVariance(listed(10, 0)), true); // expected some, found none
+  assert.equal(largeVariance(listed(0, 2)), true); // stock nobody knew of
+  assert.equal(largeVariance(listed(3, 4)), false); // too small to mean anything
+  assert.equal(largeVariance(listed(100, 90)), false);
+  assert.equal(largeVariance(listed(100, 80)), true);
+});
+
+test('expiry dates: dd/mm/yyyy at midnight UTC, nothing invented', () => {
+  const ms = parseExpiry('03/04/2027');
+  assert.equal(ms, Date.UTC(2027, 3, 3));
+  assert.equal(formatExpiry(ms), '03/04/2027');
+  assert.equal(parseExpiry('3-4-27'), Date.UTC(2027, 3, 3));
+  assert.equal(parseExpiry('31/02/2027'), null);
+  assert.equal(parseExpiry('soon'), null);
+  assert.equal(formatExpiry(null), '');
+  assert.equal(daysToExpiry(Date.UTC(2027, 3, 3), Date.UTC(2027, 3, 1, 15)), 2);
+  assert.equal(daysToExpiry(null), null);
+});
+
+test('what a line says: expiry first, then the sheet', () => {
+  const now = Date.UTC(2027, 0, 10);
+  assert.equal(finding({ expiresAt: Date.UTC(2027, 0, 9), onList: true, expectedMilli: 1000, quantityMilli: 1000 }, now).kind, 'expired');
+  assert.equal(finding({ expiresAt: Date.UTC(2027, 1, 1), quantityMilli: 1000 }, now).kind, 'soon');
+  assert.equal(finding({ quantityMilli: 1000 }, now).kind, 'unlisted');
+  assert.deepEqual(finding({ onList: true, expectedMilli: 5000, quantityMilli: 3000 }, now), { kind: 'short', qty: 2000 });
+  assert.deepEqual(finding({ onList: true, expectedMilli: 5000, quantityMilli: 5000 }, now), { kind: 'match' });
+});
+
+test('signatures are stored the way the app stores them', () => {
+  const ink = encodeInk([[{ x: 0.1, y: 0.2 }, { x: 0.5, y: 0.5 }], [], [{ x: 1.4, y: -1 }, { x: 0.3, y: 0.3 }]]);
+  assert.equal(ink, '100,200 500,500;1000,0 300,300');
+  assert.deepEqual(decodeInk(ink)[1][0], { x: 1, y: 0 });
+  assert.equal(isSigned(ink), true);
+  assert.equal(isSigned('100,100'), false);
+});

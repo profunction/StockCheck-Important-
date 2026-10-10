@@ -93,7 +93,7 @@ function renderSide() {
   const { group } = currentRoute();
   const visible = MENU.filter(allowed);
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png', alt: '', width: 28, height: 28 }), 'SuXin WMS'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png?v=3', alt: '', width: 28, height: 28 }), 'SuXin WMS'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email),
@@ -188,7 +188,7 @@ onChange(() => {
 
 // Signing in is the same screen in every SuXin app (apps.js).
 startApp(app, {
-  name: 'SuXin WMS', logo: '/icons/wh-64.png', tagline: t('whTagline'),
+  name: 'SuXin WMS', logo: '/icons/wh-64.png?v=3', tagline: t('whTagline'),
   features: [['download', t('whFeat1')], ['box', t('whFeat2')], ['receipt', t('whFeat3')]],
   foot: 'SuXin · Malaysia',
 }, renderShell, { stop: () => { stopPage?.(); stopPage = null; sideEl = null; } });
