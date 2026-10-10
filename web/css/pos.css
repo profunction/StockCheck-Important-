@@ -871,3 +871,38 @@ a.stat.kpi:hover { transform: translateY(-1px); }
   .ph-grid { grid-template-columns: repeat(2, 1fr); }
 }
 div.field { display: grid; gap: 5px; font-size: 13px; color: var(--muted); font-weight: 550; }
+
+/* Barcode Scan: the three places, filters, picking several, reports, count lists. */
+.cnt-tabs { display: flex; gap: 4px; margin: 0 0 10px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.cnt-tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 12px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: 14.5px; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.cnt-tabs a.on { color: var(--brand); border-bottom-color: var(--brand); }
+.cnt-filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cnt-filters .search-box { min-width: 200px; }
+.cnt-filter { margin: 8px 0 0; }
+.cnt-filter:empty { display: none; }
+.cnt-selbar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-top: 10px; position: sticky; top: 60px; z-index: 3; border-color: var(--brand); }
+.cnt-card { position: relative; }
+.cnt-card:has(.cnt-tick) { padding-left: 44px; }
+.cnt-tick { position: absolute; left: 14px; top: 16px; width: 20px; height: 20px; min-height: 0; accent-color: var(--brand); }
+.cnt-card.picked { border-color: var(--brand); background: var(--brand-soft); }
+.cnt-card.off { opacity: .65; }
+.cnt-history { display: grid; gap: 0; max-height: 60vh; overflow: auto; }
+.cnt-history-row { padding: 9px 2px; border-bottom: 1px solid var(--line); font-size: 14px; display: grid; gap: 2px; }
+.cr-controls { display: grid; gap: 12px; }
+.cr-pair { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+.cr-pair .field { flex: 1 1 180px; }
+.cr-arrow { padding-bottom: 10px; color: var(--muted); }
+.cr-sides { margin: 12px 0 6px; font-size: 13.5px; }
+.cr-table td small { display: block; }
+.cr-up { color: var(--ok); font-weight: 650; }
+.cr-down, .cr-gone { color: var(--danger); font-weight: 650; }
+.cr-new { color: var(--accent); font-weight: 650; }
+.cl-fields { display: grid; gap: 10px; }
+.cl-field { display: grid; gap: 10px; }
+.cl-field .chips-row button { display: inline-flex; gap: 4px; align-items: center; }
+.cl-actions { margin-top: 14px; }
+@media (max-width: 600px) {
+  .hide-phone { display: none; }
+  .cnt-tabs a { padding: 9px 8px; font-size: 13.5px; }
+  .cnt-selbar { top: 56px; }
+}

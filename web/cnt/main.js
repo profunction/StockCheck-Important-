@@ -20,6 +20,8 @@ import { formatQty } from '../js/money.js';
 import { session, ws } from '../js/session.js';
 import { APPS, appState, appSwitcher, langPicker, signOutNow, startApp, themeToggle } from '../js/apps.js';
 import { period, refNo, tempRefNo } from '../js/counting.js';
+import { matchesSearch } from '../js/countexport.js';
+import { deleteCounts, exportCounts, mayDelete, mayExport } from './manage.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 import { STRINGS } from './strings.js';
@@ -101,6 +103,16 @@ async function route() {
     stopPage = m.render(mainEl, id) || null;
     return;
   }
+  if (page === 'reports') {
+    const m = await import('./reports.js');
+    stopPage = m.render(mainEl) || null;
+    return;
+  }
+  if (page === 'lists') {
+    const m = await import('./lists.js');
+    stopPage = m.render(mainEl, id) || null;
+    return;
+  }
   if (page === 'p' && id) {
     const m = await import('./photos.js');
     stopPage = m.render(mainEl, id, new URLSearchParams(search)) || null;
@@ -140,31 +152,83 @@ function countCard(c) {
     h('div', { class: 'cnt-card-who muted' }, [c.createdByName, c.createdAt ? dateTime(c.createdAt) : ''].filter(Boolean).join(' · ')));
 }
 
+/** The app's three places: the counts, comparing them, and the count lists. */
+export function tabs(current) {
+  const may = (p) => session.isAdmin || session.can(p);
+  const items = [['', 'barcode', 'cTitle'], ['reports', 'chart', 'crTitle'], may('VIEW_TEMPLATE') || may('CREATE_TEMPLATE') ? ['lists', 'book', 'clTitle'] : null].filter(Boolean);
+  return h('nav', { class: 'cnt-tabs' }, items.map(([page, ic, key]) => h('a', { href: `#/${page}`, class: page === current ? 'on' : '', 'data-tab': page || 'counts' }, icon(ic, 17), t(key))));
+}
+
+const filters = { text: '', status: '', branch: '' };
+let selecting = new Set();
+
 function list() {
   const box = h('div', { class: 'cnt-list' }, h('p', { class: 'muted' }, t('loading')));
-  const tabs = session.can('VIEW_ALL_HISTORY') ? h('div', { class: 'seg' },
-    [['mine', 'cMine'], ['all', 'cAll']].map(([id, key]) => h('button', { class: scope === id ? 'on' : '', onclick: () => { scope = id; list(); } }, t(key)))) : null;
+  const selBar = h('div', {});
+  let rows = [];
+  const scopeTabs = session.can('VIEW_ALL_HISTORY') ? h('div', { class: 'seg' },
+    [['mine', 'cMine'], ['all', 'cAll']].map(([id, key]) => h('button', { class: scope === id ? 'on' : '', onclick: () => { scope = id; selecting = new Set(); list(); } }, t(key)))) : null;
+  const search = h('input', { placeholder: t('cSearch'), value: filters.text, oninput: (e) => { filters.text = e.target.value; draw(); } });
+  const statusChips = h('div', { class: 'chips-row cnt-filter' });
+  const branchChips = h('div', { class: 'chips-row cnt-filter' });
+
+  const shown = () => rows.filter((c) => matchesSearch(c, filters.text) && (!filters.status || c.status === filters.status) && (!filters.branch || (c.branchId || '') === filters.branch));
+  const paintChips = () => {
+    mount(statusChips, ['', 'IN_PROGRESS', 'COMPLETED', 'REVIEWED', 'LOCKED'].map((st) => h('button', {
+      type: 'button', class: filters.status === st ? 'on' : '', onclick: () => { filters.status = st; draw(); },
+    }, st ? t(`cst_${st}`) : t('cAllStatus'))));
+    const branches = [...new Map(rows.filter((c) => c.branchId).map((c) => [c.branchId, c.branchName || c.branchId])).entries()];
+    mount(branchChips, branches.length > 1 ? [['', t('cAllBranches')], ...branches].map(([id, name]) => h('button', {
+      type: 'button', class: filters.branch === id ? 'on' : '', onclick: () => { filters.branch = id; draw(); },
+    }, name)) : null);
+  };
+  const drawSel = () => {
+    const picked = rows.filter((c) => selecting.has(c.id));
+    mount(selBar, picked.length ? h('div', { class: 'cnt-selbar card' },
+      h('button', { class: 'ghost icon-btn', 'aria-label': t('cancel'), onclick: () => { selecting = new Set(); draw(); } }, icon('times', 18)),
+      h('b', { class: 'grow' }, `${picked.length} ${t('cSelected')}`),
+      mayExport() ? h('button', { 'data-act': 'export-selected', onclick: () => exportCounts(picked) }, icon('download', 17), t('cxTitle')) : null,
+      picked.some(mayDelete) ? h('button', { class: 'danger', 'data-act': 'delete-selected', onclick: async () => { if (await deleteCounts(picked)) { selecting = new Set(); list(); } } }, icon('trash', 17)) : null) : null);
+  };
+  const card = (c) => {
+    const el = countCard(c);
+    const tick = h('input', { type: 'checkbox', class: 'cnt-tick', checked: selecting.has(c.id), 'aria-label': c.refNo,
+      onclick: (e) => { e.stopPropagation(); if (e.target.checked) selecting.add(c.id); else selecting.delete(c.id); drawSel(); el.classList.toggle('picked', e.target.checked); } });
+    el.prepend(tick);
+    if (selecting.has(c.id)) el.classList.add('picked');
+    // While picking, a tap picks rather than opens: a mis-tap must not lose the selection.
+    el.addEventListener('click', (e) => { if (selecting.size && e.target !== tick) { e.preventDefault(); tick.click(); } });
+    return el;
+  };
+  const draw = () => {
+    paintChips();
+    drawSel();
+    const list = shown();
+    const open = list.filter((c) => ['DRAFT', 'IN_PROGRESS'].includes(c.status));
+    const done = list.filter((c) => !['DRAFT', 'IN_PROGRESS'].includes(c.status));
+    mount(box, list.length ? [
+      open.length ? h('div', { class: 'cnt-group' }, h('h3', {}, `${t('cOpenNow')} · ${open.length}`), open.map(card)) : null,
+      done.length ? h('div', { class: 'cnt-group' }, h('h3', {}, `${t('cDoneList')} · ${done.length}`), done.map(card)) : null,
+    ] : h('div', { class: 'cnt-empty-big' }, icon('barcode', 40), h('p', {}, rows.length ? t('cNoMatch') : t('cNone'))));
+  };
+
   mount(mainEl,
+    tabs(''),
     h('div', { class: 'cnt-titlebar' },
       h('h1', {}, t('cTitle')),
+      mayExport() ? h('button', { class: 'ghost', 'data-act': 'export-shown', title: t('cxShown'), onclick: () => exportCounts(shown()) }, icon('download', 18), h('span', { class: 'hide-phone' }, t('cxTitle'))) : null,
       canCount() ? h('button', { class: 'primary', 'data-act': 'new-count', onclick: () => go('#/new') }, icon('plus', 18), t('cNew')) : null),
     !canCount() ? h('p', { class: 'card' }, t('cNoCreate')) : null,
-    tabs, box,
+    h('div', { class: 'cnt-filters' }, scopeTabs, h('div', { class: 'search-box grow' }, icon('search', 18), search)),
+    statusChips, branchChips, selBar, box,
     h('p', { class: 'muted cnt-hint' }, t('cAppHint')));
-  loadCounts().then((rows) => {
-    const open = rows.filter((c) => ['DRAFT', 'IN_PROGRESS'].includes(c.status));
-    const done = rows.filter((c) => !['DRAFT', 'IN_PROGRESS'].includes(c.status));
-    mount(box, rows.length ? [
-      open.length ? h('div', { class: 'cnt-group' }, h('h3', {}, `${t('cOpenNow')} · ${open.length}`), open.map(countCard)) : null,
-      done.length ? h('div', { class: 'cnt-group' }, h('h3', {}, `${t('cDoneList')} · ${done.length}`), done.map(countCard)) : null,
-    ] : h('div', { class: 'cnt-empty-big' }, icon('barcode', 40), h('p', {}, t('cNone'))));
-  }).catch((err) => mount(box, h('p', { class: 'card' }, `${t('errLoad')}: ${err.message || err}`)));
+  loadCounts().then((r) => { rows = r; draw(); }).catch((err) => mount(box, h('p', { class: 'card' }, `${t('errLoad')}: ${err.message || err}`)));
 }
 
 // -------------------------------------------------------------- new count
 
 /** Claims the month's next reference number, as the app does (meta/counters). */
-async function nextRef(now) {
+export async function nextRef(now) {
   const key = period(now);
   try {
     const seq = await runTransaction(db, async (tx) => {

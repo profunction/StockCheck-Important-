@@ -32,8 +32,9 @@ import {
   counted, daysToExpiry, expectedOf, finding, formatExpiry, inkKey, isInkKey, isSigned, largeVariance, lineFor, parseExpiry, spokenQty, variance,
 } from '../js/counting.js';
 import { countSheetRows, readCells } from '../js/sheet.js';
-import { audit, go, statusPill, STATUS_EN } from './main.js';
+import { audit, go, nextRef, statusPill, STATUS_EN } from './main.js';
 import { signaturePad } from './sign.js';
+import { changeHistory, deleteCounts, duplicateCount, exportCounts, mayDelete, mayExport } from './manage.js';
 
 const OPEN = ['DRAFT', 'IN_PROGRESS'];
 const SEARCH_FROM = 8;
@@ -398,7 +399,14 @@ export function render(main, id) {
       can('LOCK_STOCK') && !frozen() ? ['lock', t('cLock'), () => setStatus('LOCKED'), 'lock'] : null,
       can('UNLOCK_STOCK') && frozen() ? ['lock', t('cUnlock'), () => setStatus('IN_PROGRESS'), 'unlock'] : null,
       ['COMPLETED', 'REVIEWED'].includes(check.status) && (can('EDIT_OWN_STOCK') || can('EDIT_ANY_STOCK')) ? ['plus', t('cReopen'), () => setStatus('IN_PROGRESS'), 'reopen'] : null,
-    ].filter(Boolean);
+      '-',
+      mayExport() ? ['download', t('cxThis'), () => exportCounts([check]), 'export-this'] : null,
+      can('VIEW_AUDIT_LOG') ? ['clock', t('cxHistory'), () => changeHistory(check), 'history'] : null,
+      can('DUPLICATE_STOCK') ? ['apps', t('cxDuplicate'), async () => {
+        try { const fresh = await duplicateCount(check, nextRef); toast(t('cxDuplicated'), 'ok'); go(`#/c/${fresh}`); } catch (err) { fail(err); }
+      }, 'duplicate'] : null,
+      mayDelete(check) ? ['trash', t('cxDeleteThis'), async () => { if (await deleteCounts([check])) go('#/'); }, 'delete-count'] : null,
+    ].filter(Boolean).filter((it, i, all) => it !== '-' || (i > 0 && all[i - 1] !== '-' && i < all.length - 1));
     modal((close) => [
       h('h2', {}, check.refNo),
       h('div', { class: 'cnt-menu' }, items.map((it) => (it === '-' ? h('hr') : h('button', { 'data-act': it[3], onclick: () => { close(); it[2](); } }, icon(it[0], 18), it[1])))),

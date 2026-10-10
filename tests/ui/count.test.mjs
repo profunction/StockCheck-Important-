@@ -133,6 +133,76 @@ await step('finish, then lock: locked means nobody scans', async () => {
   await page.click('button[data-act="unlock"]');
   await page.waitForSelector('input.scan');
 });
+
+await step('the counts list: search, a status chip, pick two and export them to Excel', async () => {
+  await page.goto(base + '/count/#/');
+  await page.waitForSelector('.cnt-card');
+  await page.click('.cnt-filter button:has-text("已完成")');
+  if (await page.$(`.cnt-card[href="#/c/${id}"]`)) throw new Error('status chip did not filter');
+  await page.click('.cnt-filter button:has-text("全部")');
+  await page.fill('.cnt-filters input', 'cold');
+  await page.waitForSelector(`.cnt-card[href="#/c/${id}"]`);
+  if ((await page.$$('.cnt-card')).length !== 1) throw new Error('search did not narrow');
+  await page.fill('.cnt-filters input', '');
+  for (const tick of await page.$$('.cnt-tick')) await tick.click();
+  await page.waitForSelector('.cnt-selbar:has-text("2 已选")');
+  await shot('count-6-picked');
+  await page.click('button[data-act="export-selected"]');
+  const [file] = await Promise.all([page.waitForEvent('download'), page.click('button[data-act="do-export"]')]);
+  if (!/\.xlsx$/.test(file.suggestedFilename())) throw new Error(file.suggestedFilename());
+  const { readCells } = await import('../../web/js/sheet.js');
+  const rows = await readCells(new Uint8Array((await import('node:fs')).readFileSync(await file.path())));
+  if (rows[0][0] !== 'Ref No' || !rows[0].includes('Condition') || !rows.some((r) => r.includes('Biskut Kelapa') && r.includes('Damaged'))) throw new Error(JSON.stringify(rows.slice(0, 3)));
+});
+
+await step('a count list made on the web: fields, a role lock, a photo rule', async () => {
+  await page.click('a[data-tab="lists"]');
+  await page.waitForSelector('.cnt-card:has-text("Chiller list")');
+  await page.click('button[data-act="new-list"]');
+  await page.fill('[data-f="name"]', 'Gudang weekly');
+  await page.click('button[data-act="add-field"]');
+  await page.fill('.cl-field input >> nth=0', 'Pallet no');
+  await page.click('button[data-act="add-field"]');
+  await page.fill('.cl-field >> nth=1 >> input >> nth=0', 'Condition');
+  await page.selectOption('.cl-field >> nth=1 >> select', 'DROPDOWN');
+  await page.fill('.cl-field >> nth=1 >> input >> nth=1', 'OK, Wet, Torn');
+  await page.click('.cl-field >> nth=1 >> .chips-row button:has-text("Worker")');
+  await shot('count-7-list');
+  await page.click('button[data-act="save-list"]');
+  await page.waitForSelector('.cnt-card:has-text("Gudang weekly")');
+  const t = (await docs(`${W}templates/`)).find((x) => x.name === 'Gudang weekly');
+  if (t.fields.length !== 2 || t.fields[0].key !== 'pallet_no' || t.fields[1].options.join() !== 'OK,Wet,Torn' || t.fields[1].lockedForRoleIds.join() !== 'worker') throw new Error(JSON.stringify(t));
+});
+
+await step('reports: two counts compared, biggest change first', async () => {
+  await page.click('a[data-tab="reports"]');
+  await page.click('button[data-mode="counts"]');
+  await page.selectOption('select[data-pick="a"]', 'sc1');
+  await page.selectOption('select[data-pick="b"]', id);
+  await page.waitForSelector('.cr-table tr[data-key="9555012345678"] td.cr-down');
+  await shot('count-8-report');
+  const [file] = await Promise.all([page.waitForEvent('download'), page.click('button[data-act="export-report"]')]);
+  if (!/\.xlsx$/.test(file.suggestedFilename())) throw new Error('no report file');
+});
+
+await step('a count: its change history, and counting the same products again', async () => {
+  await page.goto(`${base}/count/#/c/${id}`);
+  await page.click('button[data-act="menu"]');
+  await page.click('button[data-act="history"]');
+  await page.waitForSelector('.cnt-history-row:has-text("状态")');
+  await page.keyboard.press('Escape');
+  await page.click('button[data-act="menu"]');
+  await page.click('button[data-act="duplicate"]');
+  await page.waitForFunction((old) => /#\/c\/.+/.test(location.hash) && !location.hash.endsWith(old), id);
+  const fresh = await page.evaluate(() => location.hash.split('/').pop());
+  const lines = await docs(`${W}stockChecks/${fresh}/items/`);
+  if (lines.length !== 3 || lines.some((l) => l.quantityMilli !== 0)) throw new Error(JSON.stringify(lines));
+  await page.click('button[data-act="menu"]');
+  await page.click('button[data-act="delete-count"]');
+  await page.click('.dialog .actions button.danger');
+  await page.waitForFunction(() => location.hash === '#/' || location.hash === '');
+  if (await store(`${W}stockChecks/${fresh}`)) throw new Error('not deleted');
+});
 let failed = await s.done();
 
 // ------------------------------------------------------------- on a phone
