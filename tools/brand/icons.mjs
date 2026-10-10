@@ -19,7 +19,7 @@ const browser = await pw.chromium.launch(process.env.CHROME ? { executablePath: 
 
 const mark = readFileSync(join(WEB, 'brand', 'suxin-mark.svg'), 'utf8');
 const word = readFileSync(join(WEB, 'brand', 'suxin-wordmark.svg'), 'utf8');
-const tinted = (bg) => mark.replace('#0B1B2B', bg);
+const tinted = (bg) => mark.replace('#714B67', bg);
 /** The mark alone, its background filling the square (for maskable icons the S sits in the middle 60%). */
 const maskable = (bg) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${bg}"/>
 <g transform="translate(32 32) scale(.62) translate(-32 -32)"><path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="44" r="6" fill="#E9B8D9"/><circle cx="42" cy="20" r="6" fill="#E9B8D9"/></g></svg>`;

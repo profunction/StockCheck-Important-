@@ -98,6 +98,7 @@ write('404.html', `<!DOCTYPE html>
 <script src="/assets/theme.js"></script>
 <link rel="stylesheet" href="/assets/site.css"/>
 <link rel="stylesheet" href="/assets/suxin.css"/>
+<link rel="stylesheet" href="/assets/plum.css"/>
 </head>
 <body>
 <div class="site"><main class="sec grid-bg" style="min-height:100dvh;display:grid;place-items:center">

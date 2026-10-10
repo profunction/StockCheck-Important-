@@ -1,0 +1,67 @@
+/*
+ * The SuXin site in the plum look (the Stitch design): white bands on a
+ * pale grey canvas, hairline borders, #714b67 plum for what can be pressed,
+ * Inter for words and JetBrains Mono for small labels and figures, small
+ * corners, no glow. Loaded after site.css and suxin.css; only overrides.
+ */
+
+/* Dark (when chosen): plum on near-black. */
+.site {
+  --ink: #12141d; --ink-2: #2f1029;
+  --orange: #d3a3c6; --red: #b07fa2; --amber: #e9b8d9; --gold: #ecc6e1;
+  --grad: linear-gradient(180deg, #996b8d 0%, #8d6081 100%);
+  --grad-soft: linear-gradient(100deg, #d3a3c61f, #d3a3c60d);
+  --bg: #121016; --bg-2: #17141b; --surface: #ffffff08; --surface-solid: #1b1820; --surface-2: #ffffff0d;
+  --line: #ffffff17; --line-strong: #ffffff29; --tx: #f2eef5; --tx-2: #c4b9c9; --tx-3: #988ea2;
+  --shadow: 0 24px 60px -30px #000000e6; --glass: #17141bd9; --glass-line: #ffffff1a; --grid-line: #ffffff08;
+  --f-display: "Inter", "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body: "Inter", "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --r-xs: 4px; --r-sm: 6px; --r: 8px; --r-lg: 10px; --r-xl: 12px; --r-pill: 6px;
+  --teal: #8ff3ef; --ok: #4ade80;
+}
+/* Light (the default): the Stitch palette. */
+:root[data-theme=light] .site {
+  --orange: #714b67; --red: #57344f; --amber: #714b67; --gold: #57344f;
+  --grad: linear-gradient(180deg, #7b5371 0%, #714b67 100%);
+  --grad-soft: linear-gradient(100deg, #714b6712, #714b6706);
+  --bg: #f5f6f8; --bg-2: #ffffff; --surface: #ffffff; --surface-solid: #ffffff; --surface-2: #f8fafc;
+  --line: #e2e8f0; --line-strong: #cbd5e1; --tx: #12141d; --tx-2: #4e5567; --tx-3: #6b7287;
+  --shadow: 0 1px 2px #0f172a0d; --glass: #ffffffeb; --glass-line: #e2e8f0; --grid-line: #0f172a08;
+  --teal: #006260; --ok: #15803d;
+}
+:root[data-theme=light]:has(.site) { background: #f5f6f8; }
+
+/* Headings: Inter, tight, not shouting. */
+.site :is(.display, .h1, .h2, .h3, h1, h2, h3) { font-family: var(--f-display); letter-spacing: -.025em; font-weight: 700; }
+.site .display { font-size: clamp(2.2rem, 4.6vw, 3.4rem); line-height: 1.12; }
+.site .h2 { font-size: clamp(1.6rem, 2.6vw, 2.15rem); }
+
+/* Small mono labels above sections, like "MULTI-ENGINE ARCHITECTURE". */
+.site :is(.eyebrow, .kicker, .label, .tag, .mono) { font-family: var(--f-mono); letter-spacing: .06em; }
+
+/* Buttons: plum, small corners, no glow. */
+.site .btn { border-radius: var(--r-sm); box-shadow: none; }
+.site .btn-primary { background: #714b67; color: #fff; border-color: #714b67; }
+.site .btn-primary:hover { background: #57344f; border-color: #57344f; filter: none; transform: none; }
+:root:not([data-theme=light]) .site .btn-primary { background: #8d6081; border-color: #8d6081; }
+.site .btn-ghost { background: var(--surface-solid); border: 1px solid var(--line-strong); color: var(--tx); }
+.site .btn-ghost:hover { border-color: var(--orange); }
+
+/* Header: a white bar with a hairline under it. */
+.site .nav { background: var(--glass); border-bottom: 1px solid var(--line); backdrop-filter: saturate(1.4) blur(10px); }
+.site .lang-switch { border-color: var(--line); border-radius: var(--r-sm); }
+.site .lang-switch button { border-radius: 4px; }
+.site .lang-switch button[aria-pressed="true"] { background: #714b67; color: #fff; }
+.site .signin-btn { border-color: var(--line-strong); }
+
+/* Cards and panels: white, hairline, barely any shadow. */
+.site :is(.card, .pcard, .price, .glass, .panel, .screen, .tile, .faq-item) { border-radius: var(--r); box-shadow: var(--shadow); }
+
+/* The design has no glowing blobs or grid paper. */
+.site :is(.glow, .orb, .blob, .aurora) { display: none !important; }
+.site .grid-bg { background-image: none; }
+
+/* Links and the brand mark. */
+.site a:not(.btn):hover { color: var(--orange); }
+.site .brand img { border-radius: 8px; }

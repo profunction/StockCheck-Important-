@@ -290,7 +290,7 @@ def page(p, num, home):
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>{p["name"]} — {html.escape(plain)} | SuXin</title>
 <meta name="description" content="{html.escape(plain)}"/>
-<meta name="theme-color" content="#0B1B2B"/>
+<meta name="theme-color" content="#ffffff"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="SuXin"/>
 <meta property="og:title" content="{p["name"]}"/>
@@ -302,9 +302,10 @@ def page(p, num, home):
 <link rel="apple-touch-icon" href="{UP}assets/brand/icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"/>
 <link rel="stylesheet" href="{UP}assets/site.css"/>
 <link rel="stylesheet" href="{UP}assets/suxin.css"/>
+<link rel="stylesheet" href="{UP}assets/plum.css"/>
 <script src="{UP}assets/theme.js"></script>
 </head>
 <body>
@@ -408,7 +409,7 @@ def stamp(doc):
         path = os.path.join(ROOT, "assets", m.group(2))
         digest = hashlib.md5(open(path, "rb").read()).hexdigest()[:8]
         return f'{m.group(1)}{m.group(2)}?v={digest}"'
-    return re.sub(r'((?:\.\./)*assets/)((?:site|suxin)\.css|(?:site|i18n)\.js)(?:\?v=[0-9a-f]+)?"', ver, doc)
+    return re.sub(r'((?:\.\./)*assets/)((?:site|suxin|plum)\.css|(?:site|i18n)\.js)(?:\?v=[0-9a-f]+)?"', ver, doc)
 
 
 def main():
