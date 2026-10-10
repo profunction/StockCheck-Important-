@@ -552,3 +552,17 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .qrs-printpic svg { width: 100%; height: auto; }
 .qrs-printhint { font-size: 11pt; }
 .qrs-printshop { font-size: 10pt; color: #555; }
+
+/* The MyInvois assistant (web/js/myinvois-chat.js) */
+.mi-card { margin-top: 20px; display: grid; gap: 10px; max-width: 760px; }
+.mi-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mi-chips button { font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; min-height: 0; }
+.mi-log { display: grid; gap: 10px; }
+.mi-msg { max-width: 92%; padding: 10px 14px; border-radius: 14px; line-height: 1.55; }
+.mi-msg.user { justify-self: end; background: var(--brand); color: var(--brand-ink, #fff); border-bottom-right-radius: 4px; }
+.mi-msg.assistant { justify-self: start; background: var(--surface-2, rgba(127,127,127,.12)); border-bottom-left-radius: 4px; }
+.mi-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.mi-src { display: grid; gap: 4px; margin-top: 8px; font-size: 13px; }
+.mi-src a { overflow-wrap: anywhere; }
+.mi-ask { display: flex; gap: 8px; align-items: flex-end; }
+.mi-ask textarea { flex: 1; resize: vertical; }

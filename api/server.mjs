@@ -25,6 +25,7 @@ import { createRateLimiterMiddleware } from './ratelimit.mjs';
 import { rateLimit } from 'express-rate-limit';
 import { selfOrdering } from './selforder.mjs';
 import { orderReader } from './readorder.mjs';
+import { myInvoisAssistant } from './myinvois.mjs';
 import { can as allowedTo } from './modules.js';
 import { authenticate, requireModule, requireScope, tenant } from './middleware.mjs';
 
@@ -415,6 +416,18 @@ app.post('/app/read-order', limited(10 * 60_000, 20), wrap(async (req, res) => {
   const who = await staffOf(req);
   if (!allowedTo(who, 'procurement.purchase')) throw new ApiError(403, 'Your account may not raise purchase orders.', 'FORBIDDEN');
   res.json(await reader.read(req.body?.images));
+}));
+
+// --------------------------------------------------- the MyInvois assistant
+//
+// Any signed-in member of a company with SuXin Tax may ask; the answer is
+// looked up on LHDN's own sites each time (myinvois.mjs).
+const myInvois = myInvoisAssistant();
+app.post('/app/myinvois-ask', limited(10 * 60_000, 30), wrap(async (req, res) => {
+  const who = await staffOf(req);
+  if (!allowedTo(who, 'tax.view')) throw new ApiError(403, 'The MyInvois assistant comes with SuXin Tax.', 'FORBIDDEN');
+  const lang = ['zh', 'en', 'ms'].includes(req.body?.lang) ? req.body.lang : 'zh';
+  res.json(await myInvois.ask(req.body?.messages, lang));
 }));
 
 // ------------------------------------------- the bot and the morning report

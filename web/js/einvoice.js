@@ -10,6 +10,7 @@ import { rm, taxList } from './money.js';
 import { session, ws } from './session.js';
 import { buildConsolidatedEInvoice } from './sst.js';
 import { menuButton } from './main.js';
+import { myInvoisChat } from './myinvois-chat.js';
 
 const monthNow = () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
 
@@ -70,7 +71,8 @@ export function render(main) {
     h('p', { class: 'muted' }, t('einvoiceHelp')),
     !s.tin || !s.msic ? h('p', { class: 'card', style: { borderColor: 'var(--warn, #b54708)' } }, t('einvoiceMissing'), ' ', h('a', { href: '#/settings/receipt' }, t('setReceipt'))) : null,
     h('div', { class: 'row', style: { marginBottom: '16px' } }, h('label', {}, `${t('einvoiceMonth')} `, picker)),
-    box);
+    box,
+    myInvoisChat());
   load();
   return null;
 }

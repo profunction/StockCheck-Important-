@@ -91,6 +91,30 @@ await step('e-invoice: the month\'s receipts, JSON and CSV downloads', async () 
   await shot('pro-2-einvoice');
 });
 
+await step('MyInvois assistant: a question goes with the conversation and the language; the answer shows with LHDN links only', async () => {
+  let asked = null;
+  await page.route(/\/app\/myinvois-ask$/, async (route) => {
+    asked = { auth: route.request().headers().authorization, body: route.request().postDataJSON() };
+    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({
+      answer: '需要。按年营业额分阶段实施。', sources: [{ url: 'https://www.hasil.gov.my/en/e-invoice/', title: 'e-Invoice' }, { url: 'https://evil.example/x', title: 'Not LHDN' }],
+    }) });
+  });
+  await page.goto(base + '/pos/#/reports/einvoice');
+  await page.waitForSelector('[data-card="myinvois"]');
+  await page.click('[data-card="myinvois"] .mi-chips button >> nth=0');
+  await page.waitForSelector('.mi-msg.assistant:has-text("分阶段")');
+  if (asked.auth !== 'Bearer test-id-token' || asked.body.lang !== 'zh' || asked.body.messages.at(-1).content !== '我要开电子发票吗？') throw new Error(JSON.stringify(asked));
+  const links = await page.$$eval('.mi-msg.assistant .mi-src a', (as) => as.map((a) => a.href));
+  if (links.length !== 1 || !links[0].startsWith('https://www.hasil.gov.my/')) throw new Error(links.join(' '));
+  // A follow-up carries the whole conversation.
+  await page.fill('textarea[data-act="mi-input"]', '整合发票几时交？');
+  await page.click('button[data-act="mi-ask"]');
+  await page.waitForSelector('.mi-msg.assistant >> nth=1');
+  if (asked.body.messages.length !== 3 || asked.body.messages[1].role !== 'assistant') throw new Error(JSON.stringify(asked.body.messages));
+  await shot('pro-2b-myinvois');
+  await page.unroute(/\/app\/myinvois-ask$/);
+});
+
 await step('PDPA: a customer past 90 days is erased, their receipt kept without the name', async () => {
   await page.goto(base + '/pos/#/customers');
   await page.waitForSelector('table.list td:has-text("Ah Seng")');

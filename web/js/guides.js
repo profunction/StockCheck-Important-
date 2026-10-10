@@ -81,6 +81,7 @@ export const POS_GUIDE = {
         '设置 → 收据：填公司 TIN 和 MSIC 号码。',
         '报表 → 电子发票：选月份，一般顾客的收据合并成一张电子发票。',
         '按「下载 JSON」上传到 MyInvois，或「下载 CSV」给会计。',
+        '不懂电子发票？同一页下面有「MyInvois 助手」：直接问，它会查 LHDN 官网再回答，并附上链接。',
       ] },
       { id: 'setup', title: '付款方式、收据和收银机号码', video: V('pos-11-setup'), steps: [
         '设置 → 付款方式：现金、DuitNow QR、刷卡、电子钱包，也可以自己加。',
@@ -194,6 +195,7 @@ export const POS_GUIDE = {
         'Settings → Receipt: your company TIN and MSIC code.',
         'Reports → E-invoice: pick the month; receipts to ordinary buyers become one consolidated e-invoice.',
         'Download JSON to upload to MyInvois, or Download CSV for the accountant.',
+        'Questions about e-invoicing? The MyInvois assistant below answers from LHDN\'s own website, with the links.',
       ] },
       { id: 'setup', title: 'Payment types, receipt and till numbers', video: V('pos-11-setup'), steps: [
         'Settings → Payment types: cash, DuitNow QR, card, e-wallet, or your own.',
@@ -307,6 +309,7 @@ export const POS_GUIDE = {
         'Tetapan → Resit: TIN dan kod MSIC syarikat.',
         'Laporan → E-invois: pilih bulan; resit kepada pembeli biasa menjadi satu e-invois disatukan.',
         'Muat turun JSON untuk MyInvois, atau CSV untuk akauntan.',
+        'Ada soalan tentang e-invois? Pembantu MyInvois di bawah menjawab daripada laman web LHDN, berserta pautan.',
       ] },
       { id: 'setup', title: 'Jenis bayaran, resit dan nombor kaunter', video: V('pos-11-setup'), steps: [
         'Tetapan → Jenis bayaran: tunai, DuitNow QR, kad, e-dompet, atau sendiri.',
