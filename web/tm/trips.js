@@ -20,12 +20,19 @@ import { icon } from '../js/icons.js';
 import { isSigned } from '../js/counting.js';
 import { nextStatuses, nextStop, onDuty, stopsToPlan, TRIP_LIVE, tripProgress } from '../js/tms.js';
 import { signaturePad } from '../cnt/sign.js';
+import { metres, navLinks } from '../js/slippy.js';
 import {
-  audit, canWork, head, inkPicture, loadFleet, loadOrders, myPlaces, newId, pill, placeName, refNo, send, STOP_TONE, stopKind, stopTo, TRIP_TONE,
+  audit, canWork, head, inkPicture, loadFleet, loadOrders, loadPlacesGeo, myPlaces, newId, pill, placeName, refNo, send, STOP_TONE, stopKind, stopTo, TRIP_TONE,
 } from './common.js';
 import { go } from './main.js';
 
 let tab = 'live';
+
+// The driver's phone sharing where the lorry is, while one trip is on the road.
+let gps = null;
+function stopGps() {
+  if (gps) { try { navigator.geolocation.clearWatch(gps.watch); } catch { /* gone */ } window.removeEventListener('hashchange', gps.leave); gps = null; }
+}
 
 /** One trip as a card: number, lorry, driver, how far. */
 export function tripCard(x) {
@@ -150,6 +157,38 @@ function open(main, id) {
 
 function trip(box, x) {
   const ref = doc(db, ws(`tmsTrips/${x.id}`));
+  let geo = new Map();
+  loadPlacesGeo().then((g) => { geo = g; draw(); }).catch(() => {});
+  // Where to drive for a stop: a branch where it is on the map, else the address.
+  const destOf = (s) => (s.kind === 'TRANSFER' ? geo.get(s.to || '') || placeName(s.to) : s.address || s.to);
+  const navButtons = (s, big = false) => {
+    const l = navLinks(destOf(s));
+    return h('span', { class: `tm-nav${big ? ' big' : ''}` },
+      h('a', { class: 'btn', href: l.waze, target: '_blank', rel: 'noopener', 'data-act': 'nav-waze' }, 'Waze'),
+      h('a', { class: 'btn', href: l.google, target: '_blank', rel: 'noopener', 'data-act': 'nav-google' }, 'Google Maps'));
+  };
+  // Every minute, or after 150 m, the position goes to the trip; only while this trip is open on the road.
+  const shareGps = () => {
+    stopGps();
+    if (!navigator.geolocation) return toast(t('tmGpsDenied'), 'error');
+    let lastAt = 0;
+    let lastAtPos = null;
+    const watch = navigator.geolocation.watchPosition((pos) => {
+      const here = [pos.coords.latitude, pos.coords.longitude];
+      if (Date.now() - lastAt < 60_000 && lastAtPos && metres(lastAtPos, here) < 150) return;
+      lastAt = Date.now();
+      lastAtPos = here;
+      const lastPos = { lat: here[0], lng: here[1], acc: Math.round(pos.coords.accuracy || 0), at: Date.now(), byName: session.name };
+      x.lastPos = lastPos;
+      const batch = writeBatch(db);
+      batch.update(ref, { lastPos, updatedAt: Date.now() });
+      send(batch);
+    }, () => { toast(t('tmGpsDenied'), 'error'); stopGps(); draw(); }, { enableHighAccuracy: true, maximumAge: 30_000, timeout: 30_000 });
+    const leave = () => { if (!location.hash.endsWith(x.id)) stopGps(); };
+    gps = { watch, trip: x.id, leave };
+    window.addEventListener('hashchange', leave);
+    draw();
+  };
   const write = (patch, auditInfo) => {
     const was = x.status;
     Object.assign(x, patch);
@@ -163,6 +202,7 @@ function trip(box, x) {
     if (status === 'CANCELLED' && !await confirmBox(t('tmCancelQ'), t('tmCancelTrip'), t('tmCancel'))) return;
     if (status === 'ON_ROAD' && !await confirmBox(t('tmGoQ').replace('{n}', (x.stops || []).length), t('tmGo'), t('tmCancel'), { tone: 'primary' })) return;
     const now = Date.now();
+    if (status === 'DONE' || status === 'CANCELLED') stopGps();
     write({ status, ...(status === 'LOADING' ? { loadingAt: now } : {}), ...(status === 'ON_ROAD' ? { departedAt: now } : {}), ...(status === 'DONE' ? { doneAt: now } : {}),
       ...(status === 'CANCELLED' ? { cancelledAt: now, cancelledByName: session.name } : {}) }, { newValue: status });
     toast(t(`trip_${status}`), 'ok');
@@ -227,7 +267,8 @@ function trip(box, x) {
           h('button', { type: 'button', disabled: i === x.stops.length - 1, 'aria-label': '↓', onclick: () => { [x.stops[i + 1], x.stops[i]] = [x.stops[i], x.stops[i + 1]]; write({ stops: x.stops }); } }, '↓')] : null,
         can && x.status === 'ON_ROAD' && (s.status || 'PENDING') === 'PENDING' ? [
           h('button', { type: 'button', class: 'ghost', 'data-act': 'stop-fail', style: { width: 'auto', padding: '0 10px' }, onclick: () => fail(s) }, t('tmFail')),
-          h('button', { type: 'button', class: 'primary', 'data-act': 'stop-deliver', style: { width: 'auto', padding: '0 14px' }, onclick: () => deliver(s) }, icon('check', 17), t('tmDeliver'))] : null));
+          h('button', { type: 'button', class: 'primary', 'data-act': 'stop-deliver', style: { width: 'auto', padding: '0 14px' }, onclick: () => deliver(s) }, icon('check', 17), t('tmDeliver'))] : null,
+        x.status === 'ON_ROAD' && (s.status || 'PENDING') === 'PENDING' ? navButtons(s) : null));
     mount(box,
       h('div', { class: 'card wh-head' },
         h('div', { class: 'row' }, h('strong', { class: 'grow', style: { fontSize: '18px' } }, x.tripNo), pill(t(`trip_${x.status}`), TRIP_TONE[x.status])),
@@ -237,7 +278,13 @@ function trip(box, x) {
           x.departedAt ? ` · ${t('tmGo')} ${dateTime(x.departedAt)}` : '', x.doneAt ? ` · ${t('trip_DONE')} ${dateTime(x.doneAt)}` : '')),
       x.status === 'ON_ROAD' && next ? h('div', { class: 'card pk-next', 'data-next': next.ref },
         h('div', { class: 'pk-next-label' }, t('tmNextStop')), h('div', { class: 'pk-bin' }, stopTo(next)),
-        h('div', { class: 'pk-next-name' }, [next.ref, next.address].filter(Boolean).join(' · '))) : null,
+        h('div', { class: 'pk-next-name' }, [next.ref, next.address].filter(Boolean).join(' · ')),
+        h('div', { class: 'row' }, h('b', {}, `${t('tmNav')}:`), navButtons(next, true))) : null,
+      x.status === 'ON_ROAD' && canWork() ? h('div', { class: 'card row tm-gps' },
+        h('span', { class: 'grow' }, gps?.trip === x.id ? `📍 ${t('tmGpsOn')}` : t('tmGpsOn')),
+        gps?.trip === x.id
+          ? h('button', { 'data-act': 'gps-stop', onclick: () => { stopGps(); draw(); } }, t('tmStopGps'))
+          : h('button', { class: 'primary', 'data-act': 'gps-share', onclick: shareGps }, t('tmShareGps'))) : null,
       x.status === 'ON_ROAD' && p.finished ? h('div', { class: 'card pk-next all' }, icon('check', 30), h('strong', {}, t('tmAllStopsDone'))) : null,
       h('div', { class: 'wh-lines' }, (x.stops || []).map(stopRow)),
       h('div', { class: 'wh-bar' },

@@ -16,6 +16,8 @@ import { canManage, canWork } from './common.js';
 import { appSwitcher, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
+// The words of the Connections page (连接), for the menu entry that opens it.
+import '../js/connections.js';
 
 addStrings(STRINGS);
 const app = document.getElementById('app');
@@ -26,6 +28,7 @@ const MENU = [
   { id: 'drivers', icon: 'idcard', label: 'tmDrivers', page: () => import('./drivers.js'), bottom: true },
   { id: 'lorries', icon: 'box', label: 'tmLorries', page: () => import('./lorries.js') },
   { id: 'pod', icon: 'receipt', label: 'tmPod', page: () => import('./pod.js'), bottom: true },
+  { id: 'roadmap', icon: 'store', label: 'tmRoadMap', page: () => import('./roadmap.js'), bottom: true },
   { id: 'map', icon: 'grid', label: 'tmMap', page: () => import('./map.js') },
   { id: 'connections', icon: 'plug', label: 'cnTitle', page: () => import('./connections.js') },
 ]

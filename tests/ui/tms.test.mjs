@@ -13,7 +13,10 @@ seed.set[`${W}transfers/tr1`] = { transferNo: 'TR-LORRY-1', fromBranch: 'gudang'
 seed.set[`${W}reservations/rv1`] = { reservationNo: 'RSV-LORRY-1', branchId: 'gudang', forWhom: 'Restoran Ali', status: 'OPEN', lines: line(2), createdAt: Date.now() - 5400_000 };
 const phone = process.argv.includes('--phone');
 const s = await start({ seedPatch: seed, viewport: phone ? { width: 390, height: 844 } : { width: 1366, height: 860 } });
-const { page, base, step, shot, docs } = s;
+const { page, base, step, shot, docs, context } = s;
+// Their addresses on the map, without asking the real address service.
+await page.route('https://nominatim.openstreetmap.org/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify([{ lat: '4.5975', lon: '101.0901' }]) }));
+await page.route('https://tile.openstreetmap.org/**', (route) => route.fulfill({ status: 404, body: '' }));
 // One page all the way through: the pretend database lives in it.
 const nav = (hash) => page.evaluate((x) => { location.hash = x; }, hash);
 const day = (n) => new Date(Date.now() + n * 86_400_000 + 8 * 3600_000).toISOString().slice(0, 10);
@@ -74,6 +77,31 @@ await step('loaded, and off: the next stop in big letters, and the lorry on the 
   await page.waitForSelector('[data-card="fleet3d"] .iso-box[data-id="lorry-WXY 1234"]');
   await page.waitForSelector('[data-card="fleet3d"] .iso-box[data-id="b-c:Restoran Ali"]');
   await shot('tms-3-map');
+  await nav(`#/trips/${tripId}`);
+});
+
+await step('the map: the warehouse put on it, the driver shares the lorry\'s place, Waze to the next stop', async () => {
+  await nav('#/roadmap');
+  await page.waitForSelector('select[data-act="rm-place"]');
+  await page.selectOption('select[data-act="rm-place"]', 'gudang');
+  // Away from the pins: on the street.
+  const box = await page.$eval('.sm-wrap', (e) => { const r = e.getBoundingClientRect(); return { x: r.x + r.width * 0.3, y: r.y + r.height * 0.7 }; });
+  await page.mouse.click(box.x, box.y);
+  await page.waitForFunction(() => window.__store.get('workspaces/w1/tmsPlaces/gudang')?.lat);
+  await nav(`#/trips/${tripId}`);
+  await page.waitForSelector('.pk-next a[data-act="nav-waze"][href*="waze.com/ul?q=Restoran%20Ali"]');
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: 4.62, longitude: 101.11 });
+  await page.click('button[data-act="gps-share"]');
+  await page.waitForFunction((id) => window.__store.get(`workspaces/w1/tmsTrips/${id}`)?.lastPos?.lat === 4.62, tripId);
+  await page.waitForSelector('button[data-act="gps-stop"]');
+  await nav('#/roadmap');
+  await page.waitForSelector('.sm-mark.lorry[data-marker^="lorry-"]');
+  await page.waitForSelector('.sm-mark.place[data-marker="place-gudang"]');
+  await page.waitForSelector('.sm-mark.stop');
+  await page.click('.sm-mark.stop');
+  await page.waitForSelector('.map-info a[data-act="nav-google"]');
+  await shot('tms-7-roadmap');
   await nav(`#/trips/${tripId}`);
 });
 

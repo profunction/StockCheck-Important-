@@ -12,6 +12,8 @@ import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 import { render as dashboard } from '../js/dashboard.js';
 import '../js/strings-pro.js';
+// The words of the Connections page (连接), for the menu entry that opens it.
+import '../js/connections.js';
 
 const app = document.getElementById('app');
 const ME = APPS.find((a) => a.id === 'cloud');

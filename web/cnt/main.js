@@ -26,6 +26,8 @@ import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 import { STRINGS } from './strings.js';
 import '../js/strings-pro.js';
+// The words of the Connections page (连接), for the menu entry that opens it.
+import '../js/connections.js';
 
 addStrings(STRINGS);
 const app = document.getElementById('app');

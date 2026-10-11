@@ -175,3 +175,10 @@ details summary { cursor: pointer; padding: 6px 0; }
   .tm-stop .wh-step { justify-content: flex-end; flex-wrap: wrap; }
 }
 td.nowrap { white-space: nowrap; }
+.tm-nav { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.tm-nav .btn { min-height: 38px; padding: 0 12px; font-size: 13px; font-weight: 700; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 10px; }
+.tm-nav.big .btn { min-height: 46px; font-size: 15px; }
+.tm-gps { align-items: center; gap: 10px; margin-bottom: 12px; }
+.rm-tools { display: grid; gap: 10px; margin-top: 12px; }
+.rm-tools form input { flex: 1; }
+.map-info a.btn { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 10px; min-height: 38px; }

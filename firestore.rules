@@ -867,6 +867,14 @@ service cloud.firestore {
                       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outAt', 'odoOut', 'outByName', 'updatedAt']);
         allow delete: if false;
       }
+      // Where each place stands on the map (web/tm/roadmap.js): set by a manager.
+      match /tmsPlaces/{placeId} {
+        allow read: if tmsReader();
+        allow create, update: if tmsManager() && request.resource.data.lat is number && request.resource.data.lng is number
+                              && request.resource.data.lat >= -90 && request.resource.data.lat <= 90
+                              && request.resource.data.lng >= -180 && request.resource.data.lng <= 180;
+        allow delete: if tmsManager();
+      }
       match /tmsTrips/{tripId} {
         allow read: if tmsReader() && inMyBranch(resource.data);
         allow create: if can('RECORD_STOCK_MOVEMENTS')
@@ -881,7 +889,7 @@ service cloud.firestore {
                       && resource.data.status in ['PLANNED', 'LOADING', 'ON_ROAD']
                       && request.resource.data.status in ['PLANNED', 'LOADING', 'ON_ROAD', 'DONE', 'CANCELLED']
                       && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['status', 'stops', 'loadingAt', 'departedAt', 'doneAt', 'cancelledAt', 'cancelledByName', 'updatedAt']);
+                           .hasOnly(['status', 'stops', 'loadingAt', 'departedAt', 'doneAt', 'cancelledAt', 'cancelledByName', 'updatedAt', 'lastPos']);
         allow delete: if false;
       }
 

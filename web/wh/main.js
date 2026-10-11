@@ -14,6 +14,8 @@ import '../js/strings-pro.js';
 import { appSwitcher, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
+// The words of the Connections page (连接), for the menu entry that opens it.
+import '../js/connections.js';
 
 addStrings(STRINGS);
 const app = document.getElementById('app');

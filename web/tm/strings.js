@@ -28,6 +28,9 @@ const en = {
   tmPodLead: 'Every delivery, who took it and their signature.', tmNoPod: 'Nothing delivered yet.', tmSearch: 'Search', tmNoSignature: 'not signed',
   tmMapLead: 'Lorries on the road, between the depot and where they are going.', tmMapTap: 'Tap a lorry or a place. Drag to move, ⟲ ⟳ to turn.', tmCustomer: 'Customer',
   tmSaved: 'Saved', tmSave: 'Save', tmCancel: 'Cancel', tmClose: 'Close', tmBack: 'Back',
+  tmRoadMap: 'Map', tmRoadLead: 'The lorries where their drivers\' phones say, and the stops of today\'s trips.', tmNav: 'Navigate', tmShareGps: 'Share my location', tmStopGps: 'Stop sharing',
+  tmGpsOn: 'Sharing your location with the office while on the road', tmGpsDenied: 'The phone did not allow the location.', tmSetPlace: 'Place a branch on the map', tmSetPlaceHelp: 'Choose the place, then tap where it is on the map.',
+  tmPlaceSaved: 'Place saved', tmNoPos: 'not on the map yet', tmSearchAddr: 'Find an address', tmAddrNotFound: 'That address could not be found.', tmLastSeen: 'Last seen', tmMinsAgo: '{n} min ago', tmChoosePlace: 'Choose a place',
 };
 
 const zh = {
@@ -59,6 +62,9 @@ const zh = {
   tmPodLead: '每一次送货、谁收的、他们的签名。', tmNoPod: '还没有送到的。', tmSearch: '搜索', tmNoSignature: '没签名',
   tmMapLead: '在路上的货车，在仓库和目的地之间。', tmMapTap: '点货车或地点看资料。拖动可以移动，⟲ ⟳ 转方向。', tmCustomer: '客户',
   tmSaved: '存好了', tmSave: '保存', tmCancel: '取消', tmClose: '关闭', tmBack: '返回',
+  tmRoadMap: '地图', tmRoadLead: '货车在司机手机的位置，还有今天行程的送货点。', tmNav: '导航', tmShareGps: '分享我的位置', tmStopGps: '停止分享',
+  tmGpsOn: '在路上时把你的位置分享给办公室', tmGpsDenied: '手机没有给位置权限。', tmSetPlace: '把分店放到地图上', tmSetPlaceHelp: '先选地点，再点地图上它的位置。',
+  tmPlaceSaved: '位置存好了', tmNoPos: '还没放上地图', tmSearchAddr: '找地址', tmAddrNotFound: '找不到这个地址。', tmLastSeen: '最后位置', tmMinsAgo: '{n} 分钟前', tmChoosePlace: '选地点',
 };
 
 const ms = {
@@ -90,6 +96,9 @@ const ms = {
   tmPodLead: 'Setiap penghantaran, siapa terima dan tandatangan mereka.', tmNoPod: 'Belum ada yang dihantar.', tmSearch: 'Cari', tmNoSignature: 'tiada tandatangan',
   tmMapLead: 'Lori di jalan, antara depot dan destinasi.', tmMapTap: 'Tekan lori atau tempat. Seret untuk gerak, ⟲ ⟳ untuk pusing.', tmCustomer: 'Pelanggan',
   tmSaved: 'Disimpan', tmSave: 'Simpan', tmCancel: 'Batal', tmClose: 'Tutup', tmBack: 'Kembali',
+  tmRoadMap: 'Peta', tmRoadLead: 'Lori di mana telefon pemandu berada, dan hentian perjalanan hari ini.', tmNav: 'Navigasi', tmShareGps: 'Kongsi lokasi saya', tmStopGps: 'Henti kongsi',
+  tmGpsOn: 'Berkongsi lokasi anda dengan pejabat semasa di jalan', tmGpsDenied: 'Telefon tidak membenarkan lokasi.', tmSetPlace: 'Letak cawangan di peta', tmSetPlaceHelp: 'Pilih tempat, kemudian tekan lokasinya di peta.',
+  tmPlaceSaved: 'Lokasi disimpan', tmNoPos: 'belum di peta', tmSearchAddr: 'Cari alamat', tmAddrNotFound: 'Alamat itu tidak dijumpai.', tmLastSeen: 'Kali terakhir', tmMinsAgo: '{n} min lalu', tmChoosePlace: 'Pilih tempat',
 };
 
 export const STRINGS = { en, zh, ms };

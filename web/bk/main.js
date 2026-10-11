@@ -16,6 +16,8 @@ import { appSwitcher, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { books, canPost, canView, onBooks, ready, saveChart, stopBooks, watchBooks } from './data.js';
 import { DEFAULT_ACCOUNTS } from '../js/books.js';
+// The words of the Connections page (连接), for the menu entry that opens it.
+import '../js/connections.js';
 
 addStrings(STRINGS);
 const app = document.getElementById('app');

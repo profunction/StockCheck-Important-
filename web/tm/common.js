@@ -108,3 +108,9 @@ export function inkPicture(ink, { w = 180, hgt = 60 } = {}) {
   }
   return pic;
 }
+
+/** Where each place stands on the map (tmsPlaces/, set on the map page): id -> [lat, lng]. */
+export async function loadPlacesGeo() {
+  const snap = await getDocs(collection(db, ws('tmsPlaces'))).catch(() => null);
+  return new Map((snap?.docs || []).map((d) => [d.id === '-' ? '' : d.id, [d.data().lat, d.data().lng]]));
+}
