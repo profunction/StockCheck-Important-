@@ -69,7 +69,7 @@ function towers(figures) {
   const info = h('div', { class: 'city-info' }, h('span', { class: 'muted' }, t('bk3dTap')));
   const { boxes, W, D } = moneyLayout(figures);
   const scene = isoScene({
-    boxes: boxes.map((b) => (b.fig ? { ...b, title: `${b.fig.label}: ${rmText(b.fig.sen)}` } : b)), W, D, height: 380,
+    boxes: boxes.map((b) => (b.fig ? { ...b, title: `${b.fig.label}: ${rmText(b.fig.sen)}` } : b)), W, D, height: 560,
     onPick: (b) => {
       const f = b.fig;
       if (!f) return;

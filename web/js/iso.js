@@ -5,8 +5,11 @@
  * and an SVG stays sharp on a phone and every box can be tapped.
  *
  * World units: x to the right-back, y to the left-back, z up. A box is
- * { id, x, y, z, w, d, h, color }; h = 0 is a flat tile on the floor. The
- * picture turns in quarter turns, drags to move, and zooms.
+ * { id, x, y, z, w, d, h, color }; h = 0 is a flat tile on the floor. A
+ * box may be a [kind]: 'carton' (taped on top), 'building' (rows of
+ * windows), 'glass' (a tower of glass), 'tree' (a round crown on a trunk).
+ * Lit from the front left, with soft shadows on a floor slab; turns in
+ * quarter turns, drags, pinches and zooms, and opens full screen.
  *
  * The geometry (project, turn, paintOrder, shade) has no DOM and is tested
  * alone (iso.test.mjs); isoScene() draws it.
@@ -71,15 +74,47 @@ function svg(tag, attrs = {}, ...kids) {
   el.append(...kids.flat().filter(Boolean));
   return el;
 }
-const pts = (poly) => poly.map(([a, b]) => `${a.toFixed(2)},${b.toFixed(2)}`).join(' ');
+const pts = (poly) => poly.map(([a, b]) => `${a.toFixed(3)},${b.toFixed(3)}`).join(' ');
+
+/** The smallest convex outline around [points] (screen points): a box's shadow. */
+export function hull(points) {
+  const p = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (p.length < 3) return p;
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const half = (list) => {
+    const out = [];
+    for (const q of list) {
+      while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], q) <= 0) out.pop();
+      out.push(q);
+    }
+    out.pop();
+    return out;
+  };
+  return [...half(p), ...half([...p].reverse())];
+}
+
+/** Shared gradients and the shadow's blur, once per picture. */
+function defs(uid) {
+  const stop = (offset, color, opacity) => svg('stop', { offset, 'stop-color': color, 'stop-opacity': opacity });
+  return svg('defs', {},
+    svg('linearGradient', { id: `${uid}-top`, x1: 0, y1: 0, x2: 1, y2: 1 }, stop('0', '#fff', 0.38), stop('1', '#fff', 0.04)),
+    svg('linearGradient', { id: `${uid}-left`, x1: 0, y1: 0, x2: 0, y2: 1 }, stop('0', '#fff', 0.1), stop('1', '#000', 0.12)),
+    svg('linearGradient', { id: `${uid}-right`, x1: 0, y1: 0, x2: 0, y2: 1 }, stop('0', '#000', 0.12), stop('1', '#000', 0.32)),
+    svg('linearGradient', { id: `${uid}-glass`, x1: 0, y1: 0, x2: 1, y2: 1 }, stop('0', '#fff', 0.55), stop('0.45', '#fff', 0.08), stop('1', '#fff', 0.3)),
+    svg('radialGradient', { id: `${uid}-leaf`, cx: 0.35, cy: 0.3, r: 0.75 }, stop('0', '#86efac', 1), stop('0.6', '#22a06b', 1), stop('1', '#15803d', 1)),
+    svg('filter', { id: `${uid}-soft`, x: '-20%', y: '-20%', width: '140%', height: '140%' }, svg('feGaussianBlur', { stdDeviation: 0.09 })));
+}
+
+let uids = 0;
 
 /**
  * A picture of [boxes] on a [W] x [D] floor. Each box may carry a
- * [title] (shown on hover), [label] (written above it), [cls] (extra CSS
- * class, e.g. 'pulse') and [stroke]. [onPick] gets the box tapped.
- * Returns { el, draw(boxes, W, D), select(id) }.
+ * [title] (shown on hover), [label] (written above it, on a tag), [cls]
+ * (extra CSS class, e.g. 'pulse'), [kind] and [pick] (false: not
+ * tappable). [onPick] gets the box tapped. Returns { el, draw(boxes, W, D), select(id) }.
  */
-export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 420, floor = true } = {}) {
+export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null } = {}) {
+  const uid = `iso${++uids}`;
   let turns = 0;
   let zoom = 1;
   let pan = [0, 0];
@@ -87,99 +122,229 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 4
   let current = { boxes, W, D };
   let base = null;
   const pic = svg('svg', { class: 'iso-svg', role: 'img', preserveAspectRatio: 'xMidYMid meet' });
-  pic.style.height = `${height}px`;
+  const el = document.createElement('div');
+  el.className = 'iso-wrap';
 
-  // As tall as the picture needs at this width (no empty band on a phone), within limits.
+  // As tall as the picture needs at this width, within the screen; on a
+  // phone taller than that, and starting closer in, so things are big enough to tap.
+  let homeZoom = null;
+  let vbW = 10;
+  const narrow = () => (pic.clientWidth || 0) < 560;
   const fit = () => {
     const w = pic.clientWidth;
-    if (w && base) pic.style.height = `${Math.round(Math.min(height, Math.max(240, w * base.h / base.w * 1.08)))}px`;
+    if (!w || !base) return;
+    if (homeZoom == null) { homeZoom = w < 560 ? 1.9 : w < 900 ? 1.3 : 1; zoom = homeZoom; }
+    if (el.classList.contains('full')) { pic.style.height = '100%'; return; }
+    const most = Math.min(height, Math.round((window.innerHeight || 800) * 0.78));
+    const want = narrow() ? (window.innerHeight || 800) * 0.6 : w * base.h / base.w;
+    pic.style.height = `${Math.round(Math.min(most, Math.max(320, want)))}px`;
   };
   if (typeof ResizeObserver === 'function') new ResizeObserver(fit).observe(pic);
   const view = () => {
     if (!base) return;
     fit();
-    const w = base.w / zoom;
-    const h = base.h / zoom;
-    pic.setAttribute('viewBox', `${(base.x + base.w / 2 - w / 2 + pan[0]).toFixed(2)} ${(base.y + base.h / 2 - h / 2 + pan[1]).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
+    // The picture's shape follows the box it is in, so zooming fills it.
+    const box = (pic.clientWidth && pic.clientHeight) ? pic.clientWidth / pic.clientHeight : base.w / base.h;
+    const bw = Math.max(base.w, base.h * box);
+    const bh = bw / box;
+    const w = bw / zoom;
+    const h = bh / zoom;
+    vbW = w;
+    pic.setAttribute('viewBox', `${(base.x + base.w / 2 - w / 2 + pan[0]).toFixed(3)} ${(base.y + base.h / 2 - h / 2 + pan[1]).toFixed(3)} ${w.toFixed(3)} ${h.toFixed(3)}`);
+  };
+
+  const shadowOf = (b) => {
+    const z = b.z || 0;
+    // Only what stands on the floor throws a shadow there, away from the light.
+    if (!b.h || z > 0.05 || b.noShadow) return null;
+    const lift = Math.min(b.h, 3) * 0.32;
+    const X = b.x + (b.w || 0);
+    const Y = b.y + (b.d || 0);
+    const foot = [[b.x, b.y], [X, b.y], [X, Y], [b.x, Y]];
+    const cast = foot.map(([x, y]) => [x + lift, y - lift * 0.35]);
+    return hull([...foot, ...cast].map(([x, y]) => project(x, y, 0)));
+  };
+
+  const decorate = (b, f, color) => {
+    const out = [];
+    const t = (b.z || 0) + (b.h || 0);
+    const X = b.x + (b.w || 0);
+    const Y = b.y + (b.d || 0);
+    if (b.kind === 'carton' && b.h) {
+      // Packing tape across the top.
+      const [a, c] = [project(b.x + b.w / 2, b.y, t), project(b.x + b.w / 2, Y, t)];
+      out.push(svg('line', { x1: a[0], y1: a[1], x2: c[0], y2: c[1], stroke: shade(color, -0.3), 'stroke-width': 0.05, 'stroke-opacity': 0.55 }));
+    }
+    if ((b.kind === 'building' || b.kind === 'glass') && b.h > 0.6) {
+      // Rows of windows on both walls the viewer sees.
+      const rows = Math.max(1, Math.floor(b.h / 0.45));
+      const colsX = Math.max(1, Math.floor(b.w / 0.45));
+      const colsY = Math.max(1, Math.floor(b.d / 0.45));
+      const z0 = b.z || 0;
+      const lit = b.kind === 'glass' ? '#e0f2fe' : '#fef3c7';
+      for (let r = 0; r < rows; r++) {
+        const za = z0 + (r + 0.28) * b.h / rows;
+        const zb = z0 + (r + 0.72) * b.h / rows;
+        for (let i = 0; i < colsX; i++) {
+          const xa = b.x + (i + 0.22) * b.w / colsX;
+          const xb = b.x + (i + 0.78) * b.w / colsX;
+          out.push(svg('polygon', { class: 'iso-win', points: pts([[xa, Y, za], [xb, Y, za], [xb, Y, zb], [xa, Y, zb]].map((q) => project(...q))), fill: lit, 'fill-opacity': (r * 7 + i * 3) % 5 ? 0.55 : 0.95 }));
+        }
+        for (let i = 0; i < colsY; i++) {
+          const ya = b.y + (i + 0.22) * b.d / colsY;
+          const yb = b.y + (i + 0.78) * b.d / colsY;
+          out.push(svg('polygon', { class: 'iso-win', points: pts([[X, ya, za], [X, yb, za], [X, yb, zb], [X, ya, zb]].map((q) => project(...q))), fill: lit, 'fill-opacity': (r * 5 + i * 2) % 4 ? 0.35 : 0.8 }));
+        }
+      }
+    }
+    return out;
   };
 
   const draw = (list = current.boxes, w0 = current.W, d0 = current.D) => {
     current = { boxes: list, W: w0, D: d0 };
     const turned = list.map((b) => ({ ...turn(b, w0, d0, turns).box, src: b }));
     const { W: tw, D: td } = turn({ x: 0, y: 0 }, w0, d0, turns);
-    const ground = floor ? [{ x: -0.6, y: -0.6, z: -0.02, w: tw + 1.2, d: td + 1.2, h: 0, floor: true }] : [];
+    const slab = { x: -0.8, y: -0.8, z: -0.35, w: tw + 1.6, d: td + 1.6, h: 0.35 };
+    const shadows = [];
     const kids = [];
     const labels = [];
+    const rich = list.length < 1600;
     let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
-    for (const b of [...ground, ...paintOrder(turned)]) {
-      const f = faces(b);
-      for (const poly of [f.top, f.left, f.right].filter(Boolean)) {
-        for (const [a, c] of poly) { minX = Math.min(minX, a); maxX = Math.max(maxX, a); minY = Math.min(minY, c); maxY = Math.max(maxY, c); }
-      }
-      if (b.floor) { kids.push(svg('polygon', { class: 'iso-floor', points: pts(f.top) })); continue; }
+    const grow = (poly) => { for (const [a, c] of poly) { minX = Math.min(minX, a); maxX = Math.max(maxX, a); minY = Math.min(minY, c); maxY = Math.max(maxY, c); } };
+    // The floor: a slab with a grid of tiles on it.
+    const ground = [];
+    if (floor) {
+      const f = faces(slab);
+      [f.top, f.left, f.right].forEach(grow);
+      ground.push(
+        svg('polygon', { class: 'iso-slab-l', points: pts(f.left) }),
+        svg('polygon', { class: 'iso-slab-r', points: pts(f.right) }),
+        svg('polygon', { class: 'iso-floor', points: pts(f.top), ...(floorColor ? { style: `fill:${floorColor}` } : {}) }));
+      const grid = [];
+      for (let x = 0; x <= Math.ceil(tw); x++) { const a = project(x, -0.8, 0); const c = project(x, td + 0.8, 0); grid.push(`M${a[0].toFixed(2)} ${a[1].toFixed(2)}L${c[0].toFixed(2)} ${c[1].toFixed(2)}`); }
+      for (let y = 0; y <= Math.ceil(td); y++) { const a = project(-0.8, y, 0); const c = project(tw + 0.8, y, 0); grid.push(`M${a[0].toFixed(2)} ${a[1].toFixed(2)}L${c[0].toFixed(2)} ${c[1].toFixed(2)}`); }
+      ground.push(svg('path', { class: 'iso-grid', d: grid.join('') }));
+    }
+    for (const b of paintOrder(turned)) {
       const src = b.src;
       const color = src.color || '#9aa5b1';
-      const g = svg('g', { class: `iso-box${src.cls ? ` ${src.cls}` : ''}${src.id != null && src.id === selected ? ' on' : ''}${onPick && src.pick !== false ? ' tap' : ''}`, 'data-id': src.id ?? null },
+      const tap = onPick && src.pick !== false;
+      const cls = `iso-box${src.cls ? ` ${src.cls}` : ''}${src.id != null && src.id === selected ? ' on' : ''}${tap ? ' tap' : ''}`;
+      if (src.kind === 'tree') {
+        const [cx, cy] = project(b.x + b.w / 2, b.y + b.d / 2, (b.z || 0) + (b.h || 0.6));
+        const r = Math.max(b.w, b.d) * 0.62;
+        const [tx, ty] = project(b.x + b.w / 2, b.y + b.d / 2, 0);
+        shadows.push(svg('ellipse', { cx: tx + 0.15, cy: ty + 0.02, rx: r * 0.9, ry: r * 0.45, class: 'iso-shadow' }));
+        kids.push(svg('g', { class: cls, 'data-id': src.id ?? null },
+          svg('line', { x1: tx, y1: ty, x2: cx, y2: cy + r * 0.5, stroke: '#8b5a2b', 'stroke-width': 0.09, 'stroke-linecap': 'round' }),
+          svg('circle', { cx, cy, r, fill: `url(#${uid}-leaf)` })));
+        grow([[cx - r, cy - r], [cx + r, cy + r]]);
+        continue;
+      }
+      const f = faces(b);
+      [f.top, f.left, f.right].filter(Boolean).forEach(grow);
+      const sh = shadowOf(b);
+      if (sh && rich) shadows.push(svg('polygon', { class: 'iso-shadow', points: pts(sh) }));
+      const edge = shade(color, -0.4);
+      const face = (poly, fill, overlay) => [
+        svg('polygon', { points: pts(poly), fill, stroke: edge, 'stroke-width': 0.018, 'stroke-opacity': 0.45, 'stroke-linejoin': 'round' }),
+        rich && overlay ? svg('polygon', { points: pts(poly), fill: `url(#${uid}-${overlay})`, 'pointer-events': 'none' }) : null,
+      ];
+      const g = svg('g', { class: cls, 'data-id': src.id ?? null },
         src.title ? svg('title', {}, src.title) : null,
-        f.left ? svg('polygon', { points: pts(f.left), fill: shade(color, -0.12) }) : null,
-        f.right ? svg('polygon', { points: pts(f.right), fill: shade(color, -0.28) }) : null,
-        svg('polygon', { points: pts(f.top), fill: src.h ? shade(color, 0.12) : color, ...(src.stroke ? { stroke: src.stroke, 'stroke-width': 0.04 } : {}) }));
-      if (onPick && src.pick !== false) g.addEventListener('click', () => { if (!dragged) onPick(src); });
+        f.left ? face(f.left, shade(color, -0.08), src.kind === 'glass' ? 'glass' : 'left') : null,
+        f.right ? face(f.right, shade(color, -0.24), 'right') : null,
+        face(f.top, src.h ? shade(color, 0.1) : color, src.h ? 'top' : null),
+        rich ? decorate(b, f, color) : null);
+      if (tap) g.addEventListener('click', () => { if (!dragged) onPick(src); });
       kids.push(g);
       if (src.label) {
         const [lx, ly] = project(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2, (b.z || 0) + (b.h || 0));
-        labels.push(svg('text', { class: `iso-label${src.labelCls ? ` ${src.labelCls}` : ''}`, x: lx.toFixed(2), y: (ly - 0.18).toFixed(2), 'text-anchor': 'middle' }, src.label));
+        const size = src.labelCls === 'big' ? 0.42 : src.labelCls === 'small' ? 0.24 : 0.3;
+        const text = String(src.label);
+        const wide = Math.max(0.6, [...text].reduce((n, ch) => n + (ch.charCodeAt(0) > 0x2e80 ? 1 : 0.62), 0) * size + size * 0.9);
+        const y = ly - size * 1.1;
+        labels.push(svg('g', { class: `iso-tag${src.labelCls ? ` ${src.labelCls}` : ''}` },
+          svg('rect', { x: (lx - wide / 2).toFixed(3), y: (y - size * 0.95).toFixed(3), width: wide.toFixed(3), height: (size * 1.45).toFixed(3), rx: (size * 0.5).toFixed(3) }),
+          svg('text', { x: lx.toFixed(3), y: (y - size * 0.02).toFixed(3), 'text-anchor': 'middle', 'font-size': size.toFixed(3) }, text)));
+        grow([[lx - wide / 2, y - size * 1.2]]);
       }
     }
-    pic.replaceChildren(...kids, svg('g', { class: 'iso-labels' }, labels));
-    const pad = 0.8;
-    base = Number.isFinite(minX) ? { x: minX - pad, y: minY - pad * 2, w: maxX - minX + pad * 2, h: maxY - minY + pad * 3 } : { x: 0, y: 0, w: 10, h: 10 };
+    pic.replaceChildren(defs(uid), ...ground, svg('g', { filter: `url(#${uid}-soft)` }, shadows), ...kids, svg('g', { class: 'iso-labels' }, labels));
+    const pad = 0.35;
+    base = Number.isFinite(minX) ? { x: minX - pad, y: minY - pad, w: maxX - minX + pad * 2, h: maxY - minY + pad * 2 } : { x: 0, y: 0, w: 10, h: 10 };
     view();
   };
 
-  // Drag to move; a tap that moved a little is still a tap.
+  // Drag to move, two fingers to zoom; a tap that moved a little is still a tap.
   let dragged = false;
   let start = null;
+  const fingers = new Map();
+  let pinch = null;
   pic.addEventListener('pointerdown', (e) => {
+    fingers.set(e.pointerId, [e.clientX, e.clientY]);
+    if (fingers.size === 2) {
+      const [a, b] = [...fingers.values()];
+      pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, zoom };
+      dragged = true;
+      return;
+    }
     start = { x: e.clientX, y: e.clientY, pan: [...pan] };
     dragged = false;
   });
   pic.addEventListener('pointermove', (e) => {
+    if (fingers.has(e.pointerId)) fingers.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pinch && fingers.size === 2) {
+      const [a, b] = [...fingers.values()];
+      setZoom(pinch.zoom * (Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d));
+      return;
+    }
     if (!start || !base) return;
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     if (!dragged && Math.hypot(dx, dy) < 6) return;
     if (!dragged) { dragged = true; try { pic.setPointerCapture(e.pointerId); } catch { /* not every browser */ } }
-    const k = base.w / zoom / (pic.clientWidth || 1);
+    const k = vbW / (pic.clientWidth || 1);
     pan = [start.pan[0] - dx * k, start.pan[1] - dy * k];
     view();
   });
-  const stop = () => { start = null; setTimeout(() => { dragged = false; }, 0); };
+  const stop = (e) => {
+    fingers.delete(e.pointerId);
+    if (fingers.size < 2) pinch = null;
+    if (!fingers.size) { start = null; setTimeout(() => { dragged = false; }, 0); }
+  };
   pic.addEventListener('pointerup', stop);
   pic.addEventListener('pointercancel', stop);
   pic.addEventListener('wheel', (e) => { e.preventDefault(); setZoom(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15)); }, { passive: false });
 
-  const setZoom = (z) => { zoom = Math.max(0.6, Math.min(6, z)); view(); };
-  const btn = (label, act, fn) => {
+  const setZoom = (z) => { zoom = Math.max(0.7, Math.min(8, z)); view(); };
+  const btn = (label, act, fn, title = act) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'iso-btn';
     b.dataset.act = act;
     b.textContent = label;
-    b.setAttribute('aria-label', act);
+    b.title = title;
+    b.setAttribute('aria-label', title);
     b.onclick = fn;
     return b;
+  };
+  const full = () => {
+    el.classList.toggle('full');
+    document.body.classList.toggle('iso-full-open', el.classList.contains('full'));
+    pan = [0, 0];
+    setTimeout(view, 30);
   };
   const tools = document.createElement('div');
   tools.className = 'iso-tools';
   tools.append(
+    btn('⛶', 'iso-full', full, 'Full screen'),
     btn('⟲', 'iso-left', () => { turns = (turns + 3) % 4; pan = [0, 0]; draw(); }),
     btn('⟳', 'iso-right', () => { turns = (turns + 1) % 4; pan = [0, 0]; draw(); }),
-    btn('+', 'iso-in', () => setZoom(zoom * 1.3)),
-    btn('−', 'iso-out', () => setZoom(zoom / 1.3)),
-    btn('⌂', 'iso-home', () => { zoom = 1; pan = [0, 0]; view(); }));
-  const el = document.createElement('div');
-  el.className = 'iso-wrap';
+    btn('+', 'iso-in', () => setZoom(zoom * 1.35)),
+    btn('−', 'iso-out', () => setZoom(zoom / 1.35)),
+    btn('⌂', 'iso-home', () => { zoom = homeZoom || 1; pan = [0, 0]; view(); }));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && el.classList.contains('full')) full(); });
   el.append(pic, tools);
   draw();
   return {

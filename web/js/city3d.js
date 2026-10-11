@@ -22,7 +22,7 @@ export function cityCard(places, moving, { links = {} } = {}) {
   const info = h('div', { class: 'city-info' });
   const { boxes, W, D } = cityLayout(places, moving);
   const scene = isoScene({
-    boxes: boxes.map((b) => ({ ...b, title: b.title || (b.place ? b.place.name : null) })), W, D, height: 460,
+    boxes: boxes.map((b) => ({ ...b, title: b.title || (b.place ? b.place.name : null) })), W, D, height: 680,
     onPick: (b) => {
       scene.select(b.id);
       if (b.moving) {

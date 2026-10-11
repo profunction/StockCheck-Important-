@@ -32,7 +32,7 @@ export function render(main) {
     const { boxes, W, D } = cityLayout(all, moving);
     const info = h('div', { class: 'city-info' }, h('span', { class: 'muted' }, t('tmMapTap')));
     const scene = isoScene({
-      boxes, W, D, height: 520,
+      boxes, W, D, height: 680,
       onPick: (b) => {
         scene.select(b.id);
         const x = b.moving?.trip;

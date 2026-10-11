@@ -17,6 +17,7 @@ import { t } from '../js/i18n.js';
 import { formatQty } from '../js/money.js';
 import { session } from '../js/session.js';
 import { isoScene } from '../js/iso.js';
+import { lorryBoxes } from '../js/town.js';
 import { layout } from '../js/warehouse3d.js';
 import { lineDone } from '../js/picking.js';
 import { expiring } from '../js/wms.js';
@@ -107,26 +108,45 @@ function draw(box, data) {
     const x = (kind === 'IN' ? i : docksIn + i) * step + (step - 1.6) / 2;
     const job = (kind === 'IN' ? arriving : leaving)[i];
     boxes.push({ id: `dock-${kind}-${n}`, x, y: dockY, z: 0, w: 1.6, d: 1.2, h: 0, color: COLOR.dock, label: `${kind}-${n}`, labelCls: 'dock', pick: false });
+    // The dock's bumper, yellow, where the lorry backs up.
+    boxes.push({ id: `bump-${kind}-${n}`, x: x + 0.1, y: dockY + 1.1, w: 1.4, d: 0.1, h: 0.22, color: '#facc15', pick: false, noShadow: true });
     if (!job) return;
     const color = kind === 'IN' ? COLOR.inbound : COLOR.outbound;
-    boxes.push({ id: `lorry-${job.ref}`, x: x + 0.2, y: dockY + 1.3, z: 0, w: 1.2, d: 2.2, h: 1.2, color, title: `${job.ref} · ${job.who}`, label: job.ref.split('-').slice(0, 2).join('-'), lorry: job });
-    boxes.push({ id: `cab-${job.ref}`, x: x + 0.25, y: dockY + 3.6, z: 0, w: 1.1, d: 0.8, h: 0.9, color: COLOR.cab, pick: false });
+    boxes.push(...lorryBoxes(`lorry-${job.ref}`, x + 0.35, dockY + 1.35, { along: 'y', color, title: `${job.ref} · ${job.who}`, label: job.ref.split('-').slice(0, 2).join('-'), lorry: job }));
   };
   for (let i = 0; i < docksIn; i++) dock(i, 'IN', i + 1);
   for (let i = 0; i < docksOut; i++) dock(i, 'OUT', i + 1);
   const queue = [...arriving.slice(docksIn).map((j) => ({ ...j, kind: 'IN' })), ...leaving.slice(docksOut).map((j) => ({ ...j, kind: 'OUT' }))];
 
-  const cellBoxes = () => floor.cells.map((c, i) => ({
-    ...c, id: `c${i}`, color: cellTone(c), cell: c,
-    cls: [demo ? 'demo' : '', mode === 'pick' && cellTone(c) === COLOR.pick ? 'pulse' : ''].filter(Boolean).join(' '),
-    title: c.code ? `${c.code}${c.bins.filter((b) => b.product).map((b) => `\n${b.product.name} · ${formatQty(b.row?.onHand || 0)}`).join('')}` : `${c.rack}-L${c.level}-${c.slot}`,
-  }));
+  // Each slot: an orange beam, and on it a carton coloured by what it holds (none when empty).
+  const cellBoxes = () => floor.cells.flatMap((c, i) => {
+    const tone = cellTone(c);
+    const used = c.bins.some((b) => b.product);
+    const title = c.code ? `${c.code}${c.bins.filter((b) => b.product).map((b) => `\n${b.product.name} · ${formatQty(b.row?.onHand || 0)}`).join('')}` : `${c.rack}-L${c.level}-${c.slot}`;
+    const cls = [demo ? 'demo' : '', mode === 'pick' && tone === COLOR.pick ? 'pulse' : ''].filter(Boolean).join(' ');
+    const beam = { id: `c${i}-beam`, x: c.x, y: c.y, z: c.z, w: 1, d: 0.94, h: 0.07, color: '#f08c00', cell: c, title, noShadow: c.z > 0, cls: demo ? 'demo' : '' };
+    if (!used && !demo) return [beam];
+    return [beam, { id: `c${i}`, x: c.x + 0.1, y: c.y + 0.1, z: c.z + 0.07, w: 0.8, d: 0.74, h: 0.56, color: demo ? '#d6b98c' : tone, cell: c, title, cls, kind: 'carton', noShadow: true }];
+  });
+  // Blue uprights every second slot, both sides of each rack.
+  const uprights = () => floor.racks.flatMap((r) => {
+    const tall = Math.max(...floor.cells.filter((c) => c.rack === r.name).map((c) => c.z)) + 0.8;
+    const out = [];
+    for (let k = 0; k <= r.w; k += 2) for (const dy of [-0.02, 0.9]) out.push({ id: `up-${r.name}-${k}-${dy}`, x: Math.min(k, r.w) - 0.05, y: r.y + dy, w: 0.1, d: 0.1, h: tall, color: '#2b59c3', pick: false });
+    if (r.w % 2) for (const dy of [-0.02, 0.9]) out.push({ id: `up-${r.name}-end-${dy}`, x: r.w - 0.05, y: r.y + dy, w: 0.1, d: 0.1, h: tall, color: '#2b59c3', pick: false });
+    return out;
+  });
+  // Yellow lines along each aisle.
+  const aisles = () => floor.racks.filter((_, i) => i % 2 === 1).flatMap((r) => [
+    { id: `aisle-${r.name}-a`, x: -0.3, y: r.y + 1.12, w: W + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
+    { id: `aisle-${r.name}-b`, x: -0.3, y: r.y + 2.48, w: W + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
+  ]);
   const rackLabels = () => floor.racks.map((r) => ({ id: `rack-${r.name}`, x: -1.2, y: r.y, z: 0, w: 0.9, d: 0.9, h: 0, color: '#0f766e', label: r.name, labelCls: 'rack', pick: false }));
   // Everything moved right by the width of the rack names in front of each row.
-  const all = () => [...rackLabels(), ...cellBoxes(), ...boxes].map((b) => ({ ...b, x: b.x + 1.4 }));
+  const all = () => [...aisles(), ...rackLabels(), ...uprights(), ...cellBoxes(), ...boxes].map((b) => ({ ...b, x: b.x + 1.4 }));
   const info = h('div', { class: 'card map-info' });
   const scene = isoScene({
-    boxes: all(), W: W + 1.6, D: dockY + 4.6, height: Math.min(560, Math.max(340, Math.round(window.innerHeight * 0.55))),
+    boxes: all(), W: W + 1.6, D: dockY + 4.6, height: 720,
     onPick: (b) => { scene.select(b.id); showInfo(b); },
   });
 

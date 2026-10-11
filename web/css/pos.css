@@ -904,24 +904,37 @@ div.field { display: grid; gap: 5px; font-size: 13px; color: var(--muted); font-
 .ph-img.ph-none { min-height: 0; padding: 8px; }
 
 /* 3D pictures (web/js/iso.js), in every app */
-.iso-wrap { position: relative; }
-.iso-svg { display: block; width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; background:
-  radial-gradient(circle at 50% 30%, var(--surface) 0%, var(--surface-2) 100%); }
+.iso-wrap { position: relative; --iso-sky1: #f4fbfa; --iso-sky2: #dcebe9; --iso-floor: #e9eef1; --iso-slab-l: #c3ced6; --iso-slab-r: #a9b7c2; --iso-grid: rgba(15, 40, 60, .07); --iso-tag: rgba(255, 255, 255, .94); --iso-tag-ink: #0b1b2b; }
+:root[data-theme="dark"] .iso-wrap { --iso-sky1: #10283a; --iso-sky2: #071420; --iso-floor: #1b3346; --iso-slab-l: #10202d; --iso-slab-r: #0b1822; --iso-grid: rgba(255, 255, 255, .06); --iso-tag: rgba(10, 24, 36, .92); --iso-tag-ink: #e7edf3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .iso-wrap { --iso-sky1: #10283a; --iso-sky2: #071420; --iso-floor: #1b3346; --iso-slab-l: #10202d; --iso-slab-r: #0b1822; --iso-grid: rgba(255, 255, 255, .06); --iso-tag: rgba(10, 24, 36, .92); --iso-tag-ink: #e7edf3; } }
+.iso-svg { display: block; width: 100%; min-height: 320px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
+  background: radial-gradient(ellipse at 50% 18%, var(--iso-sky1) 0%, var(--iso-sky2) 100%); }
 .iso-svg:active { cursor: grabbing; }
-.iso-floor { fill: var(--surface-3, #e5eeee); stroke: var(--line); stroke-width: .03; }
-.iso-box polygon { stroke: rgba(0, 0, 0, .14); stroke-width: .015; stroke-linejoin: round; }
+.iso-floor { fill: var(--iso-floor); }
+.iso-slab-l { fill: var(--iso-slab-l); }
+.iso-slab-r { fill: var(--iso-slab-r); }
+.iso-grid { fill: none; stroke: var(--iso-grid); stroke-width: .02; }
+.iso-shadow { fill: rgba(5, 20, 35, .2); }
 .iso-box.tap { cursor: pointer; }
-.iso-box.tap:hover polygon { filter: brightness(1.08); }
-.iso-box.on polygon { stroke: var(--text); stroke-width: .06; }
-.iso-box.demo { opacity: .55; }
-.iso-box.pulse { animation: isopulse 1.4s ease-in-out infinite; }
-@keyframes isopulse { 50% { opacity: .55; } }
-.iso-label { font: 700 .34px/1 var(--f-mono, ui-monospace, monospace); fill: var(--text); paint-order: stroke; stroke: var(--surface); stroke-width: .08px; pointer-events: none; }
-.iso-label.rack { font-size: .5px; fill: var(--brand); }
-.iso-label.dock { font-size: .3px; fill: var(--muted); }
-.iso-label.big { font-size: .55px; }
-.iso-tools { position: absolute; top: 10px; right: 10px; display: grid; gap: 6px; }
-.iso-btn { width: 38px; height: 38px; min-height: 0; padding: 0; border-radius: 10px; font-size: 18px; font-weight: 700; background: var(--surface); box-shadow: var(--shadow-1); }
+.iso-box.tap:hover { filter: brightness(1.07); }
+.iso-box.on > polygon:first-of-type, .iso-box.on polygon { stroke: #0ea5e9; stroke-width: .06; stroke-opacity: 1; }
+.iso-box.demo { opacity: .5; }
+.iso-box.pulse { animation: isopulse 1.2s ease-in-out infinite; }
+@keyframes isopulse { 50% { opacity: .45; } }
+.iso-tag rect { fill: var(--iso-tag); stroke: rgba(0, 0, 0, .08); stroke-width: .015; filter: drop-shadow(0 .03px .04px rgba(0, 0, 0, .25)); }
+.iso-tag text { font-family: Inter, "Noto Sans SC", system-ui, sans-serif; font-weight: 700; fill: var(--iso-tag-ink); pointer-events: none; }
+.iso-tag.rack rect { fill: #0f766e; stroke: none; }
+.iso-tag.rack text { fill: #fff; font-family: var(--f-mono, ui-monospace, monospace); }
+.iso-tag.dock rect { fill: #facc15; stroke: none; }
+.iso-tag.dock text { fill: #1f2937; font-family: var(--f-mono, ui-monospace, monospace); }
+.iso-tag.lorry rect { fill: #1e293b; stroke: none; }
+.iso-tag.lorry text { fill: #fff; font-family: var(--f-mono, ui-monospace, monospace); }
+.iso-labels { pointer-events: none; }
+.iso-tools { position: absolute; top: 12px; right: 12px; display: grid; gap: 8px; }
+.iso-btn { width: 44px; height: 44px; min-height: 0; padding: 0; border-radius: 12px; font-size: 19px; font-weight: 700; background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(0, 0, 0, .12); }
+.iso-wrap.full { position: fixed; inset: 0; z-index: 1000; background: var(--bg); }
+.iso-wrap.full .iso-svg { height: 100vh !important; height: 100dvh !important; }
+body.iso-full-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .iso-box.pulse { animation: none; } }
 .map-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 12px 10px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); }
 .map-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
@@ -935,3 +948,7 @@ div.field { display: grid; gap: 5px; font-size: 13px; color: var(--muted); font-
 .map-stage { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-bottom: 12px; }
 .map-info { display: grid; gap: 6px; }
 .map-info h3 { margin: 0; }
+@media (max-width: 600px) {
+  .iso-tools { top: auto; bottom: 10px; right: 10px; grid-auto-flow: column; gap: 6px; }
+  .iso-btn { width: 38px; height: 38px; font-size: 17px; }
+}
