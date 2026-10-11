@@ -39,15 +39,24 @@ export async function loadReservations() {
   return snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
-/** Counts, movements, transfers, purchase orders and reservations, read together. */
+/** Picklists (web/wh/picking.js), newest first. */
+export async function loadPicklists() {
+  if (!canMove()) return [];
+  const col = collection(db, ws('picklists'));
+  const snap = await getDocs(session.branchIds.length ? query(col, where('branchId', 'in', inList())) : col);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+/** Counts, movements, transfers, purchase orders, reservations and picklists, read together. */
 export async function loadAll() {
-  const [stock, transfers, pos, reservations] = await Promise.all([
+  const [stock, transfers, pos, reservations, picklists] = await Promise.all([
     loadStockData(),
     loadTransfers().catch(() => []),
     loadPurchaseOrders().catch(() => []),
     loadReservations().catch(() => []),
+    loadPicklists().catch(() => []),
   ]);
-  return { stock, transfers, pos, reservations };
+  return { stock, transfers, pos, reservations, picklists };
 }
 
 const at = (branch, id) => branch === 'ALL' || (id || '') === branch;

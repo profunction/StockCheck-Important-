@@ -145,6 +145,18 @@ const en = {
   whOnlineAfterSave: "Saved as ordered. Stock goes up when the parcel is received (Receive → scan).",
   whOnlineAfterSubmit: "Sent for approval, like any purchase order. Stock goes up when the parcel is received.",
   whOnlineShot: 'Read screenshots', whOnlineShotHelp: 'Pick 1–4 screenshots of the order (or paste one into the box below).', whOnlineReading: 'Reading the screenshots…', whOnlineShotFail: 'Could not read them:',
+  // Picking (web/wh/picking.js)
+  whPicking: 'Picking', whPickingSub: 'Collect orders shelf by shelf', whPickWaitingN: '{n} to pick',
+  whPickHelp: 'Tick the orders to pick together and make a picklist: one walk along the shelves, in shelf order. Scan each item; a wrong one is refused. Picking moves no stock -- it leaves when the transfer is dispatched or the reservation handed over.',
+  whToPick: 'Orders waiting to be picked', whNoToPick: 'Nothing waiting. Transfers not yet sent and reservations still held show here.', whPickAll: 'Select all', whPickNoneSel: 'Clear',
+  whMakePick: 'Make picklist ({n})', whPickMade: 'Picklist made', whOrdersN: 'orders', whOrderTr: 'Transfer', whOrderRes: 'Reservation',
+  pk_WAITING: 'Waiting', pk_PICKING: 'Picking', pk_DONE: 'Picked', pk_CANCELLED: 'Cancelled', whPk_open: 'To pick', whPk_done: 'Done', whPickNone: 'No picklists here.',
+  whPickZone: 'Aisle', whPickBy: 'Picker', whPickStart: 'Start picking', whPickTakeOver: 'Take over', whPickOthers: '{n} is picking this one.', whPickStartFirst: 'Press Start picking first.',
+  whPickScan: 'Scan what you take off the shelf', whPickNext: 'Next', whPickTake: 'Take', whPickGot: 'Got it', whPickShort: 'Not enough on the shelf', whShortTag: 'Short', whNoShelf: 'No shelf',
+  whPickWrong: 'Wrong item: {p} is not on this picklist', whPickOver: '{p}: already have enough', whPickAllIn: 'Everything is in the basket',
+  whPickFinish: 'Finish picking', whPickFinishQ: '{n} lines are not fully picked. Mark them short and finish?', whPickDone: 'Picked',
+  whPickCancel: 'Cancel picklist', whPickCancelQ: 'Cancel this picklist? Its orders go back to waiting.',
+  whPickNextStep: 'Next: send it out', whGoDispatch: 'Dispatch', whGoDeliver: 'Hand over',
 };
 
 const zh = {
@@ -291,6 +303,18 @@ const zh = {
   whOnlineAfterSave: "保存后状态是「已下单」。包裹到了用「收货」扫码，库存才增加。",
   whOnlineAfterSubmit: "会送去审批，跟其他采购单一样。包裹收货后库存才增加。",
   whOnlineShot: '读截图', whOnlineShotHelp: '选 1 到 4 张订单截图（也可以直接贴进下面的框）。', whOnlineReading: '正在读截图…', whOnlineShotFail: '读不到：',
+  // 拣货
+  whPicking: '拣货', whPickingSub: '照货架顺序拣货', whPickWaitingN: '{n} 张要拣',
+  whPickHelp: '勾选要一起拣的单，建一张拣货单：照货架顺序走一趟就拣完。每拿一样就扫一下，拿错会提醒。拣货不会扣库存——调货发出或预留交货时才扣。',
+  whToPick: '等着拣货的单', whNoToPick: '没有要拣的单。还没发出的调货单和预留中的货会出现在这里。', whPickAll: '全选', whPickNoneSel: '全不选',
+  whMakePick: '建拣货单（{n}）', whPickMade: '拣货单建好了', whOrdersN: '张单', whOrderTr: '调货', whOrderRes: '预留',
+  pk_WAITING: '等拣货', pk_PICKING: '拣货中', pk_DONE: '拣好了', pk_CANCELLED: '已取消', whPk_open: '要拣的', whPk_done: '已完成', whPickNone: '这里还没有拣货单。',
+  whPickZone: '区', whPickBy: '拣货员', whPickStart: '开始拣货', whPickTakeOver: '我来接手', whPickOthers: '{n} 正在拣这张。', whPickStartFirst: '先按「开始拣货」。',
+  whPickScan: '从货架拿下来就扫', whPickNext: '下一个', whPickTake: '拿', whPickGot: '拿到了', whPickShort: '货架上不够', whShortTag: '缺货', whNoShelf: '没写货架',
+  whPickWrong: '拿错了：{p} 不在这张拣货单', whPickOver: '{p} 已经够了', whPickAllIn: '全部都拿好了',
+  whPickFinish: '拣完了', whPickFinishQ: '还有 {n} 项没拣够，当作缺货并完成？', whPickDone: '拣好了',
+  whPickCancel: '取消拣货单', whPickCancelQ: '取消这张拣货单？里面的单会回到「等着拣货」。',
+  whPickNextStep: '接下来：发货', whGoDispatch: '去发货', whGoDeliver: '去交货',
 };
 
 const ms = {
@@ -437,6 +461,18 @@ const ms = {
   whOnlineAfterSave: "Disimpan sebagai dipesan. Stok bertambah bila bungkusan diterima (Terima → imbas).",
   whOnlineAfterSubmit: "Dihantar untuk kelulusan, sama seperti pesanan belian lain. Stok bertambah bila bungkusan diterima.",
   whOnlineShot: 'Baca tangkapan skrin', whOnlineShotHelp: 'Pilih 1–4 tangkapan skrin pesanan (atau tampal satu ke dalam kotak di bawah).', whOnlineReading: 'Membaca tangkapan skrin…', whOnlineShotFail: 'Tidak dapat dibaca:',
+  // Ambil stok
+  whPicking: 'Ambil stok', whPickingSub: 'Kumpul pesanan ikut rak', whPickWaitingN: '{n} untuk diambil',
+  whPickHelp: 'Tandakan pesanan untuk diambil bersama dan buat senarai ambil: satu pusingan ikut susunan rak. Imbas setiap barang; barang salah akan ditolak. Mengambil tidak mengubah stok -- stok keluar bila pemindahan dihantar atau tempahan diserahkan.',
+  whToPick: 'Pesanan menunggu diambil', whNoToPick: 'Tiada yang menunggu. Pemindahan belum dihantar dan tempahan yang ditahan dipaparkan di sini.', whPickAll: 'Pilih semua', whPickNoneSel: 'Kosongkan',
+  whMakePick: 'Buat senarai ambil ({n})', whPickMade: 'Senarai ambil dibuat', whOrdersN: 'pesanan', whOrderTr: 'Pemindahan', whOrderRes: 'Tempahan',
+  pk_WAITING: 'Menunggu', pk_PICKING: 'Sedang diambil', pk_DONE: 'Siap diambil', pk_CANCELLED: 'Dibatalkan', whPk_open: 'Untuk diambil', whPk_done: 'Selesai', whPickNone: 'Tiada senarai ambil di sini.',
+  whPickZone: 'Lorong', whPickBy: 'Pengambil', whPickStart: 'Mula ambil', whPickTakeOver: 'Ambil alih', whPickOthers: '{n} sedang mengambil senarai ini.', whPickStartFirst: 'Tekan Mula ambil dahulu.',
+  whPickScan: 'Imbas apa yang diambil dari rak', whPickNext: 'Seterusnya', whPickTake: 'Ambil', whPickGot: 'Sudah ambil', whPickShort: 'Tidak cukup di rak', whShortTag: 'Kurang', whNoShelf: 'Tiada rak',
+  whPickWrong: 'Barang salah: {p} tiada dalam senarai ini', whPickOver: '{p}: sudah cukup', whPickAllIn: 'Semua sudah diambil',
+  whPickFinish: 'Selesai ambil', whPickFinishQ: '{n} baris belum cukup. Tandakan kurang dan selesai?', whPickDone: 'Siap diambil',
+  whPickCancel: 'Batal senarai', whPickCancelQ: 'Batalkan senarai ambil ini? Pesanannya kembali menunggu.',
+  whPickNextStep: 'Seterusnya: hantar', whGoDispatch: 'Hantar', whGoDeliver: 'Serah',
 };
 
 export const STRINGS = { en, zh, ms };

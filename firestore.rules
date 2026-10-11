@@ -778,6 +778,31 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // ---------------------------------------------------------- picklists
+      //
+      // One walk along the shelves for several orders (web/wh/picking.js).
+      // It moves no stock -- the transfer or reservation it serves does --
+      // so it only records who picked what: WAITING -> PICKING -> DONE, or
+      // CANCELLED. Made by its maker; never deleted; a finished one is kept.
+      match /picklists/{pickId} {
+        allow read: if can('RECORD_STOCK_MOVEMENTS') && inMyBranch(resource.data);
+        allow create: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(request.resource.data)
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && request.resource.data.status == 'WAITING'
+                      && request.resource.data.lines is list
+                      && request.resource.data.orders is list
+                      && !moduleOff('warehouse');
+        allow update: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(resource.data)
+                      && resource.data.status in ['WAITING', 'PICKING']
+                      && request.resource.data.status in ['WAITING', 'PICKING', 'DONE', 'CANCELLED']
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'lines', 'pickerUid', 'pickerName', 'startedAt', 'doneAt', 'cancelledAt', 'cancelledByName', 'updatedAt'])
+                      && (request.resource.data.pickerUid == resource.data.pickerUid || request.resource.data.pickerUid == request.auth.uid);
+        allow delete: if false;
+      }
+
       // --------------------------------------------------- month-end stock
       //
       // One place's stock and its value at cost at the end of a month, for

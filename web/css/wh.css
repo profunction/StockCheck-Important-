@@ -118,3 +118,31 @@ details summary { cursor: pointer; padding: 6px 0; }
 /* Cartons and shelves (web/wh/common.js) */
 .wh-step .pack-btn { min-height: 44px; padding: 0 12px; font-weight: 700; white-space: nowrap; }
 .pill.shelf { background: var(--surface-2, #eef2f6); color: var(--text); font-weight: 600; }
+
+/* Picking (web/wh/picking.js): the next shelf in big letters, a bar for how far */
+.pk-waiting { margin-bottom: 16px; }
+.pk-orders { display: grid; gap: 6px; margin-top: 10px; }
+.pk-order { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.pk-order.on { border-color: var(--wh); background: var(--wh-soft); }
+.pk-order input { width: 20px; height: 20px; flex: none; }
+.pk-bar { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 4px 0 2px; }
+.pk-bar.big { height: 10px; }
+.pk-bar span { display: block; height: 100%; background: var(--wh); border-radius: inherit; transition: width .3s; }
+.pk-start { width: 100%; min-height: 56px; font-size: 17px; margin-bottom: 12px; }
+.pk-next { display: grid; gap: 6px; margin-bottom: 12px; border: 2px solid var(--wh); }
+.pk-next.all { justify-items: center; color: var(--wh); padding: 22px; }
+.pk-next-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pk-bin { font-family: var(--f-mono, monospace); font-size: 30px; font-weight: 800; letter-spacing: .02em; color: var(--wh); line-height: 1.1; overflow-wrap: anywhere; }
+.pk-next-name { font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
+.pk-next-qty { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.pk-next-qty b { font-size: 26px; font-variant-numeric: tabular-nums; }
+.pk-next .row button.primary { min-height: 50px; padding: 0 22px; font-size: 16px; }
+.pk-line { cursor: default; }
+.pk-line.full { background: var(--wh-soft); border-color: transparent; }
+.pk-line.full strong { color: var(--muted); }
+.pk-line.short { border-color: var(--danger); }
+.wh-step .pk-q { width: auto; min-width: 72px; font-size: 17px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .pk-line { grid-template-columns: minmax(0, 1fr); grid-template-areas: "n" "m" "step"; }
+  .pk-line .wh-step { justify-content: flex-end; }
+}

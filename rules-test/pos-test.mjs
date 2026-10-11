@@ -296,6 +296,19 @@ await expect('approver: rewrite a closed month refused', false, () => setDoc(doc
 await expect('keeper: close a month refused', false, () => setDoc(doc(as('keeper1'), ws('stockClosings/2026-07_-')), { month: '2026-07', branchId: '', lines: [], valueSen: 0, createdAt: 1 }));
 await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), ws('pos/settings')), { transferApproval: false }, { merge: true }));
 
+// Picking: a record of who took what off the shelves; no stock moves.
+const pick = (over = {}) => ({ pickNo: 'PCK-1', branchId: '', status: 'WAITING', orders: [{ kind: 'TRANSFER', id: 'appr2', ref: 'TR-B' }], lines: [{ barcode: '9555', qtyMilli: 1000, pickedMilli: 0 }], pickerUid: '', createdByUid: 'keeper1', createdAt: 1, ...over });
+await expect('keeper: make a picklist', true, () => setDoc(doc(as('keeper1'), ws('picklists/p1')), pick()));
+await expect('keeper: make one already done refused', false, () => setDoc(doc(as('keeper1'), ws('picklists/p2')), pick({ status: 'DONE' })));
+await expect('keeper: make one in someone else\'s name refused', false, () => setDoc(doc(as('keeper1'), ws('picklists/p3')), pick({ createdByUid: 'buyer1' })));
+await expect('cashier: make a picklist refused', false, () => setDoc(doc(as('cashier1'), ws('picklists/p4')), pick({ createdByUid: 'cashier1' })));
+await expect('keeper: start picking as themself', true, () => updateDoc(doc(as('keeper1'), ws('picklists/p1')), { status: 'PICKING', pickerUid: 'keeper1', pickerName: 'K', startedAt: 2, updatedAt: 2 }));
+await expect('keeper: name somebody else the picker refused', false, () => updateDoc(doc(as('keeper1'), ws('picklists/p1')), { pickerUid: 'buyer1' }));
+await expect('keeper: change which orders it covers refused', false, () => updateDoc(doc(as('keeper1'), ws('picklists/p1')), { orders: [] }));
+await expect('keeper: finish it', true, () => updateDoc(doc(as('keeper1'), ws('picklists/p1')), { status: 'DONE', lines: [{ barcode: '9555', qtyMilli: 1000, pickedMilli: 1000 }], doneAt: 3, updatedAt: 3 }));
+await expect('keeper: reopen a finished one refused', false, () => updateDoc(doc(as('keeper1'), ws('picklists/p1')), { status: 'PICKING' }));
+await expect('keeper: delete a picklist refused', false, () => deleteDoc(doc(as('keeper1'), ws('picklists/p1'))));
+
 // Warehouse: buying, approving, receiving ------------------------------------
 await expect('buyer: raise a purchase order', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('')));
 await expect('buyer: submit it for approval', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('', 'SUBMITTED')));
