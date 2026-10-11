@@ -88,17 +88,16 @@ ${CONTACT.email ? `- Email: ${CONTACT.email}\n` : ''}${CONTACT.whatsapp ? `- Wha
 }
 
 write('404.html', `<!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hans" data-default-theme="dark">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>404 · ${BRAND.name}</title>
 <meta name="robots" content="noindex"/>
-<link rel="icon" type="image/svg+xml" href="/assets/brand/suxin-mark.svg?v=3"/>
+<link rel="icon" type="image/svg+xml" href="/assets/brand/suxin-mark.svg?v=4"/>
 <script src="/assets/theme.js"></script>
 <link rel="stylesheet" href="/assets/site.css"/>
 <link rel="stylesheet" href="/assets/suxin.css"/>
-<link rel="stylesheet" href="/assets/plum.css"/>
 </head>
 <body>
 <div class="site"><main class="sec grid-bg" style="min-height:100dvh;display:grid;place-items:center">

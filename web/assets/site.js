@@ -89,7 +89,7 @@
   if (urlLang && HTML_LANG[urlLang]) savedLang = urlLang;
   setLang(savedLang);
 
-  // Colour theme (light is the default; theme.js applies the choice)
+  // Colour theme (dark is the default)
   var themeBtn = document.querySelector('.theme-btn');
   if (themeBtn) themeBtn.addEventListener('click', function () {
     var light = root.getAttribute('data-theme') !== 'light';

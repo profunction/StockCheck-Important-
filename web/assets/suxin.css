@@ -21,7 +21,7 @@
 }
 
 /* Light theme: the mint/teal accents need more contrast on a pale background */
-:root[data-theme=light] .site { --gold: #57344f; --amber: #57344f; }
+:root[data-theme=light] .site { --gold: #0d9488; --amber: #0f766e; }
 
 /* Language switch: 中文 / EN / BM, a single segmented pill */
 .site .lang-switch { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); margin-right: .25rem; }
