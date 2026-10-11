@@ -284,7 +284,7 @@ def page(p, num, home):
     plain = re.sub(r'<[^>]+>|&amp;', lambda m: '&' if m.group(0) == '&amp;' else '', p["tagline"])
 
     return f'''<!DOCTYPE html>
-<html lang="en" data-default-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>

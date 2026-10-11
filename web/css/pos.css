@@ -4,7 +4,7 @@
  * emerald-to-teal gradient for what can be pressed, mint for what is
  * chosen, amber for "pay attention", money in tabular figures.
  *
- * Dark is the default; light when chosen (the sun/moon button, stored as
+ * Light is the default; dark when chosen (the sun/moon button, stored as
  * suxin-theme and applied before the page draws by /assets/theme.js). The
  * side bar and the app headers stay navy in both.
  */
