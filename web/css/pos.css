@@ -902,3 +902,24 @@ div.field { display: grid; gap: 5px; font-size: 13px; color: var(--muted); font-
   .cnt-selbar { top: 56px; }
 }
 .ph-img.ph-none { min-height: 0; padding: 8px; }
+
+/* 3D pictures (web/js/iso.js), in every app */
+.iso-wrap { position: relative; }
+.iso-svg { display: block; width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; background:
+  radial-gradient(circle at 50% 30%, var(--surface) 0%, var(--surface-2) 100%); }
+.iso-svg:active { cursor: grabbing; }
+.iso-floor { fill: var(--surface-3, #e5eeee); stroke: var(--line); stroke-width: .03; }
+.iso-box polygon { stroke: rgba(0, 0, 0, .14); stroke-width: .015; stroke-linejoin: round; }
+.iso-box.tap { cursor: pointer; }
+.iso-box.tap:hover polygon { filter: brightness(1.08); }
+.iso-box.on polygon { stroke: var(--text); stroke-width: .06; }
+.iso-box.demo { opacity: .55; }
+.iso-box.pulse { animation: isopulse 1.4s ease-in-out infinite; }
+@keyframes isopulse { 50% { opacity: .55; } }
+.iso-label { font: 700 .34px/1 var(--f-mono, ui-monospace, monospace); fill: var(--text); paint-order: stroke; stroke: var(--surface); stroke-width: .08px; pointer-events: none; }
+.iso-label.rack { font-size: .5px; fill: var(--brand); }
+.iso-label.dock { font-size: .3px; fill: var(--muted); }
+.iso-label.big { font-size: .55px; }
+.iso-tools { position: absolute; top: 10px; right: 10px; display: grid; gap: 6px; }
+.iso-btn { width: 38px; height: 38px; min-height: 0; padding: 0; border-radius: 10px; font-size: 18px; font-weight: 700; background: var(--surface); box-shadow: var(--shadow-1); }
+@media (prefers-reduced-motion: reduce) { .iso-box.pulse { animation: none; } }

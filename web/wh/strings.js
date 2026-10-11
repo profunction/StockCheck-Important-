@@ -157,6 +157,14 @@ const en = {
   whPickFinish: 'Finish picking', whPickFinishQ: '{n} lines are not fully picked. Mark them short and finish?', whPickDone: 'Picked',
   whPickCancel: 'Cancel picklist', whPickCancelQ: 'Cancel this picklist? Its orders go back to waiting.',
   whPickNextStep: 'Next: send it out', whGoDispatch: 'Dispatch', whGoDeliver: 'Hand over',
+  // Warehouse 3D (web/wh/map.js)
+  whMap: 'Warehouse 3D', whMap_fill: 'Stock', whMap_expiry: 'Expiry', whMap_pick: 'Picking', whMap_activity: 'Activity',
+  whMapOk: 'Enough', whMapEmpty: 'Empty slot', whMap30: 'Within 30 days', whMap90: 'Within 90 days', whMapLater: 'Later', whMapNoDate: 'No date',
+  whMapToPick: 'To pick', whMapNothing: 'Nothing to pick', whMapQuiet: 'Quiet', whMapBusy: 'Busy (7 days)', whMapIn: 'Arriving', whMapOut: 'Leaving',
+  whMapOpen: 'Open', whMapRack: 'Rack', whMapEmptySlot: 'Nothing on this slot.', whMapDemo: 'Sample only.', whMapDemoTitle: 'This is a sample warehouse',
+  whMapDemoHelp: 'Give each product its shelf code in Stock (e.g. A1-L1-30: rack A1, level 1, slot 30) and your own warehouse appears here.',
+  whMapBins: 'Slots used', whMapUnits: 'Units on shelves', whMapDocks: 'Lorries', whMapYard: 'Waiting in the yard',
+  whMapTap: 'Tap a slot or a lorry to see what is there. Drag to move, ⟲ ⟳ to turn.',
 };
 
 const zh = {
@@ -315,6 +323,14 @@ const zh = {
   whPickFinish: '拣完了', whPickFinishQ: '还有 {n} 项没拣够，当作缺货并完成？', whPickDone: '拣好了',
   whPickCancel: '取消拣货单', whPickCancelQ: '取消这张拣货单？里面的单会回到「等着拣货」。',
   whPickNextStep: '接下来：发货', whGoDispatch: '去发货', whGoDeliver: '去交货',
+  // 仓库 3D
+  whMap: '仓库 3D', whMap_fill: '存量', whMap_expiry: '到期', whMap_pick: '拣货', whMap_activity: '动静',
+  whMapOk: '够', whMapEmpty: '空位', whMap30: '30 天内', whMap90: '90 天内', whMapLater: '还早', whMapNoDate: '没日期',
+  whMapToPick: '要拣', whMapNothing: '没要拣', whMapQuiet: '没动', whMapBusy: '常动（7 天）', whMapIn: '进货', whMapOut: '出货',
+  whMapOpen: '打开', whMapRack: '货架', whMapEmptySlot: '这格是空的。', whMapDemo: '示范而已。', whMapDemoTitle: '这是示范仓库',
+  whMapDemoHelp: '在「库存」给每样商品填货架号（例如 A1-L1-30：A1 货架、第 1 层、第 30 格），这里就会变成你自己的仓库。',
+  whMapBins: '用了的货位', whMapUnits: '货架上件数', whMapDocks: '货车', whMapYard: '在外面排队',
+  whMapTap: '点一格货位或货车，看里面有什么。拖动可以移动，⟲ ⟳ 转方向。',
 };
 
 const ms = {
@@ -473,6 +489,14 @@ const ms = {
   whPickFinish: 'Selesai ambil', whPickFinishQ: '{n} baris belum cukup. Tandakan kurang dan selesai?', whPickDone: 'Siap diambil',
   whPickCancel: 'Batal senarai', whPickCancelQ: 'Batalkan senarai ambil ini? Pesanannya kembali menunggu.',
   whPickNextStep: 'Seterusnya: hantar', whGoDispatch: 'Hantar', whGoDeliver: 'Serah',
+  // Gudang 3D
+  whMap: 'Gudang 3D', whMap_fill: 'Stok', whMap_expiry: 'Luput', whMap_pick: 'Ambil', whMap_activity: 'Aktiviti',
+  whMapOk: 'Cukup', whMapEmpty: 'Slot kosong', whMap30: 'Dalam 30 hari', whMap90: 'Dalam 90 hari', whMapLater: 'Lambat lagi', whMapNoDate: 'Tiada tarikh',
+  whMapToPick: 'Untuk diambil', whMapNothing: 'Tiada', whMapQuiet: 'Senyap', whMapBusy: 'Sibuk (7 hari)', whMapIn: 'Masuk', whMapOut: 'Keluar',
+  whMapOpen: 'Buka', whMapRack: 'Rak', whMapEmptySlot: 'Slot ini kosong.', whMapDemo: 'Contoh sahaja.', whMapDemoTitle: 'Ini gudang contoh',
+  whMapDemoHelp: 'Isi kod rak setiap barang di Stok (cth. A1-L1-30: rak A1, aras 1, slot 30) dan gudang anda sendiri akan muncul di sini.',
+  whMapBins: 'Slot digunakan', whMapUnits: 'Unit di rak', whMapDocks: 'Lori', whMapYard: 'Menunggu di luar',
+  whMapTap: 'Tekan slot atau lori untuk lihat isinya. Seret untuk gerak, ⟲ ⟳ untuk pusing.',
 };
 
 export const STRINGS = { en, zh, ms };

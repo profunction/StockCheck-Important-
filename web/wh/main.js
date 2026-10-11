@@ -23,6 +23,7 @@ const MENU = [
   { id: 'receive', icon: 'download', label: 'whReceive', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./receive.js'), bottom: true },
   { id: 'transfers', icon: 'box', label: 'whTransfers', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./transfers.js'), bottom: true },
   { id: 'picking', icon: 'basket', label: 'whPicking', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./picking.js'), bottom: true },
+  { id: 'map', icon: 'grid', label: 'whMap', perm: null, page: () => import('./map.js') },
   { id: 'adjust', icon: 'sliders', label: 'whAdjust', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./adjust.js') },
   { id: 'stock', icon: 'barcode', label: 'whStock', perm: null, page: () => import('./stock.js'), bottom: true },
   { id: 'reserve', icon: 'lock', label: 'whReserve', perm: ['RECORD_STOCK_MOVEMENTS', 'POS_MANAGE'], page: () => import('./reserve.js') },
