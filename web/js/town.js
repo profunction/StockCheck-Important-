@@ -31,7 +31,12 @@ export function cityLayout(places, moving = []) {
     const y0 = ROAD + Math.floor(i / cols) * pitch;
     at.set(p.id, { x: x0 + LOT / 2, y: y0 + LOT / 2 });
     boxes.push({ id: `lot-${p.id}`, x: x0 + 0.15, y: y0 + 0.15, w: LOT - 0.3, d: LOT - 0.3, h: 0, color: p.kind === 'WAREHOUSE' ? '#cfd8dc' : '#b9e4c9', pick: false });
-    if (p.kind === 'WAREHOUSE') {
+    if (p.kind === 'HOME') {
+      // A customer: a small house with a roof.
+      boxes[boxes.length - 1].color = '#efe3cc';
+      boxes.push({ id: `b-${p.id}`, x: x0 + 1.1, y: y0 + 1.1, w: LOT - 2.2, d: LOT - 2.2, h: 0.9, color: '#d9a25f', place: p, label: p.name });
+      boxes.push({ id: `roof-${p.id}`, x: x0 + 1, y: y0 + 1, z: 0.9, w: LOT - 2, d: LOT - 2, h: 0.25, color: '#b45309', place: p });
+    } else if (p.kind === 'WAREHOUSE') {
       const hgt = 0.9 + 2.2 * (p.valueSen || 0) / maxValue;
       boxes.push({ id: `b-${p.id}`, x: x0 + 0.45, y: y0 + 0.7, w: LOT - 0.9, d: LOT - 1.4, h: hgt, color: '#4f7cac', place: p, label: p.name, labelCls: 'big' });
       boxes.push({ id: `roof-${p.id}`, x: x0 + 0.35, y: y0 + 0.6, z: hgt, w: LOT - 0.7, d: LOT - 1.2, h: 0.18, color: '#33506e', place: p });
@@ -54,8 +59,8 @@ export function cityLayout(places, moving = []) {
     const roadY = Math.round((y - ROAD / 2) / pitch) * pitch + 0.15;
     const roadX = Math.round((x - ROAD / 2) / pitch) * pitch + 0.15;
     boxes.push(onRow
-      ? { id: `lorry-${m.ref || i}`, x: x - 0.7, y: roadY, w: 1.4, d: 0.75, h: 0.75, color: '#2f6fde', moving: m, title: m.ref }
-      : { id: `lorry-${m.ref || i}`, x: roadX, y: y - 0.7, w: 0.75, d: 1.4, h: 0.75, color: '#2f6fde', moving: m, title: m.ref });
+      ? { id: `lorry-${m.ref || i}`, x: x - 0.7, y: roadY, w: 1.4, d: 0.75, h: 0.75, color: m.color || '#2f6fde', moving: m, title: m.ref, label: m.label || null }
+      : { id: `lorry-${m.ref || i}`, x: roadX, y: y - 0.7, w: 0.75, d: 1.4, h: 0.75, color: m.color || '#2f6fde', moving: m, title: m.ref, label: m.label || null });
   });
   return { boxes, W, D, at };
 }

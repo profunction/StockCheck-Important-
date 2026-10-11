@@ -150,3 +150,28 @@ details summary { cursor: pointer; padding: 6px 0; }
 /* Warehouse 3D (web/wh/map.js); the picture itself is web/js/iso.js */
 .map-modes { margin-bottom: 10px; }
 .map-demo { border-color: var(--accent); margin-bottom: 12px; }
+
+/* SuXin TMS (web/tm/): drivers, lorries, stops and signatures */
+.tm-who { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.tm-stop { grid-template-columns: minmax(0, 1fr) auto; cursor: default; }
+.tm-stop.next { border: 2px solid var(--wh); }
+.tm-stop.full { background: var(--wh-soft); border-color: transparent; }
+.tm-stop.short { border-color: var(--danger); }
+.tm-stop .wh-step button { width: auto; min-width: 46px; }
+.tm-no { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 99px; background: var(--surface-2); font-size: 12px; font-weight: 800; }
+.tm-pod { display: grid; gap: 4px; margin-top: 6px; }
+.tm-ink { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.tm-ink polyline { fill: none; stroke: var(--text); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+.tm-driver { display: grid; gap: 8px; }
+.tm-driver.on { border-color: var(--wh); }
+.tm-avatar { width: 40px; height: 40px; border-radius: 99px; display: grid; place-items: center; background: var(--wh-soft); color: var(--wh); font-weight: 800; flex: none; }
+.tm-lorries { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.tm-lorry { display: grid; gap: 8px; }
+.tm-plate { font-family: var(--f-mono, monospace); font-weight: 800; font-size: 18px; letter-spacing: .04em; padding: 4px 10px; border-radius: 8px; background: #111827; color: #f9fafb; }
+.tm-pods { display: grid; gap: 10px; }
+.tm-podcard { display: grid; gap: 4px; }
+@media (max-width: 600px) {
+  .tm-stop { grid-template-columns: minmax(0, 1fr); grid-template-areas: "n" "m" "step"; }
+  .tm-stop .wh-step { justify-content: flex-end; flex-wrap: wrap; }
+}
+td.nowrap { white-space: nowrap; }

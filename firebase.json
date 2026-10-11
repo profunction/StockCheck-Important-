@@ -39,6 +39,10 @@
       {
         "source": "/books/**",
         "destination": "/books/index.html"
+      },
+      {
+        "source": "/tms/**",
+        "destination": "/tms/index.html"
       }
     ],
     "headers": [
@@ -95,6 +99,15 @@
       },
       {
         "source": "/warehouse/**",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex"
+          }
+        ]
+      },
+      {
+        "source": "/tms/**",
         "headers": [
           {
             "key": "X-Robots-Tag",

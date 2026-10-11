@@ -296,6 +296,25 @@ await expect('approver: rewrite a closed month refused', false, () => setDoc(doc
 await expect('keeper: close a month refused', false, () => setDoc(doc(as('keeper1'), ws('stockClosings/2026-07_-')), { month: '2026-07', branchId: '', lines: [], valueSen: 0, createdAt: 1 }));
 await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), ws('pos/settings')), { transferApproval: false }, { merge: true }));
 
+// SuXin TMS: lorries and drivers by a manager; shifts and trips by whoever moves stock.
+await expect('approver: add a lorry', true, () => setDoc(doc(as('approver1'), ws('tmsLorries/l1')), { plate: 'WXY 1234', active: true }));
+await expect('keeper: add a lorry refused', false, () => setDoc(doc(as('keeper1'), ws('tmsLorries/l2')), { plate: 'ABC 1', active: true }));
+await expect('approver: add a driver', true, () => setDoc(doc(as('approver1'), ws('tmsDrivers/d1')), { name: 'Ali', active: true }));
+await expect('keeper: delete a lorry refused', false, () => deleteDoc(doc(as('keeper1'), ws('tmsLorries/l1'))));
+await expect('keeper: clock a driver in', true, () => setDoc(doc(as('keeper1'), ws('tmsShifts/s1')), { driverId: 'd1', lorryId: 'l1', inAt: 100, outAt: null, createdByUid: 'keeper1' }));
+await expect('keeper: change the clock-in time refused', false, () => updateDoc(doc(as('keeper1'), ws('tmsShifts/s1')), { inAt: 1 }));
+await expect('keeper: clock the driver out', true, () => updateDoc(doc(as('keeper1'), ws('tmsShifts/s1')), { outAt: 200, odoOut: 50, outByName: 'K', updatedAt: 200 }));
+await expect('keeper: clock out twice refused', false, () => updateDoc(doc(as('keeper1'), ws('tmsShifts/s1')), { outAt: 300 }));
+const trip = (over = {}) => ({ tripNo: 'TRP-1', branchId: '', status: 'PLANNED', lorryId: 'l1', plate: 'WXY 1234', driverId: 'd1', driverName: 'Ali', stops: [{ kind: 'TRANSFER', refId: 'appr2', ref: 'TR-B', status: 'PENDING' }], createdByUid: 'keeper1', createdAt: 1, ...over });
+await expect('keeper: plan a trip', true, () => setDoc(doc(as('keeper1'), ws('tmsTrips/t1')), trip()));
+await expect('keeper: plan one with no stops refused', false, () => setDoc(doc(as('keeper1'), ws('tmsTrips/t2')), trip({ stops: [] })));
+await expect('cashier: plan a trip refused', false, () => setDoc(doc(as('cashier1'), ws('tmsTrips/t3')), trip({ createdByUid: 'cashier1' })));
+await expect('keeper: leave the depot', true, () => updateDoc(doc(as('keeper1'), ws('tmsTrips/t1')), { status: 'ON_ROAD', departedAt: 2, updatedAt: 2 }));
+await expect('keeper: swap the lorry on the road refused', false, () => updateDoc(doc(as('keeper1'), ws('tmsTrips/t1')), { lorryId: 'l9' }));
+await expect('keeper: a stop delivered and the trip finished', true, () => updateDoc(doc(as('keeper1'), ws('tmsTrips/t1')), { status: 'DONE', stops: [{ kind: 'TRANSFER', refId: 'appr2', ref: 'TR-B', status: 'DELIVERED', receivedBy: 'Siti', signature: '1,1 2,2 3,3 4,4' }], doneAt: 3, updatedAt: 3 }));
+await expect('keeper: rewrite a finished trip refused', false, () => updateDoc(doc(as('keeper1'), ws('tmsTrips/t1')), { stops: [] }));
+await expect('keeper: delete a trip refused', false, () => deleteDoc(doc(as('keeper1'), ws('tmsTrips/t1'))));
+
 // Picking: a record of who took what off the shelves; no stock moves.
 const pick = (over = {}) => ({ pickNo: 'PCK-1', branchId: '', status: 'WAITING', orders: [{ kind: 'TRANSFER', id: 'appr2', ref: 'TR-B' }], lines: [{ barcode: '9555', qtyMilli: 1000, pickedMilli: 0 }], pickerUid: '', createdByUid: 'keeper1', createdAt: 1, ...over });
 await expect('keeper: make a picklist', true, () => setDoc(doc(as('keeper1'), ws('picklists/p1')), pick()));

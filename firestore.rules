@@ -803,6 +803,60 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // ------------------------------------------------------- SuXin TMS
+      //
+      // Lorries and drivers (a manager keeps them), drivers' shifts (clock
+      // in, then clock out -- nothing else changes), and trips with their
+      // stops and signed proof of delivery (web/tm/). Moves no stock: the
+      // transfer is still received, the reservation still handed over, in
+      // the WMS. None is ever deleted; a lorry or driver is switched off.
+      function tmsManager() {
+        return isAdmin() || can('WH_APPROVE') || can('POS_MANAGE');
+      }
+      function tmsReader() {
+        return can('RECORD_STOCK_MOVEMENTS') || tmsManager();
+      }
+      match /tmsLorries/{lorryId} {
+        allow read: if tmsReader();
+        allow create, update: if tmsManager() && request.resource.data.plate is string && request.resource.data.plate.size() > 0 && !moduleOff('warehouse');
+        allow delete: if false;
+      }
+      match /tmsDrivers/{driverId} {
+        allow read: if tmsReader();
+        allow create, update: if tmsManager() && request.resource.data.name is string && request.resource.data.name.size() > 0 && !moduleOff('warehouse');
+        allow delete: if false;
+      }
+      match /tmsShifts/{shiftId} {
+        allow read: if tmsReader();
+        allow create: if can('RECORD_STOCK_MOVEMENTS')
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && request.resource.data.outAt == null
+                      && request.resource.data.inAt is int
+                      && !moduleOff('warehouse');
+        allow update: if can('RECORD_STOCK_MOVEMENTS')
+                      && resource.data.outAt == null
+                      && request.resource.data.outAt is int
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outAt', 'odoOut', 'outByName', 'updatedAt']);
+        allow delete: if false;
+      }
+      match /tmsTrips/{tripId} {
+        allow read: if tmsReader() && inMyBranch(resource.data);
+        allow create: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(request.resource.data)
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && request.resource.data.status == 'PLANNED'
+                      && request.resource.data.stops is list
+                      && request.resource.data.stops.size() > 0
+                      && !moduleOff('warehouse');
+        allow update: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(resource.data)
+                      && resource.data.status in ['PLANNED', 'LOADING', 'ON_ROAD']
+                      && request.resource.data.status in ['PLANNED', 'LOADING', 'ON_ROAD', 'DONE', 'CANCELLED']
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'stops', 'loadingAt', 'departedAt', 'doneAt', 'cancelledAt', 'cancelledByName', 'updatedAt']);
+        allow delete: if false;
+      }
+
       // --------------------------------------------------- month-end stock
       //
       // One place's stock and its value at cost at the end of a month, for
