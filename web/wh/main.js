@@ -35,6 +35,7 @@ const MENU = [
   { id: 'variance', icon: 'percent', label: 'whVariance', perm: null, page: () => import('./variance.js') },
   { id: 'monthend', icon: 'calc', label: 'whMonthEnd', perm: ['RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'POS_MANAGE', 'WH_APPROVE', 'POS_REPORTS'], page: () => import('./monthend.js') },
   { id: 'places', icon: 'store', label: 'whPlaces', perm: 'ADMIN', page: () => import('./places.js') },
+  { id: 'connections', icon: 'plug', label: 'cnTitle', perm: 'ADMIN', page: () => import('./connections.js') },
   { id: 'audit', icon: 'idcard', label: 'whAudit', perm: 'VIEW_AUDIT_LOG', page: () => import('./audit.js') },
   // The one guide page for every app, opened at the warehouse tab.
   { id: 'guide', icon: 'book', label: 'whGuide', perm: null, href: '/guide/#warehouse' },

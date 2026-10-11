@@ -54,7 +54,7 @@ export const LANGS = {
     pricingTitle: '价格',
     pricingNote: '全功能配套包括盘点 app、收银系统和仓库系统。年付等于送 2 个月；终身版只限 50 套，包括 24 个月更新和支援。',
     standaloneTitle: '只需要其中一样？单独配套',
-    standalone: { APP_ONLY: '只要手机盘点 app（3 位用户，可写回 Loyverse）', POS_ONLY: '只要收银系统（2 台收银机，SST、报表）', API_ONLY: '只要 API（连接网店、会计软件）' },
+    standalone: { APP_ONLY: '只要手机盘点 app（3 位用户，可写回 Loyverse）', POS_ONLY: '只要收银系统（2 台收银机，SST、报表）', API_ONLY: '只要 API（连接网店、会计软件）', BOOKS_ONLY: '只要 SuXin Books 记账（电子发票、每日销售入账，可连接别家 POS）', DATA_ONLY: '只要 SuXin Every Data 老板总览（连接你现有的 POS、WMS、TMS）' },
     perMonth: '/ 月', perYear: '/ 年', lifetime: '终身', users: '位用户', unlimitedUsers: '用户不限',
     faqTitle: '常见问题',
     faq: [
@@ -112,7 +112,7 @@ export const LANGS = {
     pricingTitle: 'Pricing',
     pricingNote: 'All-in-One plans include the stock-take app, the POS and the warehouse system. Paying yearly gives two months free; lifetime is limited to 50 sets and includes 24 months of updates and support.',
     standaloneTitle: 'Need just one part? Standalone plans',
-    standalone: { APP_ONLY: 'The stock-take app only (3 users, Loyverse write-back)', POS_ONLY: 'The POS only (2 tills, SST, reports)', API_ONLY: 'The API only (online shop, accounting)' },
+    standalone: { APP_ONLY: 'The stock-take app only (3 users, Loyverse write-back)', POS_ONLY: 'The POS only (2 tills, SST, reports)', API_ONLY: 'The API only (online shop, accounting)', BOOKS_ONLY: 'SuXin Books only (e-invoices, daily sales into the books, connects to another POS)', DATA_ONLY: 'SuXin Every Data only (the owner\'s figures from the POS, WMS and TMS you already use)' },
     perMonth: '/ month', perYear: '/ year', lifetime: 'lifetime', users: 'users', unlimitedUsers: 'Unlimited users',
     faqTitle: 'Frequently asked questions',
     faq: [
@@ -170,7 +170,7 @@ export const LANGS = {
     pricingTitle: 'Harga',
     pricingNote: 'Pelan Semua-dalam-Satu termasuk aplikasi kira stok, POS dan sistem gudang. Bayaran tahunan memberi 2 bulan percuma; seumur hidup terhad 50 set dan termasuk 24 bulan kemas kini dan sokongan.',
     standaloneTitle: 'Perlu satu sahaja? Pelan berasingan',
-    standalone: { APP_ONLY: 'Aplikasi kira stok sahaja (3 pengguna, tulis balik ke Loyverse)', POS_ONLY: 'POS sahaja (2 kaunter, SST, laporan)', API_ONLY: 'API sahaja (kedai dalam talian, perakaunan)' },
+    standalone: { APP_ONLY: 'Aplikasi kira stok sahaja (3 pengguna, tulis balik ke Loyverse)', POS_ONLY: 'POS sahaja (2 kaunter, SST, laporan)', API_ONLY: 'API sahaja (kedai dalam talian, perakaunan)', BOOKS_ONLY: 'SuXin Books sahaja (e-invois, jualan harian ke buku, sambung ke POS lain)', DATA_ONLY: 'SuXin Every Data sahaja (angka pemilik dari POS, WMS dan TMS sedia ada)' },
     perMonth: '/ bulan', perYear: '/ tahun', lifetime: 'seumur hidup', users: 'pengguna', unlimitedUsers: 'Pengguna tanpa had',
     faqTitle: 'Soalan lazim',
     faq: [

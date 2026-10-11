@@ -123,6 +123,30 @@ await check('offline sync: added once, and an old count does not undo newer sale
   const level = (await call('GET', '/v1/inventory?store_id=&barcode=9555')).json.inventory_levels[0].in_stock;
   if (!(level < 30)) throw new Error(`in_stock ${level} should be below the old count`);
 });
+await check('a connection: their POS pushes sales through its field map; wrong key refused', async () => {
+  const KEY = 'sxc_test_push_key_0001';
+  await ws.collection('connections').doc('kawan').set({ name: 'Kawan POS', mode: 'PUSH', on: true, branchId: 'ipoh',
+    feeds: [{ kind: 'sales', map: { list: 'rows', id: 'no', receiptNo: 'no', total: 'amt', at: 'when', line: { barcode: 'code', qty: 'n', price: 'p' } } }] });
+  await db.doc(`connectionSecrets/w1__kawan__push`).set({ hash: sha256(KEY), createdAt: 1 });
+  const body = { rows: [{ no: 'K-1', amt: '7.00', when: Date.now(), items: [{ code: '9555', n: 2, p: 3.5 }] }, { amt: 1 }] };
+  const push = (key, kind = 'sales') => fetch(`${base}/connect/w1/kawan/${kind}`, { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    .then(async (r) => ({ status: r.status, json: await r.json() }));
+  eq((await push('sxc_wrong')).status, 401, 'wrong key');
+  eq((await push(KEY, 'stock')).status, 400, 'a kind it does not take');
+  const ok = await push(KEY);
+  eq([ok.status, ok.json.accepted, ok.json.skipped], [200, 1, ['#2: no id']], 'pushed');
+  const sale = (await ws.collection('sales').doc('ext-kawan-K-1').get()).data();
+  eq([sale.totalSen, sale.branchId, sale.source, sale.lines[0].lineTotalSen], [700, 'ipoh', 'CONNECTOR', 700], 'the sale');
+  const move = (await ws.collection('movements').doc('ext-kawan-K-1-0').get()).data();
+  eq([move.type, move.quantityMilli, move.branchId], ['SALE', 2000, 'ipoh'], 'stock down');
+  // The same push again changes nothing.
+  await push(KEY);
+  eq((await ws.collection('sales').where('connectionId', '==', 'kawan').get()).size, 1, 'once only');
+});
+await check('connection set-up needs a signed-in owner', async () => {
+  const r = await fetch(`${base}/app/connections/kawan/test`, { method: 'POST' });
+  eq(r.status, 401, 'no sign-in');
+});
 await check('too many calls without a token get 429', async () => {
   let last = 0;
   for (let i = 0; i < 25; i++) last = (await call('GET', '/v1/items', null, null)).status;

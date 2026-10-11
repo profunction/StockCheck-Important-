@@ -67,7 +67,7 @@ jobs:
         working-directory: rules-test
       - run: npm install --no-audit --no-fund
         working-directory: api
-      - run: node lib.test.mjs && node middleware.test.mjs && node bot.test.mjs && node answers.test.mjs && node notify.test.mjs && node selforder.test.mjs && node readorder.test.mjs && node myinvois.test.mjs
+      - run: node lib.test.mjs && node middleware.test.mjs && node bot.test.mjs && node answers.test.mjs && node notify.test.mjs && node selforder.test.mjs && node readorder.test.mjs && node myinvois.test.mjs && node connectors.test.mjs
         working-directory: api
       - name: End to end
         working-directory: rules-test

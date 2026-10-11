@@ -1,6 +1,7 @@
 // node web/js/books.test.mjs -- the books balance, and the reports add up.
 import assert from 'node:assert/strict';
 import {
+  entryForDay,
   aging, balanceSheet, DEFAULT_ACCOUNTS, docNo, docTotals, entryForDoc, entryForExpense, entryForPayment, entryProblem, ledger, lineTotals,
   locked, outstanding, profitAndLoss, reversal, roleAccount, sstSummary, tidy, trialBalance,
 } from './books.js';
@@ -128,6 +129,15 @@ test('SST for the period, less credit notes; numbering; the period lock', () => 
   assert.equal(locked(D('2026-09-05'), D('2026-09-30')), true);
   assert.equal(locked(D('2026-10-01'), D('2026-09-30')), false);
   assert.equal(locked(D('2026-10-01'), null), false);
+});
+
+test('a day\'s takings as one entry: cash, settlements, sales and SST, balanced', () => {
+  const lines = entryForDay({ totalSen: 10600, taxSen: 600, cashSen: 4000 });
+  const by = Object.fromEntries(lines.map((l) => [l.account, [l.debitSen, l.creditSen]]));
+  assert.deepEqual(by, { 1000: [4000, 0], 1020: [6600, 0], 4000: [0, 10000], 2100: [0, 600] });
+  assert.equal(lines.reduce((s, l) => s + l.debitSen - l.creditSen, 0), 0);
+  // All cash, no tax: two lines.
+  assert.equal(entryForDay({ totalSen: 500, cashSen: 500 }).length, 2);
 });
 
 let failed = 0;

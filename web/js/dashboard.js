@@ -154,8 +154,23 @@ const meter = (label, value, share, extra = '') => h('div', { class: 'meter' },
   h('div', { class: 'meter-row' }, h('span', { class: 'meter-label' }, label, extra ? h('span', { class: 'muted' }, ` · ${extra}`) : null), h('b', {}, value)),
   h('div', { class: 'meter-track' }, h('span', { style: { width: `${Math.max(2, Math.round(share * 100))}%` } })));
 
-export function render(main) {
+/** What connected systems bring in (connections.js): { sales, stock, ... }. */
+async function connectedKinds() {
+  const snap = await getDocs(collection(db, ws('connections')));
+  const kinds = {};
+  for (const d of snap.docs) if (d.data().on !== false) for (const f of d.data().feeds || []) if (f.on) kinds[f.kind] = true;
+  return kinds;
+}
+
+export function render(main, connected = null) {
   const show = widgetsFor(session);
+  // Without SuXin POS, sales and stock from a connected system still show, to whoever may see the figures.
+  const mayFigures = session.isAdmin || session.can('POS_REPORTS');
+  if (connected?.sales && mayFigures) show.sales = true;
+  if ((connected?.stock || connected?.sales) && mayFigures) show.stock = true;
+  if (!connected && (!show.sales || !show.stock) && mayFigures) {
+    connectedKinds().then((k) => { if (k.sales || k.stock) render(main, k); }).catch(() => {});
+  }
   const salesBox = h('div', {}, pending());
   const stockBox = h('div', {}, pending());
   const whBox = h('div', {}, pending());

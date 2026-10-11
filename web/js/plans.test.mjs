@@ -11,10 +11,10 @@ test('pack A prices, in sen', () => {
 });
 
 test('pack B prices, and no lifetime', () => {
-  assert.deepEqual(['APP_ONLY', 'POS_ONLY', 'API_ONLY'].map((p) => [priceSen(p, 'monthly'), priceSen(p, 'yearly')]),
-    [[2800, 28000], [3800, 38000], [6800, 68000]]);
+  assert.deepEqual(['APP_ONLY', 'POS_ONLY', 'API_ONLY', 'BOOKS_ONLY', 'DATA_ONLY'].map((p) => [priceSen(p, 'monthly'), priceSen(p, 'yearly')]),
+    [[2800, 28000], [3800, 38000], [6800, 68000], [3800, 38000], [2800, 28000]]);
   assert.throws(() => priceSen('POS_ONLY', 'lifetime'), /not sold/);
-  assert.equal(plansIn('STANDALONE').length, 3);
+  assert.equal(plansIn('STANDALONE').length, 5);
   assert.equal(plansIn('ALL_IN_ONE').length, 3);
 });
 

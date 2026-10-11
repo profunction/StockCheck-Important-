@@ -952,3 +952,24 @@ body.iso-full-open { overflow: hidden; }
   .iso-tools { top: auto; bottom: 10px; right: 10px; grid-auto-flow: column; gap: 6px; }
   .iso-btn { width: 38px; height: 38px; font-size: 17px; }
 }
+
+/* Connections (web/js/connections.js) */
+.cn-list { display: grid; gap: 12px; }
+.cn-card { display: grid; gap: 8px; }
+.cn-ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); flex: none; }
+.cn-feeds { display: flex; flex-wrap: wrap; gap: 6px; }
+.cn-empty { display: grid; justify-items: center; gap: 6px; padding: 28px; color: var(--muted); }
+.cn-form, .cn-pull, .cn-push { display: grid; gap: 10px; margin-bottom: 12px; }
+.cn-feedbox { display: grid; gap: 8px; margin-bottom: 12px; }
+.cn-feed { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
+.cn-feed.on { border-color: var(--brand); }
+.cn-feed-body { display: grid; gap: 8px; margin-top: 8px; }
+.cn-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
+.cn-fieldmap { font-size: 13px; }
+.cn-fieldmap small { font-family: var(--f-mono, monospace); font-size: 11px; }
+.cn-code { display: block; font-family: var(--f-mono, monospace); font-size: 12.5px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; overflow-wrap: anywhere; }
+.cn-pre { max-height: 240px; overflow: auto; font-size: 12px; background: var(--surface-2); border-radius: 8px; padding: 8px; }
+.cn-err { color: var(--danger); font-weight: 600; }
+.cn-result { margin-top: 6px; }
+.bk-day { align-items: center; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 600px) { .hide-sm { display: none; } }

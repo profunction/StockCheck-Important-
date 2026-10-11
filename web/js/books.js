@@ -185,6 +185,22 @@ export function entryForDoc(d, accounts = DEFAULT_ACCOUNTS) {
   return tidy(lines);
 }
 
+/**
+ * One day's takings as one entry (Books, 每日销售入账): the cash into the
+ * till's cash, the rest (cards, QR, e-wallets, whatever another system
+ * did not say) into settlements, against sales and the SST in them.
+ * [day]: { cashSen, otherSen, totalSen, taxSen } (api/server.mjs sales-days).
+ */
+export function entryForDay(day, accounts = DEFAULT_ACCOUNTS) {
+  const tax = Math.max(0, Math.min(day.taxSen || 0, day.totalSen || 0));
+  return tidy([
+    { account: roleAccount(accounts, 'cash'), debitSen: day.cashSen || 0, creditSen: 0 },
+    { account: roleAccount(accounts, 'clearing'), debitSen: (day.totalSen || 0) - (day.cashSen || 0), creditSen: 0 },
+    { account: roleAccount(accounts, 'sales'), debitSen: 0, creditSen: (day.totalSen || 0) - tax },
+    { account: roleAccount(accounts, 'sst'), debitSen: 0, creditSen: tax },
+  ]);
+}
+
 /** Money in from a customer (IN) or out to a supplier (OUT), through [via] (cash, bank...). */
 export function entryForPayment(p, accounts = DEFAULT_ACCOUNTS) {
   const party = p.direction === 'IN' ? roleAccount(accounts, 'receivable') : roleAccount(accounts, 'payable');

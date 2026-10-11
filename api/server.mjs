@@ -28,6 +28,10 @@ import { orderReader } from './readorder.mjs';
 import { myInvoisAssistant } from './myinvois.mjs';
 import { can as allowedTo } from './modules.js';
 import { authenticate, requireModule, requireScope, tenant } from './middleware.mjs';
+import { authHeaders, feedUrl, isPrivateIp, KINDS, mapRecords, safeTarget, writesFor } from './connectors.mjs';
+import { bearer, sha256 } from './lib.mjs';
+import { lookup } from 'node:dns/promises';
+import { randomBytes } from 'node:crypto';
 
 // Secrets arrive from Secret Manager as they were stored; one made with
 // `openssl rand | gcloud secrets create` ends in a line break, which would
@@ -444,12 +448,169 @@ app.post('/telegram', wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
+
+// ------------------------------------------ connections to other systems
+//
+// A friend's POS, someone else's WMS or TMS (connectors.mjs). PULL: we fetch
+// their API with their key, which only this server ever reads
+// (connectionSecrets/). PUSH: they post to /connect/{ws}/{id}/{kind} with a
+// push key we made for them (only its hash is kept). An owner sets them up.
+const conRef = (ws, id) => db.doc(`workspaces/${ws}/connections/${id}`);
+const secretRef = (ws, id) => db.doc(`connectionSecrets/${ws}__${id}`);
+const validId = (id) => /^[A-Za-z0-9_-]{1,64}$/.test(String(id || ''));
+
+async function ownerOf(req) {
+  const who = await staffOf(req);
+  if (!who.isAdmin) throw new ApiError(403, 'Only the owner (admin) sets up connections.', 'FORBIDDEN');
+  if (!validId(req.params.id)) throw new ApiError(400, 'No such connection.');
+  const snap = await conRef(who.ws, req.params.id).get();
+  if (!snap.exists) throw new ApiError(404, 'Save the connection first.');
+  return { who, conn: { ...snap.data(), id: snap.id } };
+}
+
+/** Their JSON at [feed], from a public https address only, at most 5 MB, within 20 seconds. */
+async function fetchFeed(conn, feed, secret, since) {
+  const url = feedUrl(conn, feed, since);
+  const check = safeTarget(url);
+  if (!check.ok) throw new ApiError(400, check.reason);
+  const addrs = await lookup(check.url.hostname, { all: true }).catch(() => []);
+  if (!addrs.length) throw new ApiError(400, `${check.url.hostname} could not be found.`);
+  if (addrs.some((a) => isPrivateIp(a.address))) throw new ApiError(400, 'Not a public address.');
+  let res;
+  try {
+    res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'SuXin-Connect/1', ...authHeaders(conn, secret) }, redirect: 'error', signal: AbortSignal.timeout(20_000) });
+  } catch (err) {
+    throw new ApiError(502, `Their system did not answer (${err.name === 'TimeoutError' ? 'took too long' : 'no connection'}).`);
+  }
+  if (!res.ok) throw new ApiError(502, `Their system answered ${res.status}${res.status === 401 || res.status === 403 ? ' -- check the key' : ''}.`);
+  const text = await res.text();
+  if (text.length > 5_000_000) throw new ApiError(502, 'Their answer is too big; ask for fewer records at a time.');
+  try { return JSON.parse(text); } catch { throw new ApiError(502, 'Their system did not answer in JSON.'); }
+}
+
+async function writeAll(ws, writes) {
+  for (let i = 0; i < writes.length; i += 400) {
+    const b = db.batch();
+    for (const [path, data, merge] of writes.slice(i, i + 400)) b.set(db.doc(`workspaces/${ws}/${path}`), data, merge ? { merge: true } : {});
+    await b.commit();
+  }
+}
+
+/** Fetches every feed of [conn] and writes what came; [dryRun] only reads and maps. */
+async function syncConnection(ws, conn, { dryRun = false } = {}) {
+  const secret = (await secretRef(ws, conn.id).get()).data()?.value || '';
+  const at = Date.now();
+  const feeds = [];
+  const last = { ...(conn.lastSyncAt || {}) };
+  for (const feed of (conn.feeds || []).filter((f) => KINDS.includes(f.kind) && f.on !== false)) {
+    try {
+      // Ask again from a little before last time: a sale written late is not missed.
+      const since = last[feed.kind] ? last[feed.kind] - 10 * 60_000 : null;
+      const body = await fetchFeed(conn, feed, secret, since);
+      const { records, problems } = mapRecords(feed.kind, body, feed.map || {}, { unit: feed.unit || 'RM' });
+      if (dryRun) { feeds.push({ kind: feed.kind, count: records.length, problems: problems.slice(0, 5), sample: records.slice(0, 3), raw: JSON.stringify(body).slice(0, 1500) }); continue; }
+      await writeAll(ws, writesFor(feed.kind, records, conn, at));
+      last[feed.kind] = at;
+      feeds.push({ kind: feed.kind, count: records.length, problems: problems.slice(0, 5) });
+    } catch (err) {
+      feeds.push({ kind: feed.kind, error: err instanceof ApiError ? err.message : 'Something went wrong.' });
+      if (!(err instanceof ApiError)) console.error('connector', ws, conn.id, err);
+    }
+  }
+  const result = { at, feeds, ok: feeds.every((f) => !f.error) };
+  if (!dryRun) await conRef(ws, conn.id).set({ lastSyncAt: last, lastResult: result }, { merge: true });
+  return result;
+}
+
+const connectLimit = limited(10 * 60_000, 30);
+app.post('/app/connections/:id/secret', connectLimit, wrap(async (req, res) => {
+  const { who, conn } = await ownerOf(req);
+  const value = String(req.body?.value ?? '');
+  if (value.length > 4000) throw new ApiError(400, 'That key is too long.');
+  if (value) await secretRef(who.ws, conn.id).set({ value, updatedAt: Date.now(), updatedBy: who.uid });
+  else await secretRef(who.ws, conn.id).delete();
+  await conRef(who.ws, conn.id).set({ hasSecret: Boolean(value) }, { merge: true });
+  res.json({ ok: true, hasSecret: Boolean(value) });
+}));
+app.post('/app/connections/:id/test', connectLimit, wrap(async (req, res) => {
+  const { who, conn } = await ownerOf(req);
+  res.json(await syncConnection(who.ws, conn, { dryRun: true }));
+}));
+app.post('/app/connections/:id/sync', connectLimit, wrap(async (req, res) => {
+  const { who, conn } = await ownerOf(req);
+  res.json(await syncConnection(who.ws, conn));
+}));
+// A new push key, shown once; the old one stops working.
+app.post('/app/connections/:id/push-key', connectLimit, wrap(async (req, res) => {
+  const { who, conn } = await ownerOf(req);
+  const key = `sxc_${randomBytes(24).toString('base64url')}`;
+  await db.doc(`connectionSecrets/${who.ws}__${conn.id}__push`).set({ hash: sha256(key), createdAt: Date.now(), createdBy: who.uid });
+  await conRef(who.ws, conn.id).set({ hasPushKey: true }, { merge: true });
+  res.json({ key });
+}));
+
+// What their system sends us: { "data": [ ... ] } or a list, read through the connection's map.
+const pushLimit = limited(60_000, 120);
+app.post('/connect/:ws/:id/:kind', pushLimit, wrap(async (req, res) => {
+  const { ws, id, kind } = req.params;
+  if (!validId(ws) || !validId(id) || !KINDS.includes(kind)) throw new ApiError(404, 'No such address.');
+  const key = bearer(req.get('authorization'));
+  const stored = key ? (await db.doc(`connectionSecrets/${ws}__${id}__push`).get()).data() : null;
+  if (!stored || !sameSecret(sha256(key), stored.hash)) throw new ApiError(401, 'Send the push key: Authorization: Bearer sxc_...', 'UNAUTHENTICATED');
+  const snap = await conRef(ws, id).get();
+  if (!snap.exists || snap.data().on === false) throw new ApiError(404, 'This connection is off.');
+  const conn = { ...snap.data(), id };
+  const feed = (conn.feeds || []).find((f) => f.kind === kind && f.on !== false);
+  if (!feed) throw new ApiError(400, `This connection does not take ${kind}.`);
+  const { records, problems } = mapRecords(kind, req.body, feed.map || {}, { unit: feed.unit || 'RM', max: 2000 });
+  const at = Date.now();
+  await writeAll(ws, writesFor(kind, records, conn, at));
+  await conRef(ws, id).set({ lastSyncAt: { ...(conn.lastSyncAt || {}), [kind]: at }, lastResult: { at, ok: true, feeds: [{ kind, count: records.length, problems: problems.slice(0, 5) }] } }, { merge: true });
+  res.json({ accepted: records.length, skipped: problems });
+}));
+
+// Books: each day's takings, from the till and from connections, to post as one entry a day.
+app.post('/app/books/sales-days', limited(10 * 60_000, 60), wrap(async (req, res) => {
+  const who = await staffOf(req);
+  if (!allowedTo(who, 'accounting.post')) throw new ApiError(403, 'Your account may not post to the books.', 'FORBIDDEN');
+  const from = Math.max(Date.now() - 62 * 86_400_000, Number(req.body?.from) || 0);
+  const snap = await db.collection(`workspaces/${who.ws}/sales`).where('createdAt', '>=', from).get();
+  const days = {};
+  for (const d of snap.docs) {
+    const s = d.data();
+    if (s.status === 'VOIDED') continue;
+    const day = new Date(s.createdAt + 8 * 3600_000).toISOString().slice(0, 10);
+    const key = `${day}|${s.connectionId || ''}`;
+    const x = days[key] || (days[key] = { day, connectionId: s.connectionId || '', source: s.connectionName || 'POS', receipts: 0, totalSen: 0, taxSen: 0, cashSen: 0, otherSen: 0 });
+    x.receipts += 1;
+    x.totalSen += s.totalSen || 0;
+    x.taxSen += s.taxSen || 0;
+    const cash = (s.payments || []).filter((p) => p.method === 'CASH').reduce((t, p) => t + (p.amountSen || 0), 0) - (s.changeSen || 0);
+    x.cashSen += Math.max(0, Math.min(s.totalSen || 0, cash));
+    x.otherSen = x.totalSen - x.cashSen;
+  }
+  res.json({ days: Object.values(days).sort((a, b) => b.day.localeCompare(a.day) || a.source.localeCompare(b.source)) });
+}));
+
 // Called by Cloud Scheduler (the daily report) and by the deploy (setup),
 // with the JOB_KEY secret.
 const jobKey = (req, res, next) => (sameSecret(req.get('x-job-key'), process.env.JOB_KEY)
   ? next() : res.status(401).json({ error: { message: 'Wrong job key.' } }));
 app.post('/jobs/daily', jobKey, wrap(async (req, res) => {
   res.json(await notify.dailyReports(Number(req.query.now) || Date.now()));
+}));
+// Every hour: each company's connections that fetch.
+app.post('/jobs/connectors', jobKey, wrap(async (_req, res) => {
+  const snap = await db.collectionGroup('connections').get();
+  const done = [];
+  for (const d of snap.docs) {
+    const c = d.data();
+    if (c.mode !== 'PULL' || c.on === false || !c.baseUrl) continue;
+    const ws = d.ref.parent.parent.id;
+    const r = await syncConnection(ws, { ...c, id: d.id }).catch((err) => ({ ok: false, error: err.message }));
+    done.push({ ws, id: d.id, ok: r.ok });
+  }
+  res.json({ synced: done.length, failed: done.filter((x) => !x.ok).length });
 }));
 app.post('/jobs/setup', jobKey, wrap(async (req, res) => {
   const self = process.env.SELF_URL || `https://${req.get('host')}`;

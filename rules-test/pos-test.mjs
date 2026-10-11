@@ -296,6 +296,14 @@ await expect('approver: rewrite a closed month refused', false, () => setDoc(doc
 await expect('keeper: close a month refused', false, () => setDoc(doc(as('keeper1'), ws('stockClosings/2026-07_-')), { month: '2026-07', branchId: '', lines: [], valueSen: 0, createdAt: 1 }));
 await testEnv.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), ws('pos/settings')), { transferApproval: false }, { merge: true }));
 
+// Connections to other systems: the owner sets them up; their keys are server-only.
+const conn = { name: 'Kawan POS', mode: 'PULL', baseUrl: 'https://api.kawan.my', feeds: [{ kind: 'sales' }] };
+await expect('admin: set up a connection', true, () => setDoc(doc(as('admin1'), ws('connections/k1')), conn));
+await expect('keeper: set up a connection refused', false, () => setDoc(doc(as('keeper1'), ws('connections/k2')), conn));
+await expect('keeper: read a connection refused', false, () => getDoc(doc(as('keeper1'), ws('connections/k1'))));
+await expect('admin: read the keys refused', false, () => getDoc(doc(as('admin1'), 'connectionSecrets/w1__k1')));
+await expect('admin: write a key refused (the server does)', false, () => setDoc(doc(as('admin1'), 'connectionSecrets/w1__k1'), { value: 'x' }));
+
 // SuXin TMS: lorries and drivers by a manager; shifts and trips by whoever moves stock.
 await expect('approver: add a lorry', true, () => setDoc(doc(as('approver1'), ws('tmsLorries/l1')), { plate: 'WXY 1234', active: true }));
 await expect('keeper: add a lorry refused', false, () => setDoc(doc(as('keeper1'), ws('tmsLorries/l2')), { plate: 'ABC 1', active: true }));

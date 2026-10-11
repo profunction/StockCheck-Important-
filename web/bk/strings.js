@@ -108,6 +108,9 @@ const en = {
   bkErr_NO_ENTRY: 'Its journal entry is not loaded yet. Try again in a moment.',
   bkErr_OFFLINE: 'No internet. The books are kept online -- try again when connected.', bkErr_PERMISSION: 'You do not have permission for that.',
   bk3dTitle: 'The books in 3D', bk3dLead: 'Taller = more money', bk3dCosts: 'Costs this month', bk3dLateKey: 'Overdue, or a loss', bk3dTap: 'Tap a tower for its page. Drag to move, ⟲ ⟳ to turn.', bk3dOpen: 'Open',
+  bkDaily: 'Daily sales', bkDailyLead: 'Each day\'s takings -- from SuXin POS and from connected systems -- posted to the books as one entry a day.',
+  bkDailyNoRight: 'Your account may not post to the books.', bkDailyOpen: 'Days not posted', bkDailyOpenSen: 'Not yet in the books', bkDailyAll: 'Post all {n} days',
+  bkDailyReceipts: 'receipts', bkDailyCash: 'cash', bkDailyOther: 'cards/QR', bkDailyPosted: 'In the books', bkDailyPost: 'Post', bkDailyDone: 'Posted', bkDailyNone: 'No sales in the last two months.', bkDailyMemo: 'Sales',
 };
 
 const zh = {
@@ -219,6 +222,9 @@ const zh = {
   bkErr_NO_ENTRY: '它的分录还没加载好，请等一下再试。',
   bkErr_OFFLINE: '没有网络。账务要在线做，连上网再试。', bkErr_PERMISSION: '你没有这个权限。',
   bk3dTitle: '账目 3D', bk3dLead: '越高＝钱越多', bk3dCosts: '本月成本和开销', bk3dLateKey: '过期没付，或亏损', bk3dTap: '点一栋楼打开那一页。拖动可以移动，⟲ ⟳ 转方向。', bk3dOpen: '打开',
+  bkDaily: '每日销售入账', bkDailyLead: '每天的营业额——来自 SuXin POS 和连接的系统——一天一笔记进账簿。',
+  bkDailyNoRight: '你的账号不能记账。', bkDailyOpen: '还没入账的天数', bkDailyOpenSen: '还没进账簿', bkDailyAll: '全部 {n} 天入账',
+  bkDailyReceipts: '单', bkDailyCash: '现金', bkDailyOther: '刷卡/QR', bkDailyPosted: '已入账', bkDailyPost: '入账', bkDailyDone: '入账了', bkDailyNone: '最近两个月没有销售。', bkDailyMemo: '销售',
 };
 
 const ms = {
@@ -330,6 +336,9 @@ const ms = {
   bkErr_NO_ENTRY: 'Catatan jurnalnya belum dimuatkan. Cuba sebentar lagi.',
   bkErr_OFFLINE: 'Tiada internet. Akaun disimpan dalam talian -- cuba bila bersambung.', bkErr_PERMISSION: 'Anda tiada kebenaran untuk itu.',
   bk3dTitle: 'Akaun dalam 3D', bk3dLead: 'Lebih tinggi = lebih banyak wang', bk3dCosts: 'Kos bulan ini', bk3dLateKey: 'Lewat bayar, atau rugi', bk3dTap: 'Tekan menara untuk halamannya. Seret untuk gerak, ⟲ ⟳ untuk pusing.', bk3dOpen: 'Buka',
+  bkDaily: 'Jualan harian', bkDailyLead: 'Kutipan setiap hari -- dari SuXin POS dan sistem bersambung -- direkod ke buku sebagai satu catatan sehari.',
+  bkDailyNoRight: 'Akaun anda tidak boleh merekod ke buku.', bkDailyOpen: 'Hari belum direkod', bkDailyOpenSen: 'Belum dalam buku', bkDailyAll: 'Rekod semua {n} hari',
+  bkDailyReceipts: 'resit', bkDailyCash: 'tunai', bkDailyOther: 'kad/QR', bkDailyPosted: 'Dalam buku', bkDailyPost: 'Rekod', bkDailyDone: 'Direkod', bkDailyNone: 'Tiada jualan dua bulan lepas.', bkDailyMemo: 'Jualan',
 };
 
 export const STRINGS = { en, zh, ms };

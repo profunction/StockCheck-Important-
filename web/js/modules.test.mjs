@@ -81,3 +81,11 @@ test('every module is fully described', () => {
   }
   assert.equal(ERRORS.MODULE_NOT_ENABLED, 'MODULE_NOT_ENABLED');
 });
+
+test('Books on its own: the Books plan, or a licence with books on, without the till', () => {
+  assert.deepEqual(enabledModules(lic('BOOKS_ONLY')), ['accounting']);
+  assert.deepEqual(enabledModules(lic('BOOKS_ONLY', { modules: { app: false, pos: false, warehouse: false, api: false, books: true } })), ['accounting']);
+  assert.equal(isEnabled(lic('STARTER'), 'accounting'), true);
+  assert.equal(isEnabled(lic('APP_ONLY', { modules: { app: true, pos: false } }), 'accounting'), false);
+  assert.deepEqual(enabledModules(lic('DATA_ONLY')), []);
+});

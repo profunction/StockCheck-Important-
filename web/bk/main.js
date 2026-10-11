@@ -29,6 +29,8 @@ const MENU = [
   { id: 'reports', icon: 'percent', label: 'bkReports', page: () => import('./reports.js'), bottom: true },
   { id: 'journal', icon: 'book', label: 'bkJournal', page: () => import('./journal.js') },
   { id: 'accounts', icon: 'grid', label: 'bkAccounts', page: () => import('./accounts.js') },
+  { id: 'daily', icon: 'calc', label: 'bkDaily', page: () => import('./daily.js') },
+  { id: 'connections', icon: 'plug', label: 'cnTitle', page: () => import('./connections.js') },
   { id: 'settings', icon: 'sliders', label: 'bkSettings', page: () => import('./settings.js') },
 ];
 

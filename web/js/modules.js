@@ -97,7 +97,8 @@ export const MODULES = {
   // SuXin Books: e-invoices, bookkeeping and the financial reports
   // (web/books/). Sold with the till for now: it rides on its licence key.
   accounting: {
-    id: 'accounting', licenceKey: 'pos', status: 'live', kind: 'addon', dependsOn: [],
+    // Or on its own: the Books plan switches 'books' on without the till.
+    id: 'accounting', licenceKey: 'pos', alsoKey: 'books', status: 'live', kind: 'addon', dependsOn: [],
     displayName: { zh: 'SuXin Books 账务', en: 'SuXin Books', ms: 'SuXin Books' },
     description: { zh: '电子发票、记账、财务报表', en: 'e-Invoices, bookkeeping, financial reports', ms: 'e-Invois, simpan kira, laporan kewangan' },
     actions: {
@@ -139,10 +140,12 @@ function switchedOn(licence, m) {
   if (m.status !== 'live') return false;
   if (!licence) return WITHOUT_LICENCE.includes(m.id);
   const own = licence.modules && typeof licence.modules === 'object' ? licence.modules : null;
+  // A module with a second key ([alsoKey]) is on when either is.
+  if (m.alsoKey && own && own[m.alsoKey] === true) return true;
   if (own && m.licenceKey in own) return own[m.licenceKey] === true;
   if (own) return false;
   const plan = PLANS[licence.plan] || PLANS.TRIAL;
-  return plan.modules[m.licenceKey] === true;
+  return plan.modules[m.licenceKey] === true || (Boolean(m.alsoKey) && plan.modules[m.alsoKey] === true);
 }
 
 /**

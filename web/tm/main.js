@@ -27,6 +27,7 @@ const MENU = [
   { id: 'lorries', icon: 'box', label: 'tmLorries', page: () => import('./lorries.js') },
   { id: 'pod', icon: 'receipt', label: 'tmPod', page: () => import('./pod.js'), bottom: true },
   { id: 'map', icon: 'grid', label: 'tmMap', page: () => import('./map.js') },
+  { id: 'connections', icon: 'plug', label: 'cnTitle', page: () => import('./connections.js') },
 ]
 
 const allowed = () => true;

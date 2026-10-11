@@ -285,6 +285,14 @@ jobs:
           else
             gcloud scheduler jobs create http suxin-daily "${ARGS[@]}" --headers "x-job-key=$KEY" --quiet
           fi
+          # Connections to other systems: fetched every hour.
+          HOURLY=(--location asia-southeast1 --project "$PROJECT" --schedule "7 * * * *" --time-zone "Asia/Kuala_Lumpur"
+                  --uri "$URL/jobs/connectors" --http-method POST --attempt-deadline 600s)
+          if gcloud scheduler jobs describe suxin-connectors --location asia-southeast1 --project "$PROJECT" >/dev/null 2>&1; then
+            gcloud scheduler jobs update http suxin-connectors "${HOURLY[@]}" --update-headers "x-job-key=$KEY" --quiet
+          else
+            gcloud scheduler jobs create http suxin-connectors "${HOURLY[@]}" --headers "x-job-key=$KEY" --quiet
+          fi
 
       - name: If the API did not deploy
         if: steps.setup.outputs.ready == 'true' && steps.api.outcome == 'failure'

@@ -113,6 +113,11 @@ async function route() {
     stopPage = m.render(mainEl, id) || null;
     return;
   }
+  if (page === 'connections') {
+    const m = await import('../js/connections.js');
+    stopPage = m.render(mainEl, { head: (title, ...extra) => [tabs('connections'), h('div', { class: 'cnt-titlebar' }, h('h1', {}, title), ...extra)] }) || null;
+    return;
+  }
   if (page === 'p' && id) {
     const m = await import('./photos.js');
     stopPage = m.render(mainEl, id, new URLSearchParams(search)) || null;
@@ -155,7 +160,8 @@ function countCard(c) {
 /** The app's three places: the counts, comparing them, and the count lists. */
 export function tabs(current) {
   const may = (p) => session.isAdmin || session.can(p);
-  const items = [['', 'barcode', 'cTitle'], ['reports', 'chart', 'crTitle'], may('VIEW_TEMPLATE') || may('CREATE_TEMPLATE') ? ['lists', 'book', 'clTitle'] : null].filter(Boolean);
+  const items = [['', 'barcode', 'cTitle'], ['reports', 'chart', 'crTitle'], may('VIEW_TEMPLATE') || may('CREATE_TEMPLATE') ? ['lists', 'book', 'clTitle'] : null,
+    session.isAdmin ? ['connections', 'plug', 'cnTitle'] : null].filter(Boolean);
   return h('nav', { class: 'cnt-tabs' }, items.map(([page, ic, key]) => h('a', { href: `#/${page}`, class: page === current ? 'on' : '', 'data-tab': page || 'counts' }, icon(ic, 17), t(key))));
 }
 

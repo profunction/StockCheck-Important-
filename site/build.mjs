@@ -45,7 +45,7 @@ ${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, su
 - Country: Malaysia. Currency: ringgit (MYR). Languages: Chinese, English, Malay.
 - Free trial: ${TRIAL_DAYS} days, up to 5 users, no credit card.
 ${PAID.map(plan).join('\n')}
-${['APP_ONLY', 'POS_ONLY', 'API_ONLY'].map((id) => `- ${PLANS[id].label} (standalone): ${rm(PLANS[id].monthlySen)} per month or ${rm(PLANS[id].yearlySen)} per year; ${en.standalone[id]}.`).join('\n')}
+${['APP_ONLY', 'POS_ONLY', 'API_ONLY', 'BOOKS_ONLY', 'DATA_ONLY'].map((id) => `- ${PLANS[id].label} (standalone): ${rm(PLANS[id].monthlySen)} per month or ${rm(PLANS[id].yearlySen)} per year; ${en.standalone[id]}.`).join('\n')}
 - Lifetime licences are limited to 50 in total.
 - Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes ${LIFETIME_SUPPORT_MONTHS} months of updates and support.
 - Platforms: SuXin Barcode Scan on Android; SuXin POS, SuXin WMS and SuXin Every Data in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
