@@ -20,6 +20,8 @@ const app = document.getElementById('app');
 /** The menu, Loyverse-style: groups with pages under them. */
 const MENU = [
   { id: 'pos', icon: 'cart', label: 'navRegister', may: 'pos.sell', page: () => import('./register.js') },
+  // The shop floor in 3D: tables, shelves and tills, as they are now.
+  { id: 'floor', icon: 'grid', label: 'floor3d', may: 'pos.reports', page: () => import('./floor3d.js') },
   // SuXin Every Data: what is shown inside follows the company's modules (dashboard.js).
   // Every Data is its own page now (/data/); the old address goes there.
   { id: 'cloud', icon: 'chart', label: 'navCloud', perm: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'], href: '/data/', hidden: true },

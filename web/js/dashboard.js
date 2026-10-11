@@ -17,6 +17,7 @@ import { isLow } from './ledger.js';
 import { levelsFor, loadStockData } from './stockdata.js';
 import { MODULES } from './modules.js';
 import { icon } from './icons.js';
+import { cityCard } from './city3d.js';
 
 const inList = () => [...session.branchIds, ''].slice(0, 30);
 const done = (list) => list.filter((s) => s.status !== 'VOIDED');
@@ -158,6 +159,11 @@ export function render(main) {
   const salesBox = h('div', {}, pending());
   const stockBox = h('div', {}, pending());
   const whBox = h('div', {}, pending());
+  const cityBox = h('div', {});
+  // Each read once: the figures below and the 3D town above share them.
+  const salesP = show.sales ? recentSales() : null;
+  const stockP = show.stock ? loadStockData() : null;
+  const whP = show.warehouse ? warehouseWork() : null;
   const now = new Date();
   const greet = now.getHours() < 12 ? 'dashMorning' : now.getHours() < 18 ? 'dashAfternoon' : 'dashEvening';
   const lang = getLang();
@@ -168,13 +174,14 @@ export function render(main) {
       h('div', { class: 'muted' }, `${t(greet)}${session.name ? `, ${session.name}` : ''} · ${dateText}`),
       h('h1', {}, session.companyName || 'SuXin Every Data'),
       h('p', { class: 'muted' }, t('dashLead'))),
+    cityBox,
     show.sales ? section(t('dashToday'), h('a', { class: 'dash-link', href: '/pos/#/reports/summary' }, `${t('repSummary')} →`), salesBox) : null,
     show.stock ? section(t('dashStock'), h('a', { class: 'dash-link', href: '/pos/#/inventory/levels' }, `${t('invLevels')} →`), stockBox) : null,
     show.warehouse ? section(MODULES.warehouse.displayName.en, h('a', { class: 'dash-link', href: '/warehouse/' }, `${t('whApp')} →`), whBox) : null,
     addMore());
 
   if (show.sales) {
-    recentSales().then((all) => {
+    salesP.then((all) => {
       const d = daySummary(all, now.getTime());
       const y = d.sameTimeYesterday;
       const avg = d.receipts ? Math.round(d.salesSen / d.receipts) : 0;
@@ -211,7 +218,7 @@ export function render(main) {
   }
 
   if (show.stock) {
-    loadStockData().then((data) => {
+    stockP.then((data) => {
       const catalogue = new Map(session.products.map((p) => [p.barcode, p]));
       const levels = levelsFor(data, 'ALL', catalogue);
       const low = levels.filter(isLow);
@@ -235,14 +242,42 @@ export function render(main) {
   }
 
   if (show.warehouse) {
-    warehouseWork().then((w) => {
+    whP.then((w) => {
       mount(whBox, h('div', { class: 'cards' },
         stat('basket', t('dashToReceive'), String(w.toReceive.length), { href: '/warehouse/#/receive', tone: w.toReceive.length ? 'warn' : '' }),
         stat('truck', t('dashInTransit'), String(w.inTransit.length), { href: '/warehouse/#/transfers' }),
         session.can('WH_APPROVE') ? stat('check', t('dashToApprove'), String(w.toApprove.length), { href: '/warehouse/#/purchase', tone: w.toApprove.length ? 'warn' : '' }) : null));
     }).catch((err) => mount(whBox, failed(err)));
   }
+  if (show.sales || show.stock) town(cityBox, salesP, stockP, whP, now.getTime());
   return null;
+}
+
+/**
+ * The company as a little 3D town (city3d.js): every place this person
+ * sees, as tall as today's takings or the stock in it.
+ */
+async function town(box, salesP, stockP, whP, now) {
+  const [sales, stock, wh] = (await Promise.allSettled([salesP, stockP, whP])).map((r) => (r.status === 'fulfilled' ? r.value : null));
+  const all = [{ id: '', name: t('mainShop'), kind: 'STORE' }, ...session.branches.filter((b) => b.active !== false)
+    .map((b) => ({ id: b.id, name: b.name, kind: b.kind === 'WAREHOUSE' ? 'WAREHOUSE' : 'STORE' }))]
+    .filter((p) => !session.branchIds.length || session.branchIds.includes(p.id));
+  const start = new Date(now); start.setHours(0, 0, 0, 0);
+  const catalogue = new Map(session.products.map((p) => [p.barcode, p]));
+  const places = all.map((p) => {
+    const mine = sales ? done(sales.filter((x) => x.createdAt >= start.getTime() && (x.branchId || '') === p.id)) : null;
+    const levels = stock ? levelsFor(stock, p.id, catalogue) : null;
+    return {
+      ...p,
+      salesSen: mine ? mine.reduce((x, s) => x + (s.totalSen || 0), 0) : null,
+      receipts: mine ? mine.length : null,
+      valueSen: levels ? levels.reduce((x, l) => x + Math.round(Math.max(0, l.onHand) * (catalogue.get(l.key)?.costSen || 0) / 1000), 0) : null,
+      low: levels ? levels.filter(isLow).length : null,
+    };
+  });
+  const name = (id) => all.find((p) => p.id === (id || ''))?.name || id;
+  const moving = (wh?.inTransit || []).map((tr) => ({ from: tr.fromBranch || '', to: tr.toBranch || '', ref: tr.transferNo, fromName: name(tr.fromBranch), toName: name(tr.toBranch) }));
+  mount(box, cityCard(places, moving, { links: { shop: session.may('pos.reports') ? '/pos/#/reports/summary' : '', warehouse: session.has('warehouse') ? '/warehouse/#/map' : '' } }));
 }
 
 /** The modules on sale that this company does not have yet, as one quiet line. */

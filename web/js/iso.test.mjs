@@ -59,3 +59,54 @@ test('racks in pairs, every slot and level, the used cells holding their bins', 
   const long = layout([{ code: 'Z-1' }, { code: 'Z-500' }]);
   assert.deepEqual(long.cells.map((c) => c.slot), [1, 500]);
 });
+
+test('the town: a lot per place on a grid with roads, shops as tall as their sales, lorries on the road', async () => {
+  const { cityLayout } = await import('./town.js');
+  const { boxes, W, D } = cityLayout([
+    { id: '', name: 'HQ', kind: 'STORE', salesSen: 1000 },
+    { id: 'kl', name: 'KL', kind: 'STORE', salesSen: 500 },
+    { id: 'wh', name: 'Gudang', kind: 'WAREHOUSE', valueSen: 9000 },
+  ], [{ from: 'wh', to: 'kl', ref: 'TR-1' }, { from: 'nowhere', to: 'kl', ref: 'TR-2' }]);
+  const b = (id) => boxes.find((x) => x.id === id);
+  assert.equal(W, 2 * 5.4 + 1.4);
+  assert.equal(D, 2 * 5.4 + 1.4);
+  assert.equal(b('b-').h, 5);
+  assert.equal(b('b-kl').h, 3);
+  assert.equal(b('b-wh').h.toFixed(1), '3.1');
+  assert.ok(b('lorry-TR-1'));
+  assert.equal(b('lorry-TR-2'), undefined);
+  assert.equal(boxes.filter((x) => x.road).length, 6);
+});
+
+test('the shop floor: tables with chairs, busy ones amber; shelves as tall as their sales; tills at the front', async () => {
+  const { shopLayout } = await import('./town.js');
+  const fnb = shopLayout({ fnb: true, tables: [{ name: '1', order: { id: 'o' } }, { name: '2', order: null }], tills: [{ name: 'Till 1', sen: 500 }] });
+  const b = (l, id) => l.boxes.find((x) => x.id === id);
+  assert.equal(b(fnb, 'table-1').color, '#f59e0b');
+  assert.equal(b(fnb, 'table-2').color, '#9ccfb8');
+  assert.equal(fnb.boxes.filter((x) => x.id.startsWith('chair-1-')).length, 4);
+  assert.ok(b(fnb, 'kitchen'));
+  const shop = shopLayout({ shelves: [{ id: 'a', name: 'Drinks', sen: 300 }, { id: 'b', name: 'Food', sen: 0 }], tills: [] });
+  assert.equal(b(shop, 'shelf-a').h, 3);
+  assert.equal(b(shop, 'shelf-b').h, 0.6);
+  assert.ok(b(shop, 'till-POS'));
+});
+
+test('the books as towers: as tall as the amount, overdue on top in red, a loss in red', async () => {
+  const { moneyLayout } = await import('./town.js');
+  const { boxes, W, D } = moneyLayout([
+    { id: 'cash', label: 'Cash', sen: 1000, color: '#14a37f' },
+    { id: 'ar', label: 'Owed', sen: 500, lateSen: 250, color: '#2f6fde' },
+    { id: 'profit', label: 'Profit', sen: -200, color: '#14a37f' },
+    { id: 'zero', label: 'None', sen: 0, color: '#999' },
+  ]);
+  const b = (id) => boxes.find((x) => x.id === id);
+  assert.equal(b('m-cash').h, 4.25);
+  assert.equal(b('m-ar').h + b('late-ar').h, 2.25);
+  assert.equal(b('late-ar').h, 1);
+  assert.equal(b('late-ar').color, '#e5484d');
+  assert.equal(b('m-profit').color, '#e5484d');
+  assert.equal(b('m-zero').h, 0.25);
+  assert.equal(W, 0.6 + 3 * 2.6);
+  assert.equal(D, 0.6 + 2 * 2.8);
+});

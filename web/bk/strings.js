@@ -107,6 +107,7 @@ const en = {
   bkErr_HAS_NOTES: 'It has notes against it. Void those first.', bkErr_OVER_ALLOCATED: 'More is set against documents than was paid.',
   bkErr_NO_ENTRY: 'Its journal entry is not loaded yet. Try again in a moment.',
   bkErr_OFFLINE: 'No internet. The books are kept online -- try again when connected.', bkErr_PERMISSION: 'You do not have permission for that.',
+  bk3dTitle: 'The books in 3D', bk3dLead: 'Taller = more money', bk3dCosts: 'Costs this month', bk3dLateKey: 'Overdue, or a loss', bk3dTap: 'Tap a tower for its page. Drag to move, ⟲ ⟳ to turn.', bk3dOpen: 'Open',
 };
 
 const zh = {
@@ -217,6 +218,7 @@ const zh = {
   bkErr_HAS_NOTES: '已经有相关的退款单/补收单。先作废那些。', bkErr_OVER_ALLOCATED: '分配给单据的钱比收付的还多。',
   bkErr_NO_ENTRY: '它的分录还没加载好，请等一下再试。',
   bkErr_OFFLINE: '没有网络。账务要在线做，连上网再试。', bkErr_PERMISSION: '你没有这个权限。',
+  bk3dTitle: '账目 3D', bk3dLead: '越高＝钱越多', bk3dCosts: '本月成本和开销', bk3dLateKey: '过期没付，或亏损', bk3dTap: '点一栋楼打开那一页。拖动可以移动，⟲ ⟳ 转方向。', bk3dOpen: '打开',
 };
 
 const ms = {
@@ -327,6 +329,7 @@ const ms = {
   bkErr_HAS_NOTES: 'Ia ada nota. Batalkan dahulu.', bkErr_OVER_ALLOCATED: 'Lebih banyak dipadankan daripada yang dibayar.',
   bkErr_NO_ENTRY: 'Catatan jurnalnya belum dimuatkan. Cuba sebentar lagi.',
   bkErr_OFFLINE: 'Tiada internet. Akaun disimpan dalam talian -- cuba bila bersambung.', bkErr_PERMISSION: 'Anda tiada kebenaran untuk itu.',
+  bk3dTitle: 'Akaun dalam 3D', bk3dLead: 'Lebih tinggi = lebih banyak wang', bk3dCosts: 'Kos bulan ini', bk3dLateKey: 'Lewat bayar, atau rugi', bk3dTap: 'Tekan menara untuk halamannya. Seret untuk gerak, ⟲ ⟳ untuk pusing.', bk3dOpen: 'Buka',
 };
 
 export const STRINGS = { en, zh, ms };

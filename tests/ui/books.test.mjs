@@ -182,6 +182,17 @@ await step('numbers: two invoices taken, none skipped', async () => {
 });
 
 // Last: a new page starts the pretend database again.
+await step('home: the books as towers in 3D; a tap opens the page behind one', async () => {
+  // In the same page, so what the steps above posted is still there.
+  await page.evaluate(() => { location.hash = '#/home'; });
+  await page.waitForSelector('[data-card="books3d"] .iso-box[data-id="m-cash"]');
+  await page.evaluate(() => document.querySelector('[data-card="books3d"]').scrollIntoView());
+  await shot('books-3d');
+  await page.evaluate(() => document.querySelector('.iso-box[data-id="m-sales"] polygon:last-of-type').dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  await page.click('[data-card="books3d"] a[data-go="sales"]');
+  await page.waitForFunction(() => location.hash === '#/reports/pl');
+});
+
 await step('the app centre lists SuXin Books', async () => {
   await page.goto(`${base}/app/`);
   await page.waitForSelector('[data-app="books"], a[href="/books/"]');

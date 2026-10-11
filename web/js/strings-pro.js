@@ -70,6 +70,13 @@ const en = {
   planNoBranches: 'More branches and warehouses come with the Business and Unlimited plans.',
   tillLimit: 'Your plan allows {n} tills, and they are in use. Remove one under Settings → Device, or upgrade the plan.',
   tillN: 'Till', thisComputerIs: 'This computer is', tillsInUse: 'tills in use', tills: 'Tills', removeTill: 'Remove', tillName: 'Till name',
+  city3dTitle: 'The company in 3D', city3dLead: 'Taller = more sold today / more stock', city3dTap: 'Tap a building or a lorry. Drag to move, ⟲ ⟳ to turn.',
+  city3dShop: 'Shop', city3dWarehouse: 'Warehouse', city3dSales: 'Sales today', city3dReceipts: 'Receipts', city3dStock: 'Stock value', city3dLow: 'Low stock',
+  city3dOpenShop: 'Sales report', city3dOpenWh: 'Warehouse 3D', city3dShopKey: 'Shop (height: sales today)', city3dWhKey: 'Warehouse (height: stock value)', city3dLorryKey: 'Transfer on the road',
+  floor3d: 'Shop floor 3D', floor3dLeadFnb: 'Your tables as they are now: amber has a bill open. The tills at the front, as tall as today\'s takings.', floor3dLeadShop: 'A shelf per category, as tall as what it sold today; the tills at the front.',
+  floor3dTap: 'Tap a table, a shelf or a till. Drag to move, ⟲ ⟳ to turn.', floor3dSales: 'Sales today', floor3dReceipts: 'Receipts', floor3dBusy: 'Tables in use', floor3dShelves: 'Categories', floor3dOpenBills: 'Open bills',
+  floor3dKitchen: 'Kitchen', floor3dTill: 'Till', floor3dOther: 'Other', floor3dBill: 'Bill', floor3dLines: 'Items', floor3dSince: 'Opened', floor3dFree: 'Free table.', floor3dQty: 'Sold',
+  floor3dBusyKey: 'Bill open', floor3dFreeKey: 'Free', floor3dShelfKey: 'Shelf height: sales today', floor3dTillKey: 'Till (height: takings)',
 };
 
 const zh = {
@@ -131,6 +138,13 @@ const zh = {
   planNoBranches: '多分店 / 多仓库要 Business 或 Unlimited 配套。',
   tillLimit: '你的配套只可以用 {n} 台收银机，已经用满了。请在「设置 → 本机」移除一台，或升级配套。',
   tillN: '收银机', thisComputerIs: '这台电脑是', tillsInUse: '台收银机在用', tills: '收银机', removeTill: '移除', tillName: '收银机名称',
+  city3dTitle: '公司 3D 总览', city3dLead: '越高＝今天卖越多／库存越多', city3dTap: '点一栋楼或货车看数字。拖动可以移动，⟲ ⟳ 转方向。',
+  city3dShop: '店', city3dWarehouse: '仓库', city3dSales: '今天营业额', city3dReceipts: '单数', city3dStock: '库存价值', city3dLow: '库存不足',
+  city3dOpenShop: '销售报表', city3dOpenWh: '仓库 3D', city3dShopKey: '店（高度：今天营业额）', city3dWhKey: '仓库（高度：库存价值）', city3dLorryKey: '在路上的调货',
+  floor3d: '店面 3D', floor3dLeadFnb: '现在每张桌子的样子：橙色＝有开单。前面是收银台，越高今天收越多。', floor3dLeadShop: '每类货一个货架，今天卖越多越高；前面是收银台。',
+  floor3dTap: '点桌子、货架或收银台看数字。拖动可以移动，⟲ ⟳ 转方向。', floor3dSales: '今天营业额', floor3dReceipts: '单数', floor3dBusy: '有客的桌子', floor3dShelves: '货品类别', floor3dOpenBills: '未结的单',
+  floor3dKitchen: '厨房', floor3dTill: '收银台', floor3dOther: '其他', floor3dBill: '账单', floor3dLines: '样数', floor3dSince: '开单时间', floor3dFree: '空桌。', floor3dQty: '卖了',
+  floor3dBusyKey: '有开单', floor3dFreeKey: '空桌', floor3dShelfKey: '货架高度：今天营业额', floor3dTillKey: '收银台（高度：收入）',
 };
 
 const ms = {
@@ -192,6 +206,13 @@ const ms = {
   planNoBranches: 'Cawangan dan gudang tambahan ada dalam pelan Business dan Unlimited.',
   tillLimit: 'Pelan anda membenarkan {n} kaunter dan semuanya digunakan. Buang satu di Tetapan → Peranti, atau naik taraf pelan.',
   tillN: 'Kaunter', thisComputerIs: 'Komputer ini ialah', tillsInUse: 'kaunter digunakan', tills: 'Kaunter', removeTill: 'Buang', tillName: 'Nama kaunter',
+  city3dTitle: 'Syarikat dalam 3D', city3dLead: 'Lebih tinggi = lebih banyak jualan hari ini / stok', city3dTap: 'Tekan bangunan atau lori. Seret untuk gerak, ⟲ ⟳ untuk pusing.',
+  city3dShop: 'Kedai', city3dWarehouse: 'Gudang', city3dSales: 'Jualan hari ini', city3dReceipts: 'Resit', city3dStock: 'Nilai stok', city3dLow: 'Stok rendah',
+  city3dOpenShop: 'Laporan jualan', city3dOpenWh: 'Gudang 3D', city3dShopKey: 'Kedai (tinggi: jualan hari ini)', city3dWhKey: 'Gudang (tinggi: nilai stok)', city3dLorryKey: 'Pindahan dalam perjalanan',
+  floor3d: 'Lantai kedai 3D', floor3dLeadFnb: 'Meja anda sekarang: jingga ada bil terbuka. Kaunter di depan, setinggi kutipan hari ini.', floor3dLeadShop: 'Satu rak setiap kategori, setinggi jualannya hari ini; kaunter di depan.',
+  floor3dTap: 'Tekan meja, rak atau kaunter. Seret untuk gerak, ⟲ ⟳ untuk pusing.', floor3dSales: 'Jualan hari ini', floor3dReceipts: 'Resit', floor3dBusy: 'Meja digunakan', floor3dShelves: 'Kategori', floor3dOpenBills: 'Bil terbuka',
+  floor3dKitchen: 'Dapur', floor3dTill: 'Kaunter', floor3dOther: 'Lain-lain', floor3dBill: 'Bil', floor3dLines: 'Barang', floor3dSince: 'Dibuka', floor3dFree: 'Meja kosong.', floor3dQty: 'Terjual',
+  floor3dBusyKey: 'Bil terbuka', floor3dFreeKey: 'Kosong', floor3dShelfKey: 'Tinggi rak: jualan hari ini', floor3dTillKey: 'Kaunter (tinggi: kutipan)',
 };
 
 addStrings({ en, zh, ms });

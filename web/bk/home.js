@@ -9,6 +9,8 @@ import { icon } from '../js/icons.js';
 import { aging, balanceOf, profitAndLoss, sums } from '../js/books.js';
 import { accounts, books, canPost, company, dayMs, monthStart, ymd } from './data.js';
 import { head, money, moneyAccount, rmText, table } from './common.js';
+import { isoScene } from '../js/iso.js';
+import { moneyLayout } from '../js/town.js';
 import { go } from './main.js';
 
 export function render(main) {
@@ -42,6 +44,14 @@ export function render(main) {
       stat(t('bkWeOweThem'), rmText(total(ap)), late(ap) ? `${t('bkLate')} ${money(late(ap))}` : '', late(ap) ? 'warn' : '', 'ap'),
       stat(t('bkMonthSales'), rmText(pl.incomeSen), ymd(dayMs(monthStart())).slice(0, 7), '', 'sales'),
       stat(t(pl.profitSen < 0 ? 'bkMonthLoss' : 'bkMonthProfit'), rmText(pl.profitSen), '', pl.profitSen < 0 ? 'bad' : '', 'profit')),
+    towers([
+      { id: 'cash', label: t('bkCashBank'), sen: cash, color: '#14a37f', to: ['payments'] },
+      { id: 'ar', label: t('bkOwedToUs'), sen: total(ar), lateSen: late(ar), color: '#2f6fde', to: ['sales'] },
+      { id: 'ap', label: t('bkWeOweThem'), sen: total(ap), lateSen: late(ap), color: '#8b5cf6', to: ['purchases'] },
+      { id: 'sales', label: t('bkMonthSales'), sen: pl.incomeSen, color: '#0ea5e9', to: ['reports', 'pl'] },
+      { id: 'costs', label: t('bk3dCosts'), sen: pl.cogsSen + pl.expenseSen, color: '#f59e0b', to: ['reports', 'pl'] },
+      { id: 'profit', label: t(pl.profitSen < 0 ? 'bkMonthLoss' : 'bkMonthProfit'), sen: pl.profitSen, color: '#22a06b', to: ['reports', 'pl'] },
+    ]),
     canPost() ? h('div', { class: 'wh-tiles' },
       tile('receipt', t('bkNewInvoice'), t('bkNewInvoiceSub'), 'sales/new/INVOICE', 'new-invoice'),
       tile('calc', t('bkReceive'), t('bkReceiveSub'), 'payments/in', 'receive'),
@@ -52,4 +62,26 @@ export function render(main) {
       table([t('bkNo'), t('bkCustomer'), t('bkDaysLate'), t('bkOwed')],
         lateDocs.map((d) => [d.no, d.name, String(d.late), money(d.owe)]), { num: [2, 3], onRow: (i) => go('sales', lateDocs[i].id) })) : null);
   return null;
+}
+
+/** The figures above as towers in 3D (town.js); a tap says what one is and opens its page. */
+function towers(figures) {
+  const info = h('div', { class: 'city-info' }, h('span', { class: 'muted' }, t('bk3dTap')));
+  const { boxes, W, D } = moneyLayout(figures);
+  const scene = isoScene({
+    boxes: boxes.map((b) => (b.fig ? { ...b, title: `${b.fig.label}: ${rmText(b.fig.sen)}` } : b)), W, D, height: 380,
+    onPick: (b) => {
+      const f = b.fig;
+      if (!f) return;
+      scene.select(b.id);
+      mount(info, h('div', {}, h('b', {}, f.label), ' ', h('span', {}, rmText(f.sen))),
+        f.lateSen ? h('div', { class: 'muted' }, `${t('bkLate')} ${money(f.lateSen)}`) : null,
+        h('a', { class: 'dash-link', href: `#/${f.to.join('/')}`, 'data-go': f.id }, `${t('bk3dOpen')} →`));
+    },
+  });
+  return h('div', { class: 'card city-card', 'data-card': 'books3d' },
+    h('div', { class: 'dash-card-head' }, h('h3', {}, t('bk3dTitle')), h('span', { class: 'muted' }, t('bk3dLead'))),
+    scene.el,
+    h('div', { class: 'map-legend' }, h('span', {}, h('i', { style: { background: '#e5484d' } }), t('bk3dLateKey'))),
+    info);
 }
