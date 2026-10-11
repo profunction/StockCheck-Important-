@@ -16,8 +16,10 @@ export function lorryBoxes(id, x, y, { along = 'y', color = '#2f6fde', label = n
   // Laid out along y, then swapped for x.
   const parts = [
     { id: `${id}-chassis`, x: 0.08, y: 0.1, z: 0.14, w: 0.74, d: 2.6, h: 0.1, color: '#1f2937' },
-    { id, x: 0, y: 0, z: 0.24, w: 0.9, d: 1.85, h: 0.95, color, label, labelCls, main: true },
-    { id: `${id}-cab`, x: 0.04, y: 1.95, z: 0.24, w: 0.82, d: 0.72, h: 0.78, color: '#e2e8f0' },
+    // A white box trailer with a band in the lorry's colour, and the cab in that colour.
+    { id, x: 0, y: 0, z: 0.24, w: 0.9, d: 1.85, h: 0.95, color: '#eef3f1', label, labelCls, main: true },
+    { id: `${id}-band`, x: -0.01, y: -0.01, z: 0.26, w: 0.92, d: 1.87, h: 0.14, color },
+    { id: `${id}-cab`, x: 0.04, y: 1.95, z: 0.24, w: 0.82, d: 0.72, h: 0.78, color },
     { id: `${id}-glass`, x: 0.1, y: 2.62, z: 0.58, w: 0.7, d: 0.06, h: 0.32, color: '#1e293b' },
     ...[[0.0, 0.25], [0.74, 0.25], [0.0, 1.35], [0.74, 1.35], [0.0, 2.2], [0.74, 2.2]].map(([wx, wy], i) => ({ id: `${id}-w${i}`, x: wx, y: wy, z: 0, w: 0.16, d: 0.34, h: 0.28, color: '#111827' })),
   ];
@@ -93,9 +95,12 @@ export function cityLayout(places, moving = []) {
     const roadY = Math.round((y - ROAD / 2) / pitch) * pitch + 0.1;
     const roadX = Math.round((x - ROAD / 2) / pitch) * pitch + 0.1;
     const id = `lorry-${m.ref || i}`;
+    // Driving along the road towards the receiver, and round again.
+    const step = onRow ? [Math.sign(b.x - a.x) || 1, 0] : [0, Math.sign(b.y - a.y) || 1];
+    const anim = { path: [[step[0] * 1.6, step[1] * 1.6], [step[0] * 1.6, step[1] * 1.6], [0, 0]], dur: 6, ease: true, begin: `${(i % 4) * 0.8}s` };
     boxes.push(...(onRow
-      ? lorryBoxes(id, x - 1.35, roadY, { along: 'x', color: m.color || '#2f6fde', moving: m, title: m.ref, label: m.label || null })
-      : lorryBoxes(id, roadX, y - 1.35, { along: 'y', color: m.color || '#2f6fde', moving: m, title: m.ref, label: m.label || null })));
+      ? lorryBoxes(id, x - 1.35, roadY, { along: 'x', color: m.color || '#2f6fde', moving: m, title: m.ref, label: m.label || null, anim })
+      : lorryBoxes(id, roadX, y - 1.35, { along: 'y', color: m.color || '#2f6fde', moving: m, title: m.ref, label: m.label || null, anim })));
   });
   return { boxes, W, D, at };
 }

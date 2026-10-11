@@ -18,7 +18,12 @@ import { formatQty } from '../js/money.js';
 import { session } from '../js/session.js';
 import { isoScene } from '../js/iso.js';
 import { lorryBoxes } from '../js/town.js';
-import { layout } from '../js/warehouse3d.js';
+import { layout, parseBin } from '../js/warehouse3d.js';
+import { shade } from '../js/iso.js';
+
+const shade2 = (c) => (c.startsWith('#') ? shade(c, -0.12) : c);
+/** A shelf code as the layout writes it ("a1 l1 03" -> "A1-L1-03"). */
+const layoutCode = (bin) => parseBin(bin)?.code || '';
 import { lineDone } from '../js/picking.js';
 import { expiring } from '../js/wms.js';
 import { canMove, failed, head, isMine, loading, myPlaces, pill, placeName, shelfOf } from './common.js';
@@ -90,67 +95,167 @@ function draw(box, data) {
     return COLOR.heat[n === 0 ? 0 : n < 3 ? 1 : n < 6 ? 2 : n < 12 ? 3 : 4];
   };
 
-  // Docks in front of the racks, a lorry at each one with work.
+  // The floor plan, as a warehouse is laid out: racks at the back with their
+  // names painted at the head of each row; in front of them the staging
+  // lanes (goods picked, waiting to leave) and receiving (goods come in);
+  // packing, QC and the forklifts' charging to the side; the docks along
+  // the front wall, and the yard outside where lorries wait.
   const here = (id) => (id || '') === (scope || '');
+  const linesIn = (po) => `${(po.lines || []).filter((l) => (l.receivedMilli || 0) + (l.damagedMilli || 0) >= (l.qtyMilli || 0)).length}/${(po.lines || []).length}`;
   const arriving = [
-    ...data.pos.filter((p) => ['ORDERED', 'PARTIAL'].includes(p.status) && here(p.branchId)).map((p) => ({ ref: p.poNo, who: p.supplierName || '', go: () => go('receive', p.id) })),
-    ...data.transfers.filter((tr) => tr.status === 'SENT' && here(tr.toBranch) && isMine(tr.toBranch)).map((tr) => ({ ref: tr.transferNo, who: placeName(tr.fromBranch), go: () => go('transfers', tr.id) })),
+    ...data.pos.filter((p) => ['ORDERED', 'PARTIAL'].includes(p.status) && here(p.branchId))
+      .map((p) => ({ ref: p.poNo, who: p.supplierName || '', tag: `${p.poNo.split('-').slice(0, 2).join('-')} · ${linesIn(p)}`, go: () => go('receive', p.id) })),
+    ...data.transfers.filter((tr) => tr.status === 'SENT' && here(tr.toBranch) && isMine(tr.toBranch))
+      .map((tr) => ({ ref: tr.transferNo, who: placeName(tr.fromBranch), tag: tr.transferNo.split('-').slice(0, 2).join('-'), go: () => go('transfers', tr.id) })),
   ];
   const leaving = data.transfers.filter((tr) => ['DRAFT', 'PENDING', 'APPROVED'].includes(tr.status) && here(tr.fromBranch) && (tr.lines || []).length)
-    .map((tr) => ({ ref: tr.transferNo, who: placeName(tr.toBranch), go: () => go('transfers', tr.id) }));
-  const W = Math.max(floor.W, 10);
-  const docksIn = Math.max(2, Math.min(4, arriving.length));
+    .map((tr) => ({ ref: tr.transferNo, who: placeName(tr.toBranch), tag: `${tr.transferNo.split('-').slice(0, 2).join('-')} → ${placeName(tr.toBranch)}`, go: () => go('transfers', tr.id) }));
+  const picks = (data.picklists || []).filter((x) => (x.branchId || '') === (scope || ''));
+  const RX = 2.4;
+  const RY = 1.2;
+  const RW = Math.max(floor.W, 12);
+  const SIDE = RX + RW + 1.2;
+  const ZONE_Y = RY + floor.D + 1;
+  const ZONE_D = 2.6;
+  const dockY = ZONE_Y + ZONE_D + 0.8;
+  const W = SIDE + 6;
   const docksOut = Math.max(2, Math.min(4, leaving.length));
-  const dockY = floor.D + 1.4;
+  const docksIn = Math.max(2, Math.min(4, arriving.length));
   const boxes = [];
-  const dock = (i, kind, n) => {
-    const step = W / (docksIn + docksOut);
-    const x = (kind === 'IN' ? i : docksIn + i) * step + (step - 1.6) / 2;
-    const job = (kind === 'IN' ? arriving : leaving)[i];
-    boxes.push({ id: `dock-${kind}-${n}`, x, y: dockY, z: 0, w: 1.6, d: 1.2, h: 0, color: COLOR.dock, label: `${kind}-${n}`, labelCls: 'dock', pick: false });
-    // The dock's bumper, yellow, where the lorry backs up.
-    boxes.push({ id: `bump-${kind}-${n}`, x: x + 0.1, y: dockY + 1.1, w: 1.4, d: 0.1, h: 0.22, color: '#facc15', pick: false, noShadow: true });
-    if (!job) return;
-    const color = kind === 'IN' ? COLOR.inbound : COLOR.outbound;
-    boxes.push(...lorryBoxes(`lorry-${job.ref}`, x + 0.35, dockY + 1.35, { along: 'y', color, title: `${job.ref} · ${job.who}`, label: job.ref.split('-').slice(0, 2).join('-'), lorry: job }));
-  };
-  for (let i = 0; i < docksIn; i++) dock(i, 'IN', i + 1);
-  for (let i = 0; i < docksOut; i++) dock(i, 'OUT', i + 1);
-  const queue = [...arriving.slice(docksIn).map((j) => ({ ...j, kind: 'IN' })), ...leaving.slice(docksOut).map((j) => ({ ...j, kind: 'OUT' }))];
+  const tile = (id, x, y, w, d, color) => boxes.push({ id, x, y, w, d, h: 0, color, pick: false });
+  const words = (id, x, y, w, d, label, size = 0.5) => boxes.push({ id, x, y, w, d, h: 0, color: 'transparent', pick: false, label, labelCls: 'floor', labelSize: size, noFill: true });
 
-  // Each slot: an orange beam, and on it a carton coloured by what it holds (none when empty).
+  // The building's floor, and the yard outside it.
+  tile('floor-in', 0.2, 0.2, W - 0.4, dockY + 1.2, '#eef2f5');
+  tile('yard', 0.2, dockY + 1.5, W - 0.4, 7.2, '#c3ccd5');
+  // The zones in front of the racks.
+  const half = (RX + RW - 0.6) / 2;
+  tile('z-staging', 0.6, ZONE_Y, half, ZONE_D, '#dcefe9');
+  words('w-staging', 0.6, ZONE_Y + 0.2, half, 0.6, t('whMapStaging'));
+  tile('z-receiving', 0.6 + half + 0.4, ZONE_Y, half - 0.4, ZONE_D, '#dbeafe');
+  words('w-receiving', 0.6 + half + 0.4, ZONE_Y + 0.2, half - 0.4, 0.6, t('whMapReceiving'));
+  // To the side: packing stations, QC and returns, the forklifts' charging.
+  tile('z-packing', SIDE, RY, 4.6, 4.4, '#ede9fe');
+  words('w-packing', SIDE, RY + 0.1, 4.6, 0.6, t('whMapPacking'));
+  [[0.5, 1.2], [2.6, 1.2], [0.5, 2.9], [2.6, 2.9]].forEach(([dx, dy], i) => {
+    boxes.push({ id: `pack-${i}`, x: SIDE + dx, y: RY + dy, w: 1.4, d: 0.8, h: 0.55, color: '#cbd5e1', pick: false, label: `P${i + 1}`, labelCls: 'small' });
+    boxes.push({ id: `pack-${i}-box`, x: SIDE + dx + 0.2, y: RY + dy + 0.15, z: 0.55, w: 0.45, d: 0.4, h: 0.3, color: '#c8a26b', kind: 'carton', pick: false, noShadow: true });
+  });
+  tile('z-qc', SIDE, RY + 5, 4.6, 3, '#e0f2fe');
+  words('w-qc', SIDE, RY + 5.1, 4.6, 0.6, t('whMapQc'));
+  boxes.push({ id: 'qc-1', x: SIDE + 0.8, y: RY + 6.2, w: 1, d: 1, h: 0.7, color: '#94a3b8', pick: false }, { id: 'qc-2', x: SIDE + 2.4, y: RY + 6.4, w: 0.8, d: 0.8, h: 0.5, color: '#94a3b8', pick: false });
+  tile('z-charge', SIDE, RY + 8.6, 4.6, 2.6, '#f1f5f9');
+  words('w-charge', SIDE, RY + 8.7, 4.6, 0.6, t('whMapCharging'));
+  // A forklift, out of its charging bay and back.
+  const forkMove = { path: [[-1.6, 0], [-1.6, 0], [-1.6, -3.2], [-1.6, -3.2], [-1.6, 0], [0, 0], [0, 0]], dur: 16, ease: true };
+  boxes.push({ id: 'fork-body', x: SIDE + 1, y: RY + 9.7, w: 0.9, d: 1.2, h: 0.6, color: '#f59e0b', pick: false },
+    { id: 'fork-mast', x: SIDE + 1.05, y: RY + 9.55, w: 0.8, d: 0.12, h: 1.5, color: '#334155', pick: false, noShadow: true },
+    { id: 'fork-tine', x: SIDE + 1.15, y: RY + 9, w: 0.6, d: 0.55, h: 0.05, color: '#334155', pick: false, noShadow: true },
+    { id: 'charger', x: SIDE + 3, y: RY + 9.8, w: 0.4, d: 0.4, h: 0.9, color: '#10b981', pick: false });
+
+  // Docks along the front wall: OUT on the left (by staging), IN on the right (by receiving).
+  const dockAt = (i, kind) => {
+    const n = kind === 'OUT' ? docksOut : docksIn;
+    const x0 = kind === 'OUT' ? 0.6 : 0.6 + half + 0.4;
+    const span = kind === 'OUT' ? half : half - 0.4;
+    return x0 + (i + 0.5) * span / n - 0.8;
+  };
+  const dock = (i, kind) => {
+    const x = dockAt(i, kind);
+    const job = (kind === 'IN' ? arriving : leaving)[i];
+    boxes.push({ id: `dock-${kind}-${i + 1}`, x, y: dockY, z: 0, w: 1.6, d: 1.2, h: 0, color: kind === 'IN' ? '#bfdbfe' : '#fde68a', label: `${kind}-${i + 1}`, labelCls: 'dock', pick: false });
+    boxes.push({ id: `bump-${kind}-${i + 1}`, x: x + 0.1, y: dockY + 1.15, w: 1.4, d: 0.1, h: 0.22, color: '#facc15', pick: false, noShadow: true });
+    if (!job) return;
+    boxes.push(...lorryBoxes(`lorry-${job.ref}`, x + 0.35, dockY + 1.4, { along: 'y', color: kind === 'IN' ? COLOR.inbound : COLOR.outbound, title: `${job.ref} · ${job.who}`, label: job.tag, labelCls: 'grn', lorry: job }));
+    // Goods coming off, or waiting to go on, at the dock.
+    // A carton going between the lorry and the dock: off it (in), onto it (out).
+    boxes.push({ id: `dock-${kind}-${i + 1}-pallet`, x: x + 0.45, y: dockY + 0.2, w: 0.7, d: 0.6, h: 0.45, color: '#c8a26b', kind: 'carton', pick: false,
+      anim: { path: [[0, 1.3], [0, 1.3], [0, 0], [0, 0]], dur: 5, ease: true, begin: `${i * 0.7}s` } });
+  };
+  for (let i = 0; i < docksOut; i++) dock(i, 'OUT');
+  for (let i = 0; i < docksIn; i++) dock(i, 'IN');
+  // The yard: the rest wait in marked bays.
+  const queue = [...arriving.slice(docksIn).map((j) => ({ ...j, kind: 'IN' })), ...leaving.slice(docksOut).map((j) => ({ ...j, kind: 'OUT' }))];
+  for (let k = 0; k < 8; k++) {
+    const x = 1 + k * 2.2;
+    if (x + 1.4 > W) break;
+    boxes.push({ id: `bay-${k}`, x, y: dockY + 5.2, w: 0.06, d: 2.6, h: 0, color: '#facc15', pick: false });
+    const job = queue[k];
+    if (job) boxes.push(...lorryBoxes(`lorry-${job.ref}`, x + 0.4, dockY + 5.1, { along: 'y', color: job.kind === 'IN' ? COLOR.inbound : COLOR.outbound, title: `${job.ref} · ${job.who}`, label: job.tag, labelCls: 'grn', lorry: job }));
+  }
+
+  // Staging: what has been picked and waits to leave, a stack per finished picklist.
+  picks.filter((x) => x.status === 'DONE').slice(0, 8).forEach((x, i) => {
+    const lane = i % Math.max(1, docksOut);
+    const bx = dockAt(lane, 'OUT') + 0.2 + Math.floor(i / docksOut) * 0.75;
+    boxes.push({ id: `staged-${x.id}`, x: bx, y: ZONE_Y + 1, w: 0.6, d: 0.6, h: 0.5, color: '#c8a26b', kind: 'carton', title: x.pickNo, pick: false },
+      { id: `staged-${x.id}-2`, x: bx + 0.05, y: ZONE_Y + 1.05, z: 0.5, w: 0.5, d: 0.5, h: 0.35, color: '#d6b98c', kind: 'carton', pick: false, noShadow: true });
+  });
+
+  // Pickers: where their next line is, with how far they have got.
+  const cellOf = new Map(floor.cells.filter((c) => c.code).map((c) => [c.code, c]));
+  const people = [];
+  picks.filter((x) => x.status === 'PICKING').forEach((x, i) => {
+    const next = (x.lines || []).find((l) => !lineDone(l));
+    const done = (x.lines || []).filter(lineDone).length;
+    const code = next?.bin ? layoutCode(next.bin) : '';
+    const c = cellOf.get(code);
+    // In the aisle in front of the bin; else waiting in staging.
+    const px = c ? RX + c.x + 0.3 : 1 + i;
+    const py = c ? RY + c.y + (Math.floor(c.y) % 2 ? 1.05 : -0.55) : ZONE_Y + 0.6;
+    people.push({ id: `picker-${x.id}`, x: px, y: py, w: 0.34, d: 0.34, h: 0.55, color: '#f97316', kind: 'person',
+      label: `${x.pickerName || t('whPickBy')} · ${done}/${(x.lines || []).length}`, labelCls: 'task', title: x.pickNo, pickList: x,
+      // Walking up and down the aisle, looking for the next item.
+      anim: { path: [[0.9, 0], [0.9, 0], [-0.7, 0], [-0.7, 0]], dur: 7, ease: true, bob: true } });
+  });
+
+  // Each slot: an orange beam, and on it cartons coloured by what they hold (none when empty).
   const cellBoxes = () => floor.cells.flatMap((c, i) => {
     const tone = cellTone(c);
     const used = c.bins.some((b) => b.product);
     const title = c.code ? `${c.code}${c.bins.filter((b) => b.product).map((b) => `\n${b.product.name} · ${formatQty(b.row?.onHand || 0)}`).join('')}` : `${c.rack}-L${c.level}-${c.slot}`;
     const cls = [demo ? 'demo' : '', mode === 'pick' && tone === COLOR.pick ? 'pulse' : ''].filter(Boolean).join(' ');
-    const beam = { id: `c${i}-beam`, x: c.x, y: c.y, z: c.z, w: 1, d: 0.94, h: 0.07, color: '#f08c00', cell: c, title, noShadow: c.z > 0, cls: demo ? 'demo' : '' };
+    const x = RX + c.x;
+    const y = RY + c.y;
+    const beam = { id: `c${i}-beam`, x, y, z: c.z, w: 1, d: 0.94, h: 0.07, color: '#f08c00', cell: c, title, noShadow: c.z > 0, cls: demo ? 'demo' : '' };
     if (!used && !demo) return [beam];
-    return [beam, { id: `c${i}`, x: c.x + 0.1, y: c.y + 0.1, z: c.z + 0.07, w: 0.8, d: 0.74, h: 0.56, color: demo ? '#d6b98c' : tone, cell: c, title, cls, kind: 'carton', noShadow: true }];
+    const color = demo ? '#d6b98c' : mode === 'fill' && tone === COLOR.ok ? '#c8a26b' : tone;
+    return [beam,
+      { id: `c${i}`, x: x + 0.06, y: y + 0.1, z: c.z + 0.07, w: 0.5, d: 0.74, h: 0.5, color, cell: c, title, cls, kind: 'carton', noShadow: true },
+      { id: `c${i}-b`, x: x + 0.58, y: y + 0.16, z: c.z + 0.07, w: 0.36, d: 0.62, h: 0.38, color: shade2(color), cell: c, title, cls, kind: 'carton', noShadow: true }];
   });
-  // Blue uprights every second slot, both sides of each rack.
+  // Steel uprights every second slot, both sides of each rack.
   const uprights = () => floor.racks.flatMap((r) => {
     const tall = Math.max(...floor.cells.filter((c) => c.rack === r.name).map((c) => c.z)) + 0.8;
     const out = [];
-    for (let k = 0; k <= r.w; k += 2) for (const dy of [-0.02, 0.9]) out.push({ id: `up-${r.name}-${k}-${dy}`, x: Math.min(k, r.w) - 0.05, y: r.y + dy, w: 0.1, d: 0.1, h: tall, color: '#2b59c3', pick: false });
-    if (r.w % 2) for (const dy of [-0.02, 0.9]) out.push({ id: `up-${r.name}-end-${dy}`, x: r.w - 0.05, y: r.y + dy, w: 0.1, d: 0.1, h: tall, color: '#2b59c3', pick: false });
+    const post = (k, dy, tag) => out.push({ id: `up-${r.name}-${tag}-${dy}`, x: RX + k - 0.05, y: RY + r.y + dy, w: 0.1, d: 0.1, h: tall, color: '#64748b', pick: false });
+    for (let k = 0; k <= r.w; k += 2) for (const dy of [-0.02, 0.9]) post(Math.min(k, r.w), dy, k);
+    if (r.w % 2) for (const dy of [-0.02, 0.9]) post(r.w, dy, 'end');
     return out;
   });
-  // Yellow lines along each aisle.
+  // Yellow lines along each aisle; the rack's name painted at its head.
   const aisles = () => floor.racks.filter((_, i) => i % 2 === 1).flatMap((r) => [
-    { id: `aisle-${r.name}-a`, x: -0.3, y: r.y + 1.12, w: W + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
-    { id: `aisle-${r.name}-b`, x: -0.3, y: r.y + 2.48, w: W + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
+    { id: `aisle-${r.name}-a`, x: RX - 0.3, y: RY + r.y + 1.12, w: RW + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
+    { id: `aisle-${r.name}-b`, x: RX - 0.3, y: RY + r.y + 2.48, w: RW + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
   ]);
-  const rackLabels = () => floor.racks.map((r) => ({ id: `rack-${r.name}`, x: -1.2, y: r.y, z: 0, w: 0.9, d: 0.9, h: 0, color: '#0f766e', label: r.name, labelCls: 'rack', pick: false }));
-  // Everything moved right by the width of the rack names in front of each row.
-  const all = () => [...aisles(), ...rackLabels(), ...uprights(), ...cellBoxes(), ...boxes].map((b) => ({ ...b, x: b.x + 1.4 }));
+  const rackLabels = () => floor.racks.map((r) => ({ id: `rack-${r.name}`, x: RX - 1.8, y: RY + r.y, z: 0, w: 1.4, d: 0.9, h: 0, color: 'transparent', label: r.name, labelCls: 'floor', labelSize: 0.55, pick: false, noFill: true }));
+  const all = () => [...boxes.filter((b) => b.h === 0), ...aisles(), ...rackLabels(), ...uprights(), ...cellBoxes(), ...boxes.filter((b) => b.h !== 0), ...people];
   const info = h('div', { class: 'card map-info' });
+  let panels = true;
+  const stage = h('div', { class: 'map-stage wh3d' });
   const scene = isoScene({
-    boxes: all(), W: W + 1.6, D: dockY + 4.6, height: 720,
+    boxes: all(), W, D: dockY + 9, height: 760, hint: t('whMapHint'),
     onPick: (b) => { scene.select(b.id); showInfo(b); },
+    extraTools: [{ label: '▤', act: 'iso-panel', title: t('whMapTasks'), onClick: () => { panels = !panels; stage.classList.toggle('no-panels', !panels); } }],
   });
 
   const showInfo = (b) => {
+    if (b.pickList) {
+      const x = b.pickList;
+      mount(info, h('h3', {}, `${x.pickerName || ''} · ${x.pickNo}`), h('p', { class: 'muted' }, `${(x.lines || []).filter(lineDone).length}/${(x.lines || []).length} ${t('whLines')}`),
+        h('button', { class: 'primary', onclick: () => go('picking', x.id) }, t('whMapOpen')));
+      return;
+    }
     if (b.lorry) {
       mount(info, h('h3', {}, b.lorry.ref), h('p', { class: 'muted' }, b.lorry.who), h('button', { class: 'primary', onclick: b.lorry.go }, t('whMapOpen')));
       return;
@@ -198,9 +303,22 @@ function draw(box, data) {
       stat(t('whExpiring'), String(soonN), soonN ? 'warn' : ''),
       stat(t('whMapDocks'), `${arriving.length} ↓ · ${leaving.length} ↑`)),
     chips,
-    h('div', { class: 'map-stage' }, scene.el, legend),
+    stage,
     info,
     queue.length ? h('section', { class: 'card', 'data-card': 'yard' }, h('h3', {}, `${t('whMapYard')} (${queue.length})`),
       queue.map((j) => h('button', { class: 'wh-row', onclick: j.go }, h('span', { class: 'grow' }, h('b', {}, j.ref), ` · ${j.who}`), pill(j.kind === 'IN' ? t('whMapIn') : t('whMapOut'), j.kind === 'IN' ? 'warn' : 'good')))) : null);
+  // The work going on, over the picture: tap one to go to it.
+  const tasks = [
+    ...picks.filter((x) => ['WAITING', 'PICKING'].includes(x.status)).flatMap((x) => {
+      const l = (x.lines || []).find((y) => !lineDone(y));
+      if (!l) return [];
+      const c = cellOf.get(layoutCode(l.bin || ''));
+      const i = c ? floor.cells.indexOf(c) : -1;
+      return [{ key: `pick-${x.id}`, text: `${t('whMapTaskPick')} ${formatQty(l.qtyMilli - (l.pickedMilli || 0))} × ${l.name} → ${l.bin || '—'}${x.pickerName ? ` · ${x.pickerName}` : ''}`, focus: i >= 0 ? `c${i}-beam` : `picker-${x.id}`, tone: 'pick' }];
+    }),
+    ...arriving.map((j) => ({ key: `in-${j.ref}`, text: `${t('whMapTaskIn')} ${j.ref} · ${j.who}`, focus: `lorry-${j.ref}`, tone: 'in' })),
+    ...leaving.map((j) => ({ key: `out-${j.ref}`, text: `${t('whMapTaskOut')} ${j.ref} → ${j.who}`, focus: `lorry-${j.ref}`, tone: 'out' })),
+  ].slice(0, 6);
+  mount(stage, scene.el, tasks.length ? h('div', { class: 'wh3d-tasks', 'data-card': 'tasks' }, tasks.map((x) => h('button', { class: `wh3d-task ${x.tone}`, 'data-task': x.key, onclick: () => scene.focus(x.focus) }, h('i'), x.text))) : null, legend);
   mount(info, h('p', { class: 'muted', style: { margin: 0 } }, t('whMapTap')));
 }

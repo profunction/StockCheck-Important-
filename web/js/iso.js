@@ -35,6 +35,13 @@ export function turn(box, W, D, turns = 0) {
   return { box: b, W: w, D: d };
 }
 
+/** A world direction [dx, dy] after [turns] quarter turns (as turn() moves boxes). */
+export function turnVector([dx, dy], turns = 0) {
+  let v = [dx, dy];
+  for (let i = 0; i < ((turns % 4) + 4) % 4; i++) v = [-v[1], v[0]];
+  return v;
+}
+
 /** Back to front, then bottom to top: the order a painter would lay them down. */
 export function paintOrder(boxes) {
   const depth = (b) => b.x + (b.w || 0) / 2 + b.y + (b.d || 0) / 2;
@@ -43,6 +50,7 @@ export function paintOrder(boxes) {
 
 /** "#3a7" or "#33aa77" made lighter (f > 0) or darker (f < 0). */
 export function shade(hex, f) {
+  if (!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(String(hex || ''))) return hex || '#888888';
   let s = String(hex || '#888').replace('#', '');
   if (s.length === 3) s = s.split('').map((c) => c + c).join('');
   const n = parseInt(s, 16);
@@ -113,7 +121,7 @@ let uids = 0;
  * (extra CSS class, e.g. 'pulse'), [kind] and [pick] (false: not
  * tappable). [onPick] gets the box tapped. Returns { el, draw(boxes, W, D), select(id) }.
  */
-export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null } = {}) {
+export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null, hint = '', extraTools = [] } = {}) {
   const uid = `iso${++uids}`;
   let turns = 0;
   let zoom = 1;
@@ -121,6 +129,8 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   let selected = null;
   let current = { boxes, W, D };
   let base = null;
+  // Where each box was drawn, for focus().
+  const where = new Map();
   const pic = svg('svg', { class: 'iso-svg', role: 'img', preserveAspectRatio: 'xMidYMid meet' });
   const el = document.createElement('div');
   el.className = 'iso-wrap';
@@ -139,7 +149,7 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     const want = narrow() ? (window.innerHeight || 800) * 0.6 : w * base.h / base.w;
     pic.style.height = `${Math.round(Math.min(most, Math.max(320, want)))}px`;
   };
-  if (typeof ResizeObserver === 'function') new ResizeObserver(fit).observe(pic);
+  if (typeof ResizeObserver === 'function') new ResizeObserver(() => view()).observe(pic);
   const view = () => {
     if (!base) return;
     fit();
@@ -175,6 +185,12 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
       const [a, c] = [project(b.x + b.w / 2, b.y, t), project(b.x + b.w / 2, Y, t)];
       out.push(svg('line', { x1: a[0], y1: a[1], x2: c[0], y2: c[1], stroke: shade(color, -0.3), 'stroke-width': 0.05, 'stroke-opacity': 0.55 }));
     }
+    if (b.kind === 'person') {
+      // A head on the shoulders, and a cap in the shirt's colour.
+      const [hx, hy] = project(b.x + b.w / 2, b.y + b.d / 2, t + 0.16);
+      out.push(svg('circle', { cx: hx, cy: hy, r: 0.15, fill: '#f1c6a0', stroke: '#b9835c', 'stroke-width': 0.015 }),
+        svg('ellipse', { cx: hx, cy: hy - 0.08, rx: 0.15, ry: 0.07, fill: shade(color, -0.25) }));
+    }
     if ((b.kind === 'building' || b.kind === 'glass') && b.h > 0.6) {
       // Rows of windows on both walls the viewer sees.
       const rows = Math.max(1, Math.floor(b.h / 0.45));
@@ -200,14 +216,37 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     return out;
   };
 
+  // Movement (SVG's own animation, so it needs no script running): [anim]
+  // { path: [[dx, dy], ...] world steps from where the box stands, dur
+  // seconds, bob: true for walking }. Off for people who asked for less motion.
+  const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let firstDraw = true;
+  let rising = false;
+  let risen = 0;
+  const animate = (g, a) => {
+    const add = (values, dur, begin = '0s') => g.append(svg('animateTransform', {
+      attributeName: 'transform', type: 'translate', values, dur: `${dur}s`, begin, repeatCount: 'indefinite', additive: 'sum', calcMode: a.ease ? 'spline' : 'linear',
+      ...(a.ease ? { keySplines: Array(values.split(';').length - 1).fill('.45 0 .55 1').join(';') } : {}),
+    }));
+    if (a.path?.length) {
+      const pts2 = [[0, 0], ...a.path].map((v) => project(...turnVector(v, turns), 0));
+      add(pts2.map(([x, y]) => `${x.toFixed(3)},${y.toFixed(3)}`).join(';'), a.dur || 8, a.begin || '0s');
+    }
+    if (a.bob) add('0,0;0,-0.06;0,0', 0.6);
+  };
   const draw = (list = current.boxes, w0 = current.W, d0 = current.D) => {
     current = { boxes: list, W: w0, D: d0 };
+    // Rising from the floor, once, when the picture first appears.
+    rising = firstDraw && !still;
+    firstDraw = false;
+    risen = 0;
     const turned = list.map((b) => ({ ...turn(b, w0, d0, turns).box, src: b }));
     const { W: tw, D: td } = turn({ x: 0, y: 0 }, w0, d0, turns);
     const slab = { x: -0.8, y: -0.8, z: -0.35, w: tw + 1.6, d: td + 1.6, h: 0.35 };
     const shadows = [];
     const kids = [];
     const labels = [];
+    where.clear();
     const rich = list.length < 1600;
     let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
     const grow = (poly) => { for (const [a, c] of poly) { minX = Math.min(minX, a); maxX = Math.max(maxX, a); minY = Math.min(minY, c); maxY = Math.max(maxY, c); } };
@@ -243,6 +282,17 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
       }
       const f = faces(b);
       [f.top, f.left, f.right].filter(Boolean).forEach(grow);
+      // Words painted on the floor and nothing else.
+      if (src.noFill) {
+        if (src.label) {
+          const [lx, ly] = project(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2, 0);
+          const size = src.labelSize || 0.42;
+          const flip = turns % 2 ? 'matrix(0.866 -0.5 0.866 0.5 0 0)' : 'matrix(0.866 0.5 -0.866 0.5 0 0)';
+          labels.push(svg('g', { transform: `translate(${lx.toFixed(3)} ${ly.toFixed(3)})` },
+            svg('text', { class: 'iso-floortext', transform: flip, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': size.toFixed(3) }, String(src.label))));
+        }
+        continue;
+      }
       const sh = shadowOf(b);
       if (sh && rich) shadows.push(svg('polygon', { class: 'iso-shadow', points: pts(sh) }));
       const edge = shade(color, -0.4);
@@ -257,8 +307,21 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
         face(f.top, src.h ? shade(color, 0.1) : color, src.h ? 'top' : null),
         rich ? decorate(b, f, color) : null);
       if (tap) g.addEventListener('click', () => { if (!dragged) onPick(src); });
+      if (src.anim && rich && !still) animate(g, src.anim);
+      if (rising && src.h && !src.noRise && !src.anim) {
+        g.classList.add('rise');
+        g.style.animationDelay = `${Math.min(900, risen++ * 6)}ms`;
+      }
       kids.push(g);
-      if (src.label) {
+      if (src.id != null) where.set(src.id, project(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2, (b.z || 0) + (b.h || 0)));
+      if (src.label && src.labelCls === 'floor') {
+        // Painted on the floor, along the room, like the words on a warehouse floor.
+        const [lx, ly] = project(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2, 0);
+        const size = src.labelSize || 0.42;
+        const flip = turns % 2 ? 'matrix(0.866 -0.5 0.866 0.5 0 0)' : 'matrix(0.866 0.5 -0.866 0.5 0 0)';
+        labels.push(svg('g', { transform: `translate(${lx.toFixed(3)} ${ly.toFixed(3)})` },
+          svg('text', { class: 'iso-floortext', transform: flip, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': size.toFixed(3) }, String(src.label))));
+      } else if (src.label) {
         const [lx, ly] = project(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2, (b.z || 0) + (b.h || 0));
         const size = src.labelCls === 'big' ? 0.42 : src.labelCls === 'small' ? 0.24 : 0.3;
         const text = String(src.label);
@@ -281,7 +344,11 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   let start = null;
   const fingers = new Map();
   let pinch = null;
+  // Right-drag (a mouse's right button) turns the picture, a quarter at a time.
+  let turning = null;
+  pic.addEventListener('contextmenu', (e) => e.preventDefault());
   pic.addEventListener('pointerdown', (e) => {
+    if (e.button === 2) { turning = { x: e.clientX }; dragged = true; return; }
     fingers.set(e.pointerId, [e.clientX, e.clientY]);
     if (fingers.size === 2) {
       const [a, b] = [...fingers.values()];
@@ -293,6 +360,11 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     dragged = false;
   });
   pic.addEventListener('pointermove', (e) => {
+    if (turning) {
+      const dx = e.clientX - turning.x;
+      if (Math.abs(dx) > 90) { turns = (turns + (dx > 0 ? 1 : 3)) % 4; turning.x = e.clientX; pan = [0, 0]; draw(); }
+      return;
+    }
     if (fingers.has(e.pointerId)) fingers.set(e.pointerId, [e.clientX, e.clientY]);
     if (pinch && fingers.size === 2) {
       const [a, b] = [...fingers.values()];
@@ -309,6 +381,7 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     view();
   });
   const stop = (e) => {
+    if (turning) { turning = null; setTimeout(() => { dragged = false; }, 0); return; }
     fingers.delete(e.pointerId);
     if (fingers.size < 2) pinch = null;
     if (!fingers.size) { start = null; setTimeout(() => { dragged = false; }, 0); }
@@ -336,14 +409,16 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     setTimeout(view, 30);
   };
   const tools = document.createElement('div');
-  tools.className = 'iso-tools';
+  tools.className = `iso-tools${hint ? ' top' : ''}`;
+  if (hint) tools.append(Object.assign(document.createElement('span'), { className: 'iso-hint', textContent: hint }));
   tools.append(
     btn('⛶', 'iso-full', full, 'Full screen'),
     btn('⟲', 'iso-left', () => { turns = (turns + 3) % 4; pan = [0, 0]; draw(); }),
     btn('⟳', 'iso-right', () => { turns = (turns + 1) % 4; pan = [0, 0]; draw(); }),
     btn('+', 'iso-in', () => setZoom(zoom * 1.35)),
     btn('−', 'iso-out', () => setZoom(zoom / 1.35)),
-    btn('⌂', 'iso-home', () => { zoom = homeZoom || 1; pan = [0, 0]; view(); }));
+    btn('⌂', 'iso-home', () => { zoom = homeZoom || 1; pan = [0, 0]; view(); }),
+    ...extraTools.map((x) => btn(x.label, x.act, x.onClick, x.title)));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && el.classList.contains('full')) full(); });
   el.append(pic, tools);
   draw();
@@ -351,5 +426,13 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     el,
     draw,
     select: (id) => { selected = id; draw(); },
+    /** Brings box [id] to the middle, closer in. */
+    focus: (id, z = 2.4) => {
+      const at = where.get(id);
+      if (!at || !base) return;
+      zoom = Math.max(zoom, z);
+      pan = [at[0] - (base.x + base.w / 2), at[1] - (base.y + base.h / 2)];
+      view();
+    },
   };
 }

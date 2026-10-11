@@ -165,6 +165,8 @@ const en = {
   whMapDemoHelp: 'Give each product its shelf code in Stock (e.g. A1-L1-30: rack A1, level 1, slot 30) and your own warehouse appears here.',
   whMapBins: 'Slots used', whMapUnits: 'Units on shelves', whMapDocks: 'Lorries', whMapYard: 'Waiting in the yard',
   whMapTap: 'Tap a slot or a lorry to see what is there. Drag to move, ⟲ ⟳ to turn.',
+  whMapStaging: 'STAGING', whMapReceiving: 'RECEIVING', whMapPacking: 'PACKING', whMapQc: 'QC & RETURNS', whMapCharging: 'CHARGING',
+  whMapHint: 'Drag to move · right-drag to turn', whMapTasks: 'Tasks', whMapTaskPick: 'Pick', whMapTaskIn: 'Receive', whMapTaskOut: 'Load',
 };
 
 const zh = {
@@ -331,6 +333,8 @@ const zh = {
   whMapDemoHelp: '在「库存」给每样商品填货架号（例如 A1-L1-30：A1 货架、第 1 层、第 30 格），这里就会变成你自己的仓库。',
   whMapBins: '用了的货位', whMapUnits: '货架上件数', whMapDocks: '货车', whMapYard: '在外面排队',
   whMapTap: '点一格货位或货车，看里面有什么。拖动可以移动，⟲ ⟳ 转方向。',
+  whMapStaging: '暂放区', whMapReceiving: '收货区', whMapPacking: '打包区', whMapQc: '质检和退货', whMapCharging: '叉车充电',
+  whMapHint: '拖动移动 · 右键拖动转方向', whMapTasks: '任务', whMapTaskPick: '拣', whMapTaskIn: '收货', whMapTaskOut: '装车',
 };
 
 const ms = {
@@ -497,6 +501,8 @@ const ms = {
   whMapDemoHelp: 'Isi kod rak setiap barang di Stok (cth. A1-L1-30: rak A1, aras 1, slot 30) dan gudang anda sendiri akan muncul di sini.',
   whMapBins: 'Slot digunakan', whMapUnits: 'Unit di rak', whMapDocks: 'Lori', whMapYard: 'Menunggu di luar',
   whMapTap: 'Tekan slot atau lori untuk lihat isinya. Seret untuk gerak, ⟲ ⟳ untuk pusing.',
+  whMapStaging: 'STAGING', whMapReceiving: 'TERIMA', whMapPacking: 'PEMBUNGKUSAN', whMapQc: 'QC & PULANGAN', whMapCharging: 'CAS FORKLIFT',
+  whMapHint: 'Seret untuk gerak · seret kanan untuk pusing', whMapTasks: 'Tugas', whMapTaskPick: 'Ambil', whMapTaskIn: 'Terima', whMapTaskOut: 'Muat',
 };
 
 export const STRINGS = { en, zh, ms };

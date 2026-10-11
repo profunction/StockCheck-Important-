@@ -993,3 +993,34 @@ body.iso-full-open { overflow: hidden; }
 .sm-tools { position: absolute; top: 10px; right: 10px; display: grid; gap: 8px; }
 .sm-credit { position: absolute; right: 4px; bottom: 2px; font-size: 10px; background: rgba(255, 255, 255, .8); padding: 1px 5px; border-radius: 4px; color: #333; }
 @media (prefers-reduced-motion: reduce) { .sm-mark.lorry .sm-ic { animation: none; } }
+
+/* The 3D pictures, part two: words on the floor, task tags, the top toolbar */
+.iso-floortext { font-family: var(--f-mono, ui-monospace, monospace); font-weight: 700; letter-spacing: .08em; fill: #64748b; opacity: .85; pointer-events: none; }
+:root[data-theme="dark"] .iso-floortext { fill: #9fb3c8; }
+.iso-tag.task rect { fill: #f59e0b; stroke: none; }
+.iso-tag.task text { fill: #1f2937; font-family: var(--f-mono, ui-monospace, monospace); }
+.iso-tag.grn rect { fill: #fff; stroke: rgba(0, 0, 0, .12); }
+.iso-tag.grn text { fill: #0b1b2b; font-family: var(--f-mono, ui-monospace, monospace); }
+.iso-tools.top { top: 12px; left: 12px; right: auto; display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 14px; background: var(--surface); box-shadow: 0 6px 20px rgba(0, 0, 0, .12); border: 1px solid var(--line); }
+.iso-tools.top .iso-btn { width: 38px; height: 38px; box-shadow: none; border: 0; background: none; }
+.iso-tools.top .iso-btn:hover { background: var(--surface-2); }
+.iso-hint { font-family: var(--f-mono, ui-monospace, monospace); font-size: 12.5px; color: var(--muted); padding: 0 8px; white-space: nowrap; }
+.wh3d { position: relative; }
+.wh3d-tasks { position: absolute; left: 12px; bottom: 54px; display: grid; gap: 8px; max-width: min(460px, calc(100% - 24px)); }
+.wh3d-task { display: flex; align-items: center; gap: 10px; justify-content: flex-start; text-align: left; min-height: 40px; padding: 8px 14px; border-radius: 12px; background: rgba(255, 255, 255, .92); border: 1px solid var(--line); color: #334155; font-weight: 500; font-size: 14px; box-shadow: 0 4px 14px rgba(0, 0, 0, .08); }
+:root[data-theme="dark"] .wh3d-task { background: rgba(10, 24, 36, .9); color: #dbe4ec; }
+.wh3d-task i { width: 10px; height: 10px; border-radius: 50%; flex: none; background: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, .2); }
+.wh3d-task.pick i { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, .25); }
+.wh3d-task.out i { background: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, .2); }
+.wh3d.no-panels .wh3d-tasks, .wh3d.no-panels .map-legend { display: none; }
+@media (max-width: 600px) {
+  .iso-tools.top { top: 8px; bottom: auto; left: 8px; right: auto; max-width: calc(100% - 16px); overflow-x: auto; }
+  .iso-hint { display: none; }
+  /* On a phone the tasks go under the picture, not over it. */
+  .wh3d-tasks { position: static; max-width: none; margin: 8px; }
+  .wh3d-task { font-size: 12.5px; min-height: 34px; padding: 6px 10px; }
+}
+/* Boxes rise from the floor when a 3D picture first appears */
+.iso-box.rise { animation: isorise .6s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes isorise { from { transform: translateY(.9px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .iso-box.rise { animation: none; } }
