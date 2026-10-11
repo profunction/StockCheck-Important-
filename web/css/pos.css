@@ -1,39 +1,37 @@
 /*
  * Every SuXin app (POS, WMS, Books, Every Data, Barcode Scan on the web, the
- * app centre), in the same look as the website (web/assets/): white cards on
- * a pale grey canvas, hairline borders, one plum colour for what can be
- * pressed and what is chosen, amber for "pay attention", Inter for words and
- * JetBrains Mono for small labels and figures.
+ * app centre). The same look as the website (web/assets/): deep navy, one
+ * emerald-to-teal gradient for what can be pressed, mint for what is
+ * chosen, amber for "pay attention", money in tabular figures.
  *
- * Light is the default; dark when chosen (the sun/moon button, stored as
- * suxin-theme and applied before the page draws by /assets/theme.js, which
- * marks the light theme as data-theme="light").
+ * Dark is the default; light when chosen (the sun/moon button, stored as
+ * suxin-theme and applied before the page draws by /assets/theme.js). The
+ * side bar and the app headers stay navy in both.
  */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap");
 
-/* Dark: plum on near-black. */
 :root {
-  --bg: #121016;
-  --surface: #1b1820;
-  --surface-2: #221e28;
-  --surface-3: #2c2633;
-  --text: #f2eef5;
-  --muted: #a99fb1;
-  --line: #2c2633;
-  --line-strong: #3d3546;
-  --brand: #d3a3c6;
-  --brand-strong: #ecc6e1;
-  --brand-ink: #2f1029;
-  --brand-soft: #3a2936;
-  --btn: #8d6081;
-  --grad: linear-gradient(180deg, #996b8d 0%, #8d6081 100%);
-  --grad-soft: linear-gradient(100deg, #d3a3c61f, #d3a3c60d);
-  --panel: #3a2936;
-  --side-bg: #17141b;
-  --side-text: #e4dee9;
-  --side-muted: #988ea2;
-  --side-hover: #251f2b;
-  --side-accent: #d3a3c6;
+  --bg: #071420;
+  --surface: #0d2133;
+  --surface-2: #11283d;
+  --surface-3: #173149;
+  --text: #eef6f7;
+  --muted: #9fb3bd;
+  --line: #1c3447;
+  --line-strong: #2a465b;
+  --brand: #2dd4bf;
+  --brand-strong: #5eead4;
+  --brand-ink: #042f2e;
+  --brand-soft: #0f3a3c;
+  --btn: #0d9488;
+  --grad: linear-gradient(100deg, #10b981 0%, #14b8a6 55%, #0d9488 100%);
+  --grad-soft: linear-gradient(100deg, #10b98129, #0d94881a);
+  --panel: #050f19;
+  --side-bg: #050f19;
+  --side-text: #d9e6ec;
+  --side-muted: #7d929d;
+  --side-hover: #0f2538;
+  --side-accent: #2dd4bf;
   --side-strong: #ffffff;
   --side-line: rgba(255, 255, 255, .08);
   --side-chip: rgba(255, 255, 255, .05);
@@ -41,32 +39,29 @@
   --accent-soft: #3a2c14;
   --danger: #f87171;
   --danger-soft: #3d1c1f;
-  --ok: #4ade80;
-  --toast: #2c2633;
-  --ok-ink: #052e16;
+  --ok: #34d399;
+  --toast: #173149;
+  --ok-ink: #03251a;
   --accent-ink: #2b1a00;
-  --overlay: rgba(8, 4, 10, .66);
-  --radius: 10px;
-  --radius-sm: 6px;
-  --pill: 6px;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, .35);
-  --shadow-2: 0 24px 60px -30px rgba(0, 0, 0, .9);
-  --f-display: "Inter", "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --overlay: rgba(2, 8, 14, .66);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --pill: 999px;
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-2: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 24px 60px -30px rgba(0, 0, 0, .9);
+  --f-display: "Sora", "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-body: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   color-scheme: dark;
 }
-/* Light (the default): the Stitch palette -- #714b67 plum on #f5f6f8. */
 :root[data-theme="light"] {
-  --bg: #f5f6f8; --surface: #ffffff; --surface-2: #f8fafc; --surface-3: #f1f5f9; --text: #12141d; --muted: #565e74;
-  --line: #e2e8f0; --line-strong: #cbd5e1; --brand: #714b67; --brand-strong: #57344f; --brand-ink: #ffffff; --brand-soft: #f7edf4;
-  --btn: #714b67; --grad: linear-gradient(180deg, #7b5371 0%, #714b67 100%); --grad-soft: linear-gradient(100deg, #714b6714, #714b6708);
-  --panel: #57344f;
-  --side-bg: #ffffff; --side-text: #334155; --side-muted: #64748b; --side-hover: #f7edf4; --side-accent: #714b67;
-  --side-strong: #12141d; --side-line: #e2e8f0; --side-chip: #f8fafc;
-  --accent: #b45309; --accent-soft: #fdf3e2; --danger: #ba1a1a; --danger-soft: #ffdad6; --ok: #15803d; --toast: #12141d; --ok-ink: #ffffff; --accent-ink: #ffffff;
-  --overlay: rgba(18, 20, 29, .45);
-  --shadow-1: 0 1px 2px rgba(15, 23, 42, .05); --shadow-2: 0 18px 44px -24px rgba(15, 23, 42, .28);
+  --bg: #f1f6f6; --surface: #ffffff; --surface-2: #f5f9f9; --surface-3: #e5eeee; --text: #0b1b2b; --muted: #4e6474;
+  --line: #dbe5e7; --line-strong: #c3d1d5; --brand: #0d9488; --brand-strong: #0f766e; --brand-ink: #ffffff; --brand-soft: #dcf3ef;
+  --btn: #0d9488; --panel: #0b1b2b;
+  --side-bg: #0b1b2b; --side-text: #dce6ef; --side-muted: #8a9bae; --side-hover: #13283d;
+  --accent: #b7791f; --accent-soft: #fbf1df; --danger: #b3261e; --danger-soft: #fbe9e7; --ok: #157a52; --toast: #0b1b2b; --ok-ink: #ffffff; --accent-ink: #ffffff;
+  --overlay: rgba(6, 14, 22, .5);
+  --shadow-1: 0 1px 2px rgba(11, 27, 43, .06); --shadow-2: 0 1px 0 rgba(255, 255, 255, .7) inset, 0 22px 50px -32px rgba(11, 43, 43, .42);
   color-scheme: light;
 }
 
@@ -97,8 +92,8 @@ button {
 button:hover { border-color: var(--brand); background: var(--surface-2); }
 button:active { transform: translateY(1px); }
 button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-button.primary { background: var(--grad); color: #fff; border-color: transparent; font-weight: 650; box-shadow: 0 1px 2px rgba(15, 23, 42, .12); }
-button.primary:hover { background: var(--grad); border-color: transparent; filter: brightness(.92); }
+button.primary { background: var(--grad); color: #fff; border-color: transparent; font-weight: 650; box-shadow: 0 10px 28px -14px rgba(16, 185, 129, .8); }
+button.primary:hover { background: var(--grad); border-color: transparent; filter: brightness(1.08); }
 button.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
 button.danger:hover { background: var(--danger-soft); border-color: var(--danger); }
 button.ghost { border-color: transparent; background: transparent; }
@@ -131,15 +126,15 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 .signin { min-height: 100%; display: grid; place-items: center; padding: 16px; }
 .signin-split { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 520px); }
 .signin-brand {
-  background: radial-gradient(60% 50% at 0% 0%, rgba(233, 184, 217, .22), transparent 70%), radial-gradient(55% 45% at 100% 100%, rgba(143, 243, 239, .10), transparent 70%),
-    linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 64px 64px, linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 64px 64px, #2f1029;
-  color: #f6ecf3; padding: 48px clamp(24px, 5vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
+  background: radial-gradient(60% 50% at 0% 0%, rgba(16, 185, 129, .3), transparent 70%), radial-gradient(55% 45% at 100% 100%, rgba(13, 148, 136, .24), transparent 70%),
+    linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 64px 64px, linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 64px 64px, var(--side-bg);
+  color: #eaf1f7; padding: 48px clamp(24px, 5vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
 }
 .signin-brand h1 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.15; margin: 0; color: #fff; text-wrap: balance; }
 .signin-brand ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.signin-brand li { display: flex; gap: 12px; align-items: center; color: #ead7e5; }
-.signin-brand li .ic { width: 34px; height: 34px; border-radius: 10px; background: rgba(255, 255, 255, .1); color: #e9b8d9; }
-.signin-brand .foot { color: #c3a6ba; font-size: 13px; }
+.signin-brand li { display: flex; gap: 12px; align-items: center; color: #cddae6; }
+.signin-brand li .ic { width: 34px; height: 34px; border-radius: 10px; background: rgba(255, 255, 255, .09); color: var(--side-accent); }
+.signin-brand .foot { color: #8a9bae; font-size: 13px; }
 .signin-form { display: grid; place-items: center; padding: 32px 24px; background: var(--surface); }
 .signin form { width: min(380px, 100%); display: grid; gap: 14px; }
 .signin > form, .signin > .card { background: var(--surface); padding: 28px; border-radius: var(--radius); box-shadow: var(--shadow-2); }
@@ -162,14 +157,14 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 }
 .side .group > button:hover, .side .group > a.top:hover { background: var(--side-hover); }
 .side .group > button .ic, .side .group > a.top .ic { color: var(--side-muted); }
-.side .group.current > button, .side .group > a.top.current { background: var(--side-hover); color: var(--side-accent); font-weight: 650; }
+.side .group.current > button, .side .group > a.top.current { background: var(--side-hover); color: #fff; }
 .side .group.current > button .ic, .side .group > a.top.current .ic { color: var(--side-accent); }
 .side .group > button .chev { margin-left: auto; transition: transform .15s; }
 .side .group.open > button .chev { transform: rotate(180deg); }
 .side .sub { margin: 2px 0 6px 21px; padding-left: 12px; border-left: 1px solid var(--side-line); display: grid; gap: 1px; }
 .side .sub a { display: block; padding: 6px 10px; color: var(--side-muted); text-decoration: none; font-size: 14px; border-radius: 7px; }
 .side .sub a:hover { color: var(--side-text); background: var(--side-hover); }
-.side .sub a.current { color: var(--side-accent); background: var(--side-hover); font-weight: 600; }
+.side .sub a.current { color: #fff; background: rgba(45, 212, 191, .16); font-weight: 600; }
 .side .foot { padding: 12px; border-top: 1px solid var(--side-line); display: grid; gap: 8px; }
 .side .foot select { background: var(--side-chip); border-color: var(--side-line); color: var(--side-text); }
 .side .foot select option { color: #13202d; }

@@ -11,5 +11,5 @@ export const BRAND = {
     warehouse: 'SuXin WMS',
     cloud: 'SuXin Every Data',
   },
-  colors: { ink: '#12141D', pos: '#714B67', warehouse: '#5F3B56', count: '#57344F', node: '#E9B8D9', nodeDeep: '#714B67' },
+  colors: { ink: '#0B1B2B', pos: '#0B1B2B', warehouse: '#12385A', count: '#0F4C4A', node: '#2DD4BF', nodeDeep: '#14B8A6' },
 };

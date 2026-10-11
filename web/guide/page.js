@@ -67,7 +67,7 @@ function draw() {
   const body = h('div');
   mount(root,
     h('header', {},
-      h('img', { src: '/icons/icon-64.png?v=3', alt: '', width: 36, height: 36, style: { borderRadius: '9px' } }),
+      h('img', { src: '/icons/icon-64.png?v=4', alt: '', width: 36, height: 36, style: { borderRadius: '9px' } }),
       h('h1', { class: 'grow' }, TITLE[lang] || TITLE.en),
       h('select', { style: { width: 'auto' }, 'aria-label': 'Language', onchange: (e) => { setLang(e.target.value); draw(); } },
         LANGS.map(([code, name]) => h('option', { value: code, selected: code === lang }, name)))),

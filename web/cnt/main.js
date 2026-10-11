@@ -66,7 +66,7 @@ function shell() {
   mainEl = h('main', { class: 'cnt-main' });
   mount(app, h('div', { class: 'cnt' },
     h('header', { class: 'cnt-top' },
-      h('a', { class: 'brandmark', href: '#/' }, h('img', { src: '/icons/icon-192.png?v=3', alt: '', width: 30, height: 30 }), h('span', {}, 'SuXin ', h('b', {}, 'Barcode Scan'))),
+      h('a', { class: 'brandmark', href: '#/' }, h('img', { src: '/icons/icon-192.png?v=4', alt: '', width: 30, height: 30 }), h('span', {}, 'SuXin ', h('b', {}, 'Barcode Scan'))),
       h('span', { class: 'grow' }),
       h('div', { class: 'cnt-top-wide' },
         appSwitcher('count'),
@@ -322,7 +322,7 @@ async function newCount() {
 window.addEventListener('hashchange', () => { if (session.uid && mainEl) route(); });
 
 startApp(app, {
-  name: 'SuXin Barcode Scan', logo: '/icons/icon-192.png?v=3', tagline: t('cAppHint'),
+  name: 'SuXin Barcode Scan', logo: '/icons/icon-192.png?v=4', tagline: t('cAppHint'),
   features: [['barcode', t('cScan')], ['wifiOff', t('signFeat3')], ['apps', t('appSwitch')]],
   foot: `SuXin · ${t('brandTagline')}`,
 }, shell, { stop: () => { stopPage?.(); stopPage = null; mainEl = null; } });

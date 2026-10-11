@@ -132,7 +132,7 @@ function renderSide() {
     nav.append(box);
   }
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png?v=3', alt: '', width: 28, height: 28 }), h('span', { class: 'grow' }, 'SuXin POS'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png?v=4', alt: '', width: 28, height: 28 }), h('span', { class: 'grow' }, 'SuXin POS'),
       h('button', { class: 'ghost icon-btn side-collapse', title: t('sideHide'), 'aria-label': t('sideHide'), onclick: () => setCollapsed(true) }, icon('chevron', 18))),
     isTillLocked() ? h('div', { class: 'till-locked-note' }, icon('lock', 16), t('tlOnlyTill')) : null,
     h('div', { class: 'who' },
@@ -250,7 +250,7 @@ onChange(() => {
 // Signing in is the same screen in every SuXin app (apps.js): one account,
 // one place to sign in, register or reset a password.
 startApp(app, {
-  name: 'SuXin POS', logo: '/icons/icon-192.png?v=3', tagline: t('signInTagline'),
+  name: 'SuXin POS', logo: '/icons/icon-192.png?v=4', tagline: t('signInTagline'),
   features: [['barcode', t('signFeat1')], ['store', t('signFeat2')], ['wifiOff', t('signFeat3')]],
   foot: t('signFoot'),
 }, async () => {

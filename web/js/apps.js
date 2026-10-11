@@ -115,15 +115,15 @@ addStrings({
  * perms: any one of these lets someone in (an admin always may).
  */
 export const APPS = [
-  { id: 'count', module: 'count', name: 'SuXin Barcode Scan', href: '/count/', icon: 'barcode', color: '#57344F',
+  { id: 'count', module: 'count', name: 'SuXin Barcode Scan', href: '/count/', icon: 'barcode', color: '#0F4C4A',
     perms: ['CREATE_STOCK_CHECK', 'SCAN_BARCODE', 'VIEW_OWN_HISTORY', 'VIEW_ALL_HISTORY'] },
-  { id: 'pos', module: 'pos', name: 'SuXin POS', href: '/pos/#/pos', icon: 'cart', color: '#714B67',
+  { id: 'pos', module: 'pos', name: 'SuXin POS', href: '/pos/#/pos', icon: 'cart', color: '#0B1B2B',
     perms: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'] },
-  { id: 'cloud', module: null, name: 'SuXin Every Data', href: '/data/', icon: 'chart', color: '#79526F',
+  { id: 'cloud', module: null, name: 'SuXin Every Data', href: '/data/', icon: 'chart', color: '#0f766e',
     perms: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'] },
-  { id: 'warehouse', module: 'warehouse', name: 'SuXin WMS', href: '/warehouse/', icon: 'box', color: '#5F3B56',
+  { id: 'warehouse', module: 'warehouse', name: 'SuXin WMS', href: '/warehouse/', icon: 'box', color: '#12385A',
     perms: ['RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE', 'POS_MANAGE', 'VIEW_ALL_HISTORY'] },
-  { id: 'books', module: 'accounting', name: 'SuXin Books', href: '/books/', icon: 'book', color: '#4E2F47',
+  { id: 'books', module: 'accounting', name: 'SuXin Books', href: '/books/', icon: 'book', color: '#3B2F7A',
     perms: ['BOOKS_VIEW', 'BOOKS_POST', 'BOOKS_ADMIN'] },
 ];
 
