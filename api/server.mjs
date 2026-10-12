@@ -550,11 +550,13 @@ app.post('/app/connections/:id/push-key', connectLimit, wrap(async (req, res) =>
 }));
 
 // What their system sends us: { "data": [ ... ] } or a list, read through the connection's map.
+// A push key (sxc_..., from /push-key), not an API token (sck_..., bearer()).
+const pushKeyOf = (header) => /^Bearer\s+(sxc_[A-Za-z0-9_-]{16,})\s*$/.exec(header || '')?.[1] || null;
 const pushLimit = limited(60_000, 120);
 app.post('/connect/:ws/:id/:kind', pushLimit, wrap(async (req, res) => {
   const { ws, id, kind } = req.params;
   if (!validId(ws) || !validId(id) || !KINDS.includes(kind)) throw new ApiError(404, 'No such address.');
-  const key = bearer(req.get('authorization'));
+  const key = pushKeyOf(req.get('authorization'));
   const stored = key ? (await db.doc(`connectionSecrets/${ws}__${id}__push`).get()).data() : null;
   if (!stored || !sameSecret(sha256(key), stored.hash)) throw new ApiError(401, 'Send the push key: Authorization: Bearer sxc_...', 'UNAUTHENTICATED');
   const snap = await conRef(ws, id).get();
