@@ -15,6 +15,7 @@ import { expiring } from '../js/wms.js';
 import { places as allPlaces } from './common.js';
 import { expiryPill } from './stock.js';
 import { ordersToPick, progress } from '../js/picking.js';
+import { outboundOrders } from '../js/outbound.js';
 import { go } from './main.js';
 
 let scope = null;
@@ -39,12 +40,17 @@ export function render(main) {
     // Orders waiting for a picker, and picklists not finished.
     const pickOpen = canMove() ? data.picklists.filter((p) => ['WAITING', 'PICKING'].includes(p.status) && here(p.branchId) && isMine(p.branchId)) : [];
     const toPick = canMove() ? myPlaces().filter((p) => here(p.id)).flatMap((p) => ordersToPick(data, p.id)) : [];
+    // Orders going out, and those picked and waiting to be packed.
+    const going = canMove() ? myPlaces().filter((p) => here(p.id)).flatMap((p) => outboundOrders(data, p.id)).filter((o) => o.stage !== 'DELIVERED') : [];
+    const toPack = going.filter((o) => o.stage === 'PACKING');
+    const atDocks = (data.trips || []).filter((x) => ['PLANNED', 'LOADING'].includes(x.status) && here(x.branchId) && isMine(x.branchId));
     const low = rows.filter((r) => r.low);
     const out = rows.filter((r) => r.out && (r.counted != null || r.inSince || r.outSince));
     const value = rows.reduce((s, r) => s + r.valueSen, 0);
     const suggestions = reorderSuggestions(rows);
     const waiting = [
       ...pickOpen.map((p) => ({ at: p.startedAt || p.createdAt, label: `${p.pickNo} · ${progress(p.lines).done}/${(p.lines || []).length} ${t('whLines')}${p.pickerName ? ` · ${p.pickerName}` : ''}`, tag: pill(t(`pk_${p.status}`), p.status === 'WAITING' ? 'warn' : 'good'), to: () => go('picking', p.id) })),
+      ...toPack.map((o) => ({ at: o.pick?.doneAt || o.at, label: `${o.urgent ? '⚡ ' : ''}${o.ref} · ${o.lines.length} ${t('whLines')}`, tag: pill(t('ob_PACKING'), 'warn'), to: () => go('outbound', o.key) })),
       ...(toPick.length ? [{ at: Date.now(), label: `${toPick.length} ${t('whOrdersN')} · ${toPick.slice(0, 3).map((o) => o.ref).join(', ')}${toPick.length > 3 ? ' …' : ''}`, tag: pill(t('whToPick'), 'warn'), to: () => go('picking') }] : []),
       ...toApprove.map((p) => ({ at: p.createdAt, label: `${p.poNo} · ${p.supplierName || ''}`, tag: pill(t('po_SUBMITTED'), 'warn'), to: () => go('purchase', p.id) })),
       ...toReceive.map((p) => ({ at: p.createdAt, label: `${p.poNo} · ${p.supplierName || ''}`, tag: pill(t(`po_${p.status}`), 'good'), to: () => go('receive', p.id) })),
@@ -57,6 +63,8 @@ export function render(main) {
     mount(tiles,
       canMove() ? actionTile('download', t('whReceive'), toReceive.length ? `${toReceive.length} ${t('whWaiting')}` : t('whReceiveSub'), () => go('receive'), toReceive.length ? 'hot' : '') : null,
       canMove() ? actionTile('basket', t('whPicking'), toPick.length + pickOpen.length ? t('whPickWaitingN').replace('{n}', toPick.length + pickOpen.length) : t('whPickingSub'), () => go('picking'), toPick.length + pickOpen.length ? 'hot' : '') : null,
+      canMove() ? actionTile('tag', t('whOutbound'), toPack.length ? `${toPack.length} ${t('ob_PACKING')}` : going.length ? t('whOutboundN').replace('{n}', going.length) : t('whOutboundSub'), () => go('outbound'), toPack.length ? 'hot' : '') : null,
+      canMove() ? actionTile('truck', t('whDocks'), atDocks.length ? `${atDocks.length} 🚚` : t('whDocksSub'), () => go('docks'), atDocks.some((x) => !x.dock) ? 'hot' : '') : null,
       canMove() ? actionTile('box', t('whTransfers'), incoming.length ? `${incoming.length} ${t('whArriving')}` : t('whTransfersSub'), () => go('transfers'), incoming.length ? 'hot' : '') : null,
       canMove() ? actionTile('sliders', t('whAdjust'), t('whAdjustSub'), () => go('adjust')) : null,
       actionTile('barcode', t('whStock'), t('whStockSub'), () => go('stock')),

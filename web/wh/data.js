@@ -47,16 +47,46 @@ export async function loadPicklists() {
   return snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
-/** Counts, movements, transfers, purchase orders, reservations and picklists, read together. */
+/** Packing records of orders going out (web/wh/outbound.js). */
+export async function loadPacks() {
+  if (!canMove()) return [];
+  const col = collection(db, ws('outbound'));
+  const snap = await getDocs(session.branchIds.length ? query(col, where('branchId', 'in', inList())) : col);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+}
+
+/** The TMS trips leaving these places: which lorry carries which order. */
+export async function loadTrips() {
+  if (!canMove()) return [];
+  const col = collection(db, ws('tmsTrips'));
+  const snap = await getDocs(session.branchIds.length ? query(col, where('branchId', 'in', inList())) : col);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+/** Everything the outbound board and the docks read. */
+export async function loadOutbound() {
+  const [transfers, reservations, picklists, packs, trips] = await Promise.all([
+    loadTransfers().catch(() => []),
+    loadReservations().catch(() => []),
+    loadPicklists().catch(() => []),
+    loadPacks().catch(() => []),
+    loadTrips().catch(() => []),
+  ]);
+  return { transfers, reservations, picklists, packs, trips };
+}
+
+/** Counts, movements, transfers, purchase orders, reservations, picklists, packing and trips, read together. */
 export async function loadAll() {
-  const [stock, transfers, pos, reservations, picklists] = await Promise.all([
+  const [stock, transfers, pos, reservations, picklists, packs, trips] = await Promise.all([
     loadStockData(),
     loadTransfers().catch(() => []),
     loadPurchaseOrders().catch(() => []),
     loadReservations().catch(() => []),
     loadPicklists().catch(() => []),
+    loadPacks().catch(() => []),
+    loadTrips().catch(() => []),
   ]);
-  return { stock, transfers, pos, reservations, picklists };
+  return { stock, transfers, pos, reservations, picklists, packs, trips };
 }
 
 const at = (branch, id) => branch === 'ALL' || (id || '') === branch;

@@ -1,5 +1,19 @@
 /** The warehouse system's own words, in the site's three languages. */
 const en = {
+  // Outbound and docks (web/wh/outbound.js, docks.js)
+  whOutbound: 'Outbound', whOutboundSub: 'Every order going out, step by step', whOutboundN: '{n} going out',
+  whOutboundHelp: 'Every order leaving this place, from made to signed for. Tap a step to see only those; tap an order for what to do next.',
+  whOutboundNone: 'No orders here.', whAll: 'All', whOptional: 'optional',
+  ob_CREATED: 'Created', ob_PICKING: 'Picking', ob_PACKING: 'Packing', ob_PACKED: 'Packed', ob_LOADED: 'Loaded', ob_ON_ROAD: 'On road', ob_DELIVERED: 'Delivered',
+  whUrgent: 'URGENT', whMarkUrgent: 'Mark urgent', whUrgentClear: 'Not urgent', whUrgentOn: 'Marked urgent: it goes to the top', whUrgentOff: 'No longer urgent',
+  whCartons: 'cartons', whWeight: 'Weight', whLane: 'Lane', whLanePick: 'Put it down in staging lane', whLaneFree: 'empty', whLanes: 'Staging lanes',
+  whPackTitle: 'Pack it', whPackDone: 'Packed', whPackNow: 'Picked. Pack it now.', whPackedOk: 'Packed. Put it in lane {lane}.', whPackedBy: 'Packed by', whRepack: 'Change',
+  whGoPick: 'Pick it', whOpenPick: 'Open', whInYard: 'waiting in the yard', whNoLorryYet: 'No lorry yet. Plan a trip in the TMS.', whPlanTrip: 'Plan a trip',
+  whSignedBy: 'signed by', whOpenTrip: 'Open the trip',
+  whDocks: 'Loading docks', whDocksSub: 'Lorries at the bays and in the yard', whDocksHelp: 'Call a lorry from the yard to a free bay, tick each order as it goes on, and let it go when all are on.',
+  whYard: 'Yard', whYardEmpty: 'No lorries waiting. Trips planned in the TMS wait here.', whPackedN: 'packed', whDocksFull: 'All bays busy',
+  whDockFree: 'Free', whCallIn: 'Call in', whLoadIt: 'Loaded', whBackToYard: 'Back to the yard', whLetGo: 'Let it go', whLetGoQ: 'Everything is on {p}. Let it leave the dock?',
+  whTrip_PLANNED: 'At the dock', whTrip_LOADING: 'Loading', whTrip_ON_ROAD: 'On road',
   whShotErr_NOT_SET_UP: 'Reading screenshots is not switched on yet (the owner adds the Anthropic key first). For now, paste the order text below.', whShotErr_NOT_READ: 'These screenshots could not be read. Try clearer ones, or paste the order text.', whShotErr_BAD_IMAGE: 'A screenshot is too big or not a picture.', whShotErr_TOO_MANY: 'At most 4 screenshots at a time.', whShotErr_BUSY: 'Too many in a short time. Wait a minute.', whShotErr_NO_RIGHT: 'Your account may not raise purchase orders.',
   reason_SUPPLIER_RETURN: 'Back to supplier', reason_RESERVATION: 'Reserved order delivered',
   // Cartons, shelves, expiry, approval, returns, month end, reservations
@@ -170,6 +184,20 @@ const en = {
 };
 
 const zh = {
+  // 出货与码头
+  whOutbound: '出货单', whOutboundSub: '每张出货单走到哪一步', whOutboundN: '{n} 张出货中',
+  whOutboundHelp: '从这里出去的每一张单，从开单到签收。点上面的步骤只看那一步；点一张单看下一步要做什么。',
+  whOutboundNone: '这里没有单。', whAll: '全部', whOptional: '可不填',
+  ob_CREATED: '已开单', ob_PICKING: '拣货中', ob_PACKING: '打包中', ob_PACKED: '已打包', ob_LOADED: '已装车', ob_ON_ROAD: '在路上', ob_DELIVERED: '已签收',
+  whUrgent: '急单', whMarkUrgent: '设为急单', whUrgentClear: '取消急单', whUrgentOn: '已设为急单，排在最前面', whUrgentOff: '已取消急单',
+  whCartons: '箱', whWeight: '重量', whLane: '待出货区', whLanePick: '放在哪一个待出货区', whLaneFree: '空', whLanes: '待出货区',
+  whPackTitle: '打包', whPackDone: '打包完成', whPackNow: '拣好了，现在打包。', whPackedOk: '打包好了，放去 {lane}。', whPackedBy: '打包人', whRepack: '更改',
+  whGoPick: '去拣货', whOpenPick: '打开拣货单', whInYard: '在停车场排队', whNoLorryYet: '还没有车。去 TMS 安排行程。', whPlanTrip: '安排行程',
+  whSignedBy: '签收人', whOpenTrip: '打开行程',
+  whDocks: '装车码头', whDocksSub: '码头和停车场的车', whDocksHelp: '把停车场的车叫到空的码头，每张单装上车就打勾，全部装好就放行。',
+  whYard: '停车场', whYardEmpty: '没有车在等。TMS 安排好的行程会在这里排队。', whPackedN: '已打包', whDocksFull: '码头都满了',
+  whDockFree: '空的', whCallIn: '叫进来', whLoadIt: '装上车', whBackToYard: '退回停车场', whLetGo: '放行', whLetGoQ: '{p} 全部装好了，放行离开码头？',
+  whTrip_PLANNED: '在码头', whTrip_LOADING: '装货中', whTrip_ON_ROAD: '在路上',
   whShotErr_NOT_SET_UP: '读截图还没开通（老板要先放 Anthropic 钥匙）。现在先把订单文字贴到下面的框。', whShotErr_NOT_READ: '这几张截图读不出来。换清楚一点的，或者贴订单文字。', whShotErr_BAD_IMAGE: '截图太大，或者不是图片。', whShotErr_TOO_MANY: '一次最多 4 张截图。', whShotErr_BUSY: '短时间内读太多次了，等一分钟。', whShotErr_NO_RIGHT: '你的账号不能开采购单。',
   reason_SUPPLIER_RETURN: '退回供应商', reason_RESERVATION: '预留交货',
   whPack: '箱', whPackSize: '一箱几个', whPackName: '箱的叫法', whPackHelp: '不是整箱买的就留空。库存还是按「个」记。',
@@ -338,6 +366,20 @@ const zh = {
 };
 
 const ms = {
+  // Keluar dan dok
+  whOutbound: 'Pesanan keluar', whOutboundSub: 'Setiap pesanan keluar, langkah demi langkah', whOutboundN: '{n} sedang keluar',
+  whOutboundHelp: 'Setiap pesanan yang keluar dari sini, dari dibuat hingga ditandatangani. Tekan satu langkah untuk lihat itu sahaja; tekan pesanan untuk langkah seterusnya.',
+  whOutboundNone: 'Tiada pesanan di sini.', whAll: 'Semua', whOptional: 'pilihan',
+  ob_CREATED: 'Dibuat', ob_PICKING: 'Diambil', ob_PACKING: 'Dibungkus', ob_PACKED: 'Siap bungkus', ob_LOADED: 'Dimuat', ob_ON_ROAD: 'Dalam perjalanan', ob_DELIVERED: 'Diterima',
+  whUrgent: 'SEGERA', whMarkUrgent: 'Tanda segera', whUrgentClear: 'Bukan segera', whUrgentOn: 'Ditanda segera: ke atas sekali', whUrgentOff: 'Tidak lagi segera',
+  whCartons: 'kotak', whWeight: 'Berat', whLane: 'Lorong', whLanePick: 'Letak di lorong menunggu', whLaneFree: 'kosong', whLanes: 'Lorong menunggu',
+  whPackTitle: 'Bungkus', whPackDone: 'Siap bungkus', whPackNow: 'Sudah diambil. Bungkus sekarang.', whPackedOk: 'Siap. Letak di lorong {lane}.', whPackedBy: 'Dibungkus oleh', whRepack: 'Ubah',
+  whGoPick: 'Ambil', whOpenPick: 'Buka', whInYard: 'menunggu di halaman', whNoLorryYet: 'Belum ada lori. Rancang perjalanan dalam TMS.', whPlanTrip: 'Rancang perjalanan',
+  whSignedBy: 'ditandatangani oleh', whOpenTrip: 'Buka perjalanan',
+  whDocks: 'Dok muatan', whDocksSub: 'Lori di dok dan di halaman', whDocksHelp: 'Panggil lori dari halaman ke dok kosong, tanda setiap pesanan yang dimuat, dan lepaskan bila semua sudah naik.',
+  whYard: 'Halaman', whYardEmpty: 'Tiada lori menunggu. Perjalanan yang dirancang dalam TMS menunggu di sini.', whPackedN: 'siap bungkus', whDocksFull: 'Semua dok penuh',
+  whDockFree: 'Kosong', whCallIn: 'Panggil', whLoadIt: 'Dimuat', whBackToYard: 'Balik ke halaman', whLetGo: 'Lepaskan', whLetGoQ: 'Semua sudah di atas {p}. Lepaskan dari dok?',
+  whTrip_PLANNED: 'Di dok', whTrip_LOADING: 'Memuat', whTrip_ON_ROAD: 'Dalam perjalanan',
   whShotErr_NOT_SET_UP: 'Baca tangkapan skrin belum dihidupkan (pemilik perlu tambah kunci Anthropic dahulu). Buat masa ini, tampal teks pesanan di bawah.', whShotErr_NOT_READ: 'Tangkapan skrin ini tidak dapat dibaca. Cuba yang lebih jelas, atau tampal teks pesanan.', whShotErr_BAD_IMAGE: 'Tangkapan skrin terlalu besar atau bukan gambar.', whShotErr_TOO_MANY: 'Paling banyak 4 tangkapan skrin sekali.', whShotErr_BUSY: 'Terlalu banyak dalam masa singkat. Tunggu seminit.', whShotErr_NO_RIGHT: 'Akaun anda tidak boleh buat pesanan belian.',
   reason_SUPPLIER_RETURN: 'Pulang ke pembekal', reason_RESERVATION: 'Tempahan dihantar',
   whPack: 'Karton', whPackSize: 'Biji sekarton', whPackName: 'Nama karton', whPackHelp: 'Biarkan kosong jika tidak dibeli sekarton. Stok tetap dikira dalam biji.',

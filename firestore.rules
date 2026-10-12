@@ -816,6 +816,30 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // ----------------------------------------------------------- outbound
+      //
+      // Packing an order going out (web/wh/outbound.js): marked urgent,
+      // packed into cartons and set down in a staging lane, then loaded on
+      // the lorry at a dock. One per order (id TR-<transfer> / RS-<reservation>);
+      // it moves no stock -- the transfer or reservation does. Which order
+      // and where it is kept never change; never deleted.
+      match /outbound/{packId} {
+        allow read: if can('RECORD_STOCK_MOVEMENTS') && inMyBranch(resource.data);
+        allow create: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(request.resource.data)
+                      && request.resource.data.createdByUid == request.auth.uid
+                      && request.resource.data.kind in ['TRANSFER', 'RESERVATION']
+                      && request.resource.data.orderId is string
+                      && request.resource.data.status in ['OPEN', 'PACKED']
+                      && !moduleOff('warehouse');
+        allow update: if can('RECORD_STOCK_MOVEMENTS')
+                      && inMyBranch(resource.data)
+                      && request.resource.data.status in ['OPEN', 'PACKED', 'LOADED']
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'urgent', 'cartons', 'weightKg', 'lane', 'packedAt', 'packedByName', 'tripId', 'dock', 'loadedAt', 'loadedByName', 'updatedAt']);
+        allow delete: if false;
+      }
+
       // ------------------------------------------- connections to other systems
       //
       // Where another system's data comes from (a friend's POS, someone
@@ -889,7 +913,7 @@ service cloud.firestore {
                       && resource.data.status in ['PLANNED', 'LOADING', 'ON_ROAD']
                       && request.resource.data.status in ['PLANNED', 'LOADING', 'ON_ROAD', 'DONE', 'CANCELLED']
                       && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['status', 'stops', 'loadingAt', 'departedAt', 'doneAt', 'cancelledAt', 'cancelledByName', 'updatedAt', 'lastPos']);
+                           .hasOnly(['status', 'stops', 'loadingAt', 'departedAt', 'doneAt', 'cancelledAt', 'cancelledByName', 'updatedAt', 'lastPos', 'dock']);
         allow delete: if false;
       }
 

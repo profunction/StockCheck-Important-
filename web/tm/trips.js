@@ -38,7 +38,7 @@ function stopGps() {
 export function tripCard(x) {
   const p = tripProgress(x);
   return h('button', { class: 'wh-card tm-trip', 'data-trip': x.id, onclick: () => go('trips', x.id) },
-    h('div', { class: 'row' }, h('strong', { class: 'grow' }, x.tripNo), h('span', { class: 'pill shelf' }, `🚚 ${x.plate || '—'}`), pill(t(`trip_${x.status}`), TRIP_TONE[x.status])),
+    h('div', { class: 'row' }, h('strong', { class: 'grow' }, x.tripNo), h('span', { class: 'pill shelf' }, `🚚 ${x.plate || '—'}`), x.dock && ['PLANNED', 'LOADING'].includes(x.status) ? h('span', { class: 'pill warn' }, x.dock) : null, pill(t(`trip_${x.status}`), TRIP_TONE[x.status])),
     h('div', {}, `${x.driverName || '—'} · ${placeName(x.branchId)} → ${(x.stops || []).map(stopTo).join(', ')}`),
     h('div', { class: 'pk-bar' }, h('span', { style: { width: `${p.total ? Math.round(100 * (p.delivered + p.failed) / p.total) : 0}%` } })),
     h('div', { class: 'muted' }, `${p.delivered + p.failed}/${p.total} ${t('tmStops')}${p.failed ? ` · ${p.failed} ${t('stop_FAILED')}` : ''} · ${x.date || ''}`));
@@ -272,7 +272,8 @@ function trip(box, x) {
     mount(box,
       h('div', { class: 'card wh-head' },
         h('div', { class: 'row' }, h('strong', { class: 'grow', style: { fontSize: '18px' } }, x.tripNo), pill(t(`trip_${x.status}`), TRIP_TONE[x.status])),
-        h('div', { class: 'tm-who' }, h('span', { class: 'pill shelf' }, `🚚 ${x.plate}`), h('span', {}, `👤 ${x.driverName}`), h('span', { class: 'muted' }, `${placeName(x.branchId)} · ${x.date || ''}`)),
+        h('div', { class: 'tm-who' }, h('span', { class: 'pill shelf' }, `🚚 ${x.plate}`), h('span', {}, `👤 ${x.driverName}`), h('span', { class: 'muted' }, `${placeName(x.branchId)} · ${x.date || ''}`),
+          x.dock && ['PLANNED', 'LOADING'].includes(x.status) ? h('span', { class: 'pill warn', 'data-dock': x.dock }, `${t('tmAtDock')} ${x.dock}`) : null),
         h('div', { class: 'pk-bar big' }, h('span', { style: { width: `${p.total ? Math.round(100 * (p.delivered + p.failed) / p.total) : 0}%` } })),
         h('div', { class: 'muted' }, `${p.delivered}/${p.total} ${t('stop_DELIVERED')}${p.failed ? ` · ${p.failed} ${t('stop_FAILED')}` : ''}`,
           x.departedAt ? ` · ${t('tmGo')} ${dateTime(x.departedAt)}` : '', x.doneAt ? ` · ${t('trip_DONE')} ${dateTime(x.doneAt)}` : '')),

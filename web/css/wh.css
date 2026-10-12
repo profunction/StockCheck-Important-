@@ -182,3 +182,47 @@ td.nowrap { white-space: nowrap; }
 .rm-tools { display: grid; gap: 10px; margin-top: 12px; }
 .rm-tools form input { flex: 1; }
 .map-info a.btn { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 10px; min-height: 38px; }
+
+/* Outbound: the stages strip, the order steps, packing lanes, the docks (outbound.js, docks.js) */
+.ob-stages { display: flex; align-items: stretch; gap: 4px; overflow-x: auto; padding: 2px 2px 8px; margin-bottom: 8px; scrollbar-width: thin; }
+.ob-stage { display: grid; justify-items: center; gap: 2px; min-width: 76px; padding: 10px 8px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); font-weight: 500; flex: 0 0 auto; }
+.ob-stage b { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ob-stage span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.ob-stage.zero b { color: var(--muted); font-weight: 600; }
+.ob-stage.on { border-color: var(--wh); background: var(--wh-soft); }
+.ob-stage.on span { color: var(--wh); font-weight: 700; }
+.ob-arrow { align-self: center; color: var(--muted); font-size: 20px; flex: 0 0 auto; }
+.ob-card.urgent { border-left: 4px solid var(--danger); }
+.wh-head.ob-urgent { border-color: var(--danger); }
+.ob-steps { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 6px 0 2px; }
+.ob-steps span { height: 6px; border-radius: 99px; background: var(--surface-2); position: relative; }
+.ob-steps span.done { background: var(--wh); }
+.ob-steps span.now { background: var(--accent); }
+.ob-steps.big { margin: 10px 0 18px; }
+.ob-steps.big span { height: 8px; }
+.ob-steps.big small { position: absolute; top: 12px; left: 0; right: 0; text-align: center; font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ob-steps.big span.now small { color: var(--accent); font-weight: 700; }
+.ob-big { font-size: 20px; font-weight: 800; overflow-wrap: anywhere; }
+.ob-pack .wh-step.big .q { font-size: 26px; }
+.ob-lanes { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.ob-lanes.wide { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.ob-lane { display: grid; gap: 4px; justify-items: start; align-content: start; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line); background: var(--surface); text-align: left; font-weight: 500; min-height: 64px; }
+.ob-lane b { font-size: 18px; }
+.ob-lane small { color: var(--muted); }
+button.ob-lane.on { border: 2px solid var(--wh); background: var(--wh-soft); }
+.ob-lane.full { border-style: solid; background: var(--wh-soft); }
+.ob-chip { padding: 4px 8px; min-height: 32px; border-radius: 8px; font-size: 13px; font-weight: 600; background: var(--surface); border: 1px solid var(--line); text-align: left; }
+.ob-docks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.ob-dock { display: grid; gap: 6px; align-content: start; margin: 0; border-top: 6px solid var(--accent); }
+.ob-dock.empty { border-top-color: var(--line); background: var(--surface-2); }
+.ob-dock.ready { border-top-color: var(--wh); }
+.ob-dock-name { font-size: 24px; font-weight: 850; letter-spacing: .02em; }
+.ob-load { display: grid; gap: 6px; margin: 4px 0; }
+.ob-load-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); }
+.ob-load-row.on { background: var(--wh-soft); }
+.ob-yard { gap: 6px; flex-wrap: wrap; }
+@media (max-width: 560px) {
+  .ob-stage { min-width: 66px; padding: 8px 6px; }
+  .ob-arrow { display: none; }
+  .ob-docks { grid-template-columns: 1fr; }
+}

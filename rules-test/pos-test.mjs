@@ -336,6 +336,17 @@ await expect('keeper: finish it', true, () => updateDoc(doc(as('keeper1'), ws('p
 await expect('keeper: reopen a finished one refused', false, () => updateDoc(doc(as('keeper1'), ws('picklists/p1')), { status: 'PICKING' }));
 await expect('keeper: delete a picklist refused', false, () => deleteDoc(doc(as('keeper1'), ws('picklists/p1'))));
 
+// Outbound: packing an order going out and loading it; no stock moves.
+const packRec = (over = {}) => ({ kind: 'TRANSFER', orderId: 'appr2', ref: 'TR-B', branchId: '', status: 'OPEN', urgent: true, createdByUid: 'keeper1', createdAt: 1, ...over });
+await expect('keeper: mark an order urgent', true, () => setDoc(doc(as('keeper1'), ws('outbound/TR-appr2')), packRec()));
+await expect('keeper: a packing record in someone else\'s name refused', false, () => setDoc(doc(as('keeper1'), ws('outbound/TR-x')), packRec({ orderId: 'x', createdByUid: 'buyer1' })));
+await expect('keeper: one already loaded refused', false, () => setDoc(doc(as('keeper1'), ws('outbound/TR-y')), packRec({ orderId: 'y', status: 'LOADED' })));
+await expect('cashier: pack an order refused', false, () => setDoc(doc(as('cashier1'), ws('outbound/TR-z')), packRec({ orderId: 'z', createdByUid: 'cashier1' })));
+await expect('keeper: pack it into lane S2', true, () => updateDoc(doc(as('keeper1'), ws('outbound/TR-appr2')), { status: 'PACKED', cartons: 2, lane: 'S2', packedAt: 2, packedByName: 'K', updatedAt: 2 }));
+await expect('keeper: change which order it is refused', false, () => updateDoc(doc(as('keeper1'), ws('outbound/TR-appr2')), { orderId: 'other' }));
+await expect('keeper: load it at OUT-1', true, () => updateDoc(doc(as('keeper1'), ws('outbound/TR-appr2')), { status: 'LOADED', tripId: 't1', dock: 'OUT-1', loadedAt: 3, loadedByName: 'K', updatedAt: 3 }));
+await expect('keeper: delete a packing record refused', false, () => deleteDoc(doc(as('keeper1'), ws('outbound/TR-appr2'))));
+
 // Warehouse: buying, approving, receiving ------------------------------------
 await expect('buyer: raise a purchase order', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('')));
 await expect('buyer: submit it for approval', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('', 'SUBMITTED')));
