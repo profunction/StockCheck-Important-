@@ -1024,3 +1024,13 @@ body.iso-full-open { overflow: hidden; }
 .iso-box.rise { animation: isorise .6s cubic-bezier(.2, .8, .3, 1) both; }
 @keyframes isorise { from { transform: translateY(.9px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .iso-box.rise { animation: none; } }
+/* The dark showroom look for every 3D picture (view3d.js night3d) */
+.iso-wrap.night { --iso-sky1: #0f2233; --iso-sky2: #060e17; --iso-floor: #10202f; --iso-slab-l: #0a1520; --iso-slab-r: #060e16; --iso-grid: rgba(148, 197, 255, .05); --iso-tag: rgba(8, 20, 32, .92); --iso-tag-ink: #e2ebf3; }
+.iso-wrap.night .iso-floortext { fill: #8aa3bb; opacity: .9; }
+.iso-wrap.night .iso-tools.top { background: rgba(10, 22, 34, .92); border-color: rgba(148, 197, 255, .12); }
+.iso-wrap.night .iso-tools.top .iso-btn, .iso-wrap.night .iso-hint { color: #c7d5e2; }
+.iso-wrap.night .iso-tools.top .iso-btn:hover { background: rgba(148, 197, 255, .1); }
+.map-stage:has(.iso-wrap.night) { background: #060e17; border-color: #12263a; }
+.map-stage:has(.iso-wrap.night) .wh3d-task { background: rgba(10, 24, 36, .9); color: #dbe4ec; border-color: rgba(148, 197, 255, .12); }
+.map-stage:has(.iso-wrap.night) .map-layers { background: #0a1520; border-color: #12263a; }
+.map-stage:has(.iso-wrap.night) .map-legend { color: #9fb3c8; }

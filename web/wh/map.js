@@ -26,7 +26,7 @@ import { t } from '../js/i18n.js';
 import { formatQty } from '../js/money.js';
 import { session } from '../js/session.js';
 import { shade } from '../js/iso.js';
-import { scene3d } from '../js/view3d.js';
+import { night3d, scene3d } from '../js/view3d.js';
 import { lorryBoxes } from '../js/town.js';
 import { layout, parseBin } from '../js/warehouse3d.js';
 import { lineDone } from '../js/picking.js';
@@ -48,6 +48,13 @@ const COLOR = {
   pick: '#7c3aed', idle: '#c9d4de',
   act: ['#ef4444', '#f59e0b', '#14b8a6', '#c9d4de'],
   inbound: '#2f6fde', outbound: '#0d9488',
+};
+/** The floor's own colours: by day, and at night (the dark showroom look). */
+const PALETTES = {
+  day: { floor: '#eef2f5', yard: '#c3ccd5', staging: '#dcefe9', receiving: '#dbeafe', packing: '#ede9fe', qc: '#e0f2fe', charge: '#f1f5f9',
+    deck: '#c3ccd5', road: '#5b6876', dash: '#f8fafc', laneLine: '#facc15', laneSep: '#94a3b8', dockOut: '#fde68a', dockIn: '#bfdbfe', aisle: '#facc15', table: '#cbd5e1', qcBox: '#94a3b8' },
+  night: { floor: '#13263a', yard: '#0b1824', staging: '#123236', receiving: '#132c45', packing: '#1f2247', qc: '#12304a', charge: '#16263a',
+    deck: '#2a3a4c', road: '#070f19', dash: '#52606f', laneLine: '#b7791f', laneSep: '#2b3a4a', dockOut: '#b7791f', dockIn: '#1e4fbf', aisle: '#f59e0b', table: '#d7dee6', qcBox: '#475569' },
 };
 const FILL_KEYS = ['< 20%', '20–40%', '40–60%', '60–80%', '> 80%'];
 const MODES = ['fill', 'expiry', 'pick', 'activity', 'cartons'];
@@ -189,22 +196,27 @@ function build(data) {
   const dockY = ZONE_Y + ZONE_D + 0.8;
   const W = SIDE + 6;
   const docksIn = Math.max(2, Math.min(4, arriving.length));
+  const PAL = PALETTES[night3d() ? 'night' : 'day'];
   const boxes = [];
   const tile = (id, x, y, w, d, color) => boxes.push({ id, x, y, w, d, h: 0, color, pick: false });
   const words = (id, x, y, w, d, label, size = 0.5) => boxes.push({ id, x, y, w, d, h: 0, color: 'transparent', pick: false, label, labelCls: 'floor', labelSize: size, noFill: true });
 
-  tile('floor-in', 0.2, 0.2, W - 0.4, dockY + 1.2, '#eef2f5');
-  tile('yard', 0.2, dockY + 1.5, W - 0.4, 7.2, '#c3ccd5');
+  // The yard: the docked lorries, a road along the front, then a queue lane behind each dock.
+  const roadY = dockY + 4.3;
+  const laneY = roadY + 2.1;
+  const LANE_D = 9.4;
+  tile('floor-in', 0.2, 0.2, W - 0.4, dockY + 1.2, PAL.floor);
+  tile('yard', 0.2, dockY + 1.5, W - 0.4, laneY + LANE_D + 0.6 - dockY - 1.5, PAL.yard);
   const half = (RX + RW - 0.6) / 2;
-  tile('z-staging', 0.6, ZONE_Y, half, ZONE_D, '#dcefe9');
+  tile('z-staging', 0.6, ZONE_Y, half, ZONE_D, PAL.staging);
   words('w-staging', 0.6, ZONE_Y + 0.2, half, 0.6, t('whMapStaging'));
-  tile('z-receiving', 0.6 + half + 0.4, ZONE_Y, half - 0.4, ZONE_D, '#dbeafe');
+  tile('z-receiving', 0.6 + half + 0.4, ZONE_Y, half - 0.4, ZONE_D, PAL.receiving);
   words('w-receiving', 0.6 + half + 0.4, ZONE_Y + 0.2, half - 0.4, 0.6, t('whMapReceiving'));
   // The staging lanes, S1..S6, with a carton stack for each packed order.
   const laneW = half / LANES.length;
   LANES.forEach((l, i) => {
     const x = 0.6 + i * laneW;
-    if (i) boxes.push({ id: `lane-line-${l}`, x, y: ZONE_Y + 0.9, w: 0.04, d: ZONE_D - 1, h: 0, color: '#94a3b8', pick: false });
+    if (i) boxes.push({ id: `lane-line-${l}`, x, y: ZONE_Y + 0.9, w: 0.04, d: ZONE_D - 1, h: 0, color: PAL.laneSep, pick: false });
     words(`lane-${l}`, x, ZONE_Y + ZONE_D - 0.6, laneW, 0.5, l, 0.32);
     lanes.get(l).slice(0, 3).forEach((o, k) => {
       const bx = x + 0.12 + (k % 2) * 0.42;
@@ -216,19 +228,19 @@ function build(data) {
     });
   });
   // To the side: the packing tables, QC and returns, the forklifts' charging.
-  tile('z-packing', SIDE, RY, 4.6, 4.4, '#ede9fe');
+  tile('z-packing', SIDE, RY, 4.6, 4.4, PAL.packing);
   words('w-packing', SIDE, RY + 0.1, 4.6, 0.6, t('whMapPacking'));
   [[0.5, 1.2], [2.6, 1.2], [0.5, 2.9], [2.6, 2.9]].forEach(([dx, dy], i) => {
     const o = atTable[i];
-    boxes.push({ id: `pack-${i}`, x: SIDE + dx, y: RY + dy, w: 1.4, d: 0.8, h: 0.55, color: o ? '#a78bfa' : '#cbd5e1', pick: !!o, order: o,
+    boxes.push({ id: `pack-${i}`, x: SIDE + dx, y: RY + dy, w: 1.4, d: 0.8, h: 0.55, color: o ? '#a78bfa' : PAL.table, pick: !!o, order: o,
       label: o ? `P${i + 1} · ${o.ref}` : `P${i + 1}`, labelCls: o ? 'task' : 'small', title: o ? `${o.ref} · ${t('ob_PACKING')}` : `P${i + 1}` });
     boxes.push({ id: `pack-${i}-box`, x: SIDE + dx + 0.2, y: RY + dy + 0.15, z: 0.55, w: 0.45, d: 0.4, h: 0.3, color: COLOR.kraft, kind: 'carton', pick: false, noShadow: true,
       ...(o ? { anim: { path: [[0, 0], [0.5, 0], [0.5, 0], [0, 0]], dur: 4, ease: true, begin: `${i * 0.6}s` } } : {}) });
   });
-  tile('z-qc', SIDE, RY + 5, 4.6, 3, '#e0f2fe');
+  tile('z-qc', SIDE, RY + 5, 4.6, 3, PAL.qc);
   words('w-qc', SIDE, RY + 5.1, 4.6, 0.6, t('whMapQc'));
-  boxes.push({ id: 'qc-1', x: SIDE + 0.8, y: RY + 6.2, w: 1, d: 1, h: 0.7, color: '#94a3b8', pick: false }, { id: 'qc-2', x: SIDE + 2.4, y: RY + 6.4, w: 0.8, d: 0.8, h: 0.5, color: '#94a3b8', pick: false });
-  tile('z-charge', SIDE, RY + 8.6, 4.6, 2.6, '#f1f5f9');
+  boxes.push({ id: 'qc-1', x: SIDE + 0.8, y: RY + 6.2, w: 1, d: 1, h: 0.7, color: PAL.qcBox, pick: false }, { id: 'qc-2', x: SIDE + 2.4, y: RY + 6.4, w: 0.8, d: 0.8, h: 0.5, color: PAL.qcBox, pick: false });
+  tile('z-charge', SIDE, RY + 8.6, 4.6, 2.6, PAL.charge);
   words('w-charge', SIDE, RY + 8.7, 4.6, 0.6, t('whMapCharging'));
   // A forklift, out of its charging bay and back.
   const forkMove = { path: [[-1.6, 0], [-1.6, 0], [-1.6, -3.2], [-1.6, -3.2], [-1.6, 0], [0, 0], [0, 0]], dur: 16, ease: true };
@@ -251,7 +263,7 @@ function build(data) {
   const dock = (i, kind, job) => {
     const x = dockAt(i, kind);
     const name = kind === 'OUT' ? OUT_DOCKS[i] : `IN-${i + 1}`;
-    boxes.push({ id: `dock-${name}`, x, y: dockY, z: 0, w: 1.6, d: 1.2, h: 0, color: kind === 'IN' ? '#bfdbfe' : '#fde68a', label: name, labelCls: 'dock', pick: false });
+    boxes.push({ id: `dock-${name}`, x, y: dockY, z: 0, w: 1.6, d: 1.2, h: 0, color: kind === 'IN' ? PAL.dockIn : PAL.dockOut, label: name, labelCls: 'dock', pick: false });
     boxes.push({ id: `bump-${name}`, x: x + 0.1, y: dockY + 1.15, w: 1.4, d: 0.1, h: 0.22, color: '#facc15', pick: false, noShadow: true });
     if (!job) return;
     lorry(job, kind, x + 0.35, dockY + 1.4);
@@ -261,13 +273,25 @@ function build(data) {
   };
   board.docks.forEach((d, i) => dock(i, 'OUT', d.trip ? tripJob(d) : null));
   for (let i = 0; i < docksIn; i++) dock(i, 'IN', arriving[i]);
-  // The yard: the rest wait in marked bays.
-  const queue = [...board.yard.map((y) => ({ ...tripJob(y), kind: 'OUT' })), ...arriving.slice(docksIn).map((j) => ({ ...j, kind: 'IN' }))];
-  for (let k = 0; k < 8; k++) {
-    const x = 1 + k * 2.2;
-    if (x + 1.4 > W) break;
-    boxes.push({ id: `bay-${k}`, x, y: dockY + 5.2, w: 0.06, d: 2.6, h: 0, color: '#facc15', pick: false });
-    if (queue[k]) lorry(queue[k], queue[k].kind, x + 0.4, dockY + 5.1);
+  // The road along the front of the docks, a dashed line down its middle.
+  tile('road', 0.2, roadY, W - 0.4, 1.8, PAL.road);
+  for (let x = 0.6; x + 0.7 < W - 0.4; x += 1.4) tile(`road-dash-${x.toFixed(1)}`, x, roadY + 0.86, 0.7, 0.08, PAL.dash);
+  // Behind it a queue lane for each dock; the lorries waiting line up in the lanes of their kind.
+  const outQ = board.yard.map((y) => ({ ...tripJob(y), kind: 'OUT' }));
+  const inQ = arriving.slice(docksIn).map((j) => ({ ...j, kind: 'IN' }));
+  const queue = [...outQ, ...inQ];
+  const lanesAll = [...OUT_DOCKS.map((name, i) => ({ name, kind: 'OUT', x: dockAt(i, 'OUT') })),
+    ...Array.from({ length: docksIn }, (_, i) => ({ name: `IN-${i + 1}`, kind: 'IN', x: dockAt(i, 'IN') }))];
+  const inLane = new Map(lanesAll.map((l) => [l.name, []]));
+  outQ.forEach((j, k) => inLane.get(OUT_DOCKS[k % OUT_DOCKS.length]).push(j));
+  inQ.forEach((j, k) => inLane.get(`IN-${(k % docksIn) + 1}`).push(j));
+  for (const l of lanesAll) {
+    for (let y = laneY; y + 0.5 < laneY + LANE_D; y += 0.9) {
+      tile(`q-${l.name}-a-${y.toFixed(1)}`, l.x + 0.02, y, 0.05, 0.5, PAL.laneLine);
+      tile(`q-${l.name}-b-${y.toFixed(1)}`, l.x + 1.53, y, 0.05, 0.5, PAL.laneLine);
+    }
+    words(`q-${l.name}`, l.x - 0.2, laneY + LANE_D - 0.1, 2, 0.5, `${t('whMapQueue')} ${l.name}`, 0.26);
+    inLane.get(l.name).slice(0, 3).forEach((j, k) => lorry(j, l.kind, l.x + 0.35, laneY + 0.25 + k * 3));
   }
 
   // Pickers: where their next line is, with how far they have got.
@@ -293,12 +317,14 @@ function build(data) {
     const cls = [demo ? 'demo' : '', (mode === 'pick' && tone === COLOR.pick) || (mode === 'activity' && recent(c)) ? 'pulse' : ''].filter(Boolean).join(' ');
     const x = RX + c.x;
     const y = RY + c.y;
-    const beam = { id: `c${i}-beam`, x, y, z: c.z, w: 1, d: 0.94, h: 0.07, color: '#f08c00', cell: c, title, noShadow: c.z > 0, cls: demo ? 'demo' : '' };
-    if (!used && !demo) return [beam];
+    // The shelf: a steel deck with the orange beam along its front edge.
+    const beam = { id: `c${i}-beam`, x, y, z: c.z, w: 1, d: 0.94, h: 0.05, color: PAL.deck, cell: c, title, noShadow: c.z > 0, cls: demo ? 'demo' : '' };
+    const lip = { id: `c${i}-lip`, x, y: y + (Math.floor(c.y) % 2 ? 0.86 : 0), z: c.z, w: 1, d: 0.08, h: 0.11, color: '#f08c00', cell: c, title, noShadow: true };
+    if (!used && !demo) return [beam, lip];
     const color = demo ? '#d6b98c' : tone;
     // Cartons: as high as there are cartons, against the fullest slot in view.
     const tall = mode === 'cartons' && !demo ? 0.12 + 0.6 * Math.min(1, cartonsIn(c) / mostCartons) : 0.5;
-    return [beam,
+    return [beam, lip,
       { id: `c${i}`, x: x + 0.06, y: y + 0.1, z: c.z + 0.07, w: 0.5, d: 0.74, h: tall, color, cell: c, title, cls, kind: 'carton', noShadow: true },
       { id: `c${i}-b`, x: x + 0.58, y: y + 0.16, z: c.z + 0.07, w: 0.36, d: 0.62, h: tall * 0.76, color: shade2(color), cell: c, title, cls, kind: 'carton', noShadow: true }];
   });
@@ -311,8 +337,8 @@ function build(data) {
     return out;
   });
   const aisles = () => floor.racks.filter((_, i) => i % 2 === 1).flatMap((r) => [
-    { id: `aisle-${r.name}-a`, x: RX - 0.3, y: RY + r.y + 1.12, w: RW + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
-    { id: `aisle-${r.name}-b`, x: RX - 0.3, y: RY + r.y + 2.48, w: RW + 0.6, d: 0.06, h: 0, color: '#facc15', pick: false },
+    { id: `aisle-${r.name}-a`, x: RX - 0.3, y: RY + r.y + 1.12, w: RW + 0.6, d: 0.06, h: 0, color: PAL.aisle, pick: false },
+    { id: `aisle-${r.name}-b`, x: RX - 0.3, y: RY + r.y + 2.48, w: RW + 0.6, d: 0.06, h: 0, color: PAL.aisle, pick: false },
   ]);
   const rackLabels = () => floor.racks.map((r) => ({ id: `rack-${r.name}`, x: RX - 1.8, y: RY + r.y, z: 0, w: 1.4, d: 0.9, h: 0, color: 'transparent', label: r.name, labelCls: 'floor', labelSize: 0.55, pick: false, noFill: true }));
   const all = () => [...boxes.filter((b) => b.h === 0), ...aisles(), ...rackLabels(), ...uprights(), ...cellBoxes(), ...boxes.filter((b) => b.h !== 0), ...people];
@@ -347,7 +373,7 @@ function build(data) {
   });
   const units = bins.reduce((s, b) => s + onHand(b), 0);
   return {
-    all, W, D: dockY + 9, demo, floor,
+    all, W, D: laneY + LANE_D + 0.8, demo, floor,
     // Where the picture starts (and ⌂ goes back to): the racks, filling it.
     home: { x: RX - 2, y: RY - 0.6, w: floor.W + 2.6, d: floor.D + 1.2, h: Math.max(1, ...floor.cells.map((c) => c.z)) + 0.8 },
     cellOf, soonest, toPick, tasks, feed, queue, orders,
