@@ -24,6 +24,7 @@ on:
       - 'firestore.rules'
       - 'firestore.indexes.json'
       - 'storage.rules'
+      - 'storage-cors.json'
       - 'firebase.json'
       - 'web/**'
       - 'site/**'
@@ -229,6 +230,16 @@ jobs:
         if: steps.setup.outputs.ready == 'true'
         continue-on-error: true
         run: rules-test/node_modules/.bin/firebase deploy --only storage --project "$PROJECT" --non-interactive --force
+
+      # The 3D view reads a company's own .glb model from Storage with
+      # fetch(), which the bucket allows only for our own website (CORS).
+      - name: Let the website read 3D models from Storage
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+        run: |
+          for b in $(gcloud storage buckets list --project "$PROJECT" --format='value(name)' 2>/dev/null | grep -E "^$PROJECT\.(appspot\.com|firebasestorage\.app)$"); do
+            gcloud storage buckets update "gs://$b" --cors-file=storage-cors.json && echo "CORS set on $b"
+          done
 
       # The POS API runs on Cloud Run. Deploying it needs Cloud Run and
       # Cloud Build permissions on the key's account, granted once (see the

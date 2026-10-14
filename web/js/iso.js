@@ -416,12 +416,11 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   pic.addEventListener('contextmenu', (e) => e.preventDefault());
   pic.addEventListener('pointerdown', (e) => {
     // Right-drag, or shift-drag, turns it round, any way.
-    if (e.button === 2 || e.shiftKey) { turning = { x: e.clientX, angle }; dragged = true; stopSpin(); return; }
+    if (e.button === 2 || e.shiftKey) { turning = { x: e.clientX, angle }; dragged = true; return; }
     fingers.set(e.pointerId, [e.clientX, e.clientY]);
     if (fingers.size === 2) {
       const [a, b] = [...fingers.values()];
       pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, zoom, twist: Math.atan2(b[1] - a[1], b[0] - a[0]), angle };
-      stopSpin();
       dragged = true;
       return;
     }
@@ -511,13 +510,6 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     const step = (now) => { const k = Math.min(1, (now - t0) / 260); turnTo(from + by * (1 - (1 - k) * (1 - k))); if (k < 1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   };
-  // All the way round, slowly, until stopped (a showroom screen).
-  let spinTimer = null;
-  const startSpin = () => {
-    el.classList.add('spinning');
-    spinTimer = setInterval(() => { if (!document.hidden && el.isConnected) turnTo(angle + 1.5); else if (!el.isConnected) stopSpin(); }, 90);
-  };
-  const stopSpin = () => { if (spinTimer) clearInterval(spinTimer); spinTimer = null; el.classList.remove('spinning'); };
   const btn = (label, act, fn, title = act) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -539,13 +531,14 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   if (hint) tools.append(Object.assign(document.createElement('span'), { className: 'iso-hint', textContent: hint }));
   tools.append(
     btn('⛶', 'iso-full', full, 'Full screen'),
-    btn('⟲', 'iso-left', () => { stopSpin(); glide(-30); }),
-    btn('⟳', 'iso-right', () => { stopSpin(); glide(30); }),
-    btn('360°', 'iso-spin', () => (spinTimer ? stopSpin() : startSpin()), 'Turn all the way round'),
+    // Those asked to come first (the real 3D's 360°), then the picture's own.
+    ...extraTools.filter((x) => x.first).map((x) => btn(x.label, x.act, x.onClick, x.title)),
+    btn('⟲', 'iso-left', () => glide(-30)),
+    btn('⟳', 'iso-right', () => glide(30)),
     btn('+', 'iso-in', () => setZoom(zoom * 1.35)),
     btn('−', 'iso-out', () => setZoom(zoom / 1.35)),
     btn('⌂', 'iso-home', () => { spinning(homeView); view(); }),
-    ...extraTools.map((x) => btn(x.label, x.act, x.onClick, x.title)));
+    ...extraTools.filter((x) => !x.first).map((x) => btn(x.label, x.act, x.onClick, x.title)));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && el.classList.contains('full')) full(); });
   el.append(pic, tools);
   draw();
@@ -553,7 +546,8 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     el,
     draw,
     full: () => full(true),
-    spin: startSpin,
+    /** What is drawn now: { boxes, W, D } (the real 3D view draws the same). */
+    current: () => current,
     select: (id) => { selected = id; draw(); },
     /** Brings box [id] to the middle, closer in. */
     focus: (id, z = 2.4) => {

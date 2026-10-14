@@ -69,9 +69,10 @@ await step('the shop floor: tap a product, the doors; the panel put away and bac
   await page.waitForSelector('[data-card="plan-offer"] a[href^="https://wa.me/"]');
 });
 
-await step('a 3D link opens it full screen, turning on a TV', async () => {
+await step('a 3D link opens it full screen, in real 3D turning round on a TV', async () => {
   await page.goto(`${base}/pos/?view3d=full&spin#/floor`);
-  await page.waitForSelector('.iso-wrap.full.spinning');
+  await page.waitForSelector('.iso-wrap.full.real .g3d.turning[data-ready]');
+  await page.waitForTimeout(800);
   await shot('town-5-tv');
 });
 

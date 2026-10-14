@@ -103,10 +103,6 @@ await step('turns any way round, all the way round, and everything can be tapped
   await page.waitForTimeout(450);
   const after = await page.$eval('.iso-box[data-id="dock-OUT-2"] polygon', (p) => p.getAttribute('points'));
   if (before === after) throw new Error('did not turn');
-  await page.click('button[data-act="iso-spin"]');
-  await page.waitForSelector('.iso-wrap.spinning');
-  await page.click('button[data-act="iso-spin"]');
-  await page.waitForSelector('.iso-wrap:not(.spinning)');
   if (!(await vb())) throw new Error('empty picture');
   const tap = (id) => page.evaluate((x) => document.querySelector(`.iso-box[data-id="${x}"] polygon:last-of-type`).dispatchEvent(new MouseEvent('click', { bubbles: true })), id);
   await tap('dock-OUT-2');
@@ -117,6 +113,49 @@ await step('turns any way round, all the way round, and everything can be tapped
   await page.waitForSelector('.map-info h3:has-text("P1")');
   await page.waitForSelector('[data-card="plan-offer"] a[href^="https://wa.me/"]');
   await page.click('button[data-act="iso-home"]');
+});
+
+await step('real 3D: 360° round, taps, saved as .glb, the owner puts up their own model', async () => {
+  await page.click('button[data-act="v3d-real"]');
+  await page.waitForSelector('.iso-wrap.real .g3d[data-ready] canvas.g3d-canvas');
+  if (await page.evaluate(() => localStorage.getItem('jsox-3d-real')) !== 'on') throw new Error('not remembered');
+  if (await page.$eval('.g3d', (e) => e.view.count()) < 20) throw new Error('3D nearly empty');
+  // Drag: it turns round.
+  const box = await page.$eval('.g3d canvas', (c) => { const r = c.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+  await page.mouse.move(box[0], box[1]);
+  await page.mouse.down();
+  await page.mouse.move(box[0] + 260, box[1] + 10, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(400);
+  // A tap on a dock in 3D says what is there.
+  const at = await page.$eval('.g3d', (e) => e.view.where('dock-OUT-2'));
+  if (!at) throw new Error('no dock in 3D');
+  await page.mouse.click(at[0], at[1]);
+  await page.waitForSelector('.map-info h3:has-text("OUT-2")');
+  await page.click('button[data-act="g3d-turn"]');
+  await page.waitForSelector('.g3d.turning');
+  await shot('map-7-real3d');
+  // Saved as a .glb anyone can open.
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('button[data-act="g3d-save"]')]);
+  if (!/^JSOX-warehouse-map\.glb$/.test(dl.suggestedFilename())) throw new Error(dl.suggestedFilename());
+  const { readFileSync } = await import('node:fs');
+  const glb = readFileSync(await dl.path());
+  if (glb.subarray(0, 4).toString() !== 'glTF' || glb.length < 2000) throw new Error('not a .glb');
+  // The owner puts up their own model (here, the one just saved).
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('button[data-act="g3d-up"]')]);
+  await chooser.setFiles({ name: 'our-shop.glb', mimeType: 'model/gltf-binary', buffer: glb });
+  await page.waitForSelector('.iso-wrap.own .g3d[data-model="own"]');
+  const rec = await page.evaluate(() => window.__store.get('workspaces/w1/pos/settings')?.models?.['warehouse-map']);
+  if (rec?.path !== 'workspaces/w1/models/warehouse-map.glb' || rec.name !== 'our-shop.glb') throw new Error(JSON.stringify(rec));
+  await shot('map-8-own-model');
+  // Taken down again: back to the live 3D.
+  await page.click('button[data-act="g3d-drop"]');
+  await page.click('.dialog .actions button:last-child');
+  await page.waitForSelector('.iso-wrap:not(.own) .g3d[data-model="live"]');
+  // Back to the simple picture, remembered.
+  await page.click('button[data-act="v3d-real"]');
+  await page.waitForSelector('.iso-wrap:not(.real) .iso-svg');
+  if (await page.$('.g3d')) throw new Error('3D still there');
 });
 
 await step('a place without shelf codes: a sample, and how to fill it in', async () => {

@@ -1054,7 +1054,6 @@ body.iso-full-open { overflow: hidden; }
 /* Send us your floor plan (view3d.js planOffer) */
 .v3d-plan { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line-strong, var(--line)); background: var(--surface); font-size: 14px; }
 .v3d-plan .btn { white-space: nowrap; }
-.iso-wrap.spinning .iso-btn[data-act="iso-spin"] { background: var(--brand, #0f766e); color: #fff; }
 /* The shop floor's panel, put away and brought back */
 .fl-layout { position: relative; }
 .fl-panel-top { margin-bottom: -6px; }
@@ -1064,5 +1063,21 @@ body.iso-full-open { overflow: hidden; }
 .fl-layout.panel-off .fl-panel { display: none; }
 .fl-layout.panel-off .fl-panel-open { display: inline-flex; }
 @media (max-width: 600px) { .fl-layout.panel-off .fl-panel-open { position: static; justify-self: end; } }
-.iso-btn[data-act="iso-spin"] { width: auto; min-width: 46px; padding: 0 8px; font-size: 12.5px; font-weight: 700; }
+/* Real 3D (WebGL, glb3d.js) laid over the picture: turns all the way round */
+.iso-btn[data-act="v3d-real"], .iso-btn[data-act="g3d-save"] { width: auto; min-width: 46px; padding: 0 8px; font-size: 12.5px; font-weight: 700; }
+.iso-wrap.real .iso-btn[data-act="v3d-real"] { background: var(--brand, #0f766e); color: #fff; }
+.iso-wrap:not(.real) .iso-btn[data-act^="g3d-"], .iso-wrap:not(.own) .iso-btn[data-act="g3d-drop"] { display: none; }
+.iso-wrap.real .iso-btn[data-act="iso-left"], .iso-wrap.real .iso-btn[data-act="iso-right"], .iso-wrap.real .iso-btn[data-act="iso-in"], .iso-wrap.real .iso-btn[data-act="iso-out"], .iso-wrap.real .iso-btn[data-act="iso-home"] { display: none; }
+.iso-wrap.real .iso-svg { visibility: hidden; }
+.iso-wrap.real .iso-hint { display: none; }
+.iso-wrap .iso-tools { z-index: 2; }
+.g3d { position: absolute; inset: 0; z-index: 1; overflow: hidden; border-radius: inherit; background: #eef5f4; }
+.iso-wrap.night .g3d { background: #08131e; }
+.g3d-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.g3d-canvas:active { cursor: grabbing; }
+.g3d.turning ~ .iso-tools .iso-btn[data-act="g3d-turn"], .iso-wrap:has(.g3d.turning) .iso-btn[data-act="g3d-turn"] { background: var(--brand, #0f766e); color: #fff; }
+.g3d-hint { position: absolute; left: 12px; bottom: 12px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 255, 255, .86); color: #33475b; font-size: 12.5px; pointer-events: none; }
+.iso-wrap.night .g3d-hint { background: rgba(8, 20, 32, .8); color: #c7d5e2; }
+.g3d-wait { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; color: #5b6b7a; }
+@media (max-width: 600px) { .g3d-hint { bottom: 58px; font-size: 11.5px; } }
 .iso-box.wall { opacity: .55; }

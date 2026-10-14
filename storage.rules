@@ -7,6 +7,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
+    function admin(ws) {
+      return member(ws)
+             && firestore.get(/databases/(default)/documents/workspaces/$(ws)/users/$(request.auth.uid)).data.roleId == 'admin';
+    }
+
     function member(ws) {
       return request.auth != null
              && firestore.exists(/databases/(default)/documents/workspaces/$(ws)/users/$(request.auth.uid))
@@ -29,6 +34,15 @@ service firebase.storage {
                    && (request.resource == null
                        || (request.resource.size < 5 * 1024 * 1024
                            && request.resource.contentType.matches('image/.*')));
+    }
+
+    // A company's own 3D model (.glb), made from its floor plan and put up
+    // by the owner; everyone in the company sees it in the 3D view.
+    match /workspaces/{ws}/models/{file} {
+      allow read: if member(ws);
+      allow write: if admin(ws)
+                   && file.matches('[a-z0-9-]+[.]glb')
+                   && (request.resource == null || request.resource.size < 30 * 1024 * 1024);
     }
   }
 }
