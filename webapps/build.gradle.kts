@@ -1,6 +1,6 @@
 /*
- * The website's apps as Android apps: SuXin (the app centre), SuXin POS,
- * SuXin WMS and SuXin Every Data. SuXin Barcode Scan is the native app in :app.
+ * The website's apps as Android apps: JSOX (the app centre), JSOX POS,
+ * JSOX WMS and JSOX Every Data. JSOX Barcode Scan is the native app in :app.
  *
  * Each is a Trusted Web Activity: the phone's Chrome shows the website full
  * screen, with no address bar, as its own app with its own icon. Everything
@@ -40,10 +40,10 @@ android {
     productFlavors {
         // id, package, name on the phone, where it opens
         listOf(
-            listOf("hub", "com.suxin.apps", "SuXin", "$site/app/"),
-            listOf("pos", "com.suxin.pos", "SuXin POS", "$site/pos/"),
-            listOf("warehouse", "com.suxin.warehouse", "SuXin WMS", "$site/warehouse/"),
-            listOf("cloud", "com.suxin.cloud", "SuXin Every Data", "$site/data/"),
+            listOf("hub", "com.suxin.apps", "JSOX", "$site/app/"),
+            listOf("pos", "com.suxin.pos", "JSOX POS", "$site/pos/"),
+            listOf("warehouse", "com.suxin.warehouse", "JSOX WMS", "$site/warehouse/"),
+            listOf("cloud", "com.suxin.cloud", "JSOX Every Data", "$site/data/"),
         ).forEach { (id, pkg, label, url) ->
             create(id) {
                 dimension = "app"
@@ -55,7 +55,7 @@ android {
     }
 
     signingConfigs {
-        // "jexo": the names the key was made with (before the brand was SuXin).
+        // "jexo": the names the key was made with (before the brand was JSOX).
         create("jexo") {
             storeFile = file("jexo-webapps.keystore")
             storePassword = "jexo-webapps"

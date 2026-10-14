@@ -1,7 +1,7 @@
 {
-  "name": "SuXin Every Data",
+  "name": "JSOX Every Data",
   "short_name": "Every Data",
-  "description": "The owner's overview of SuXin: sales, stock and the warehouse in one place.",
+  "description": "The owner's overview of JSOX: sales, stock and the warehouse in one place.",
   "start_url": "/data/",
   "scope": "/data/",
   "id": "/data/",

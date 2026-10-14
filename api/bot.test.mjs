@@ -136,9 +136,9 @@ test('stock at each place, low stock, the report and its notification', () => {
   assert.match(lowText(lows, 'zh'), /⚠️ 低库存 1 样\n• Telur \(Kedai Ipoh\): 剩 4, 补货点 30/);
   assert.equal(lowText([], 'en'), '✅ Nothing is low.');
   const report = reportText({ company: 'Kedai Maju', summary: summarize(SALES), lows, start: Date.UTC(2026, 9, 6, 16), lang: 'zh' });
-  assert.match(report, /📊 SuXin 每日报告 · Kedai Maju\n7\/10\/2026/);
+  assert.match(report, /📊 JSOX 每日报告 · Kedai Maju\n7\/10\/2026/);
   assert.match(report, /营业额：RM 36\.90/);
   assert.match(report, /低库存 1 样/);
   assert.doesNotMatch(reportText({ company: 'K', summary: summarize(SALES), lows, start: 0, showSales: false }), /营业额/);
-  assert.deepEqual(reportPush({ summary: summarize(SALES), lows, lang: 'en' }), { title: 'SuXin daily report', body: 'Sales RM 36.90 · 2 receipts\n⚠️ 1 items low' });
+  assert.deepEqual(reportPush({ summary: summarize(SALES), lows, lang: 'en' }), { title: 'JSOX daily report', body: 'Sales RM 36.90 · 2 receipts\n⚠️ 1 items low' });
 });

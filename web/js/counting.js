@@ -1,5 +1,5 @@
 /**
- * The arithmetic of a stock count on the web, shared with what the SuXin
+ * The arithmetic of a stock count on the web, shared with what the JSOX
  * Count app does (StockRepository.kt, RefNoAllocator.kt), so a count made
  * in either reads the same in both. Pure.
  */

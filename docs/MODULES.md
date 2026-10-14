@@ -1,6 +1,6 @@
-# Modules: how SuXin grows without getting complicated
+# Modules: how JSOX grows without getting complicated
 
-SuXin — *One Business. Connected.* (formerly Pos Stock Check / Stock Check).
+JSOX — *One Business. Connected.* (formerly Pos Stock Check / Stock Check).
 Only names on screen changed: the Android package `com.stockcheck.app`,
 Firestore paths, licence keys, URLs and saved settings are unchanged.
 
@@ -9,25 +9,25 @@ Underneath, every part is a **module** in one registry.
 
 | Customer sees | Module id | Licence key | Status |
 |---|---|---|---|
-| SuXin Barcode Scan 盘点通 (Android) | `count` | `app` | live |
-| SuXin POS 收银通 (web) | `pos` | `pos` | live |
-| SuXin WMS 仓管通 | `warehouse` | `warehouse` | live |
-| SuXin Procurement (purchase orders, suppliers, cost calculator) | `procurement` (needs `warehouse`) | `warehouse` | live |
-| SuXin Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
+| JSOX Barcode Scan 盘点通 (Android) | `count` | `app` | live |
+| JSOX POS 收银通 (web) | `pos` | `pos` | live |
+| JSOX WMS 仓管通 | `warehouse` | `warehouse` | live |
+| JSOX Procurement (purchase orders, suppliers, cost calculator) | `procurement` (needs `warehouse`) | `warehouse` | live |
+| JSOX Tax (SST, LHDN e-invoice) | `tax` (needs `pos`) | `pos` | live |
 | Open API | `api` | `api` | live |
-| SuXin Books 账务 (e-invoices, bookkeeping, reports) | `accounting` | `pos` | live |
-| SuXin Logistics 配送 | `logistics` | `logistics` | planned |
-| SuXin B2B | `b2b` | `b2b` | planned |
+| JSOX Books 账务 (e-invoices, bookkeeping, reports) | `accounting` | `pos` | live |
+| JSOX Logistics 配送 | `logistics` | `logistics` | planned |
+| JSOX B2B | `b2b` | `b2b` | planned |
 
 Each entry also lists `menuItems`, `routes` and `apiScopes`. Planned
 modules are never on, whatever a licence says.
 
-SuXin Every Data 云后台 is not a module: it is the signed-in website itself. Its
+JSOX Every Data 云后台 is not a module: it is the signed-in website itself. Its
 dashboard (`web/js/dashboard.js`, menu `#/cloud`) shows today's sales only
 with the POS and `POS_REPORTS`, stock with Count or POS, and orders to
-receive / transfers on the way only with SuXin WMS.
+receive / transfers on the way only with JSOX WMS.
 
-## SuXin Books (`/books/`, `web/bk/`)
+## JSOX Books (`/books/`, `web/bk/`)
 
 The company's own accounts, for the shop or its accountant. Permissions:
 `BOOKS_VIEW` (read), `BOOKS_POST` (issue, pay, post), `BOOKS_ADMIN`
@@ -49,7 +49,7 @@ The company's own accounts, for the shop or its accountant. Permissions:
   running number, so numbers are never taken twice. Nothing dated on or
   before `bkMeta/settings.lockDate` is written (the rules hold it too).
 
-## What SuXin WMS keeps beyond goods in and out
+## What JSOX WMS keeps beyond goods in and out
 
 - **Cartons** — a product's `packSize` / `packName`; stock is still pieces,
   cartons are how it is typed (`+1 ctn`) and read (`25 (1 ctn + 1)`).
@@ -144,10 +144,10 @@ dropped from the page (the text reader still knows their layouts).
 
 ## Apps, sign-up and locks
 
-- **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then SuXin Barcode Scan,
+- **App centre** `/app/` (`web/hub/main.js`, `web/js/apps.js`): one sign-in, then JSOX Barcode Scan,
   POS, Every Data (`/data/`) and WMS. Every app shows the same sign-in screen (`startApp`). An app the plan does not include is shown locked with where to add
   it; every app's sidebar carries the same switcher.
-- **SuXin Barcode Scan on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
+- **JSOX Barcode Scan on the web** `/count/` (`web/cnt/`): writes the same `stockChecks` and `items` as
   the Android app (reference numbers from `meta/counters`, increments for edits), so a count can
   be started on one and finished on the other.
 - **Sign-up** (`web/js/signup.js`): a new company (founder is admin: code claimed, built-in roles
@@ -165,7 +165,7 @@ dropped from the page (the text reader still knows their layouts).
 
 Every app and every job in it has a guide section with a short video
 (`web/js/guides.js`, shown on each app's "How to use" page and on `/guide/`,
-which has tabs for the account, SuXin Barcode Scan, POS, Warehouse and Cloud).
+which has tabs for the account, JSOX Barcode Scan, POS, Warehouse and Cloud).
 
 - The videos are filmed by `tools/videos/record.mjs` in the pretend shop of
   `world.mjs`: `node tools/videos/record.mjs` films them all, or name some.
@@ -182,7 +182,7 @@ which has tabs for the account, SuXin Barcode Scan, POS, Warehouse and Cloud).
 
 ## The bot and the morning report
 
-`api/bot.mjs` decides what the SuXin bot understands and says; `api/notify.mjs`
+`api/bot.mjs` decides what the JSOX bot understands and says; `api/notify.mjs`
 reads the company's data and sends it. Both run in the API on Cloud Run.
 
 - **Telegram.** Settings → Notifications & bot → Connect Telegram leaves a
@@ -194,7 +194,7 @@ reads the company's data and sends it. Both run in the API on Cloud Run.
 - **Email.** `workspaces/{ws}/meta/notify { emailDaily, emails }` (admins),
   sent through any SMTP account (a Gmail app password works).
 - **Push.** Firebase Cloud Messaging to `users/{uid}/pushTokens/`: the
-  SuXin Barcode Scan app files its token after sign-in; a browser does it from the
+  JSOX Barcode Scan app files its token after sign-in; a browser does it from the
   Notifications page (needs the public key in the `WEB_PUSH_VAPID_KEY`
   repository variable).
 - **8 am.** Cloud Scheduler calls `POST /jobs/daily` with the `job-key`
@@ -206,7 +206,7 @@ reads the company's data and sends it. Both run in the API on Cloud Run.
 ## Every page's own tutorial
 
 `web/js/helpdata.js` lists a short tutorial for every page (back office,
-warehouse, SuXin Barcode Scan on the web, the app centre) and for every button on
+warehouse, JSOX Barcode Scan on the web, the app centre) and for every button on
 the till: title and steps in three languages, and what the pointer does.
 `tools/videos/pages.mjs` films each into `web/videos/help/<key>.webm`, with
 its narration, from that same list.

@@ -99,7 +99,7 @@ const A = {
     ],
     loss: '一年下来<br>到底亏了多少？',
     turn: '直到有一天<br>他换了一个系统……',
-    logo: '<span class="tag">SuXin</span><br><em>一个系统</em><br>全部搞定<small>收银 · 仓库 · 盘点 · 扫码点餐 · 拼多多进货</small>',
+    logo: '<span class="tag">JSOX</span><br><em>一个系统</em><br>全部搞定<small>收银 · 仓库 · 盘点 · 扫码点餐 · 拼多多进货</small>',
     f1: '⚡ 第一招<br><em>扫一下就卖</em>',
     sell: ['哔、哔、哔……超市速度', 'Scan, scan, scan — supermarket speed'],
     total: ['SST 自动算，一分钱都不会错', 'SST worked out for you'],
@@ -124,7 +124,7 @@ const A = {
     limit: '终身版<br>全马只卖',
     limitN: 50,
     limitSub: '套 · 卖完就没有',
-    cta: `<span class="tag">SuXin · One Business. Connected.</span><br>先免费用 <em>14 天</em><small>收银每月 RM38 起 · 全套 RM48 起</small><span class="cta">👉 WhatsApp ${WA.show}</span><small>说「试用」· 马上免费帮你装好</small><small>${WA.link} · ${SITE}</small>`,
+    cta: `<span class="tag">JSOX · One Business. Connected.</span><br>先免费用 <em>14 天</em><small>收银每月 RM38 起 · 全套 RM48 起</small><span class="cta">👉 WhatsApp ${WA.show}</span><small>说「试用」· 马上免费帮你装好</small><small>${WA.link} · ${SITE}</small>`,
     ctaSay: '先免费用 14 天。WhatsApp 8926 3660，说「试用」，我们马上免费帮你装好。',
   },
   ms: {
@@ -139,7 +139,7 @@ const A = {
     ],
     loss: 'Setahun<br>berapa banyak rugi?',
     turn: 'Sampailah satu hari<br>dia tukar sistem…',
-    logo: '<span class="tag">SuXin</span><br><em>Satu sistem</em><br>semua beres<small>POS · Gudang · Kira stok · Pesan QR · Pinduoduo</small>',
+    logo: '<span class="tag">JSOX</span><br><em>Satu sistem</em><br>semua beres<small>POS · Gudang · Kira stok · Pesan QR · Pinduoduo</small>',
     f1: '⚡ Helah 1<br><em>Imbas terus jual</em>',
     sell: ['Bip, bip, bip… laju macam pasar raya', 'Supermarket speed'],
     total: ['SST dikira sendiri, sen pun tak silap', 'SST worked out for you'],
@@ -164,7 +164,7 @@ const A = {
     limit: 'Pakej seumur hidup<br>hanya',
     limitN: 50,
     limitSub: 'set di seluruh Malaysia',
-    cta: `<span class="tag">SuXin · One Business. Connected.</span><br>Cuba <em>percuma 14 hari</em><small>POS dari RM38 sebulan · Pakej penuh RM48</small><span class="cta">👉 WhatsApp ${WA.show}</span><small>Tulis "CUBA" · kami pasang percuma</small><small>${WA.link} · ${SITE}</small>`,
+    cta: `<span class="tag">JSOX · One Business. Connected.</span><br>Cuba <em>percuma 14 hari</em><small>POS dari RM38 sebulan · Pakej penuh RM48</small><span class="cta">👉 WhatsApp ${WA.show}</span><small>Tulis "CUBA" · kami pasang percuma</small><small>${WA.link} · ${SITE}</small>`,
     ctaSay: 'Cuba percuma 14 hari. WhatsApp 8926 3660, tulis CUBA, kami pasangkan percuma.',
   },
 };
@@ -194,7 +194,7 @@ const adFilm = (lang, phone) => async (page, x, base) => {
 
   // 2. The turn.
   await hit(w.turn, { bg: NAVY, ms: 2100, en: 'Until one day, he changed systems' });
-  await hit(w.logo, { bg: TEAL, ms: 2800, sfx: 'ding', en: 'SuXin: one system for everything' });
+  await hit(w.logo, { bg: TEAL, ms: 2800, sfx: 'ding', en: 'JSOX: one system for everything' });
   await unpunch(page);
   await badge(page, w.badge);
 

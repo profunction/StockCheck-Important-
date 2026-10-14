@@ -17,7 +17,7 @@ addStrings({
     miSources: 'Sources (LHDN)', miClear: 'New conversation', miFail: 'Could not answer:',
     miQ1: 'Do I need to issue e-invoices?', miQ2: 'When is the consolidated e-invoice due?', miQ3: 'A customer wants their own e-invoice. What do I do?',
     miErr_NOT_SET_UP: 'The assistant is not switched on yet (the owner adds the Anthropic key first).', miErr_BUSY: 'Too many questions in a short time. Wait a minute.',
-    miErr_NO_RIGHT: 'The MyInvois assistant comes with SuXin Tax.', miErr_NOT_ANSWERED: 'No answer this time. Try other words, or ask LHDN or your accountant.',
+    miErr_NO_RIGHT: 'The MyInvois assistant comes with JSOX Tax.', miErr_NOT_ANSWERED: 'No answer this time. Try other words, or ask LHDN or your accountant.',
   },
   zh: {
     miTitle: 'MyInvois 助手', miLead: '电子发票有什么不懂都可以问。每个回答都会先查 LHDN 官网，并附上链接。只供参考，重要的决定请跟 LHDN 或会计师确认。',
@@ -25,7 +25,7 @@ addStrings({
     miSources: '来源（LHDN 官网）', miClear: '重新开始', miFail: '回答不了：',
     miQ1: '我要开电子发票吗？', miQ2: '整合电子发票几时要交？', miQ3: '客人要单独的电子发票，我怎么做？',
     miErr_NOT_SET_UP: '助手还没开通（老板要先放 Anthropic 钥匙）。', miErr_BUSY: '短时间内问太多次了，等一分钟。',
-    miErr_NO_RIGHT: 'MyInvois 助手要有 SuXin Tax 才能用。', miErr_NOT_ANSWERED: '这次答不出来。换个问法，或者问 LHDN 或会计师。',
+    miErr_NO_RIGHT: 'MyInvois 助手要有 JSOX Tax 才能用。', miErr_NOT_ANSWERED: '这次答不出来。换个问法，或者问 LHDN 或会计师。',
   },
   ms: {
     miTitle: 'Pembantu MyInvois', miLead: 'Tanya apa sahaja tentang e-Invois LHDN. Setiap jawapan disemak dengan laman web rasmi LHDN, berserta pautan. Panduan umum sahaja — sahkan keputusan dengan LHDN atau akauntan anda.',
@@ -33,7 +33,7 @@ addStrings({
     miSources: 'Sumber (LHDN)', miClear: 'Perbualan baharu', miFail: 'Tidak dapat dijawab:',
     miQ1: 'Perlukah saya keluarkan e-invois?', miQ2: 'Bila e-invois disatukan perlu dihantar?', miQ3: 'Pelanggan mahu e-invois sendiri. Apa perlu saya buat?',
     miErr_NOT_SET_UP: 'Pembantu belum dihidupkan (pemilik perlu tambah kunci Anthropic dahulu).', miErr_BUSY: 'Terlalu banyak soalan dalam masa singkat. Tunggu seminit.',
-    miErr_NO_RIGHT: 'Pembantu MyInvois datang bersama SuXin Tax.', miErr_NOT_ANSWERED: 'Tiada jawapan kali ini. Cuba perkataan lain, atau tanya LHDN atau akauntan.',
+    miErr_NO_RIGHT: 'Pembantu MyInvois datang bersama JSOX Tax.', miErr_NOT_ANSWERED: 'Tiada jawapan kali ini. Cuba perkataan lain, atau tanya LHDN atau akauntan.',
   },
 });
 

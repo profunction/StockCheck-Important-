@@ -1,6 +1,6 @@
 /**
  * Each day's sales into the books (每日销售入账): the takings of every
- * day -- from SuXin POS and from any connected system (a friend's POS) --
+ * day -- from JSOX POS and from any connected system (a friend's POS) --
  * one line per day and source, posted as one journal entry each
  * (books.js entryForDay): cash and settlements against sales and SST.
  * A day already posted says so and cannot be posted twice.

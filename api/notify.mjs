@@ -1,5 +1,5 @@
 /**
- * The SuXin bot and the daily report: reads the company's data, asks
+ * The JSOX bot and the daily report: reads the company's data, asks
  * bot.mjs what to say, and says it by Telegram, email and phone
  * notification.
  *
@@ -71,7 +71,7 @@ export function notifier(db, env = process.env) {
         host: env.SMTP_HOST || 'smtp.gmail.com', port, secure: port === 465, auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
       });
     }
-    await mailer.sendMail({ from: env.MAIL_FROM || `SuXin <${env.SMTP_USER}>`, to: list.join(', '), subject, text });
+    await mailer.sendMail({ from: env.MAIL_FROM || `JSOX <${env.SMTP_USER}>`, to: list.join(', '), subject, text });
     return true;
   }
 
@@ -173,7 +173,7 @@ export function notifier(db, env = process.env) {
       try {
         await wsRef(wsId).collection('stockClosings').doc(`${month}_${b || '-'}`).create({
           month, branchId: b, asOf: monthEnd(month), lines: c.lines, valueSen: c.valueSen, qtyMilli: c.qtyMilli,
-          createdByUid: '', createdByName: 'SuXin', createdAt: now,
+          createdByUid: '', createdByName: 'JSOX', createdAt: now,
         });
         made++;
       } catch (err) {

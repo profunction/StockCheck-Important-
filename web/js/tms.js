@@ -1,5 +1,5 @@
 /**
- * SuXin TMS -- the lorries, the drivers and the trips that take the goods
+ * JSOX TMS -- the lorries, the drivers and the trips that take the goods
  * out. The sums behind web/tm/; no Firebase here, so they are tested alone
  * (tms.test.mjs).
  *

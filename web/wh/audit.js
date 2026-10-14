@@ -1,6 +1,6 @@
 /**
  * The audit log: who did what, when, and the figure before and after --
- * from this system, the till and the SuXin Barcode Scan app alike. Read-only here
+ * from this system, the till and the JSOX Barcode Scan app alike. Read-only here
  * and in the rules: nobody, admin included, edits or deletes an entry.
  */
 import { collection, db, getDocs, limit, orderBy, query } from '../js/fb.js';

@@ -64,9 +64,9 @@ test('API token scopes: none means all; listed means only those', () => {
   assert.equal(tokenAllows({}, 'made.up'), false);
 });
 
-test('the SuXin modules', () => {
+test('the JSOX modules', () => {
   assert.deepEqual(moduleIds(), ['count', 'pos', 'warehouse', 'procurement', 'tax', 'api', 'accounting', 'logistics', 'b2b']);
-  assert.equal(MODULES.count.displayName.en, 'SuXin Barcode Scan');
+  assert.equal(MODULES.count.displayName.en, 'JSOX Barcode Scan');
   for (const id of ['logistics', 'b2b']) assert.equal(MODULES[id].status, 'planned');
   assert.equal(MODULES.accounting.status, 'live');
 });

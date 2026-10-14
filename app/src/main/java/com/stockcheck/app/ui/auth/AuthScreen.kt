@@ -50,7 +50,7 @@ import com.stockcheck.app.ui.common.NoticeTone
 private enum class AuthMode(val label: String, val title: String, val action: String) {
     SIGN_IN("Sign in", "Sign in to continue counting", "Sign in"),
     JOIN("Join", "Join your company with its code", "Join company"),
-    CREATE("New company", "Set up a new company on SuXin", "Create company"),
+    CREATE("New company", "Set up a new company on JSOX", "Create company"),
 }
 
 /**
@@ -114,7 +114,7 @@ fun AuthScreen(
                 tint = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(12.dp))
-            Text("SuXin Barcode Scan", style = MaterialTheme.typography.headlineSmall)
+            Text("JSOX Barcode Scan", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(4.dp))
             Text(
                 text = mode.title,

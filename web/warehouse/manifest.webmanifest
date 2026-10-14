@@ -1,7 +1,7 @@
 {
-  "name": "SuXin WMS",
+  "name": "JSOX WMS",
   "short_name": "WMS",
-  "description": "Receiving, transfers, purchase orders and stock control for SuXin.",
+  "description": "Receiving, transfers, purchase orders and stock control for JSOX.",
   "start_url": "/warehouse/#/home",
   "scope": "/warehouse/",
   "id": "/warehouse/",

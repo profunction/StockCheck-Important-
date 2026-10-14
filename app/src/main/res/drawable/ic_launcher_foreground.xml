@@ -3,16 +3,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- SuXin mark: the S as a line joining two nodes (web/brand/suxin-mark.svg),
+    <!-- JSOX mark: the J as a line joining two nodes (web/brand/suxin-mark.svg),
          inside the adaptive-icon safe zone (centre 66dp). -->
     <group android:scaleX="1.1" android:scaleY="1.1" android:translateX="18.8" android:translateY="18.8">
         <path
-            android:pathData="M42,20 C38,14 22,14 22,23 C22,31 42,31 42,40 C42,49 26,50 22,44"
+            android:pathData="M40,18 L40,37 C40,48 26,50 22,42"
             android:strokeColor="#FFFFFF"
             android:strokeWidth="6"
             android:strokeLineCap="round"
             android:strokeLineJoin="round" />
-        <path android:fillColor="#2DD4BF" android:pathData="M16,44 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
-        <path android:fillColor="#2DD4BF" android:pathData="M36,20 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
+        <path android:fillColor="#2DD4BF" android:pathData="M16,42 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
+        <path android:fillColor="#2DD4BF" android:pathData="M34,18 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
     </group>
 </vector>

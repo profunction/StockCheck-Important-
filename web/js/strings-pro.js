@@ -13,8 +13,8 @@ const en = {
   profWrongPw: 'That password is not right.', profGoogle: 'Google account', profGoogleOn: 'Linked: you can sign in with Google', profGoogleLink: 'Link Google', profGoogleLinked: 'Google linked. Next time you can press "Sign in with Google".', profGoogleConfirm: 'Confirm with Google', profModeChanged: 'Till mode changed', profPickNew: 'Choose the new till mode',
   modeLocked: 'The till mode is set. To change it, an admin goes to Profile and enters their password.',
   modeLockFirst: 'Choose carefully: once set, only an admin can change it, on Profile, with their password.',
-  // SuXin Every Data dashboard
-  navCloud: 'SuXin Every Data', dashLead: 'Your business today, in one place. What shows here follows the products you have.',
+  // JSOX Every Data dashboard
+  navCloud: 'JSOX Every Data', dashLead: 'Your business today, in one place. What shows here follows the products you have.',
   dashToday: 'Today', dashSales: 'Sales today', dashReceipts: 'Receipts', dashAverage: 'Average bill', dashVoided: 'Voided',
   dashRecent: 'Latest receipts', dashNoSales: 'No sales yet today.', dashStock: 'Stock', dashItems: 'Items with stock',
   dashStockValue: 'Stock value (at cost)', dashLow: 'Low stock', dashOut: 'Out of stock', dashLowList: 'Low on stock',
@@ -34,7 +34,7 @@ const en = {
   addonAsk_pos: 'Sell at the counter', addonWhat_pos: 'Barcode checkout or restaurant ordering, SST, receipts, works offline.',
   addonAsk_warehouse: 'Need a central warehouse?', addonWhat_warehouse: 'Purchase orders, receiving, transfers to shops, adjustments, reorder suggestions.',
   addonAsk_api: 'Connect your own system?', addonWhat_api: 'Let an online shop or accounting program read and update items, stock and receipts.',
-  addonAsk_accounting: 'Keep your own accounts?', addonWhat_accounting: 'SuXin Books: invoices and MyInvois e-invoice files, money in and out, profit and loss, balance sheet, who owes what.',
+  addonAsk_accounting: 'Keep your own accounts?', addonWhat_accounting: 'JSOX Books: invoices and MyInvois e-invoice files, money in and out, profit and loss, balance sheet, who owes what.',
   addonAsk_logistics: 'Sending orders out?', addonWhat_logistics: 'Book Lalamove or GrabExpress from the order.',
   // shifts
   noData: 'Nothing in this period.', shift: 'Shift', shiftNone: 'No shift open', shiftOpenSince: 'Shift since', openShift: 'Open shift', closeShift: 'Close shift',
@@ -87,8 +87,8 @@ const zh = {
   profWrongPw: '密码不对。', profGoogle: 'Google 账号', profGoogleOn: '已绑定：可以用 Google 登录', profGoogleLink: '绑定 Google', profGoogleLinked: '已绑定 Google。下次可以直接按「用 Google 登录」。', profGoogleConfirm: '用 Google 确认', profModeChanged: '收银模式已更换', profPickNew: '选新的收银模式',
   modeLocked: '收银模式已经选定。要更换：管理员到「我的 Profile」输入密码才可以换。',
   modeLockFirst: '请想清楚再选：选了以后，只有管理员到「我的 Profile」输入密码才可以换。',
-  // SuXin Every Data dashboard
-  navCloud: 'SuXin Every Data 老板数据', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
+  // JSOX Every Data dashboard
+  navCloud: 'JSOX Every Data 老板数据', dashLead: '今天的生意，一个地方看完。这里显示什么，跟着你开通的产品走。',
   dashToday: '今天', dashSales: '今天销售', dashReceipts: '收据', dashAverage: '平均每单', dashVoided: '已作废',
   dashRecent: '最近的收据', dashNoSales: '今天还没有销售。', dashStock: '库存', dashItems: '有库存的商品',
   dashStockValue: '库存价值（成本）', dashLow: '低库存', dashOut: '没货', dashLowList: '库存不足',
@@ -108,7 +108,7 @@ const zh = {
   addonAsk_pos: '柜台收银', addonWhat_pos: '扫码收银或餐饮点单、SST、收据，没网络也能用。',
   addonAsk_warehouse: '需要管理中央仓库？', addonWhat_warehouse: '采购单、收货、调货给门店、库存调整、补货建议。',
   addonAsk_api: '要连接自己的系统？', addonWhat_api: '让网店或会计软件读写商品、库存和收据。',
-  addonAsk_accounting: '自己做账？', addonWhat_accounting: 'SuXin 账务：开发票和 MyInvois 电子发票文件、收款付款、损益表、资产负债表、应收应付。',
+  addonAsk_accounting: '自己做账？', addonWhat_accounting: 'JSOX 账务：开发票和 MyInvois 电子发票文件、收款付款、损益表、资产负债表、应收应付。',
   addonAsk_logistics: '要送货？', addonWhat_logistics: '从订单直接叫 Lalamove 或 GrabExpress。',
   noData: '这段时间没有记录。', shift: '班次', shiftNone: '未开班', shiftOpenSince: '开班于', openShift: '开班', closeShift: '交班',
   openingFloat: '开班备用金（现在钱箱里的现金）', shiftOpened: '已开班', shiftClosed: '已交班',
@@ -155,8 +155,8 @@ const ms = {
   profWrongPw: 'Kata laluan itu salah.', profGoogle: 'Akaun Google', profGoogleOn: 'Dipautkan: boleh log masuk dengan Google', profGoogleLink: 'Pautkan Google', profGoogleLinked: 'Google dipautkan. Lain kali tekan "Log masuk dengan Google".', profGoogleConfirm: 'Sahkan dengan Google', profModeChanged: 'Mod kaunter ditukar', profPickNew: 'Pilih mod kaunter baharu',
   modeLocked: 'Mod kaunter sudah ditetapkan. Untuk menukar, admin pergi ke Profil dan masukkan kata laluan.',
   modeLockFirst: 'Pilih dengan teliti: selepas ditetapkan, hanya admin boleh menukarnya di Profil dengan kata laluan.',
-  // SuXin Every Data dashboard
-  navCloud: 'SuXin Every Data', dashLead: 'Perniagaan anda hari ini, di satu tempat. Apa yang dipaparkan ikut produk yang anda ada.',
+  // JSOX Every Data dashboard
+  navCloud: 'JSOX Every Data', dashLead: 'Perniagaan anda hari ini, di satu tempat. Apa yang dipaparkan ikut produk yang anda ada.',
   dashToday: 'Hari ini', dashSales: 'Jualan hari ini', dashReceipts: 'Resit', dashAverage: 'Purata bil', dashVoided: 'Dibatalkan',
   dashRecent: 'Resit terkini', dashNoSales: 'Belum ada jualan hari ini.', dashStock: 'Stok', dashItems: 'Barang ada stok',
   dashStockValue: 'Nilai stok (kos)', dashLow: 'Stok rendah', dashOut: 'Habis stok', dashLowList: 'Stok tidak cukup',
@@ -176,7 +176,7 @@ const ms = {
   addonAsk_pos: 'Jual di kaunter', addonWhat_pos: 'Imbas & jual atau pesanan restoran, SST, resit, boleh tanpa internet.',
   addonAsk_warehouse: 'Perlu gudang pusat?', addonWhat_warehouse: 'Pesanan belian, terima barang, pindahan ke kedai, pelarasan, cadangan tambah stok.',
   addonAsk_api: 'Sambung sistem anda sendiri?', addonWhat_api: 'Biar kedai dalam talian atau perisian akaun baca dan kemas kini barang, stok dan resit.',
-  addonAsk_accounting: 'Simpan akaun sendiri?', addonWhat_accounting: 'SuXin Books: invois dan fail e-Invois MyInvois, wang masuk dan keluar, untung rugi, kunci kira-kira, siapa berhutang.',
+  addonAsk_accounting: 'Simpan akaun sendiri?', addonWhat_accounting: 'JSOX Books: invois dan fail e-Invois MyInvois, wang masuk dan keluar, untung rugi, kunci kira-kira, siapa berhutang.',
   addonAsk_logistics: 'Hantar pesanan?', addonWhat_logistics: 'Tempah Lalamove atau GrabExpress dari pesanan.',
   noData: 'Tiada rekod dalam tempoh ini.', shift: 'Syif', shiftNone: 'Tiada syif dibuka', shiftOpenSince: 'Syif sejak', openShift: 'Buka syif', closeShift: 'Tutup syif',
   openingFloat: 'Wang apungan (tunai dalam laci sekarang)', shiftOpened: 'Syif dibuka', shiftClosed: 'Syif ditutup',

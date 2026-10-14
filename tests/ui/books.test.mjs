@@ -1,4 +1,4 @@
-// SuXin Books end to end: the chart set up on first open; the company and
+// JSOX Books end to end: the chart set up on first open; the company and
 // a customer filled in; an invoice issued (its number, its journal entry,
 // its MyInvois file); the customer pays it; an expense; opening capital by
 // hand; the reports add up; and a second invoice voided.
@@ -193,7 +193,7 @@ await step('home: the books as towers in 3D; a tap opens the page behind one', a
   await page.waitForFunction(() => location.hash === '#/reports/pl');
 });
 
-await step('the app centre lists SuXin Books', async () => {
+await step('the app centre lists JSOX Books', async () => {
   await page.goto(`${base}/app/`);
   await page.waitForSelector('[data-app="books"], a[href="/books/"]');
 });

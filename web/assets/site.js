@@ -1,15 +1,15 @@
-// SuXin site behaviour: theme, menus, product tabs, scroll reveal, counters.
+// JSOX site behaviour: theme, menus, product tabs, scroll reveal, counters.
 (function () {
   'use strict';
 
   // Where the buttons go: the apps live on this same site.
   var LINKS = {
-    signin: '/app/',         // sign in to every SuXin app
+    signin: '/app/',         // sign in to every JSOX app
     signup: '/app/#create',  // register a new company (14-day trial)
     android: '/download/',   // the Android apps
   };
   var WHATSAPP = '6589263660';
-  var WA_TEXT = { zh: '你好，我想了解 SuXin。', en: 'Hi, I would like to know more about SuXin.', ms: 'Hai, saya ingin tahu lebih lanjut tentang SuXin.' };
+  var WA_TEXT = { zh: '你好，我想了解 JSOX。', en: 'Hi, I would like to know more about JSOX.', ms: 'Hai, saya ingin tahu lebih lanjut tentang JSOX.' };
 
   var root = document.documentElement;
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -24,8 +24,8 @@
   var year = document.querySelector('[data-year]');
   if (year) year.textContent = new Date().getFullYear();
 
-  // Language: 中文 / EN / BM. Swaps text nodes using window.SUXIN_I18N; English is the source.
-  var I18N = window.SUXIN_I18N || { text: {}, patterns: [] };
+  // Language: 中文 / EN / BM. Swaps text nodes using window.JSOX_I18N; English is the source.
+  var I18N = window.JSOX_I18N || { text: {}, patterns: [] };
   var LANG_IDX = { zh: 0, ms: 1 };
   var HTML_LANG = { en: 'en', zh: 'zh-Hans', ms: 'ms' };
   var originals = [];
@@ -58,7 +58,7 @@
       var lead = src.match(/^\s*/)[0], trail = src.match(/\s*$/)[0];
       pair[0].nodeValue = lead + t + trail;
     });
-    // Tab title, e.g. "SuXin POS — Counter checkout for shops… | SuXin"
+    // Tab title, e.g. "JSOX POS — Counter checkout for shops… | JSOX"
     document.title = originalTitle.split(/( — | \| )/).map(function (part) {
       return translate(part, lang) || part;
     }).join('');

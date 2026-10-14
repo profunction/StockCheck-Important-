@@ -1,6 +1,6 @@
 /*
  * The warehouse system, on top of pos.css, in the same colours as every
- * SuXin app: big targets and a bar along the bottom on a phone, because it
+ * JSOX app: big targets and a bar along the bottom on a phone, because it
  * is used standing up with a box in the other hand.
  */
 :root { --wh: var(--brand); --wh-soft: var(--brand-soft); }
@@ -151,7 +151,7 @@ details summary { cursor: pointer; padding: 6px 0; }
 .map-modes { margin-bottom: 10px; }
 .map-demo { border-color: var(--accent); margin-bottom: 12px; }
 
-/* SuXin TMS (web/tm/): drivers, lorries, stops and signatures */
+/* JSOX TMS (web/tm/): drivers, lorries, stops and signatures */
 .tm-who { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 .tm-stop { grid-template-columns: minmax(0, 1fr) auto; cursor: default; }
 .tm-stop.next { border: 2px solid var(--wh); }

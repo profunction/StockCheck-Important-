@@ -7,7 +7,7 @@ no build step for the homepage. Design and first version: the
 apps (sign-in, trial, Android download, WhatsApp, pricing).
 
 - `web/assets/site.css`: the layout system (dark by default, light via the sun/moon button)
-- `web/assets/suxin.css`: SuXin additions (pricing, WhatsApp, header fit)
+- `web/assets/suxin.css`: JSOX additions (pricing, WhatsApp, header fit)
 - `web/assets/site.js`: menus, tabs, theme, language, links (`LINKS` at the top)
 - `web/assets/i18n.js`: English source text -> [中文, Bahasa Melayu]; new text needs a line here
 - `web/assets/theme.js`: applies the saved theme before the page draws; also loaded by every app

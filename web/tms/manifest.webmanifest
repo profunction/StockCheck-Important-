@@ -1,7 +1,7 @@
 {
-  "name": "SuXin TMS",
+  "name": "JSOX TMS",
   "short_name": "TMS",
-  "description": "Lorries, drivers, trips and proof of delivery for SuXin.",
+  "description": "Lorries, drivers, trips and proof of delivery for JSOX.",
   "start_url": "/tms/#/home",
   "scope": "/tms/",
   "id": "/tms/",

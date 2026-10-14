@@ -1,4 +1,4 @@
-/* SuXin additions on top of site.css (the shared layout system). */
+/* JSOX additions on top of site.css (the shared layout system). */
 
 .site .skip { position: absolute; top: 0; left: -9999px; z-index: 200; border-bottom-right-radius: .5rem; background: var(--grad); color: #fff; padding: .7rem 1.1rem; }
 .site .skip:focus { left: 0; }
@@ -14,7 +14,7 @@
 /* Sixth product card: the "start here" card */
 .site .pcard-cta { background: var(--grad-soft); border-color: var(--line-strong); }
 
-/* Small-screen tidy-ups for the longer SuXin labels */
+/* Small-screen tidy-ups for the longer JSOX labels */
 @media (width <= 620px) {
   .site .brand small { display: none; }
   .site .hero-chips { flex-wrap: wrap; }
@@ -41,7 +41,7 @@
 /* Chinese headings: break between phrases, not in the middle of one */
 html[lang="zh-Hans"] .site :is(.display, .h1, .h2) { word-break: keep-all; text-wrap: balance; }
 
-/* ------------------------------------------------ added on the SuXin site */
+/* ------------------------------------------------ added on the JSOX site */
 
 /* Header: five links, the language switch and two buttons fit in one row
    down to 1081px (below that the menu button takes over). */

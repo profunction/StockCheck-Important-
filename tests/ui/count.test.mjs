@@ -1,4 +1,4 @@
-// SuXin Barcode Scan on the web, the app's way: a count list with its own
+// JSOX Barcode Scan on the web, the app's way: a count list with its own
 // fields, a signature and a photo rule; a count sheet from a file; checking
 // each scan; expiry; photos; locking. And the page on a phone.
 import { start } from './harness.mjs';
@@ -212,7 +212,7 @@ await p.step('on a phone: one menu button, the counts grouped', async () => {
   await p.page.waitForSelector('.cnt-card');
   if (await p.page.isVisible('.cnt-top .appswitch')) throw new Error('the header did not fold');
   await p.page.click('button[data-act="top-menu"]');
-  await p.page.waitForSelector('.dialog .cnt-menu a:has-text("SuXin POS")');
+  await p.page.waitForSelector('.dialog .cnt-menu a:has-text("JSOX POS")');
   await p.page.keyboard.press('Escape');
   await p.shot('count-5-phone');
 });

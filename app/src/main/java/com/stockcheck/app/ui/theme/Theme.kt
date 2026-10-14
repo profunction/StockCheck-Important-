@@ -23,8 +23,8 @@ import androidx.core.view.WindowCompat
  * often one-handed, sometimes under poor light. Dynamic colour is not used so
  * that the status colours below always mean the same thing on every device.
  *
- * SuXin Barcode Scan: the same deep navy and emerald-to-teal as the website and
- * every SuXin web app (web/css/pos.css), so the phone and the till look like
+ * JSOX Barcode Scan: the same deep navy and emerald-to-teal as the website and
+ * every JSOX web app (web/css/pos.css), so the phone and the till look like
  * one product. Every role is set,
  * including the surface containers cards and the bottom bar are drawn on --
  * left out, Material fills them with its own purple-grey. Amber (tertiary)
@@ -137,7 +137,7 @@ private val AppTypography = Typography(
     labelSmall = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium),
 )
 
-/** Corners matching the website and the SuXin web apps: soft cards, rounder sheets. */
+/** Corners matching the website and the JSOX web apps: soft cards, rounder sheets. */
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(10.dp),

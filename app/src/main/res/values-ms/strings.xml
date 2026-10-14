@@ -75,8 +75,8 @@
     <string name="paywall_contact_whatsapp">WhatsApp kami</string>
     <string name="paywall_contact_email">E-mel kami</string>
     <string name="paywall_contact_prompt">Mohon lesen:</string>
-    <string name="paywall_contact_message">Salam, saya ingin memohon lesen SuXin Barcode Scan. Kod syarikat: %1$s</string>
-    <string name="paywall_contact_subject">Lesen SuXin Barcode Scan — %1$s</string>
+    <string name="paywall_contact_message">Salam, saya ingin memohon lesen JSOX Barcode Scan. Kod syarikat: %1$s</string>
+    <string name="paywall_contact_subject">Lesen JSOX Barcode Scan — %1$s</string>
     <string name="paywall_no_email">Tiada apl pada telefon ini boleh menghantar e-mel.</string>
 
     <string name="onboarding_how_to_use">Cara guna aplikasi ini</string>
@@ -84,7 +84,7 @@
     <string name="onboarding_skip">Langkau</string>
     <string name="onboarding_next">Seterusnya</string>
     <string name="onboarding_done">Mula</string>
-    <string name="onboarding_step1_title">Selamat datang ke SuXin Barcode Scan</string>
+    <string name="onboarding_step1_title">Selamat datang ke JSOX Barcode Scan</string>
     <string name="onboarding_step1_body">Tekan "Semakan stok baharu", pilih templat dan kawasan, kemudian anda boleh mula mengimbas.</string>
     <string name="onboarding_step2_title">Imbas kod bar</string>
     <string name="onboarding_step2_body">Halakan kamera ke kod bar. Imbasan pertama menambah barang itu. Imbas kod bar yang sama sekali lagi, ia akan tanya berapa banyak nak tambah — jadi tiada yang dikira dua kali secara tidak sengaja.</string>
@@ -205,7 +205,7 @@
     <string name="role_unit">Unit</string>
     <string name="role_expiry">Tarikh luput</string>
     <string name="pos_title">Sambung sistem POS</string>
-    <string name="pos_web_title">SuXin POS (laman web)</string>
+    <string name="pos_web_title">JSOX POS (laman web)</string>
     <string name="pos_web_body">Mesin kaunter kami sendiri untuk kedai, pasar raya, gudang dan restoran. Buka di komputer kaunter, log masuk dengan akaun yang sama, pasang pengimbas kod bar USB dan pencetak resit. Produk, gambar, harga dan stok dikongsi dengan aplikasi ini.</string>
     <string name="pos_web_open">Buka laman web POS</string>
     <string name="pos_admin_only">Hanya pentadbir syarikat boleh menyambung sistem POS.</string>
@@ -239,7 +239,7 @@
     <string name="guide_team_title">Pekerja, cawangan dan kebenaran</string>
     <string name="guide_play">Tonton video</string>
     <string name="guide_more_title">POS dan gudang</string>
-    <string name="guide_more_body">SuXin POS (POS) dan SuXin WMS ada panduan dan video sendiri di laman web.</string>
+    <string name="guide_more_body">JSOX POS (POS) dan JSOX WMS ada panduan dan video sendiri di laman web.</string>
     <string name="guide_pos">Panduan POS</string>
     <string name="guide_warehouse">Panduan gudang</string>
     <string name="guide_tour">Tunjuk lawatan pengenalan lagi</string>
@@ -248,7 +248,7 @@
     <string name="guide_close">Tutup</string>
     <string name="guide_entry">Cara guna</string>
     <string name="guide_entry_sub">Panduan langkah demi langkah dan video</string>
-    <string name="wh_web_title">SuXin WMS (laman web)</string>
+    <string name="wh_web_title">JSOX WMS (laman web)</string>
     <string name="wh_web_body">Pesanan belian, terima barang, pindahan antara gudang dan kedai, pelarasan dengan sebab dan log audit. Boleh guna di pelayar telefon dan dipasang sebagai aplikasi. Akaun, produk dan stok yang sama dengan aplikasi ini.</string>
     <string name="wh_web_open">Buka sistem gudang</string>
     <string-array name="guide_count_steps">
@@ -260,14 +260,14 @@
     <string-array name="guide_stock_steps">
         <item>Baki stok = kiraan terakhir + masuk dan keluar sejak itu.</item>
         <item>Import penghantaran dan jualan dari Excel atau CSV, atau sambung Loyverse.</item>
-        <item>Jualan di SuXin POS menolak stok serta-merta; tetapkan paras tambah untuk peringatan.</item>
+        <item>Jualan di JSOX POS menolak stok serta-merta; tetapkan paras tambah untuk peringatan.</item>
     </string-array>
     <string-array name="guide_team_steps">
         <item>Yang pertama mendaftar ialah admin; pekerja masuk dengan kod syarikat.</item>
         <item>Profil → Peranan: siapa boleh kira, lihat semua, ubah stok, guna POS dan gudang.</item>
         <item>Cawangan dan gudang berasingan; log audit menyimpan setiap perubahan.</item>
     </string-array>
-    <string name="pos_loyverse_plan">Penyegerakan Loyverse ada dalam pelan Business dan Unlimited, serta pelan SuXin Barcode Scan.</string>
+    <string name="pos_loyverse_plan">Penyegerakan Loyverse ada dalam pelan Business dan Unlimited, serta pelan JSOX Barcode Scan.</string>
     <string name="notify_channel">Laporan harian</string>
     <string name="notify_channel_about">Laporan pagi: jualan dan stok rendah.</string>
 </resources>

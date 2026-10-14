@@ -1,5 +1,5 @@
 /**
- * The SuXin Barcode Scan phone app's guide videos: illustrated step cards (number,
+ * The JSOX Barcode Scan phone app's guide videos: illustrated step cards (number,
  * picture, what to do) rather than screen recordings -- the Android app
  * cannot be filmed in this environment, and a mock-up passed off as the
  * real screen would mislead.
@@ -25,7 +25,7 @@ const ICON = {
 export const APP_FILMS = [
   {
     name: 'app-1-count',
-    title: ['手机盘点', 'SuXin Barcode Scan app · 盘点', 'Counting stock with the phone'],
+    title: ['手机盘点', 'JSOX Barcode Scan app · 盘点', 'Counting stock with the phone'],
     slides: [
       ['list', '开始一次盘点', '打开 app →「盘点」→ 新盘点，选模板和区域（例如：冷房、货架 7）', 'Stock tab → new count; pick a template and an area'],
       ['scan', '扫条码', '用手机镜头扫商品条码，输入数到多少', 'Scan the barcode with the camera, enter how many'],
@@ -37,19 +37,19 @@ export const APP_FILMS = [
   },
   {
     name: 'app-2-stock',
-    title: ['库存和进出货', 'SuXin Barcode Scan app · 库存', 'Stock levels, goods in and out'],
+    title: ['库存和进出货', 'JSOX Barcode Scan app · 库存', 'Stock levels, goods in and out'],
     slides: [
       ['box', '「库存」页', '每样商品现在有多少 = 最后一次盘点 + 之后进出', 'On hand = last count + goods in and out since'],
       ['file', '导入进货和销售', '用 Excel / CSV 导入，系统自动认出每一栏', 'Import Excel or CSV; columns are recognised'],
       ['sync', '连接 Loyverse', '贴上 Loyverse 令牌，商品、库存、销售自动同步', 'Paste a Loyverse token: items, stock and sales sync'],
-      ['cart', '连接 SuXin POS', '收银卖出，手机上的库存马上减少', 'A sale at the till takes it off the phone’s stock'],
+      ['cart', '连接 JSOX POS', '收银卖出，手机上的库存马上减少', 'A sale at the till takes it off the phone’s stock'],
       ['bell', '补货提醒', '设补货点，低于就显示「要补货」', 'Set a reorder point; it says when to buy'],
       ['check', '写回 Loyverse', '盘点后，可以把正确数量写回 Loyverse（要先确认）', 'After a count, write correct figures back to Loyverse'],
     ],
   },
   {
     name: 'app-3-team',
-    title: ['员工、分店和权限', 'SuXin Barcode Scan app · 团队', 'Staff, branches and permissions'],
+    title: ['员工、分店和权限', 'JSOX Barcode Scan app · 团队', 'Staff, branches and permissions'],
     slides: [
       ['user', '注册公司', '第一个注册的人就是管理员，自动有 14 天试用', 'The first to register is the admin, with a 14-day trial'],
       ['key', '员工加入', '把公司代码告诉员工，他们注册时填就加入', 'Staff join with the company code'],
@@ -60,7 +60,7 @@ export const APP_FILMS = [
   },
   {
     name: 'app-4-loyverse',
-    title: ['连接 Loyverse', 'SuXin Barcode Scan app · Loyverse 同步', 'Syncing with Loyverse POS'],
+    title: ['连接 Loyverse', 'JSOX Barcode Scan app · Loyverse 同步', 'Syncing with Loyverse POS'],
     slides: [
       ['key', '拿令牌', 'Loyverse 后台 → 设定 → 访问令牌 → 新增，复制', 'Loyverse back office → Settings → Access tokens → add, copy'],
       ['sync', '贴进 app', 'app →「我的」→ Loyverse → 贴上令牌，按连接', 'App → Profile → Loyverse → paste the token, connect'],
@@ -71,7 +71,7 @@ export const APP_FILMS = [
   },
   {
     name: 'app-5-account',
-    title: ['注册和忘记密码', 'SuXin Barcode Scan app · 账号', 'Accounts on the phone app'],
+    title: ['注册和忘记密码', 'JSOX Barcode Scan app · 账号', 'Accounts on the phone app'],
     slides: [
       ['store', '注册公司', '老板选「注册公司」，填公司名和公司代码', 'Owner: Create company, with its name and code'],
       ['user', '加入公司', '员工选「加入公司」，填老板给的公司代码', 'Staff: Join company with the owner’s code'],

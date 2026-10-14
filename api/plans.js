@@ -59,7 +59,7 @@ export const PLANS = {
     multiBranch: true, loyverse: true,
   },
   APP_ONLY: {
-    label: 'SuXin Barcode Scan', pack: 'STANDALONE', seats: 3, tills: 0,
+    label: 'JSOX Barcode Scan', pack: 'STANDALONE', seats: 3, tills: 0,
     monthlySen: 2_800, yearlySen: 28_000, lifetimeSen: null,
     modules: { app: true, pos: false, warehouse: false, api: false },
     multiBranch: false, loyverse: true,
@@ -77,18 +77,18 @@ export const PLANS = {
     modules: { app: false, pos: false, warehouse: false, api: true },
     multiBranch: false, loyverse: false,
   },
-  // SuXin Books on its own: the books, e-invoices and connections to a POS
+  // JSOX Books on its own: the books, e-invoices and connections to a POS
   // the shop already has (another company's, through Connections).
   BOOKS_ONLY: {
-    label: 'SuXin Books', pack: 'STANDALONE', seats: 3, tills: 0,
+    label: 'JSOX Books', pack: 'STANDALONE', seats: 3, tills: 0,
     monthlySen: 3_800, yearlySen: 38_000, lifetimeSen: null,
     modules: { app: false, pos: false, warehouse: false, api: false, books: true },
     multiBranch: true, loyverse: false,
   },
-  // SuXin Every Data on its own: the owner's figures from the systems the
+  // JSOX Every Data on its own: the owner's figures from the systems the
   // business already uses, brought in through Connections.
   DATA_ONLY: {
-    label: 'SuXin Every Data', pack: 'STANDALONE', seats: 3, tills: 0,
+    label: 'JSOX Every Data', pack: 'STANDALONE', seats: 3, tills: 0,
     monthlySen: 2_800, yearlySen: 28_000, lifetimeSen: null,
     modules: { app: false, pos: false, warehouse: false, api: false, data: true },
     multiBranch: true, loyverse: false,

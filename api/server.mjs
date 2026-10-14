@@ -1,5 +1,5 @@
 /**
- * The SuXin API.
+ * The JSOX API.
  *
  * Lets another system -- an online shop, an accounting program, a
  * customer's own spreadsheet script -- read and update a company's items,
@@ -63,7 +63,7 @@ app.use((req, res, next) => {
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 app.get('/', (_req, res) => res.json({
-  name: 'SuXin API',
+  name: 'JSOX API',
   version: 1,
   docs: 'https://stockcheck-fb58e.web.app/#/integrations/api',
 }));
@@ -424,12 +424,12 @@ app.post('/app/read-order', limited(10 * 60_000, 20), wrap(async (req, res) => {
 
 // --------------------------------------------------- the MyInvois assistant
 //
-// Any signed-in member of a company with SuXin Tax may ask; the answer is
+// Any signed-in member of a company with JSOX Tax may ask; the answer is
 // looked up on LHDN's own sites each time (myinvois.mjs).
 const myInvois = myInvoisAssistant();
 app.post('/app/myinvois-ask', limited(10 * 60_000, 30), wrap(async (req, res) => {
   const who = await staffOf(req);
-  if (!allowedTo(who, 'tax.view')) throw new ApiError(403, 'The MyInvois assistant comes with SuXin Tax.', 'FORBIDDEN');
+  if (!allowedTo(who, 'tax.view')) throw new ApiError(403, 'The MyInvois assistant comes with JSOX Tax.', 'FORBIDDEN');
   const lang = ['zh', 'en', 'ms'].includes(req.body?.lang) ? req.body.lang : 'zh';
   res.json(await myInvois.ask(req.body?.messages, lang));
 }));
@@ -478,7 +478,7 @@ async function fetchFeed(conn, feed, secret, since) {
   if (addrs.some((a) => isPrivateIp(a.address))) throw new ApiError(400, 'Not a public address.');
   let res;
   try {
-    res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'SuXin-Connect/1', ...authHeaders(conn, secret) }, redirect: 'error', signal: AbortSignal.timeout(20_000) });
+    res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'JSOX-Connect/1', ...authHeaders(conn, secret) }, redirect: 'error', signal: AbortSignal.timeout(20_000) });
   } catch (err) {
     throw new ApiError(502, `Their system did not answer (${err.name === 'TimeoutError' ? 'took too long' : 'no connection'}).`);
   }
@@ -635,4 +635,4 @@ app.use((err, _req, res, _next) => {
 });
 
 const port = Number(process.env.PORT) || 8080;
-app.listen(port, () => console.log(`SuXin API on :${port}`));
+app.listen(port, () => console.log(`JSOX API on :${port}`));

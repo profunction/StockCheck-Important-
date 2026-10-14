@@ -304,7 +304,7 @@ await expect('keeper: read a connection refused', false, () => getDoc(doc(as('ke
 await expect('admin: read the keys refused', false, () => getDoc(doc(as('admin1'), 'connectionSecrets/w1__k1')));
 await expect('admin: write a key refused (the server does)', false, () => setDoc(doc(as('admin1'), 'connectionSecrets/w1__k1'), { value: 'x' }));
 
-// SuXin TMS: lorries and drivers by a manager; shifts and trips by whoever moves stock.
+// JSOX TMS: lorries and drivers by a manager; shifts and trips by whoever moves stock.
 await expect('approver: add a lorry', true, () => setDoc(doc(as('approver1'), ws('tmsLorries/l1')), { plate: 'WXY 1234', active: true }));
 await expect('keeper: add a lorry refused', false, () => setDoc(doc(as('keeper1'), ws('tmsLorries/l2')), { plate: 'ABC 1', active: true }));
 await expect('approver: add a driver', true, () => setDoc(doc(as('approver1'), ws('tmsDrivers/d1')), { name: 'Ali', active: true }));
@@ -520,7 +520,7 @@ await expect('push: my own token', true, () => setDoc(doc(as('cashier1'), ws('us
 await expect('push: not on someone else', false, () => setDoc(doc(as('cashier1'), ws('users/cashier2/pushTokens/tok1')), { platform: 'web' }));
 await expect('public config: readable, not writable', false, () => setDoc(doc(as('admin1'), 'publicConfig/telegram'), { username: 'x' }));
 
-// SuXin Books ----------------------------------------------------------------
+// JSOX Books ----------------------------------------------------------------
 const LOCK = Date.UTC(2026, 0, 31);
 await testEnv.withSecurityRulesDisabled(async (ctx) => {
   const db = ctx.firestore();

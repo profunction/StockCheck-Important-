@@ -337,7 +337,7 @@ service cloud.firestore {
                && get(licencePath()).data.modules.get(name, true) == false;
       }
 
-      // SuXin Books comes with the POS, or on its own (the Books plan).
+      // JSOX Books comes with the POS, or on its own (the Books plan).
       function booksOff() {
         return moduleOff('pos')
                && !(exists(licencePath()) && ('modules' in get(licencePath()).data)
@@ -855,7 +855,7 @@ service cloud.firestore {
         allow delete: if isAdmin();
       }
 
-      // ------------------------------------------------------- SuXin TMS
+      // ------------------------------------------------------- JSOX TMS
       //
       // Lorries and drivers (a manager keeps them), drivers' shifts (clock
       // in, then clock out -- nothing else changes), and trips with their
@@ -933,7 +933,7 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
-      // ------------------------------------------------------ SuXin Books
+      // ------------------------------------------------------ JSOX Books
       //
       // The company's accounts (web/bk/, the sums in web/js/books.js). Who
       // keeps them: BOOKS_POST (and BOOKS_ADMIN, who also sets the company

@@ -1,7 +1,7 @@
 /**
- * SuXin Books: the company's accounts -- e-invoices, bills, money in and
+ * JSOX Books: the company's accounts -- e-invoices, bills, money in and
  * out, the journal and the reports -- for the shop itself or its
- * accountant. Same sign-in and company as the other SuXin apps; the plan
+ * accountant. Same sign-in and company as the other JSOX apps; the plan
  * must include it (the 'accounting' module) and the person must hold
  * BOOKS_VIEW, BOOKS_POST or BOOKS_ADMIN (an admin always may).
  */
@@ -68,7 +68,7 @@ function renderShell() {
 function renderSide() {
   const { group } = currentRoute();
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/bk-64.png?v=4', alt: '', width: 28, height: 28 }), 'SuXin Books'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/bk-64.png?v=4', alt: '', width: 28, height: 28 }), 'JSOX Books'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email)),
@@ -158,7 +158,7 @@ onChange(() => {
 });
 
 startApp(app, {
-  name: 'SuXin Books', logo: '/icons/bk-64.png?v=4', tagline: t('bkTagline'),
+  name: 'JSOX Books', logo: '/icons/bk-64.png?v=4', tagline: t('bkTagline'),
   features: [['receipt', t('bkFeat1')], ['calc', t('bkFeat2')], ['percent', t('bkFeat3')]],
-  foot: 'SuXin · Malaysia',
+  foot: 'JSOX · Malaysia',
 }, renderShell, { stop: () => { stopPage?.(); stopPage = null; stopRedraw?.(); stopRedraw = null; stopBooks(); sideEl = null; } });

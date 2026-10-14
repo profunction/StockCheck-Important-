@@ -27,7 +27,7 @@ const write = (rel, text) => {
 };
 
 const PAID = ['STARTER', 'BUSINESS', 'UNLIMITED'];
-export const PRODUCT_PAGES = [['pos', 'SuXin POS'], ['barcode-scan', 'SuXin Barcode Scan'], ['wms', 'SuXin WMS'], ['every-data', 'SuXin Every Data'], ['books', 'SuXin Books']];
+export const PRODUCT_PAGES = [['pos', 'JSOX POS'], ['barcode-scan', 'JSOX Barcode Scan'], ['wms', 'JSOX WMS'], ['every-data', 'JSOX Every Data'], ['books', 'JSOX Books']];
 
 function llms() {
   const en = LANGS.en;
@@ -37,7 +37,7 @@ function llms() {
 
 > ${en.description}
 
-${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **SuXin Barcode Scan**, the Android app for counting stock by scanning barcodes; **SuXin POS**, the web cash register for the counter; **SuXin WMS** for receiving, transfers and purchase orders; **SuXin Every Data**, the owner's back office; and **SuXin Books**, e-invoices (LHDN MyInvois) and the company's accounts. SuXin was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
+${BRAND.name} is a business system for Malaysia: grocery shops, mini markets, supermarkets, warehouses, wholesalers, restaurants and cafés. Its products share one database: **JSOX Barcode Scan**, the Android app for counting stock by scanning barcodes; **JSOX POS**, the web cash register for the counter; **JSOX WMS** for receiving, transfers and purchase orders; **JSOX Every Data**, the owner's back office; and **JSOX Books**, e-invoices (LHDN MyInvois) and the company's accounts. JSOX was previously called Pos Stock Check (the POS) and Stock Check (the app). A sale at the till lowers the stock shown in the app immediately; a count in the app is seen by the back office immediately.
 
 中文：${zh.description}
 
@@ -48,7 +48,7 @@ ${PAID.map(plan).join('\n')}
 ${['APP_ONLY', 'POS_ONLY', 'API_ONLY', 'BOOKS_ONLY', 'DATA_ONLY'].map((id) => `- ${PLANS[id].label} (standalone): ${rm(PLANS[id].monthlySen)} per month or ${rm(PLANS[id].yearlySen)} per year; ${en.standalone[id]}.`).join('\n')}
 - Lifetime licences are limited to 50 in total.
 - Every All-in-One plan includes the stock-take app, the POS and the warehouse system. Lifetime includes ${LIFETIME_SUPPORT_MONTHS} months of updates and support.
-- Platforms: SuXin Barcode Scan on Android; SuXin POS, SuXin WMS and SuXin Every Data in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
+- Platforms: JSOX Barcode Scan on Android; JSOX POS, JSOX WMS and JSOX Every Data in Chrome on Windows, macOS, ChromeOS, Android tablets and iPad, installable as an app.
 - Works offline: sales are kept on the device and sent when the connection returns.
 
 ## How stock is calculated
@@ -60,7 +60,7 @@ ${en.features.map(([h, p]) => `- **${h}**: ${p}`).join('\n')}
 ## The four products (one shared stock)
 ${Object.values(PAGES.en.products).map((x) => `- **${x.name}** (${x.kind}): ${x.line} ${x.points.join('; ')}.`).join('\n')}
 
-Chinese names: 盘点通 (SuXin Barcode Scan), 收银通 (SuXin POS), 仓管通 (SuXin WMS), 老板数据 (SuXin Every Data).
+Chinese names: 盘点通 (JSOX Barcode Scan), 收银通 (JSOX POS), 仓管通 (JSOX WMS), 老板数据 (JSOX Every Data).
 
 ## By kind of business
 ${INDUSTRY_IDS.map((id) => { const x = PAGES.en.industries[id]; return `- [${x.name}](${SITE}/#built-for): ${x.lead}${x.soon ? ` (${x.soon})` : ''}`; }).join('\n')}
@@ -79,7 +79,7 @@ ${en.faq.map(([q, a]) => `### ${q}\n${a}`).join('\n\n')}
 - Website (Bahasa Melayu): ${SITE}/?lang=ms
 ${PRODUCT_PAGES.map(([slug, name]) => `- ${name}: ${SITE}/products/${slug}/`).join('\n')}
 - Sign in or sign up (all apps): ${SITE}/app/
-- SuXin Barcode Scan on the web: ${SITE}/count/
+- JSOX Barcode Scan on the web: ${SITE}/count/
 - POS sign-in: ${POS_URL}
 - Android app download: ${APP_DOWNLOAD}
 - Warehouse system (web, works on phones): ${WAREHOUSE_URL}

@@ -1,5 +1,5 @@
 /**
- * Counting one stock check, as the SuXin Barcode Scan phone app counts it
+ * Counting one stock check, as the JSOX Barcode Scan phone app counts it
  * (StockCheckScreen.kt, StockCheckViewModel.kt, StockRepository.kt):
  *
  *  - scan with a USB scanner, the camera, an NFC tag, by typing, or by

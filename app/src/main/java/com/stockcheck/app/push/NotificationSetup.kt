@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 
 /**
- * Once signed in: ask (once, on Android 13 and later) whether SuXin may
+ * Once signed in: ask (once, on Android 13 and later) whether JSOX may
  * show notifications, and file this phone's address for the morning report.
  */
 @Composable

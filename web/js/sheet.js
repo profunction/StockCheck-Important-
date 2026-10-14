@@ -2,7 +2,7 @@
  * Reading a spreadsheet someone already has -- an Excel file (.xlsx) or a
  * CSV -- into rows of text, and finding which column is which by its
  * heading in English, Chinese or Malay. The same headings and rules the
- * SuXin Barcode Scan app uses (SheetMapping.kt, ImportRepository.kt), so a
+ * JSOX Barcode Scan app uses (SheetMapping.kt, ImportRepository.kt), so a
  * count sheet that loads on the phone loads here. Pure; no library.
  */
 import { parseExpiry } from './counting.js';

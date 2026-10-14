@@ -66,7 +66,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Receives the morning report from the SuXin server (Firebase Cloud Messaging). -->
+        <!-- Receives the morning report from the JSOX server (Firebase Cloud Messaging). -->
         <service
             android:name=".push.ReportMessagingService"
             android:exported="false">

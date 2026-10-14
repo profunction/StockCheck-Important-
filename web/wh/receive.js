@@ -7,7 +7,7 @@
  * - a receiving record (what was ordered, received, damaged, rejected),
  *   never edited afterwards;
  * - a RECEIVE movement for what was received, so stock goes up for the
- *   SuXin Barcode Scan app and the till at once;
+ *   JSOX Barcode Scan app and the till at once;
  * - the purchase order's received and damaged figures, and its status;
  * - an audit entry.
  *

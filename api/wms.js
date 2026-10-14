@@ -1,5 +1,5 @@
 /**
- * The warehouse's own sums, shared by SuXin WMS (web/wh/) and the API's
+ * The warehouse's own sums, shared by JSOX WMS (web/wh/) and the API's
  * morning report (api/wms.js is a copy; CI checks the two match). Pure, no
  * imports: tested in wms.test.mjs. Quantities are thousandths of the
  * product's unit, as everywhere else (UNIT = 1000).

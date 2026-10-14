@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build products/<slug>/index.html for each SuXin app.
+"""Build products/<slug>/index.html for each JSOX app.
 
 The header, mobile drawer and footer are copied from index.html (with links
 rewritten for the deeper folder), so edit those there and re-run:
@@ -50,14 +50,14 @@ def bin_(t):
 
 PRODUCTS = [
     dict(
-        slug="pos", tag="POS", name="SuXin POS",
+        slug="pos", tag="POS", name="JSOX POS",
         tagline="Counter checkout for shops, supermarkets and restaurants.",
         body="Pick the checkout that fits the shop: F&amp;B with tables and kitchen slips, a supermarket scan lane, "
              "or retail with photos and categories. All three sell from the same items, stock, receipts and reports, "
              "and the till keeps working when the internet doesn't.",
         who="Cashiers, shop managers and owners of restaurants, kopitiam, mini-markets and retail shops",
         screens=[
-            ("Register", mock("SuXin POS", 'Till 1 · <span class="code">Ipoh Shop</span>', ("ok", "Shift open"),
+            ("Register", mock("JSOX POS", 'Till 1 · <span class="code">Ipoh Shop</span>', ("ok", "Shift open"),
                               [("RM 47.43", "Total"), ("3", "Items"), ("0", "Open tickets")],
                               ["Item", "Qty", "Price", "Amount"],
                               [["Malt Drink 1kg", "1", "15.90", "<b>15.90</b>"],
@@ -65,13 +65,13 @@ PRODUCTS = [
                                ["Rice 5kg", "1", "16.90", "<b>16.90</b>"],
                                ['<span class="sk">SST 6%</span>', "", "", "1.73"]],
                               ("Subtotal 45.70 · scan or type a barcode", "Charge RM 47.43"))),
-            ("Checkout modes", mock("SuXin POS", "Checkout mode", ("info", "Supermarket"),
+            ("Checkout modes", mock("JSOX POS", "Checkout mode", ("info", "Supermarket"),
                                     None, ["Mode", "Built for", "Highlights"],
                                     [["<b>F&amp;B</b>", "Restaurants, cafés, kopitiam", "Tables, add-ons, kitchen slips"],
                                      ["<b>Supermarket</b>", "Mini-markets, grocers", "Always-on scan, 3× qty, weighing"],
                                      ["<b>Retail</b>", "Clothing, hardware, phones", "Photos, members, NFC"]],
                                     ("Same items, stock and reports in every mode", "Save"))),
-            ("Shift close", mock("SuXin POS", 'Shift · <span class="code">Till 1</span>', ("warn", "Counting"),
+            ("Shift close", mock("JSOX POS", 'Shift · <span class="code">Till 1</span>', ("warn", "Counting"),
                                  [("RM 1,273.16", "Sales"), ("35", "Receipts"), ("1", "Voided")],
                                  ["Payment", "Expected", "Counted"],
                                  [["Cash", "RM 642.30", "<b>RM 642.30</b>"],
@@ -94,24 +94,24 @@ PRODUCTS = [
         ],
         desks=[("Cashiers", "A fast till that guides them with a built-in ▶ tutorial on every screen."),
                ("Shop managers", "Shifts, cash counts, discounts and staff, branch by branch."),
-               ("Owners", "Every sale lands in SuXin Every Data and SuXin Books without re-typing."),
+               ("Owners", "Every sale lands in JSOX Every Data and JSOX Books without re-typing."),
                ("Kitchen", "Orders print straight to the kitchen with their add-ons.")],
     ),
     dict(
-        slug="barcode-scan", tag="SCAN", name="SuXin Barcode Scan",
+        slug="barcode-scan", tag="SCAN", name="JSOX Barcode Scan",
         tagline="Scan to count stock, on a phone or a computer.",
         body="Walk the shelves with a phone camera or a barcode scanner and count as you go. Counts are saved per "
-             "branch or warehouse, and any differences show up in SuXin WMS so you can see what the count found.",
+             "branch or warehouse, and any differences show up in JSOX WMS so you can see what the count found.",
         who="Shop staff and storekeepers doing stock-takes, in shops or in the warehouse",
         screens=[
-            ("Count", mock("SuXin Barcode Scan", 'Stock-take · <span class="code">Ipoh Shop</span>', ("info", "Counting"),
+            ("Count", mock("JSOX Barcode Scan", 'Stock-take · <span class="code">Ipoh Shop</span>', ("info", "Counting"),
                            [("9", "Items counted"), ("2", "Differences"), ("0", "Not found")],
                            ["Barcode", "Item", "System", "Counted"],
                            [['<span class="sk">2909000000028</span>', "Rice 5kg", "20", "<b>20</b>"],
                             ['<span class="sk">2909000000059</span>', "Bread", "15", "<b>13</b>"],
                             ['<span class="sk">2909000000042</span>', "Eggs (10)", "39", "<b>40</b>"]],
                            ("Phone camera or scanner", "Finish count"))),
-            ("Differences in WMS", mock("SuXin WMS", "What the count found", ("warn", "2 differences"),
+            ("Differences in WMS", mock("JSOX WMS", "What the count found", ("warn", "2 differences"),
                                         None, ["Item", "Expected", "Counted", "Diff."],
                                         [["Bread", "15", "13", '<span class="st warn">−2</span>'],
                                          ["Eggs (10)", "39", "40", '<span class="st ok">+1</span>'],
@@ -124,8 +124,8 @@ PRODUCTS = [
             ("Count per location", ["Head office, warehouse and each shop counted separately",
                                     "See which items have never been counted",
                                     "Recount just the items that differ"]),
-            ("Connected", ["Differences land in SuXin WMS", "Same items and barcodes as the POS",
-                           "Same email and password as every SuXin app"]),
+            ("Connected", ["Differences land in JSOX WMS", "Same items and barcodes as the POS",
+                           "Same email and password as every JSOX app"]),
         ],
         desks=[("Shop staff", "Count the shelves between customers with the phone in their pocket."),
                ("Storekeepers", "Count the warehouse zone by zone without stopping work."),
@@ -133,26 +133,26 @@ PRODUCTS = [
                ("Owners", "Trust the stock number on Every Data.")],
     ),
     dict(
-        slug="wms", tag="WMS", name="SuXin WMS",
+        slug="wms", tag="WMS", name="JSOX WMS",
         tagline="Goods in, goods out, across every branch.",
         body="Receive purchase orders, move stock between the warehouse and the shops, and adjust for damaged, expired "
-             "or found goods. SuXin WMS knows what's where, what it cost and what to reorder, for one branch or all of them.",
+             "or found goods. JSOX WMS knows what's where, what it cost and what to reorder, for one branch or all of them.",
         who="Storekeepers, purchasers and owners running a warehouse or more than one branch",
         screens=[
-            ("Home", mock("SuXin WMS", 'Kedai Maju Sdn Bhd · <span class="code">Central Warehouse</span>', ("info", "1 PO to receive"),
+            ("Home", mock("JSOX WMS", 'Kedai Maju Sdn Bhd · <span class="code">Central Warehouse</span>', ("info", "1 PO to receive"),
                           [("RM 2,129.00", "Stock value (cost)"), ("2", "Low stock"), ("0", "Out of stock")],
                           ["Reorder suggestion", "On hand", "Reorder at", "Buy"],
                           [["Rice 5kg", "20", "20", "<b>+80</b>"],
                            ["Bread", "15", "15", "<b>+25</b>"]],
                           ("PO-261003-0915-MJ · Syarikat Borong Maju", "Create PO"))),
-            ("Stock", mock("SuXin WMS", "Stock", ("ok", "9 items"),
+            ("Stock", mock("JSOX WMS", "Stock", ("ok", "9 items"),
                            None, ["Item", "On hand", "In transit", "Value"],
                            [["Malt Drink 1kg", "49", "24", "612.50"],
                             ["Rice 5kg" + ' <span class="st warn">Low</span>', "20", "—", "290.00"],
                             ["Instant Noodles (5)", "60", "30", "252.00"],
                             ["Ground Coffee 500g", "22", "—", "215.60"]],
                            ("Filter: low · out · in transit · expiring · never counted", "Refresh"))),
-            ("Purchase order", mock("SuXin WMS", 'PO <span class="code">PO-261003-0915-MJ</span>', ("info", "Ordered"),
+            ("Purchase order", mock("JSOX WMS", 'PO <span class="code">PO-261003-0915-MJ</span>', ("info", "Ordered"),
                                     [("Syarikat Borong Maju", "Supplier"), ("Central Warehouse", "Deliver to"), ("2", "Lines")],
                                     ["Item", "Qty", "Received"],
                                     [["Rice 5kg", "80", "0"], ["Bread", "25", "0"]],
@@ -163,7 +163,7 @@ PRODUCTS = [
                                   "Adjustments: damaged, expired, found", "Reservations and returns to supplier"]),
             ("Buying", ["Purchase orders with approval", "Reorder suggestions turned into a PO",
                         "Pinduoduo buying", "Landed-cost calculator and supplier list"]),
-            ("Control", ["Head office, warehouse and shops in one list", "Count differences from SuXin Barcode Scan",
+            ("Control", ["Head office, warehouse and shops in one list", "Count differences from JSOX Barcode Scan",
                          "Month-end stock", "Activity log of every movement"]),
         ],
         desks=[("Storekeepers", "Receive, transfer and adjust from a phone or a computer."),
@@ -172,20 +172,20 @@ PRODUCTS = [
                ("Owners", "Stock value at cost and low stock, across every branch.")],
     ),
     dict(
-        slug="every-data", tag="DATA", name="SuXin Every Data",
+        slug="every-data", tag="DATA", name="JSOX Every Data",
         tagline="Today's business, in one place.",
         body="The owner's view of every till, every branch and the warehouse. Sales, receipts, stock and pending "
              "orders on one screen, and it only shows the apps your plan includes.",
         who="Owners and managers who want the day's numbers without going to the shop",
         screens=[
-            ("Today", mock("SuXin Every Data", 'Today · <span class="code">Kedai Maju Sdn Bhd</span>', ("ok", "Live"),
+            ("Today", mock("JSOX Every Data", 'Today · <span class="code">Kedai Maju Sdn Bhd</span>', ("ok", "Live"),
                            [("RM 1,273.16", "Sales today"), ("35", "Receipts"), ("RM 36.38", "Avg per sale")],
                            ["Time", "Receipt", "Cashier", "Amount"],
                            [['<span class="sk">02:59</span>', '<span class="sk">261010-025937-DX</span>', "Siti", "<b>38.25</b>"],
                             ['<span class="sk">02:59</span>', '<span class="sk">261010-025937-3U</span>', "Ah Hock", "<b>3.82</b>"],
                             ['<span class="sk">02:59</span>', '<span class="sk">261010-025937-7W</span>', "Siti", "<b>62.37</b>"]],
                            ("1 voided today", "Sales report"))),
-            ("Stock & warehouse", mock("SuXin Every Data", "Stock and warehouse", ("info", "From SuXin WMS"),
+            ("Stock & warehouse", mock("JSOX Every Data", "Stock and warehouse", ("info", "From JSOX WMS"),
                                        [("9", "Items in stock"), ("0", "Low stock"), ("0", "Out of stock")],
                                        ["Warehouse", "Count"],
                                        [["Purchase orders to receive", "<b>1</b>"], ["Transfers in transit", "0"],
@@ -196,36 +196,36 @@ PRODUCTS = [
             ("Sales", ["Today's sales, receipts, average per sale", "Voided receipts",
                        "Latest receipts with the cashier's name", "Reports by item, category, staff, payment"]),
             ("Stock", ["Items in stock and stock value", "Low-stock and out-of-stock counts",
-                       "Straight from SuXin POS and SuXin WMS"]),
+                       "Straight from JSOX POS and JSOX WMS"]),
             ("Warehouse", ["Purchase orders waiting to be received", "Transfers in transit",
                            "Purchase orders waiting for approval"]),
         ],
         desks=[("Owners", "One screen for the whole business, from anywhere."),
                ("Area managers", "Compare branches without phoning each shop."),
-               ("Accountants", "Daily sales that match what's in SuXin Books."),
+               ("Accountants", "Daily sales that match what's in JSOX Books."),
                ("Partners", "A shared view of how the business is doing.")],
     ),
     dict(
-        slug="books", tag="BOOKS", name="SuXin Books",
+        slug="books", tag="BOOKS", name="JSOX Books",
         tagline="E-invoices and accounts, for the owner or the accountant.",
         body="Issue invoices and credit notes, export MyInvois e-invoice files, record money in and out, and get the "
              "P&amp;L, balance sheet, receivables and SST report. Simple enough for the owner, proper double-entry "
              "underneath for the accountant.",
         who="Owners doing their own books, and the accountants they hand them to",
         screens=[
-            ("Overview", mock("SuXin Books", 'Overview · <span class="code">2026-10</span>', ("ok", "Up to date"),
+            ("Overview", mock("JSOX Books", 'Overview · <span class="code">2026-10</span>', ("ok", "Up to date"),
                               [("RM 479.00", "Sales this month"), ("RM 379.00", "Profit this month"), ("RM 330.00", "Customers owe us")],
                               ["Quick action", "What it's for"],
                               [["<b>New invoice</b>", "Bill a customer"], ["<b>Receive money</b>", "A customer paid"],
                                ["<b>Supplier bill</b>", "A supplier billed us"], ["<b>Expense</b>", "Rent, utilities, fuel…"]],
                               ("Cash and bank RM 94.90", "Reports"))),
-            ("Invoice", mock("SuXin Books", 'Invoice <span class="code">INV-2026-00001</span>', ("ok", "Issued"),
+            ("Invoice", mock("JSOX Books", 'Invoice <span class="code">INV-2026-00001</span>', ("ok", "Issued"),
                              [("RM 194.90", "Total"), ("RM 15.90", "Tax"), ("30 d", "Due 2026-11-09")],
                              ["Item", "Qty", "Price", "Disc."],
                              [["Milo 1kg" + bin_("4000 Sales"), "10", "15.90", "10%"],
                               ["Delivery" + bin_("4000 Sales"), "1", "20.00", "—"]],
                              ("MyInvois e-invoice · JSON ready", "Download JSON"))),
-            ("Profit & loss", mock("SuXin Books", 'P&amp;L · <span class="code">2026-10-01 – 10</span>', ("ok", "PDF · CSV"),
+            ("Profit & loss", mock("JSOX Books", 'P&amp;L · <span class="code">2026-10-01 – 10</span>', ("ok", "PDF · CSV"),
                                    None, ["Account", "Amount"],
                                    [["4000 Sales", "479.00"], ["Gross profit", "<b>479.00</b>"],
                                     ["6200 Utilities", "(100.00)"], ["<b>Net profit</b>", "<b>379.00</b>"]],
@@ -288,11 +288,11 @@ def page(p, num, home):
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>{p["name"]} — {html.escape(plain)} | SuXin</title>
+<title>{p["name"]} — {html.escape(plain)} | JSOX</title>
 <meta name="description" content="{html.escape(plain)}"/>
 <meta name="theme-color" content="#0B1B2B"/>
 <meta property="og:type" content="website"/>
-<meta property="og:site_name" content="SuXin"/>
+<meta property="og:site_name" content="JSOX"/>
 <meta property="og:title" content="{p["name"]}"/>
 <meta property="og:description" content="{html.escape(plain)}"/>
 <meta property="og:image" content="{SITE}/assets/img/og-image.png"/>
@@ -381,7 +381,7 @@ def page(p, num, home):
     <div class="card card-pad-lg rv grid grid-cols-[minmax(0,1.2fr)_auto] items-center gap-[1.75rem] max-[860px]:grid-cols-1">
       <div>
         <h2 class="h2 text-[1.65rem]">Run {p["name"]} on the free trial</h2>
-        <p class="muted mt-[0.7rem] max-w-[56ch]">One SuXin account opens every app in your plan. Start with {p["name"]} and add the rest when you're ready.</p>
+        <p class="muted mt-[0.7rem] max-w-[56ch]">One JSOX account opens every app in your plan. Start with {p["name"]} and add the rest when you're ready.</p>
       </div>
       <div class="band-cta"><a class="btn btn-primary btn-lg" href="{UP}#start">Start free trial {ARROW}</a></div>
     </div>

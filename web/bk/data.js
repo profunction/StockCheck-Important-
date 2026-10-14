@@ -1,5 +1,5 @@
 /**
- * SuXin Books' records in Firestore, kept live on the page, and the only
+ * JSOX Books' records in Firestore, kept live on the page, and the only
  * places they are written.
  *
  *   bkMeta/settings   the company on its documents, terms, the lock date

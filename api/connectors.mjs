@@ -9,7 +9,7 @@
  *
  * Either way their JSON is read through a field map (which of their fields
  * is the receipt number, the barcode, the quantity...) into the records
- * SuXin already keeps -- sales, stock counts, products, delivery trips -- so
+ * JSOX already keeps -- sales, stock counts, products, delivery trips -- so
  * Every Data, Books, Barcode Scan and TMS show them like their own. Each
  * record keeps where it came from (source CONNECTOR, connectionId) and a
  * fixed id, so fetching the same thing twice changes nothing.

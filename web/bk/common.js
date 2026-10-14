@@ -1,5 +1,5 @@
 /**
- * What the SuXin Books pages share: the page head, amounts and dates in
+ * What the JSOX Books pages share: the page head, amounts and dates in
  * fields, pickers for accounts and contacts, status pills, CSV, and the
  * words for an error from data.js.
  */

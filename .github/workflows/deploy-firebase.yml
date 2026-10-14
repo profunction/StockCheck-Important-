@@ -125,19 +125,22 @@ jobs:
         run: |
           mkdir -p web/download
           if gh release download build-main --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir /tmp/apk --clobber; then
-            # SuXin Barcode Scan (the native app) keeps its old address too.
-            for f in /tmp/apk/StockCheck-*.apk; do cp "$f" web/download/SuXin-BarcodeScan.apk; cp "$f" web/download/SuXin-Count.apk; mv "$f" web/download/StockCheck.apk; done
-            # SuXin, SuXin POS, SuXin WMS, SuXin Every Data.
-            mv /tmp/apk/SuXin*.apk web/download/ 2>/dev/null || echo "::warning::No website-app APKs in the release yet."
-            # The names before the rename keep working.
-            [ -f web/download/SuXin-WMS.apk ] && cp web/download/SuXin-WMS.apk web/download/SuXin-Warehouse.apk
-            [ -f web/download/SuXin-EveryData.apk ] && cp web/download/SuXin-EveryData.apk web/download/SuXin-Cloud.apk
+            # JSOX Barcode Scan (the native app) keeps its old address too.
+            for f in /tmp/apk/StockCheck-*.apk; do cp "$f" web/download/JSOX-BarcodeScan.apk; cp "$f" web/download/JSOX-Count.apk; mv "$f" web/download/StockCheck.apk; done
+            # A release built before the JSOX rename still carries SuXin*.apk.
+            for f in /tmp/apk/SuXin*.apk; do [ -f "$f" ] && mv "$f" "/tmp/apk/JSOX${f##*/SuXin}"; done
+            # JSOX, JSOX POS, JSOX WMS, JSOX Every Data.
+            mv /tmp/apk/JSOX*.apk web/download/ 2>/dev/null || echo "::warning::No website-app APKs in the release yet."
+            # The names before the renames keep working.
+            [ -f web/download/JSOX-WMS.apk ] && cp web/download/JSOX-WMS.apk web/download/JSOX-Warehouse.apk
+            [ -f web/download/JSOX-EveryData.apk ] && cp web/download/JSOX-EveryData.apk web/download/JSOX-Cloud.apk
+            for f in web/download/JSOX*.apk; do [ -f "$f" ] && cp "$f" "web/download/SuXin${f##*/JSOX}"; done
             ls -l web/download
           else
             echo "::warning::No APK release found; the download link will not work until Build APK has run."
           fi
 
-      # Chrome shows SuXin, SuXin POS, SuXin WMS and SuXin Every Data without an
+      # Chrome shows JSOX, JSOX POS, JSOX WMS and JSOX Every Data without an
       # address bar only if the website names their signing key here. Worked
       # out from the same secret the APKs are signed with; PLAY_SHA256 (a
       # repository variable) adds Google Play's key once they are on Play.

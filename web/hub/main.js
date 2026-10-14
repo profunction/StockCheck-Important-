@@ -1,6 +1,6 @@
 /**
- * The SuXin app centre (/app/): sign in once, then choose SuXin Barcode Scan, SuXin
- * POS, SuXin Every Data or SuXin WMS. What the plan includes opens; the rest
+ * The JSOX app centre (/app/): sign in once, then choose JSOX Barcode Scan, JSOX
+ * POS, JSOX Every Data or JSOX WMS. What the plan includes opens; the rest
  * is shown locked with where to add it (apps.js decides which is which).
  */
 import { h, mount } from '../js/dom.js';
@@ -27,7 +27,7 @@ function render() {
   const plan = session.licence ? planName(session.licence.plan) : '';
   mount(app, h('div', { class: 'hub' },
     h('header', { class: 'hub-top' },
-      h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png?v=4', alt: '', width: 34, height: 34 }), 'SuXin'),
+      h('div', { class: 'brandmark' }, h('img', { src: '/icons/icon-192.png?v=4', alt: '', width: 34, height: 34 }), 'JSOX'),
       h('span', { class: 'grow' }),
       h('a', { class: 'btn ghost', href: '/guide/#account', 'data-act': 'guide' }, icon('book', 17), t('posGuide')),
       themeToggle(),
@@ -60,7 +60,7 @@ function render() {
 }
 
 startApp(app, {
-  name: 'SuXin', logo: '/icons/icon-192.png?v=4', tagline: t('brandTagline'),
+  name: 'JSOX', logo: '/icons/icon-192.png?v=4', tagline: t('brandTagline'),
   features: APPS.map((a) => [a.icon, `${a.name} — ${t(`app_${a.id}`)}`]),
-  foot: 'SuXin · Malaysia',
+  foot: 'JSOX · Malaysia',
 }, render);

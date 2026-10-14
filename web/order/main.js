@@ -4,7 +4,7 @@
  *   /order/?s=<shop code>&t=<table>    the code printed on a table
  *   /order/?s=<shop code>              the counter's code: takeaway, or pick a table
  *
- * No account and no app: the menu and the sending go through the SuXin API
+ * No account and no app: the menu and the sending go through the JSOX API
  * (api/selforder.mjs), which prices everything from the shop's own items.
  * The order waits at the till until the staff accept it; this page then
  * follows it -- accepted, ready to collect, done -- and remembers it on this

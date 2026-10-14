@@ -1,6 +1,6 @@
 /**
  * Where stock is kept: the main site plus each branch and warehouse. The
- * same list the SuXin Barcode Scan app shows; marking one a warehouse is what
+ * same list the JSOX Barcode Scan app shows; marking one a warehouse is what
  * separates the stockroom from the shop floor in this system's screens.
  * Only an admin changes it (the rules say so too).
  */

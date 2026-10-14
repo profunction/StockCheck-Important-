@@ -1,5 +1,5 @@
 /**
- * Reading a Pinduoduo order from screenshots (拼多多截图读单), for SuXin WMS's
+ * Reading a Pinduoduo order from screenshots (拼多多截图读单), for JSOX WMS's
  * Pinduoduo purchases page. Pinduoduo gives buyers no way for another
  * program to read their orders, so the buyer shows us the order instead:
  * one or a few screenshots of it, which Claude reads into items, options,

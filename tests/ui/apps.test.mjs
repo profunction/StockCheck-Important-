@@ -1,4 +1,4 @@
-// The app centre and the switcher, SuXin Barcode Scan on the web, signing up and
+// The app centre and the switcher, JSOX Barcode Scan on the web, signing up and
 // the forgotten password, the till mode lock, the till lock and the menu
 // that folds away.
 import { start } from './harness.mjs';
@@ -18,7 +18,7 @@ let failed = 0;
     if (await s.page.$('.hub-app[data-app="pos"] a[href="/pos/#/pos"], a.hub-app[data-app="pos"]')) throw new Error('POS opens without the plan');
     await s.shot('apps-1-hub');
   });
-  await s.step('the switcher in SuXin Barcode Scan shows the locked apps locked', async () => {
+  await s.step('the switcher in JSOX Barcode Scan shows the locked apps locked', async () => {
     await s.page.goto(s.base + '/count/');
     await s.page.waitForSelector('.cnt-top .appswitch');
     await s.page.click('.cnt-top .appswitch summary');
@@ -28,7 +28,7 @@ let failed = 0;
   failed += await s.done();
 }
 
-// ------------------------------------------------ SuXin Barcode Scan on the web
+// ------------------------------------------------ JSOX Barcode Scan on the web
 {
   const s = await start({});
   const { page, base, step, store, docs } = s;

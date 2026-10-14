@@ -1,7 +1,7 @@
 {
-  "name": "SuXin POS",
-  "short_name": "SuXin POS",
-  "description": "Cash register and back office that shares products and stock with the SuXin Barcode Scan app.",
+  "name": "JSOX POS",
+  "short_name": "JSOX POS",
+  "description": "Cash register and back office that shares products and stock with the JSOX Barcode Scan app.",
   "start_url": "/pos/#/pos",
   "scope": "/pos/",
   "display": "standalone",

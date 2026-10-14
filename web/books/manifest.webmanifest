@@ -1,7 +1,7 @@
 {
-  "name": "SuXin Books",
+  "name": "JSOX Books",
   "short_name": "Books",
-  "description": "e-Invoices, bookkeeping and financial reports for SuXin.",
+  "description": "e-Invoices, bookkeeping and financial reports for JSOX.",
   "start_url": "/books/#/home",
   "scope": "/books/",
   "id": "/books/",

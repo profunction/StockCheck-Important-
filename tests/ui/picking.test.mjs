@@ -1,4 +1,4 @@
-// SuXin WMS picking, end to end: a transfer and a reservation waiting at
+// JSOX WMS picking, end to end: a transfer and a reservation waiting at
 // the warehouse become one picklist in shelf order; scanning fills it and a
 // wrong item is refused; what is not on the shelf is marked short; the done
 // screen leads on to dispatching; and the home screen says what is waiting.

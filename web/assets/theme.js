@@ -1,5 +1,5 @@
 // Before the page draws: the saved colour theme, so the page never flashes
-// the wrong colours. Shared by the website and every SuXin app on this site
+// the wrong colours. Shared by the website and every JSOX app on this site
 // (key: suxin-theme). Light (day) unless dark was chosen, the website and
 // every app alike.
 (function () {

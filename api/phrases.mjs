@@ -1,5 +1,5 @@
 /**
- * The 300-odd questions the SuXin bot is built to answer, as people type them,
+ * The 300-odd questions the JSOX bot is built to answer, as people type them,
  * in Chinese, English and Malay: [question, kind, what else it must catch].
  * bot.test.mjs checks every one; answers.mjs picks examples from them.
  */

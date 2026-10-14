@@ -1,5 +1,5 @@
 /**
- * The module registry: every part of SuXin a company can have, in
+ * The module registry: every part of JSOX a company can have, in
  * one place -- its name for customers, what it depends on, which existing
  * permissions each of its actions needs, which menu entries and API routes
  * belong to it.
@@ -33,14 +33,14 @@ import { PLANS } from './plans.js';
 export const MODULES = {
   count: {
     id: 'count', licenceKey: 'app', status: 'live', kind: 'core', dependsOn: [],
-    displayName: { zh: 'SuXin Barcode Scan', en: 'SuXin Barcode Scan', ms: 'SuXin Barcode Scan' },
+    displayName: { zh: 'JSOX Barcode Scan', en: 'JSOX Barcode Scan', ms: 'JSOX Barcode Scan' },
     description: { zh: '手机盘点', en: 'Mobile stock counting', ms: 'Kira stok dengan telefon' },
     actions: { view: [], count: ['CREATE_STOCK_CHECK'], move: ['RECORD_STOCK_MOVEMENTS'] },
     menuItems: ['inventory'], routes: [], apiScopes: [],
   },
   pos: {
     id: 'pos', licenceKey: 'pos', status: 'live', kind: 'core', dependsOn: [],
-    displayName: { zh: 'SuXin POS', en: 'SuXin POS', ms: 'SuXin POS' },
+    displayName: { zh: 'JSOX POS', en: 'JSOX POS', ms: 'JSOX POS' },
     description: { zh: '柜台收银', en: 'Point of sale', ms: 'Jualan di kaunter' },
     actions: {
       view: [],
@@ -54,7 +54,7 @@ export const MODULES = {
   },
   warehouse: {
     id: 'warehouse', licenceKey: 'warehouse', status: 'live', kind: 'addon', dependsOn: [],
-    displayName: { zh: 'SuXin WMS', en: 'SuXin WMS', ms: 'SuXin WMS' },
+    displayName: { zh: 'JSOX WMS', en: 'JSOX WMS', ms: 'JSOX WMS' },
     description: { zh: '仓库、收货、调货', en: 'Warehouse, receiving, transfers', ms: 'Gudang, terima barang, pindahan' },
     actions: {
       view: [],
@@ -66,7 +66,7 @@ export const MODULES = {
   },
   procurement: {
     id: 'procurement', licenceKey: 'warehouse', status: 'live', kind: 'addon', dependsOn: ['warehouse'],
-    displayName: { zh: 'SuXin Procurement', en: 'SuXin Procurement', ms: 'SuXin Procurement' },
+    displayName: { zh: 'JSOX Procurement', en: 'JSOX Procurement', ms: 'JSOX Procurement' },
     description: { zh: '采购单、供应商、补货', en: 'Purchase orders, suppliers, reordering', ms: 'Pesanan belian, pembekal, tambah stok' },
     actions: {
       view: [],
@@ -78,7 +78,7 @@ export const MODULES = {
   },
   tax: {
     id: 'tax', licenceKey: 'pos', status: 'live', kind: 'addon', dependsOn: ['pos'],
-    displayName: { zh: 'SuXin Tax', en: 'SuXin Tax', ms: 'SuXin Tax' },
+    displayName: { zh: 'JSOX Tax', en: 'JSOX Tax', ms: 'JSOX Tax' },
     description: { zh: 'SST 和 LHDN 电子发票', en: 'SST and LHDN e-invoices', ms: 'SST dan e-Invois LHDN' },
     actions: { view: [], einvoice: ['POS_REPORTS'] },
     menuItems: ['reports/taxes', 'reports/einvoice'], routes: [], apiScopes: [],
@@ -94,12 +94,12 @@ export const MODULES = {
     apiScopes: ['items.read', 'items.write', 'inventory.read', 'inventory.write', 'receipts.read',
       'customers.read', 'customers.write', 'stores.read', 'sync.write'],
   },
-  // SuXin Books: e-invoices, bookkeeping and the financial reports
+  // JSOX Books: e-invoices, bookkeeping and the financial reports
   // (web/books/). Sold with the till for now: it rides on its licence key.
   accounting: {
     // Or on its own: the Books plan switches 'books' on without the till.
     id: 'accounting', licenceKey: 'pos', alsoKey: 'books', status: 'live', kind: 'addon', dependsOn: [],
-    displayName: { zh: 'SuXin Books 账务', en: 'SuXin Books', ms: 'SuXin Books' },
+    displayName: { zh: 'JSOX Books 账务', en: 'JSOX Books', ms: 'JSOX Books' },
     description: { zh: '电子发票、记账、财务报表', en: 'e-Invoices, bookkeeping, financial reports', ms: 'e-Invois, simpan kira, laporan kewangan' },
     actions: {
       view: ['BOOKS_VIEW', 'BOOKS_POST', 'BOOKS_ADMIN'],
@@ -110,14 +110,14 @@ export const MODULES = {
   },
   logistics: {
     id: 'logistics', licenceKey: 'logistics', status: 'planned', kind: 'addon', dependsOn: ['pos'],
-    displayName: { zh: 'SuXin Logistics', en: 'SuXin Logistics', ms: 'SuXin Logistics' },
+    displayName: { zh: 'JSOX Logistics', en: 'JSOX Logistics', ms: 'JSOX Logistics' },
     description: { zh: 'Lalamove、GrabExpress 配送', en: 'Lalamove and GrabExpress delivery', ms: 'Penghantaran Lalamove, GrabExpress' },
     actions: { view: [], book: ['POS_SELL'] },
     menuItems: [], routes: [], apiScopes: [],
   },
   b2b: {
     id: 'b2b', licenceKey: 'b2b', status: 'planned', kind: 'addon', dependsOn: ['warehouse'],
-    displayName: { zh: 'SuXin B2B', en: 'SuXin B2B', ms: 'SuXin B2B' },
+    displayName: { zh: 'JSOX B2B', en: 'JSOX B2B', ms: 'JSOX B2B' },
     description: { zh: '门店和批发客户下单', en: 'Orders from shops and trade customers', ms: 'Pesanan dari kedai dan pelanggan borong' },
     actions: { view: [], order: ['RECORD_STOCK_MOVEMENTS'] },
     menuItems: [], routes: [], apiScopes: [],

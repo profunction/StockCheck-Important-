@@ -1,6 +1,6 @@
 /**
- * The SuXin apps a company can open -- SuXin Barcode Scan, SuXin POS, SuXin Every Data and
- * SuXin WMS -- for the app centre (/app/) and the switcher every app
+ * The JSOX apps a company can open -- JSOX Barcode Scan, JSOX POS, JSOX Every Data and
+ * JSOX WMS -- for the app centre (/app/) and the switcher every app
  * carries in its sidebar. All four share one sign-in, one company and one
  * stock, so switching is just opening another page.
  *
@@ -11,7 +11,7 @@
  * database rules hold the same line; this only decides what is shown.
  *
  * Also the sign-in screen and start-up shared by the newer apps (the app
- * centre and SuXin Barcode Scan on the web).
+ * centre and JSOX Barcode Scan on the web).
  */
 import { auth, initFirebase, onAuthStateChanged, signInWithEmailAndPassword, signInWithGoogle, signOut } from './fb.js';
 import { h, mount } from './dom.js';
@@ -22,13 +22,13 @@ import { checkForm, createCompany, joinCompany, resetPassword, signupError } fro
 
 addStrings({
   en: {
-    appCentre: 'SuXin apps', themeLight: 'Light mode', themeDark: 'Dark mode',
+    appCentre: 'JSOX apps', themeLight: 'Light mode', themeDark: 'Dark mode',
     gSignIn: 'Sign in with Google', gSignUp: 'Sign up with Google (no password)', gOr: 'or',
     gStep: 'Signed in with Google as {email}. One more step: join your company with its code, or register a new company.',
     gOther: 'Use another account',
-    errGoogleExists: 'This email already has a SuXin password. Sign in with the password, then open Profile and press "Link Google". After that Google works too.',
+    errGoogleExists: 'This email already has a JSOX password. Sign in with the password, then open Profile and press "Link Google". After that Google works too.',
     errGoogleOff: 'Google sign-in is not switched on yet. Use your email and password for now.',
-    errGoogleTaken: 'That Google account already belongs to another SuXin user.', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
+    errGoogleTaken: 'That Google account already belongs to another JSOX user.', appSwitch: 'Switch app', appDownload: 'Android apps', appAll: 'All apps', appOpen: 'Open',
     appLocked: 'Not in your plan', appBuy: 'See plans', appDenied: 'Ask your admin for access',
     appCentreLead: 'One sign-in for everything. Open what your plan includes; the rest can be added any time.',
     appPlan: 'Your plan', appNoPlan: 'Trial / no plan yet', appAddMore: 'Add more',
@@ -52,13 +52,13 @@ addStrings({
     suErrTaken: 'This email already has an account. Sign in, or use Forgot password.',
   },
   zh: {
-    appCentre: 'SuXin 应用', themeLight: '白天模式', themeDark: '夜间模式',
+    appCentre: 'JSOX 应用', themeLight: '白天模式', themeDark: '夜间模式',
     gSignIn: '用 Google 登录', gSignUp: '用 Google 注册（不用设密码）', gOr: '或',
     gStep: '已用 Google 登录：{email}。还差一步：用公司代码加入你的公司，或注册新公司。',
     gOther: '换一个账号',
-    errGoogleExists: '这个 email 已经设了 SuXin 密码。请先用密码登录，再到「我的 Profile」按「绑定 Google」，之后就可以用 Google 登录。',
+    errGoogleExists: '这个 email 已经设了 JSOX 密码。请先用密码登录，再到「我的 Profile」按「绑定 Google」，之后就可以用 Google 登录。',
     errGoogleOff: 'Google 登录还没开通，请先用 email 和密码登录。',
-    errGoogleTaken: '这个 Google 账号已经是另一个 SuXin 用户的。', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
+    errGoogleTaken: '这个 Google 账号已经是另一个 JSOX 用户的。', appSwitch: '切换应用', appDownload: '下载 Android app', appAll: '全部应用', appOpen: '打开',
     appLocked: '你的配套没有包括', appBuy: '看配套', appDenied: '没有权限，请问管理员',
     appCentreLead: '一个账号用全部。配套包括的就能打开；没有的，随时可以增加。',
     appPlan: '你的配套', appNoPlan: '试用 / 还没有配套', appAddMore: '增加功能',
@@ -82,13 +82,13 @@ addStrings({
     suErrTaken: '这个 email 已经有账号了。请直接登录，或按「忘记密码」。',
   },
   ms: {
-    appCentre: 'Aplikasi SuXin', themeLight: 'Mod cerah', themeDark: 'Mod gelap',
+    appCentre: 'Aplikasi JSOX', themeLight: 'Mod cerah', themeDark: 'Mod gelap',
     gSignIn: 'Log masuk dengan Google', gSignUp: 'Daftar dengan Google (tanpa kata laluan)', gOr: 'atau',
     gStep: 'Log masuk dengan Google sebagai {email}. Satu langkah lagi: sertai syarikat anda dengan kodnya, atau daftar syarikat baharu.',
     gOther: 'Guna akaun lain',
-    errGoogleExists: 'E-mel ini sudah ada kata laluan SuXin. Log masuk dengan kata laluan, kemudian buka Profil dan tekan "Pautkan Google". Selepas itu Google juga boleh.',
+    errGoogleExists: 'E-mel ini sudah ada kata laluan JSOX. Log masuk dengan kata laluan, kemudian buka Profil dan tekan "Pautkan Google". Selepas itu Google juga boleh.',
     errGoogleOff: 'Log masuk Google belum dihidupkan. Guna e-mel dan kata laluan dahulu.',
-    errGoogleTaken: 'Akaun Google itu sudah milik pengguna SuXin lain.', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
+    errGoogleTaken: 'Akaun Google itu sudah milik pengguna JSOX lain.', appSwitch: 'Tukar aplikasi', appDownload: 'Aplikasi Android', appAll: 'Semua aplikasi', appOpen: 'Buka',
     appLocked: 'Tiada dalam pelan anda', appBuy: 'Lihat pelan', appDenied: 'Minta akses daripada admin',
     appCentreLead: 'Satu log masuk untuk semua. Buka apa yang ada dalam pelan; yang lain boleh ditambah bila-bila masa.',
     appPlan: 'Pelan anda', appNoPlan: 'Percubaan / belum ada pelan', appAddMore: 'Tambah fungsi',
@@ -118,18 +118,18 @@ addStrings({
  * perms: any one of these lets someone in (an admin always may).
  */
 export const APPS = [
-  { id: 'count', module: 'count', name: 'SuXin Barcode Scan', href: '/count/', icon: 'barcode', color: '#0F4C4A',
+  { id: 'count', module: 'count', name: 'JSOX Barcode Scan', href: '/count/', icon: 'barcode', color: '#0F4C4A',
     perms: ['CREATE_STOCK_CHECK', 'SCAN_BARCODE', 'VIEW_OWN_HISTORY', 'VIEW_ALL_HISTORY'] },
-  { id: 'pos', module: 'pos', name: 'SuXin POS', href: '/pos/#/pos', icon: 'cart', color: '#0B1B2B',
+  { id: 'pos', module: 'pos', name: 'JSOX POS', href: '/pos/#/pos', icon: 'cart', color: '#0B1B2B',
     perms: ['POS_SELL', 'POS_MANAGE', 'POS_REPORTS'] },
-  { id: 'cloud', module: null, name: 'SuXin Every Data', href: '/data/', icon: 'chart', color: '#0f766e',
+  { id: 'cloud', module: null, name: 'JSOX Every Data', href: '/data/', icon: 'chart', color: '#0f766e',
     perms: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'] },
-  { id: 'warehouse', module: 'warehouse', name: 'SuXin WMS', href: '/warehouse/', icon: 'box', color: '#12385A',
+  { id: 'warehouse', module: 'warehouse', name: 'JSOX WMS', href: '/warehouse/', icon: 'box', color: '#12385A',
     perms: ['RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE', 'POS_MANAGE', 'VIEW_ALL_HISTORY'] },
   // The lorries come with the warehouse: same module, same people.
-  { id: 'tms', module: 'warehouse', name: 'SuXin TMS', href: '/tms/', icon: 'truck', color: '#7A4A12',
+  { id: 'tms', module: 'warehouse', name: 'JSOX TMS', href: '/tms/', icon: 'truck', color: '#7A4A12',
     perms: ['RECORD_STOCK_MOVEMENTS', 'WH_APPROVE', 'POS_MANAGE'] },
-  { id: 'books', module: 'accounting', name: 'SuXin Books', href: '/books/', icon: 'book', color: '#3B2F7A',
+  { id: 'books', module: 'accounting', name: 'JSOX Books', href: '/books/', icon: 'book', color: '#3B2F7A',
     perms: ['BOOKS_VIEW', 'BOOKS_POST', 'BOOKS_ADMIN'] },
 ];
 
@@ -144,7 +144,7 @@ const SUN = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke=
 const MOON = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 1 1 9.8 4a6.9 6.9 0 0 0 10.2 10.2Z" stroke-linejoin="round"/></svg>';
 
 /**
- * Dark (the default) or light, for every SuXin app and the website: stored
+ * Dark (the default) or light, for every JSOX app and the website: stored
  * as suxin-theme, applied before the page draws by /assets/theme.js.
  */
 export function themeToggle() {
@@ -163,7 +163,7 @@ export function themeToggle() {
 export function appSwitcher(currentId) {
   const current = APPS.find((a) => a.id === currentId);
   return h('details', { class: 'appswitch' },
-    h('summary', {}, icon('apps', 17), h('span', { class: 'grow' }, t('appSwitch')), current ? h('b', {}, current.name.replace('SuXin ', '')) : null),
+    h('summary', {}, icon('apps', 17), h('span', { class: 'grow' }, t('appSwitch')), current ? h('b', {}, current.name.replace('JSOX ', '')) : null),
     h('div', { class: 'appswitch-list' },
       APPS.map((a) => {
         const state = appState(session, a);

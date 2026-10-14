@@ -1,4 +1,4 @@
-// SuXin TMS end to end: a lorry with its road tax due; a driver who clocks
+// JSOX TMS end to end: a lorry with its road tax due; a driver who clocks
 // in with it; a trip planned from what the warehouse has waiting (a
 // transfer and a customer's reservation); loaded, on the road (and on the
 // 3D map), one stop delivered with a signature and one not; finished; the

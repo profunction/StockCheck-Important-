@@ -1,6 +1,6 @@
 /**
  * Stock counts as a spreadsheet, and two moments compared -- the same
- * columns and the same rules as the SuXin Barcode Scan app (ExportService.kt,
+ * columns and the same rules as the JSOX Barcode Scan app (ExportService.kt,
  * ExportModels.kt, StockComparison.kt), so a file from the web and one from
  * the phone line up column for column. Pure.
  */

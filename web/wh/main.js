@@ -1,6 +1,6 @@
 /**
  * The warehouse system: receiving, transfers, adjustments, purchasing and
- * stock control for the same company, products and stock as the SuXin Barcode Scan
+ * stock control for the same company, products and stock as the JSOX Barcode Scan
  * app and the till. Laid out for a phone in a worker's hand (big buttons,
  * a bar along the bottom) and for a manager at a computer (a sidebar).
  */
@@ -100,7 +100,7 @@ function renderSide() {
   const { group } = currentRoute();
   const visible = MENU.filter(allowed);
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png?v=4', alt: '', width: 28, height: 28 }), 'SuXin WMS'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/wh-64.png?v=4', alt: '', width: 28, height: 28 }), 'JSOX WMS'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email),
@@ -193,9 +193,9 @@ onChange(() => {
   sideTimer = setTimeout(() => { if (session.uid && sideEl) renderSide(); }, 50);
 });
 
-// Signing in is the same screen in every SuXin app (apps.js).
+// Signing in is the same screen in every JSOX app (apps.js).
 startApp(app, {
-  name: 'SuXin WMS', logo: '/icons/wh-64.png?v=4', tagline: t('whTagline'),
+  name: 'JSOX WMS', logo: '/icons/wh-64.png?v=4', tagline: t('whTagline'),
   features: [['download', t('whFeat1')], ['box', t('whFeat2')], ['receipt', t('whFeat3')]],
-  foot: 'SuXin · Malaysia',
+  foot: 'JSOX · Malaysia',
 }, renderShell, { stop: () => { stopPage?.(); stopPage = null; sideEl = null; } });

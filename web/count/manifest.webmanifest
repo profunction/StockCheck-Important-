@@ -1,7 +1,7 @@
 {
-  "name": "SuXin Barcode Scan",
+  "name": "JSOX Barcode Scan",
   "short_name": "Barcode Scan",
-  "description": "Stock counting for SuXin, in the browser.",
+  "description": "Stock counting for JSOX, in the browser.",
   "start_url": "/count/#/",
   "scope": "/count/",
   "id": "/count/",

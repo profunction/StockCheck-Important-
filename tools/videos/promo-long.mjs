@@ -30,7 +30,7 @@ const T = {
     hook: ['老板注意！', '你的店每个月<br><em>偷偷亏</em>多少钱？'],
     pains: ['❌ 货过期<br>整箱丢掉', '❌ 员工<br>算错钱', '❌ 库存<br>永远对不上', '❌ 老板不在<br>什么都不知道'],
     painsEn: ['Stock expires, thrown away', 'Staff get the change wrong', 'Stock never adds up', 'Away from the shop, you know nothing'],
-    reveal: '<span class="tag">SuXin</span><br>一个系统<br><em>全包</em>', revealSub: '收银 · 仓库 · 盘点 · 扫码点餐',
+    reveal: '<span class="tag">JSOX</span><br>一个系统<br><em>全包</em>', revealSub: '收银 · 仓库 · 盘点 · 扫码点餐',
     sell: ['扫一下就卖，超市速度', 'Imbas terus jual — laju macam pasar raya'],
     sst: ['米、糖、鸡蛋免 SST，系统自动分开算', 'Beras, gula, telur bebas SST — dikira sendiri'],
     stock: ['卖一样，库存马上少一样', 'Jual satu, stok tolak sendiri'],
@@ -58,7 +58,7 @@ const T = {
     hook: ['Bos, dengar sini!', 'Berapa duit kedai anda<br><em>hilang</em> setiap bulan?'],
     pains: ['❌ Barang luput<br>dibuang', '❌ Pekerja<br>salah kira', '❌ Stok<br>tak pernah tepat', '❌ Bos tiada<br>tak tahu apa-apa'],
     painsEn: ['Stock expires, thrown away', 'Staff get the change wrong', 'Stock never adds up', 'Away from the shop, you know nothing'],
-    reveal: '<span class="tag">SuXin</span><br>Satu sistem<br><em>semua siap</em>', revealSub: 'POS · Gudang · Kira stok · Pesan QR',
+    reveal: '<span class="tag">JSOX</span><br>Satu sistem<br><em>semua siap</em>', revealSub: 'POS · Gudang · Kira stok · Pesan QR',
     sell: ['Imbas terus jual — laju macam pasar raya', 'Scan and sell, supermarket speed'],
     sst: ['Beras, gula, telur bebas SST — dikira sendiri', 'SST-exempt goods handled for you'],
     stock: ['Jual satu, stok tolak sendiri', 'Every sale updates stock'],
@@ -201,7 +201,7 @@ const longFilm = (lang, phone) => async (page, x, base) => {
   // 8. Two more reasons, and the offer.
   await hit(w.offline, { bg: NAVY, ms: 1900, en: 'Internet down? Keep selling' });
   await hit(w.langs, { bg: TEAL, ms: 1900, en: 'Chinese, English, Malay' });
-  await hit(`<span class="tag">SuXin · One Business. Connected.</span><br>${w.end[0]}<small>${w.end[1]}</small><small style="font-size:.5em;color:#ffd166;font-weight:900">${w.end[2]}</small><span class="cta" style="display:inline-block;margin-top:18px;background:#25d366;color:#fff;border-radius:999px;padding:12px 22px;font-size:.45em;font-weight:900">📱 WhatsApp ${WA.show}</span><small>${w.end[3]}</small>`,
+  await hit(`<span class="tag">JSOX · One Business. Connected.</span><br>${w.end[0]}<small>${w.end[1]}</small><small style="font-size:.5em;color:#ffd166;font-weight:900">${w.end[2]}</small><span class="cta" style="display:inline-block;margin-top:18px;background:#25d366;color:#fff;border-radius:999px;padding:12px 22px;font-size:.45em;font-weight:900">📱 WhatsApp ${WA.show}</span><small>${w.end[3]}</small>`,
     { bg: NAVY, ms: 6500, say: w.endSay, en: 'Free for 14 days' });
 };
 

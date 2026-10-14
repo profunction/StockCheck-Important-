@@ -1,5 +1,5 @@
 /**
- * SuXin Books: the sums of a company's accounts -- double entry, in sen,
+ * JSOX Books: the sums of a company's accounts -- double entry, in sen,
  * never a floating-point ringgit. Pure: tested in books.test.mjs. The
  * screens are web/books/; the e-invoice files are einvoice-doc.js.
  *

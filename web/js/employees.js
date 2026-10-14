@@ -1,7 +1,7 @@
 /**
  * Employees and what each role may do at the till.
  *
- * Accounts are shared with the SuXin Barcode Scan app: someone added here signs in
+ * Accounts are shared with the JSOX Barcode Scan app: someone added here signs in
  * to the app and the website alike. An owner sees who works where, adds
  * staff, and switches the POS permissions on per role.
  */
@@ -11,7 +11,7 @@ import { t } from './i18n.js';
 import { session, ws } from './session.js';
 import { menuButton } from './main.js';
 
-// The till's permissions, and the accounts' (SuXin Books) beside them.
+// The till's permissions, and the accounts' (JSOX Books) beside them.
 const POS_PERMS = ['POS_SELL', 'POS_VOID', 'POS_MANAGE', 'POS_REPORTS', 'BOOKS_VIEW', 'BOOKS_POST', 'BOOKS_ADMIN'];
 
 export function render(main) {

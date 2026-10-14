@@ -1,18 +1,18 @@
-// SuXin site translations: English source text -> [中文, Bahasa Melayu].
+// JSOX site translations: English source text -> [中文, Bahasa Melayu].
 // Text not listed here (product names, item names, codes, amounts) stays as written.
-window.SUXIN_I18N = {
+window.JSOX_I18N = {
   // Patterns for text that repeats with a product name in it.
   patterns: [
-    [/^Try (SuXin [\w ]+) free$/, ['免费试用 $1', 'Cuba $1 percuma']],
-    [/^Run (SuXin [\w ]+) on the free trial$/, ['免费试用 $1', 'Guna $1 dalam percubaan percuma']],
-    [/^One SuXin account opens every app in your plan\. Start with (SuXin [\w ]+) and add the rest when you're ready\.$/,
-      ['一个 SuXin 账号就能打开配套里的所有应用。先从 $1 开始，其他的随时可以加。',
-       'Satu akaun SuXin membuka setiap aplikasi dalam pelan anda. Mula dengan $1 dan tambah yang lain bila-bila masa.']],
-    [/^Screens from (SuXin [\w ]+)$/, ['$1 的画面', 'Skrin $1']],
+    [/^Try (JSOX [\w ]+) free$/, ['免费试用 $1', 'Cuba $1 percuma']],
+    [/^Run (JSOX [\w ]+) on the free trial$/, ['免费试用 $1', 'Guna $1 dalam percubaan percuma']],
+    [/^One JSOX account opens every app in your plan\. Start with (JSOX [\w ]+) and add the rest when you're ready\.$/,
+      ['一个 JSOX 账号就能打开配套里的所有应用。先从 $1 开始，其他的随时可以加。',
+       'Satu akaun JSOX membuka setiap aplikasi dalam pelan anda. Mula dengan $1 dan tambah yang lain bila-bila masa.']],
+    [/^Screens from (JSOX [\w ]+)$/, ['$1 的画面', 'Skrin $1']],
     [/^Product (\d+)$/, ['产品 $1', 'Produk $1']],
   ],
   text: {
-    // Pricing and contact (added on the SuXin site)
+    // Pricing and contact (added on the JSOX site)
     'Pricing': ['价格', 'Harga'],
     'One price list. No surprises.': ['价格清清楚楚，没有隐藏收费。', 'Satu senarai harga. Tiada kejutan.'],
     'Prices in ringgit. Every plan starts with a 14-day free trial, no card needed. Pay yearly and get two months free.': ['价格以令吉计算。每个配套都先免费试用 14 天，不用信用卡。年付等于送 2 个月。', 'Harga dalam ringgit. Setiap pelan bermula dengan percubaan percuma 14 hari, tanpa kad. Bayar tahunan, dapat 2 bulan percuma.'],
@@ -35,8 +35,8 @@ window.SUXIN_I18N = {
     'Everything in Business': ['Business 的全部功能', 'Semua dalam Business'],
     'Open API for your web shop or accounting program': ['开放 API，连接网店或会计软件', 'API terbuka untuk kedai web atau perisian akaun'],
     'Just one app': ['只要一个应用', 'Satu aplikasi sahaja'],
-    'SuXin Barcode Scan alone: RM 28 / month, 3 users.': ['只用 SuXin Barcode Scan 盘点：RM 28 / 月，3 位用户。', 'SuXin Barcode Scan sahaja: RM 28 / bulan, 3 pengguna.'],
-    'SuXin POS alone: RM 38 / month, 2 tills, Books included.': ['只用 SuXin POS 收银：RM 38 / 月，2 台收银机，包括账务。', 'SuXin POS sahaja: RM 38 / bulan, 2 kaunter, termasuk Books.'],
+    'JSOX Barcode Scan alone: RM 28 / month, 3 users.': ['只用 JSOX Barcode Scan 盘点：RM 28 / 月，3 位用户。', 'JSOX Barcode Scan sahaja: RM 28 / bulan, 3 pengguna.'],
+    'JSOX POS alone: RM 38 / month, 2 tills, Books included.': ['只用 JSOX POS 收银：RM 38 / 月，2 台收银机，包括账务。', 'JSOX POS sahaja: RM 38 / bulan, 2 kaunter, termasuk Books.'],
     'Lifetime': ['终身版', 'Seumur hidup'],
     'Pay once from RM 1,680. Only 50 sets, with 24 months of updates and support.': ['一次付清，RM 1,680 起。只限 50 套，包括 24 个月更新和支援。', 'Bayar sekali dari RM 1,680. Hanya 50 set, termasuk 24 bulan kemas kini dan sokongan.'],
     'Ask us on WhatsApp': ['WhatsApp 问我们', 'Tanya kami di WhatsApp'],
@@ -61,15 +61,15 @@ window.SUXIN_I18N = {
     'Start free trial': ['免费试用', 'Cuba percuma'],
     'Sign in': ['登录', 'Log masuk'],
     'Language': ['语言', 'Bahasa'],
-    'SuXin POS — Counter': ['SuXin POS — 柜台收银', 'SuXin POS — Kaunter'],
-    'SuXin Barcode Scan — Stock-take': ['SuXin Barcode Scan — 扫码盘点', 'SuXin Barcode Scan — Kira stok'],
-    'SuXin WMS — Warehouse': ['SuXin WMS — 仓库', 'SuXin WMS — Gudang'],
-    "SuXin Every Data — Owner's view": ['SuXin Every Data — 老板后台', 'SuXin Every Data — Paparan pemilik'],
-    'SuXin Books — Accounts': ['SuXin Books — 账务', 'SuXin Books — Akaun'],
+    'JSOX POS — Counter': ['JSOX POS — 柜台收银', 'JSOX POS — Kaunter'],
+    'JSOX Barcode Scan — Stock-take': ['JSOX Barcode Scan — 扫码盘点', 'JSOX Barcode Scan — Kira stok'],
+    'JSOX WMS — Warehouse': ['JSOX WMS — 仓库', 'JSOX WMS — Gudang'],
+    "JSOX Every Data — Owner's view": ['JSOX Every Data — 老板后台', 'JSOX Every Data — Paparan pemilik'],
+    'JSOX Books — Accounts': ['JSOX Books — 账务', 'JSOX Books — Akaun'],
     'Explore': ['了解更多', 'Terokai'],
     'Explore products': ['了解产品', 'Terokai produk'],
     'For': ['适合', 'Untuk'],
-    'SuXin. All rights reserved.': ['SuXin。版权所有。', 'SuXin. Hak cipta terpelihara.'],
+    'JSOX. All rights reserved.': ['JSOX。版权所有。', 'JSOX. Hak cipta terpelihara.'],
     'POS · SCAN · WMS · DATA · BOOKS · one account': ['POS · SCAN · WMS · DATA · BOOKS · 一个账号', 'POS · SCAN · WMS · DATA · BOOKS · satu akaun'],
     'Restaurants & kopitiam': ['餐厅和咖啡店', 'Restoran & kopitiam'],
     'Home': ['首页', 'Utama'],
@@ -81,9 +81,9 @@ window.SUXIN_I18N = {
     'POS · Stock · Warehouse · Accounts': ['收银 · 库存 · 仓库 · 账务', 'POS · Stok · Gudang · Akaun'],
     'One Business.': ['一盘生意，', 'Satu Perniagaan.'],
     'Connected.': ['一套系统。', 'Semua Bersambung.'],
-    'SuXin runs your counter, your stock, your warehouse and your books on one account. Ring up a sale at the till: the stock drops in the warehouse, you see it on your phone, and the e-invoice is ready in your accounts.':
-      ['SuXin 用一个账号管你的收银、库存、仓库和账务。柜台卖出一件，仓库的库存马上减少，你在手机上就看到，电子发票也已经在账里准备好。',
-       'SuXin mengurus kaunter, stok, gudang dan akaun anda dalam satu akaun. Buat jualan di kaunter: stok gudang berkurang, anda nampak di telefon, dan e-invois sedia dalam akaun.'],
+    'JSOX runs your counter, your stock, your warehouse and your books on one account. Ring up a sale at the till: the stock drops in the warehouse, you see it on your phone, and the e-invoice is ready in your accounts.':
+      ['JSOX 用一个账号管你的收银、库存、仓库和账务。柜台卖出一件，仓库的库存马上减少，你在手机上就看到，电子发票也已经在账里准备好。',
+       'JSOX mengurus kaunter, stok, gudang dan akaun anda dalam satu akaun. Buat jualan di kaunter: stok gudang berkurang, anda nampak di telefon, dan e-invois sedia dalam akaun.'],
     'SUPPLIER': ['供应商', 'PEMBEKAL'],
     'PURCHASE ORDER': ['采购单', 'PESANAN BELIAN'],
     'RECEIVE · STOCK': ['收货 · 库存', 'TERIMA · STOK'],
@@ -93,13 +93,13 @@ window.SUXIN_I18N = {
     "Today's sales": ['今天销售', 'Jualan hari ini'],
     '▲ 35 receipts · Every Data': ['▲ 35 张收据 · Every Data', '▲ 35 resit · Every Data'],
     'Stock value (cost)': ['库存价值（成本）', 'Nilai stok (kos)'],
-    'SuXin WMS · 2 low stock': ['SuXin WMS · 2 件库存不足', 'SuXin WMS · 2 stok rendah'],
+    'JSOX WMS · 2 low stock': ['JSOX WMS · 2 件库存不足', 'JSOX WMS · 2 stok rendah'],
     'Checkout modes': ['收银模式', 'Mod bayaran'],
     'in 1': ['合 1', 'dalam 1'],
     'F&B · Supermarket · Retail': ['餐饮 · 超市 · 零售', 'F&B · Pasar raya · Runcit'],
 
     // Stats
-    'Apps on one SuXin account': ['个应用，一个 SuXin 账号', 'Aplikasi dalam satu akaun SuXin'],
+    'Apps on one JSOX account': ['个应用，一个 JSOX 账号', 'Aplikasi dalam satu akaun JSOX'],
     'Checkout modes sharing one item list': ['种收银模式，共用一份商品清单', 'Mod bayaran berkongsi satu senarai barang'],
     'Stock count across every branch and warehouse': ['份库存，所有分店和仓库共用', 'Kiraan stok untuk semua cawangan dan gudang'],
 
@@ -120,7 +120,7 @@ window.SUXIN_I18N = {
     'Scan to count stock, on a phone or a computer.': ['扫码盘点，用手机或电脑都可以。', 'Imbas untuk kira stok, dengan telefon atau komputer.'],
     'Phone camera or a barcode scanner': ['手机相机或扫码枪', 'Kamera telefon atau pengimbas kod bar'],
     'Count per branch or warehouse': ['按分店或仓库盘点', 'Kira mengikut cawangan atau gudang'],
-    'Count differences land in SuXin WMS': ['盘点差异直接进 SuXin WMS', 'Perbezaan kiraan masuk ke SuXin WMS'],
+    'Count differences land in JSOX WMS': ['盘点差异直接进 JSOX WMS', 'Perbezaan kiraan masuk ke JSOX WMS'],
     'Same email and password as every app': ['所有应用用同一个 email 和密码', 'E-mel dan kata laluan sama untuk semua aplikasi'],
     'Warehouse': ['仓库', 'Gudang'],
     'Goods in, goods out, across every branch.': ['进货出货，所有分店一起管。', 'Barang masuk, barang keluar, di setiap cawangan.'],
@@ -222,15 +222,15 @@ window.SUXIN_I18N = {
     '4000 Sales': ['4000 销售收入', '4000 Jualan'],
     'MyInvois e-invoice · JSON ready': ['MyInvois 电子发票 · JSON 已准备好', 'e-Invois MyInvois · JSON sedia'],
     'Download JSON': ['下载 JSON', 'Muat turun JSON'],
-    "Previews use sample records from SuXin's demo company.": ['预览画面使用 SuXin 示范公司的资料。', 'Pratonton menggunakan rekod contoh dari syarikat demo SuXin.'],
+    "Previews use sample records from JSOX's demo company.": ['预览画面使用 JSOX 示范公司的资料。', 'Pratonton menggunakan rekod contoh dari syarikat demo JSOX.'],
 
     // Flow section
     'How it fits together': ['怎么连在一起', 'Bagaimana ia bersambung'],
     'One sale. Every app knows. Zero re-typing.': ['卖出一单，每个应用都知道，不用重打。', 'Satu jualan. Semua aplikasi tahu. Tiada taip semula.'],
-    "Stock comes in through the warehouse, goes out at the till, shows up on the owner's phone and lands in the accounts. SuXin Barcode Scan keeps the count honest underneath it all.":
-      ['货从仓库进来，在柜台卖出去，出现在老板的手机上，最后进到账里。SuXin Barcode Scan 在底下确保库存数量准确。',
-       'Stok masuk melalui gudang, keluar di kaunter, muncul di telefon pemilik dan masuk ke akaun. SuXin Barcode Scan memastikan kiraan sentiasa tepat.'],
-    'SUXIN BARCODE SCAN · ONE ITEM LIST · ONE STOCK COUNT · EVERY BRANCH': ['SUXIN BARCODE SCAN · 一份商品清单 · 一份库存 · 所有分店', 'SUXIN BARCODE SCAN · SATU SENARAI BARANG · SATU KIRAAN STOK · SEMUA CAWANGAN'],
+    "Stock comes in through the warehouse, goes out at the till, shows up on the owner's phone and lands in the accounts. JSOX Barcode Scan keeps the count honest underneath it all.":
+      ['货从仓库进来，在柜台卖出去，出现在老板的手机上，最后进到账里。JSOX Barcode Scan 在底下确保库存数量准确。',
+       'Stok masuk melalui gudang, keluar di kaunter, muncul di telefon pemilik dan masuk ke akaun. JSOX Barcode Scan memastikan kiraan sentiasa tepat.'],
+    'JSOX BARCODE SCAN · ONE ITEM LIST · ONE STOCK COUNT · EVERY BRANCH': ['JSOX BARCODE SCAN · 一份商品清单 · 一份库存 · 所有分店', 'JSOX BARCODE SCAN · SATU SENARAI BARANG · SATU KIRAAN STOK · SEMUA CAWANGAN'],
     'Stock received': ['收货入库', 'Stok diterima'],
     'WAREHOUSE': ['仓库', 'GUDANG'],
     'Sold at the counter': ['柜台卖出', 'Dijual di kaunter'],
@@ -289,12 +289,12 @@ window.SUXIN_I18N = {
     'Register your company': ['注册你的公司', 'Daftar syarikat anda'],
     "Create an account on the trial, or join your company's existing one. Add your branches and staff.": ['用试用版开一个账号，或加入公司现有的账号。加入你的分店和员工。', 'Cipta akaun percubaan, atau sertai akaun syarikat yang sedia ada. Tambah cawangan dan pekerja.'],
     'Bring in your items': ['加入你的商品', 'Masukkan barang anda'],
-    'Scan barcodes with SuXin Barcode Scan, set prices and categories, enter opening stock per branch.': ['用 SuXin Barcode Scan 扫条码，设好价钱和分类，输入每间分店的期初库存。', 'Imbas kod bar dengan SuXin Barcode Scan, tetapkan harga dan kategori, masukkan stok awal setiap cawangan.'],
+    'Scan barcodes with JSOX Barcode Scan, set prices and categories, enter opening stock per branch.': ['用 JSOX Barcode Scan 扫条码，设好价钱和分类，输入每间分店的期初库存。', 'Imbas kod bar dengan JSOX Barcode Scan, tetapkan harga dan kategori, masukkan stok awal setiap cawangan.'],
     'Open the till': ['开始收银', 'Buka kaunter'],
     'Pick your checkout mode, open a shift and start selling. Every screen has a built-in ▶ guide.': ['选好收银模式，开班就能开始卖。每个画面都有 ▶ 教学。', 'Pilih mod bayaran, buka syif dan mula menjual. Setiap skrin ada panduan ▶ terbina.'],
     'Run the whole shop on one account': ['一个账号管整间店', 'Urus seluruh kedai dengan satu akaun'],
-    "Start on the free trial with SuXin POS, Barcode Scan, WMS, Every Data and Books. Keep what you use, add the rest when you're ready.":
-      ['免费试用 SuXin POS、Barcode Scan、WMS、Every Data 和 Books。留下你用的，其他的准备好再加。', 'Mula percubaan percuma dengan SuXin POS, Barcode Scan, WMS, Every Data dan Books. Simpan apa yang anda guna, tambah yang lain bila sedia.'],
+    "Start on the free trial with JSOX POS, Barcode Scan, WMS, Every Data and Books. Keep what you use, add the rest when you're ready.":
+      ['免费试用 JSOX POS、Barcode Scan、WMS、Every Data 和 Books。留下你用的，其他的准备好再加。', 'Mula percubaan percuma dengan JSOX POS, Barcode Scan, WMS, Every Data dan Books. Simpan apa yang anda guna, tambah yang lain bila sedia.'],
     'Get the Android app': ['下载 Android 应用', 'Dapatkan aplikasi Android'],
 
     // Product pages: shared
@@ -359,14 +359,14 @@ window.SUXIN_I18N = {
     'A fast till that guides them with a built-in ▶ tutorial on every screen.': ['快速的收银机，每个画面都有 ▶ 教学带着他们。', 'Kaunter pantas dengan tutorial ▶ terbina di setiap skrin.'],
     'Shop managers': ['店长', 'Pengurus kedai'],
     'Shifts, cash counts, discounts and staff, branch by branch.': ['每间分店的交班、点钱、折扣和员工。', 'Syif, kiraan tunai, diskaun dan pekerja, cawangan demi cawangan.'],
-    'Every sale lands in SuXin Every Data and SuXin Books without re-typing.': ['每一单都自动进 SuXin Every Data 和 SuXin Books，不用重打。', 'Setiap jualan masuk ke SuXin Every Data dan SuXin Books tanpa taip semula.'],
+    'Every sale lands in JSOX Every Data and JSOX Books without re-typing.': ['每一单都自动进 JSOX Every Data 和 JSOX Books，不用重打。', 'Setiap jualan masuk ke JSOX Every Data dan JSOX Books tanpa taip semula.'],
     'Kitchen': ['厨房', 'Dapur'],
     'Orders print straight to the kitchen with their add-ons.': ['订单连同加料直接打印到厨房。', 'Pesanan dicetak terus ke dapur bersama tambahannya.'],
 
     // Product: Barcode Scan
-    'Walk the shelves with a phone camera or a barcode scanner and count as you go. Counts are saved per branch or warehouse, and any differences show up in SuXin WMS so you can see what the count found.':
-      ['拿着手机或扫码枪走一圈货架，边走边点。盘点按分店或仓库保存，有差异会出现在 SuXin WMS，让你看到盘点发现了什么。',
-       'Jalan di rak dengan kamera telefon atau pengimbas kod bar dan kira sambil berjalan. Kiraan disimpan mengikut cawangan atau gudang, dan sebarang perbezaan muncul dalam SuXin WMS.'],
+    'Walk the shelves with a phone camera or a barcode scanner and count as you go. Counts are saved per branch or warehouse, and any differences show up in JSOX WMS so you can see what the count found.':
+      ['拿着手机或扫码枪走一圈货架，边走边点。盘点按分店或仓库保存，有差异会出现在 JSOX WMS，让你看到盘点发现了什么。',
+       'Jalan di rak dengan kamera telefon atau pengimbas kod bar dan kira sambil berjalan. Kiraan disimpan mengikut cawangan atau gudang, dan sebarang perbezaan muncul dalam JSOX WMS.'],
     'Shop staff and storekeepers doing stock-takes, in shops or in the warehouse': ['在店面或仓库盘点的店员和仓管', 'Pekerja kedai dan penjaga stor yang mengira stok, di kedai atau gudang'],
     'Stock-take ·': ['盘点 ·', 'Kira stok ·'],
     'Items counted': ['已盘点商品', 'Barang dikira'],
@@ -392,9 +392,9 @@ window.SUXIN_I18N = {
     'See which items have never been counted': ['看哪些商品从来没盘点过', 'Lihat barang yang belum pernah dikira'],
     'Recount just the items that differ': ['只重新盘点有差异的商品', 'Kira semula hanya barang yang berbeza'],
     'Connected': ['连起来', 'Terhubung'],
-    'Differences land in SuXin WMS': ['差异直接进 SuXin WMS', 'Perbezaan masuk ke SuXin WMS'],
+    'Differences land in JSOX WMS': ['差异直接进 JSOX WMS', 'Perbezaan masuk ke JSOX WMS'],
     'Same items and barcodes as the POS': ['和收银用同样的商品和条码', 'Barang dan kod bar sama seperti POS'],
-    'Same email and password as every SuXin app': ['所有 SuXin 应用用同一个 email 和密码', 'E-mel dan kata laluan sama untuk semua aplikasi SuXin'],
+    'Same email and password as every JSOX app': ['所有 JSOX 应用用同一个 email 和密码', 'E-mel dan kata laluan sama untuk semua aplikasi JSOX'],
     'Shop staff': ['店员', 'Pekerja kedai'],
     'Count the shelves between customers with the phone in their pocket.': ['招呼客人的空档，用口袋里的手机点货架。', 'Kira rak di antara pelanggan dengan telefon di dalam poket.'],
     'Storekeepers': ['仓管', 'Penjaga stor'],
@@ -403,9 +403,9 @@ window.SUXIN_I18N = {
     'Trust the stock number on Every Data.': ['可以放心相信 Every Data 上的库存数字。', 'Percaya nombor stok di Every Data.'],
 
     // Product: WMS
-    "Receive purchase orders, move stock between the warehouse and the shops, and adjust for damaged, expired or found goods. SuXin WMS knows what's where, what it cost and what to reorder, for one branch or all of them.":
-      ['采购单收货，仓库和分店之间调货，损坏、过期或找到的货都能调整。SuXin WMS 知道什么在哪里、成本多少、该补什么货，一间分店或全部分店都可以。',
-       'Terima pesanan belian, pindah stok antara gudang dan kedai, dan laraskan barang rosak, luput atau dijumpai. SuXin WMS tahu apa di mana, berapa kosnya dan apa perlu dipesan semula, untuk satu atau semua cawangan.'],
+    "Receive purchase orders, move stock between the warehouse and the shops, and adjust for damaged, expired or found goods. JSOX WMS knows what's where, what it cost and what to reorder, for one branch or all of them.":
+      ['采购单收货，仓库和分店之间调货，损坏、过期或找到的货都能调整。JSOX WMS 知道什么在哪里、成本多少、该补什么货，一间分店或全部分店都可以。',
+       'Terima pesanan belian, pindah stok antara gudang dan kedai, dan laraskan barang rosak, luput atau dijumpai. JSOX WMS tahu apa di mana, berapa kosnya dan apa perlu dipesan semula, untuk satu atau semua cawangan.'],
     'Storekeepers, purchasers and owners running a warehouse or more than one branch': ['管仓库或多间分店的仓管、采购和老板', 'Penjaga stor, pembeli dan pemilik yang mengurus gudang atau lebih dari satu cawangan'],
     'Stock': ['库存', 'Stok'],
     '9 items': ['9 样商品', '9 barang'],
@@ -432,7 +432,7 @@ window.SUXIN_I18N = {
     'Reorder suggestions turned into a PO': ['补货建议一键变采购单', 'Cadangan pesanan semula jadi PO'],
     'Landed-cost calculator and supplier list': ['到岸成本计算器和供应商列表', 'Kalkulator kos tiba dan senarai pembekal'],
     'Control': ['管控', 'Kawalan'],
-    'Count differences from SuXin Barcode Scan': ['来自 SuXin Barcode Scan 的盘点差异', 'Perbezaan kiraan dari SuXin Barcode Scan'],
+    'Count differences from JSOX Barcode Scan': ['来自 JSOX Barcode Scan 的盘点差异', 'Perbezaan kiraan dari JSOX Barcode Scan'],
     'Month-end stock': ['月结库存', 'Stok hujung bulan'],
     'Activity log of every movement': ['每次进出都有操作记录', 'Log aktiviti setiap pergerakan'],
     'Receive, transfer and adjust from a phone or a computer.': ['用手机或电脑收货、调货、调整库存。', 'Terima, pindah dan laras dari telefon atau komputer.'],
@@ -450,7 +450,7 @@ window.SUXIN_I18N = {
     '1 voided today': ['今天作废 1 张', '1 dibatalkan hari ini'],
     'Today': ['今天', 'Hari ini'],
     'Stock and warehouse': ['库存和仓库', 'Stok dan gudang'],
-    'From SuXin WMS': ['来自 SuXin WMS', 'Dari SuXin WMS'],
+    'From JSOX WMS': ['来自 JSOX WMS', 'Dari JSOX WMS'],
     'Items in stock': ['有库存的商品', 'Barang dalam stok'],
     'Purchase orders to receive': ['待收货的采购单', 'Pesanan belian untuk diterima'],
     'Transfers in transit': ['在途调货', 'Pindahan dalam perjalanan'],
@@ -463,13 +463,13 @@ window.SUXIN_I18N = {
     'Reports by item, category, staff, payment': ['按商品、分类、员工、付款方式的报表', 'Laporan mengikut barang, kategori, pekerja, bayaran'],
     'Items in stock and stock value': ['有库存的商品和库存价值', 'Barang dalam stok dan nilai stok'],
     'Low-stock and out-of-stock counts': ['库存不足和没货的数量', 'Kiraan stok rendah dan habis stok'],
-    'Straight from SuXin POS and SuXin WMS': ['直接来自 SuXin POS 和 SuXin WMS', 'Terus dari SuXin POS dan SuXin WMS'],
+    'Straight from JSOX POS and JSOX WMS': ['直接来自 JSOX POS 和 JSOX WMS', 'Terus dari JSOX POS dan JSOX WMS'],
     'Purchase orders waiting to be received': ['等着收货的采购单', 'Pesanan belian menunggu diterima'],
     'Purchase orders waiting for approval': ['等着审批的采购单', 'Pesanan belian menunggu kelulusan'],
     'One screen for the whole business, from anywhere.': ['一个画面看整盘生意，在哪里都可以。', 'Satu skrin untuk seluruh perniagaan, dari mana sahaja.'],
     'Area managers': ['区域经理', 'Pengurus kawasan'],
     'Compare branches without phoning each shop.': ['不用一间一间打电话就能比较分店。', 'Bandingkan cawangan tanpa menelefon setiap kedai.'],
-    "Daily sales that match what's in SuXin Books.": ['每天的销售和 SuXin Books 里的对得上。', 'Jualan harian yang sepadan dengan SuXin Books.'],
+    "Daily sales that match what's in JSOX Books.": ['每天的销售和 JSOX Books 里的对得上。', 'Jualan harian yang sepadan dengan JSOX Books.'],
     'Partners': ['合伙人', 'Rakan kongsi'],
     'A shared view of how the business is doing.': ['大家一起看生意做得怎样。', 'Paparan bersama tentang prestasi perniagaan.'],
 

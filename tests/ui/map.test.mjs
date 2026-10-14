@@ -1,4 +1,4 @@
-// SuXin WMS in 3D: racks where the shelf codes say, slots coloured by
+// JSOX WMS in 3D: racks where the shelf codes say, slots coloured by
 // stock, expiry, picking and activity; lorries at the docks for what is
 // arriving and leaving; a tap shows what is on a slot; a place with no
 // shelf codes yet shows a sample and says how to fill it in.

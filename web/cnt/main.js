@@ -1,6 +1,6 @@
 /**
- * SuXin Barcode Scan on the web: stock counting in a browser, on a computer or a
- * phone, writing the very same stock checks as the SuXin Barcode Scan Android app
+ * JSOX Barcode Scan on the web: stock counting in a browser, on a computer or a
+ * phone, writing the very same stock checks as the JSOX Barcode Scan Android app
  * (workspaces/{ws}/stockChecks/{id}, its lines under items/). A count
  * started here can be finished on a phone and the other way round; the
  * till, the warehouse and the back office read it the moment it is saved.
@@ -51,7 +51,7 @@ export function audit(batch, entity, entityId, entityLabel, action, stockCheckId
 /** On a phone everything but the name folds into one menu button. */
 function phoneMenu() {
   modal((close) => [
-    h('h2', {}, 'SuXin Barcode Scan'),
+    h('h2', {}, 'JSOX Barcode Scan'),
     h('div', { class: 'cnt-menu' },
       APPS.filter((a) => a.id !== 'count' && appState(session, a) === 'open').map((a) => h('a', { class: 'btn-link', href: a.href }, icon(a.icon, 18), a.name)),
       h('a', { class: 'btn-link', href: '/app/' }, icon('apps', 18), t('appAll')),
@@ -68,7 +68,7 @@ function shell() {
   mainEl = h('main', { class: 'cnt-main' });
   mount(app, h('div', { class: 'cnt' },
     h('header', { class: 'cnt-top' },
-      h('a', { class: 'brandmark', href: '#/' }, h('img', { src: '/icons/icon-192.png?v=4', alt: '', width: 30, height: 30 }), h('span', {}, 'SuXin ', h('b', {}, 'Barcode Scan'))),
+      h('a', { class: 'brandmark', href: '#/' }, h('img', { src: '/icons/icon-192.png?v=4', alt: '', width: 30, height: 30 }), h('span', {}, 'JSOX ', h('b', {}, 'Barcode Scan'))),
       h('span', { class: 'grow' }),
       h('div', { class: 'cnt-top-wide' },
         appSwitcher('count'),
@@ -330,7 +330,7 @@ async function newCount() {
 window.addEventListener('hashchange', () => { if (session.uid && mainEl) route(); });
 
 startApp(app, {
-  name: 'SuXin Barcode Scan', logo: '/icons/icon-192.png?v=4', tagline: t('cAppHint'),
+  name: 'JSOX Barcode Scan', logo: '/icons/icon-192.png?v=4', tagline: t('cAppHint'),
   features: [['barcode', t('cScan')], ['wifiOff', t('signFeat3')], ['apps', t('appSwitch')]],
-  foot: `SuXin · ${t('brandTagline')}`,
+  foot: `JSOX · ${t('brandTagline')}`,
 }, shell, { stop: () => { stopPage?.(); stopPage = null; mainEl = null; } });

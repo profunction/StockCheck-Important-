@@ -1,5 +1,5 @@
 /**
- * SuXin Every Data, on its own page: the owner's look at the whole business
+ * JSOX Every Data, on its own page: the owner's look at the whole business
  * -- today's sales, the stock, the warehouse -- without the till around it
  * (dashboard.js draws it). The till's old address, /pos/#/cloud, comes here.
  */
@@ -49,5 +49,5 @@ function shell() {
 startApp(app, {
   name: ME.name, logo: '/icons/icon-192.png?v=4', tagline: t('dashLead'),
   features: [['chart', t('dashToday')], ['box', t('dashStock')], ['apps', t('appSwitch')]],
-  foot: 'SuXin · Malaysia',
+  foot: 'JSOX · Malaysia',
 }, shell);

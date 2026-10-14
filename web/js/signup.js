@@ -1,5 +1,5 @@
 /**
- * Registering on the website, the same two ways as in the SuXin Barcode Scan app:
+ * Registering on the website, the same two ways as in the JSOX Barcode Scan app:
  *
  *   a new company   the person becomes its admin; the company gets the four
  *                   built-in roles, its name and code, and the 14-day trial

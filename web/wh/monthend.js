@@ -52,7 +52,7 @@ export function render(main) {
           h('thead', {}, h('tr', {}, [t('whAt'), t('itemsCount'), t('whClosingValue'), t('whTakenBy')].map((x, i) => h('th', { class: i === 1 || i === 2 ? 'num' : '' }, x)))),
           h('tbody', {}, rows.map((c) => h('tr', {},
             h('td', {}, placeName(c.branchId)), h('td', { class: 'num' }, String((c.lines || []).length)), h('td', { class: 'num' }, rm(c.valueSen || 0)),
-            h('td', { class: 'muted' }, `${c.createdByName || 'SuXin'} · ${dateTime(c.createdAt)}`))))));
+            h('td', { class: 'muted' }, `${c.createdByName || 'JSOX'} · ${dateTime(c.createdAt)}`))))));
     }) : h('p', { class: 'muted' }, t('whNoMonths')));
   }).catch((err) => failed(box, err));
   return null;

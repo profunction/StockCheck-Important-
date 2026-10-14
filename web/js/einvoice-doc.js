@@ -1,7 +1,7 @@
 /**
  * One e-invoice document for LHDN MyInvois, in its UBL 2.1 JSON form
  * (document version 1.0): an invoice, credit note, debit note, refund note
- * or self-billed invoice made in SuXin Books. The monthly consolidated
+ * or self-billed invoice made in JSOX Books. The monthly consolidated
  * e-invoice from the till is sst.js; this is for a named buyer.
  *
  * Pure: tested in einvoice-doc.test.mjs. The same JSON is what the books

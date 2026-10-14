@@ -34,7 +34,7 @@ async function act(page, x, key, kind, arg) {
 for (const [key, e] of Object.entries(HELP)) {
   await film(`help/${key}`, world(e.world || {}), async (page, x) => {
     await x.wait(1500);
-    await x.title(e.title[0], key.startsWith('till-') ? 'SuXin POS · 收银按钮' : 'SuXin · 这一页怎么用', e.title[1], { bm: e.title[2] });
+    await x.title(e.title[0], key.startsWith('till-') ? 'JSOX POS · 收银按钮' : 'JSOX · 这一页怎么用', e.title[1], { bm: e.title[2] });
     for (const step of e.steps) {
       const actions = step.do || ORDER.filter((k) => step[k] !== undefined).map((k) => [k, step[k]]);
       for (const [kind, arg] of actions) await act(page, x, key, kind, arg);

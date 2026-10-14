@@ -1,7 +1,7 @@
 /**
- * SuXin Every Data: the owner's first look at the business. What it shows follows
+ * JSOX Every Data: the owner's first look at the business. What it shows follows
  * the company's modules (modules.js) and the person's permissions -- a shop
- * with only the POS sees today's sales and stock; add SuXin WMS and the
+ * with only the POS sees today's sales and stock; add JSOX WMS and the
  * orders to receive and goods on the way appear; a module that is not on
  * shows nothing here (and is offered under Settings -> Add more instead).
  *
@@ -164,7 +164,7 @@ async function connectedKinds() {
 
 export function render(main, connected = null) {
   const show = widgetsFor(session);
-  // Without SuXin POS, sales and stock from a connected system still show, to whoever may see the figures.
+  // Without JSOX POS, sales and stock from a connected system still show, to whoever may see the figures.
   const mayFigures = session.isAdmin || session.can('POS_REPORTS');
   if (connected?.sales && mayFigures) show.sales = true;
   if ((connected?.stock || connected?.sales) && mayFigures) show.stock = true;
@@ -187,7 +187,7 @@ export function render(main, connected = null) {
   mount(main,
     h('div', { class: 'dash-hello' },
       h('div', { class: 'muted' }, `${t(greet)}${session.name ? `, ${session.name}` : ''} · ${dateText}`),
-      h('h1', {}, session.companyName || 'SuXin Every Data'),
+      h('h1', {}, session.companyName || 'JSOX Every Data'),
       h('p', { class: 'muted' }, t('dashLead'))),
     cityBox,
     show.sales ? section(t('dashToday'), h('a', { class: 'dash-link', href: '/pos/#/reports/summary' }, `${t('repSummary')} →`), salesBox) : null,

@@ -1,6 +1,6 @@
 /*
- * SuXin Books, on top of pos.css and wh.css (the same shell as SuXin WMS):
- * the same colours as every SuXin app, invoice lines that fold onto a phone, and an A4 page for
+ * JSOX Books, on top of pos.css and wh.css (the same shell as JSOX WMS):
+ * the same colours as every JSOX app, invoice lines that fold onto a phone, and an A4 page for
  * printing an invoice or a report.
  */
 :root { --wh: var(--brand); --wh-soft: var(--brand-soft); }

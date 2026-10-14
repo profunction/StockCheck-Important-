@@ -1,5 +1,5 @@
 /*
- * Every SuXin app (POS, WMS, Books, Every Data, Barcode Scan on the web, the
+ * Every JSOX app (POS, WMS, Books, Every Data, Barcode Scan on the web, the
  * app centre). The same look as the website (web/assets/): deep navy, one
  * emerald-to-teal gradient for what can be pressed, mint for what is
  * chosen, amber for "pay attention", money in tabular figures.
@@ -420,7 +420,7 @@ table.list .thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: c
 .addon { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
 .addon.on { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
 
-/* SuXin Every Data dashboard */
+/* JSOX Every Data dashboard */
 .dash-part { margin-bottom: 22px; }
 .dash-part h2 { font-size: 17px; }
 .dash-part .cards { margin-bottom: 12px; }
@@ -460,7 +460,7 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .appswitch-list a.locked { opacity: .55; }
 .appswitch-list a.all { border-top: 1px solid rgba(127, 127, 127, .25); margin-top: 4px; padding-top: 10px; }
 
-/* SuXin Barcode Scan on the web */
+/* JSOX Barcode Scan on the web */
 .cnt { min-height: 100%; background: var(--bg); }
 .cnt-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--side-bg); color: var(--side-strong); flex-wrap: wrap; border-bottom: 1px solid var(--side-line); }
 .cnt-top .brandmark { color: var(--side-strong); text-decoration: none; font-size: 18px; }
@@ -547,7 +547,7 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
   .reg-bar .till-lock > span:not(.ic) { display: none; }
 }
 
-/* SuXin Every Data on its own page: the count page's frame, in its own colour. */
+/* JSOX Every Data on its own page: the count page's frame, in its own colour. */
 
 .data-main { max-width: 1100px; }
 
@@ -673,7 +673,7 @@ a.hub-app:hover { border-color: var(--app, var(--brand)); transform: translateY(
 .market .scanbar .search-box { min-width: 300px; }
 .market .scanbar input.scan { border-radius: var(--pill); }
 
-/* SuXin Every Data, after the Square and Lightspeed back offices: a greeting,
+/* JSOX Every Data, after the Square and Lightspeed back offices: a greeting,
    big figures with how they compare with yesterday, sales by the hour, how
    people paid, the best sellers and the latest receipts. */
 .data-main { gap: 4px; }
@@ -765,7 +765,7 @@ a.stat.kpi:hover { transform: translateY(-1px); }
   .rc-total { min-width: 0; }
 }
 
-/* SuXin Barcode Scan on the web: the counting app, phone first. */
+/* JSOX Barcode Scan on the web: the counting app, phone first. */
 .cnt-top .brandmark span { font-weight: 500; }
 .cnt-top .brandmark b { font-weight: 750; }
 .cnt-top-wide { display: flex; align-items: center; gap: 8px; }

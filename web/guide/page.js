@@ -27,10 +27,10 @@ const PAGES_GUIDE = fromHelp(PAGES, [
 
 const TABS = {
   account: { guide: ACCOUNT_GUIDE, label: { zh: '账号和注册', en: 'Account & sign-up', ms: 'Akaun & daftar' } },
-  app: { guide: APP_GUIDE, label: { zh: 'SuXin Barcode Scan（手机 + 网页）', en: 'SuXin Barcode Scan (phone + web)', ms: 'SuXin Barcode Scan (telefon + web)' } },
-  pos: { guide: POS_GUIDE, label: { zh: 'SuXin POS 收银', en: 'SuXin POS (till)', ms: 'SuXin POS (POS)' } },
-  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: 'SuXin WMS 仓库', en: 'SuXin WMS', ms: 'SuXin WMS (gudang)' } },
-  cloud: { guide: CLOUD_GUIDE, label: { zh: 'SuXin Every Data 老板总览', en: 'SuXin Every Data', ms: 'SuXin Every Data' } },
+  app: { guide: APP_GUIDE, label: { zh: 'JSOX Barcode Scan（手机 + 网页）', en: 'JSOX Barcode Scan (phone + web)', ms: 'JSOX Barcode Scan (telefon + web)' } },
+  pos: { guide: POS_GUIDE, label: { zh: 'JSOX POS 收银', en: 'JSOX POS (till)', ms: 'JSOX POS (POS)' } },
+  warehouse: { guide: WAREHOUSE_GUIDE, label: { zh: 'JSOX WMS 仓库', en: 'JSOX WMS', ms: 'JSOX WMS (gudang)' } },
+  cloud: { guide: CLOUD_GUIDE, label: { zh: 'JSOX Every Data 老板总览', en: 'JSOX Every Data', ms: 'JSOX Every Data' } },
   till: { guide: TILL_GUIDE, label: { zh: '收银每个按钮', en: 'Every till button', ms: 'Setiap butang kaunter' } },
   pages: { guide: PAGES_GUIDE, label: { zh: '每一页的教学', en: 'Every page', ms: 'Setiap halaman' } },
 };

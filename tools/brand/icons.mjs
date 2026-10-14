@@ -20,9 +20,9 @@ const browser = await pw.chromium.launch(process.env.CHROME ? { executablePath: 
 const mark = readFileSync(join(WEB, 'brand', 'suxin-mark.svg'), 'utf8');
 const word = readFileSync(join(WEB, 'brand', 'suxin-wordmark.svg'), 'utf8');
 const tinted = (bg) => mark.replace('#0B1B2B', bg);
-/** The mark alone, its background filling the square (for maskable icons the S sits in the middle 60%). */
+/** The mark alone, its background filling the square (for maskable icons the J sits in the middle 60%). */
 const maskable = (bg) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${bg}"/>
-<g transform="translate(32 32) scale(.62) translate(-32 -32)"><path d="M42 20C38 14 22 14 22 23C22 31 42 31 42 40C42 49 26 50 22 44" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="44" r="6" fill="#2DD4BF"/><circle cx="42" cy="20" r="6" fill="#2DD4BF"/></g></svg>`;
+<g transform="translate(32 32) scale(.62) translate(-32 -32)"><path d="M40 18V37C40 48 26 50 22 42" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="42" r="6" fill="#2DD4BF"/><circle cx="40" cy="18" r="6" fill="#2DD4BF"/></g></svg>`;
 
 async function shoot(svg, size, out, { square = false } = {}) {
   const page = await browser.newPage({ viewport: { width: size, height: size } });
@@ -44,7 +44,7 @@ const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
 await og.setContent(`<body style="margin:0;width:1200px;height:630px;background:#0B1B2B;color:#E7EDF3;font-family:'Noto Sans','Noto Sans CJK SC',sans-serif;display:grid;align-content:center;padding:0 96px;box-sizing:border-box;gap:26px">
 <div style="width:420px;color:#FFFFFF">${word}</div>
 <div style="font-size:54px;font-weight:700;letter-spacing:-.5px">One Business. Connected.</div>
-<div style="font-size:26px;color:#93A1B1">SuXin POS · SuXin Barcode Scan · SuXin WMS · SuXin Every Data</div>
+<div style="font-size:26px;color:#93A1B1">JSOX POS · JSOX Barcode Scan · JSOX WMS · JSOX Every Data</div>
 <div style="font-size:24px;color:#2DD4BF">收银 · 盘点 · 仓库 — Malaysia · Singapore</div></body>`);
 await og.screenshot({ path: join(WEB, 'img', 'og-image.png') });
 await browser.close();

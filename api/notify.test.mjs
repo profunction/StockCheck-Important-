@@ -217,14 +217,14 @@ test('the morning report: Telegram, email and push, once a day', async () => {
   heard.telegram.length = 0;
   const sent = await n.dailyReports(NOW);
   assert.deepEqual(sent, { companies: 1, telegram: 1, email: 1, push: 1, closings: 2 });
-  assert.match(heard.telegram[0].text, /📊 SuXin 每日报告 · Kedai Maju\n7\/10\/2026[\s\S]*RM 31\.80/);
+  assert.match(heard.telegram[0].text, /📊 JSOX 每日报告 · Kedai Maju\n7\/10\/2026[\s\S]*RM 31\.80/);
   assert.match(heard.telegram[0].text, /⏰ 30 天内到期 1 批\n• Teh Bunga \(Gudang\): 5 · 2026-10-20 · 还有 12 天/);
   // September closed by itself: stock as it stood at its end, at cost.
   const sept = db.store.get(`${W}stockClosings/2026-09_gudang`);
   assert.deepEqual(sept.lines.map((l) => [l.barcode, l.onHandMilli]), [['9555', 50000]]);
-  assert.equal(sept.createdByName, 'SuXin');
+  assert.equal(sept.createdByName, 'JSOX');
   assert.deepEqual(heard.mail[0].to, ['boss@kedai.my']);
-  assert.match(heard.mail[0].subject, /SuXin 每日报告 · Kedai Maju/);
+  assert.match(heard.mail[0].subject, /JSOX 每日报告 · Kedai Maju/);
   assert.deepEqual(heard.push[0].tokens, ['tok-1']);
   assert.match(heard.push[0].body, /营业额 RM 31\.80 · 1 单/);
   assert.deepEqual(await n.dailyReports(NOW), { companies: 0, telegram: 0, email: 0, push: 0, closings: 0 }, 'not twice in a day');

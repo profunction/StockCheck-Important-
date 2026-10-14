@@ -2,7 +2,7 @@
  * The POS website: sign in, then a back office with a register in it.
  *
  * Same accounts, same company and the same products and stock as the
- * SuXin Barcode Scan app -- both read and write one database, so there is nothing to
+ * JSOX Barcode Scan app -- both read and write one database, so there is nothing to
  * connect or sync.
  */
 import { auth, signOut } from './fb.js';
@@ -22,7 +22,7 @@ const MENU = [
   { id: 'pos', icon: 'cart', label: 'navRegister', may: 'pos.sell', page: () => import('./register.js') },
   // The shop floor in 3D: tables, shelves and tills, as they are now.
   { id: 'floor', icon: 'grid', label: 'floor3d', may: 'pos.reports', page: () => import('./floor3d.js') },
-  // SuXin Every Data: what is shown inside follows the company's modules (dashboard.js).
+  // JSOX Every Data: what is shown inside follows the company's modules (dashboard.js).
   // Every Data is its own page now (/data/); the old address goes there.
   { id: 'cloud', icon: 'chart', label: 'navCloud', perm: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'], href: '/data/', hidden: true },
   {
@@ -134,7 +134,7 @@ function renderSide() {
     nav.append(box);
   }
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png?v=4', alt: '', width: 28, height: 28 }), h('span', { class: 'grow' }, 'SuXin POS'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/icon-64.png?v=4', alt: '', width: 28, height: 28 }), h('span', { class: 'grow' }, 'JSOX POS'),
       h('button', { class: 'ghost icon-btn side-collapse', title: t('sideHide'), 'aria-label': t('sideHide'), onclick: () => setCollapsed(true) }, icon('chevron', 18))),
     isTillLocked() ? h('div', { class: 'till-locked-note' }, icon('lock', 16), t('tlOnlyTill')) : null,
     h('div', { class: 'who' },
@@ -249,10 +249,10 @@ onChange(() => {
   if (session.uid && sideEl) renderSide();
 });
 
-// Signing in is the same screen in every SuXin app (apps.js): one account,
+// Signing in is the same screen in every JSOX app (apps.js): one account,
 // one place to sign in, register or reset a password.
 startApp(app, {
-  name: 'SuXin POS', logo: '/icons/icon-192.png?v=4', tagline: t('signInTagline'),
+  name: 'JSOX POS', logo: '/icons/icon-192.png?v=4', tagline: t('signInTagline'),
   features: [['barcode', t('signFeat1')], ['store', t('signFeat2')], ['wifiOff', t('signFeat3')]],
   foot: t('signFoot'),
 }, async () => {

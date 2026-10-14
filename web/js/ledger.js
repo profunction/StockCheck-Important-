@@ -1,5 +1,5 @@
 /**
- * Stock on hand, worked out exactly as the SuXin Barcode Scan app does it
+ * Stock on hand, worked out exactly as the JSOX Barcode Scan app does it
  * (StockLedger.kt and StockComparison.kt), so the website and the app never
  * show two different numbers for one shelf. Pure: tested in ledger.test.mjs.
  *

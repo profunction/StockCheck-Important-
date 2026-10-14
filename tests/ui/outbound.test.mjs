@@ -1,4 +1,4 @@
-// SuXin WMS outbound, end to end: two orders picked and waiting to be
+// JSOX WMS outbound, end to end: two orders picked and waiting to be
 // packed show on the board; one is marked urgent and goes to the top; both
 // are packed into cartons and set down in staging lanes; a lorry planned in
 // the TMS waits in the yard, is called to dock OUT-1, both orders are

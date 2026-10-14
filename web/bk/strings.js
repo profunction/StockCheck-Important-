@@ -1,4 +1,4 @@
-/** SuXin Books' words, in English, Chinese and Malay. */
+/** JSOX Books' words, in English, Chinese and Malay. */
 const en = {
   bkTagline: 'e-Invoices and accounts, for the shop or its accountant',
   bkFeat1: 'Invoices, credit notes and MyInvois e-invoice files',
@@ -6,7 +6,7 @@ const en = {
   bkFeat3: 'Profit and loss, balance sheet, who owes what, SST',
   bkMenu: 'Menu', bkMore: 'More', bkHome: 'Overview', bkSales: 'Sales', bkPurchases: 'Purchases', bkPayments: 'Money in & out', bkContacts: 'Customers & suppliers',
   bkReports: 'Reports', bkJournal: 'Journal', bkAccounts: 'Chart of accounts', bkSettings: 'Settings',
-  bkNoPlan: 'SuXin Books is not in your plan yet. Add it to issue e-invoices and keep your accounts here.',
+  bkNoPlan: 'JSOX Books is not in your plan yet. Add it to issue e-invoices and keep your accounts here.',
   bkNoAccess: 'You do not have access to the books. Ask your admin for "See the accounts", "Keep the accounts" or "Run the accounts" (Staff → Access rights).',
   bkNotFound: 'Not found. It may still be loading, or it was removed.',
   bkNothingMatches: 'Nothing matches.',
@@ -108,7 +108,7 @@ const en = {
   bkErr_NO_ENTRY: 'Its journal entry is not loaded yet. Try again in a moment.',
   bkErr_OFFLINE: 'No internet. The books are kept online -- try again when connected.', bkErr_PERMISSION: 'You do not have permission for that.',
   bk3dTitle: 'The books in 3D', bk3dLead: 'Taller = more money', bk3dCosts: 'Costs this month', bk3dLateKey: 'Overdue, or a loss', bk3dTap: 'Tap a tower for its page. Drag to move, ⟲ ⟳ to turn.', bk3dOpen: 'Open',
-  bkDaily: 'Daily sales', bkDailyLead: 'Each day\'s takings -- from SuXin POS and from connected systems -- posted to the books as one entry a day.',
+  bkDaily: 'Daily sales', bkDailyLead: 'Each day\'s takings -- from JSOX POS and from connected systems -- posted to the books as one entry a day.',
   bkDailyNoRight: 'Your account may not post to the books.', bkDailyOpen: 'Days not posted', bkDailyOpenSen: 'Not yet in the books', bkDailyAll: 'Post all {n} days',
   bkDailyReceipts: 'receipts', bkDailyCash: 'cash', bkDailyOther: 'cards/QR', bkDailyPosted: 'In the books', bkDailyPost: 'Post', bkDailyDone: 'Posted', bkDailyNone: 'No sales in the last two months.', bkDailyMemo: 'Sales',
 };
@@ -120,7 +120,7 @@ const zh = {
   bkFeat3: '损益表、资产负债表、应收应付、SST',
   bkMenu: '菜单', bkMore: '更多', bkHome: '总览', bkSales: '销售', bkPurchases: '进货账单', bkPayments: '收款付款', bkContacts: '客户和供应商',
   bkReports: '报表', bkJournal: '日记账', bkAccounts: '会计科目', bkSettings: '设置',
-  bkNoPlan: '你的配套还没有 SuXin 账务。加上就可以在这里开电子发票、记账。',
+  bkNoPlan: '你的配套还没有 JSOX 账务。加上就可以在这里开电子发票、记账。',
   bkNoAccess: '你没有账务权限。请管理员在「员工 → 权限」给你「看账」、「记账、开发票」或「管账（科目、结账）」。',
   bkNotFound: '找不到。可能还在加载，或已经删除。',
   bkNothingMatches: '没有符合的。',
@@ -222,7 +222,7 @@ const zh = {
   bkErr_NO_ENTRY: '它的分录还没加载好，请等一下再试。',
   bkErr_OFFLINE: '没有网络。账务要在线做，连上网再试。', bkErr_PERMISSION: '你没有这个权限。',
   bk3dTitle: '账目 3D', bk3dLead: '越高＝钱越多', bk3dCosts: '本月成本和开销', bk3dLateKey: '过期没付，或亏损', bk3dTap: '点一栋楼打开那一页。拖动可以移动，⟲ ⟳ 转方向。', bk3dOpen: '打开',
-  bkDaily: '每日销售入账', bkDailyLead: '每天的营业额——来自 SuXin POS 和连接的系统——一天一笔记进账簿。',
+  bkDaily: '每日销售入账', bkDailyLead: '每天的营业额——来自 JSOX POS 和连接的系统——一天一笔记进账簿。',
   bkDailyNoRight: '你的账号不能记账。', bkDailyOpen: '还没入账的天数', bkDailyOpenSen: '还没进账簿', bkDailyAll: '全部 {n} 天入账',
   bkDailyReceipts: '单', bkDailyCash: '现金', bkDailyOther: '刷卡/QR', bkDailyPosted: '已入账', bkDailyPost: '入账', bkDailyDone: '入账了', bkDailyNone: '最近两个月没有销售。', bkDailyMemo: '销售',
 };
@@ -234,7 +234,7 @@ const ms = {
   bkFeat3: 'Untung rugi, kunci kira-kira, siapa berhutang, SST',
   bkMenu: 'Menu', bkMore: 'Lagi', bkHome: 'Ringkasan', bkSales: 'Jualan', bkPurchases: 'Belian', bkPayments: 'Wang masuk & keluar', bkContacts: 'Pelanggan & pembekal',
   bkReports: 'Laporan', bkJournal: 'Jurnal', bkAccounts: 'Carta akaun', bkSettings: 'Tetapan',
-  bkNoPlan: 'SuXin Books belum ada dalam pelan anda. Tambah untuk keluarkan e-Invois dan simpan akaun di sini.',
+  bkNoPlan: 'JSOX Books belum ada dalam pelan anda. Tambah untuk keluarkan e-Invois dan simpan akaun di sini.',
   bkNoAccess: 'Anda tiada akses ke akaun. Minta admin beri "Lihat akaun", "Simpan akaun" atau "Urus akaun" (Pekerja → Hak akses).',
   bkNotFound: 'Tidak dijumpai. Mungkin masih dimuatkan, atau telah dibuang.',
   bkNothingMatches: 'Tiada yang sepadan.',
@@ -336,7 +336,7 @@ const ms = {
   bkErr_NO_ENTRY: 'Catatan jurnalnya belum dimuatkan. Cuba sebentar lagi.',
   bkErr_OFFLINE: 'Tiada internet. Akaun disimpan dalam talian -- cuba bila bersambung.', bkErr_PERMISSION: 'Anda tiada kebenaran untuk itu.',
   bk3dTitle: 'Akaun dalam 3D', bk3dLead: 'Lebih tinggi = lebih banyak wang', bk3dCosts: 'Kos bulan ini', bk3dLateKey: 'Lewat bayar, atau rugi', bk3dTap: 'Tekan menara untuk halamannya. Seret untuk gerak, ⟲ ⟳ untuk pusing.', bk3dOpen: 'Buka',
-  bkDaily: 'Jualan harian', bkDailyLead: 'Kutipan setiap hari -- dari SuXin POS dan sistem bersambung -- direkod ke buku sebagai satu catatan sehari.',
+  bkDaily: 'Jualan harian', bkDailyLead: 'Kutipan setiap hari -- dari JSOX POS dan sistem bersambung -- direkod ke buku sebagai satu catatan sehari.',
   bkDailyNoRight: 'Akaun anda tidak boleh merekod ke buku.', bkDailyOpen: 'Hari belum direkod', bkDailyOpenSen: 'Belum dalam buku', bkDailyAll: 'Rekod semua {n} hari',
   bkDailyReceipts: 'resit', bkDailyCash: 'tunai', bkDailyOther: 'kad/QR', bkDailyPosted: 'Dalam buku', bkDailyPost: 'Rekod', bkDailyDone: 'Direkod', bkDailyNone: 'Tiada jualan dua bulan lepas.', bkDailyMemo: 'Jualan',
 };

@@ -89,7 +89,7 @@ enum class Permission(val group: PermissionGroup, val label: String) {
     WH_PURCHASE(PermissionGroup.WAREHOUSE, "Raise purchase orders and manage suppliers"),
     WH_APPROVE(PermissionGroup.WAREHOUSE, "Approve purchase orders"),
 
-    // --- Accounts (SuXin Books, the website) ---
+    // --- Accounts (JSOX Books, the website) ---
     // Reading the books, keeping them (invoices, bills, payments, journal
     // entries) and running them (the chart of accounts, closing a period,
     // voiding) are separate: an accounts clerk keeps the books but must

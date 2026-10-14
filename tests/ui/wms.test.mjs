@@ -1,4 +1,4 @@
-// SuXin WMS's second round, end to end: cartons and shelves on a product;
+// JSOX WMS's second round, end to end: cartons and shelves on a product;
 // a delivery taken by the carton with an expiry date, then warned about;
 // a transfer approved before it leaves (and a worker who can only send it
 // for approval); goods back to the supplier and the credit note; stock

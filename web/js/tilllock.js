@@ -1,7 +1,7 @@
 /**
  * The till lock: on a counter computer the cashier should see the till and
  * nothing else -- not reports, staff, settings or the other apps. Locked,
- * the back office shows only the register; SuXin WMS, SuXin Barcode Scan and
+ * the back office shows only the register; JSOX WMS, JSOX Barcode Scan and
  * the app centre send this computer back to it.
  *
  * Locking and unlocking both take an admin's email and password, checked
@@ -18,7 +18,7 @@ import { addStrings, t } from './i18n.js';
 import { icon } from './icons.js';
 import { session } from './session.js';
 
-// The name from before the brand was SuXin, kept: renaming it would unlock
+// The name from before the brand was JSOX, kept: renaming it would unlock
 // every locked till.
 const KEY = 'jexo.tillLock';
 

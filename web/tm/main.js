@@ -1,8 +1,8 @@
 /**
- * SuXin TMS, the transport system: lorries, drivers clocking in and out,
+ * JSOX TMS, the transport system: lorries, drivers clocking in and out,
  * trips carrying the warehouse's transfers and customer orders, and signed
  * proof of delivery. Comes with the warehouse (the 'warehouse' module) and
- * reads the same transfers and reservations. Laid out like SuXin WMS: a
+ * reads the same transfers and reservations. Laid out like JSOX WMS: a
  * bar along the bottom on a driver's phone, a sidebar at a computer.
  */
 import { auth, signOut } from '../js/fb.js';
@@ -82,7 +82,7 @@ function renderSide() {
   const { group } = currentRoute();
   const visible = MENU.filter(allowed);
   mount(sideEl,
-    h('div', { class: 'brand' }, h('img', { src: '/icons/tms-64.png?v=4', alt: '', width: 28, height: 28 }), 'SuXin TMS'),
+    h('div', { class: 'brand' }, h('img', { src: '/icons/tms-64.png?v=4', alt: '', width: 28, height: 28 }), 'JSOX TMS'),
     h('div', { class: 'who' },
       h('div', { class: 'name' }, session.name),
       h('div', { class: 'sm' }, session.companyName || session.email),
@@ -91,7 +91,7 @@ function renderSide() {
       h('a', { class: `top${group === item.id ? ' current' : ''}`, href: item.href || `#/${item.id}` }, icon(item.icon, 19), t(item.label))))),
     h('div', { class: 'foot' },
       placePicker(),
-      h('a', { class: 'side-link', href: '/warehouse/' }, icon('box', 17), 'SuXin WMS'),
+      h('a', { class: 'side-link', href: '/warehouse/' }, icon('box', 17), 'JSOX WMS'),
       appSwitcher('tms'),
       installPrompt ? h('button', { class: 'primary', onclick: install }, icon('download', 17), t('installApp')) : null,
       themeToggle(),
@@ -179,9 +179,9 @@ onChange(() => {
   sideTimer = setTimeout(() => { if (session.uid && sideEl) renderSide(); }, 50);
 });
 
-// Signing in is the same screen in every SuXin app (apps.js).
+// Signing in is the same screen in every JSOX app (apps.js).
 startApp(app, {
-  name: 'SuXin TMS', logo: '/icons/tms-64.png?v=4', tagline: t('tmTagline'),
+  name: 'JSOX TMS', logo: '/icons/tms-64.png?v=4', tagline: t('tmTagline'),
   features: [['truck', t('tmFeat1')], ['idcard', t('tmFeat2')], ['receipt', t('tmFeat3')]],
-  foot: 'SuXin · Malaysia',
+  foot: 'JSOX · Malaysia',
 }, renderShell, { stop: () => { stopPage?.(); stopPage = null; sideEl = null; } });

@@ -15,7 +15,7 @@ import com.stockcheck.app.MainActivity
 import com.stockcheck.app.R
 
 /**
- * The morning report and other notices from the SuXin server.
+ * The morning report and other notices from the JSOX server.
  *
  * While the app is in the background, Android shows a notification message
  * by itself on the "reports" channel; this only has to show one that arrives

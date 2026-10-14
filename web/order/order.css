@@ -1,6 +1,6 @@
 /* Ordering by QR code, on the customer's own phone: one column, big targets,
    the basket always one tap away at the bottom. */
-/* The SuXin colours (web/assets/): light or dark as the customer's phone is set. */
+/* The JSOX colours (web/assets/): light or dark as the customer's phone is set. */
 :root {
   --bg: #f1f6f6; --card: #ffffff; --ink: #0b1b2b; --muted: #4e6474; --line: #dbe5e7;
   --brand: #0d9488; --brand-ink: #ffffff; --brand-soft: #dcf3ef; --warn: #b54708; --bad: #b3261e; --good: #127a3f;

@@ -37,7 +37,7 @@ async function endCard(page, x, lines, ms = 4500) {
     t.id = 'demo-title';
     t.style.setProperty('--demo-bg', bg);
     t.style.pointerEvents = 'none';
-    t.innerHTML = `<div><div style="font-size:.6em;opacity:.85;letter-spacing:.12em">SuXin · One Business. Connected.</div>${l[0]}<small>${l[1]}</small><small style="margin-top:6px">${l[2]}</small><em style="margin-top:18px;font-size:1.05em;opacity:1;color:#ffd166">${l[3]}</em></div>`;
+    t.innerHTML = `<div><div style="font-size:.6em;opacity:.85;letter-spacing:.12em">JSOX · One Business. Connected.</div>${l[0]}<small>${l[1]}</small><small style="margin-top:6px">${l[2]}</small><em style="margin-top:18px;font-size:1.05em;opacity:1;color:#ffd166">${l[3]}</em></div>`;
     document.getElementById('demo-cap').innerHTML = '';
     document.getElementById('demo-cursor').style.display = 'none';
     document.body.append(t);

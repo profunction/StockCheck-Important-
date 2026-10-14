@@ -103,7 +103,7 @@ export async function telegramCard(page, x, text, ms) {
   await page.evaluate((t) => {
     document.getElementById('tg')?.remove();
     const d = document.createElement('div'); d.id = 'tg';
-    d.innerHTML = '<div class="bar"><i>S</i><div>SuXin Bot<div style="font-size:12px;font-weight:500;opacity:.6">bot</div></div></div><div class="msg"></div>';
+    d.innerHTML = '<div class="bar"><i>S</i><div>JSOX Bot<div style="font-size:12px;font-weight:500;opacity:.6">bot</div></div></div><div class="msg"></div>';
     d.querySelector('.msg').textContent = t;
     const time = document.createElement('div'); time.className = 'time'; time.textContent = '08:00 ✓✓'; d.querySelector('.msg').append(time);
     document.body.append(d);

@@ -1,5 +1,5 @@
 /**
- * What the SuXin bot understands and what it says: questions typed into
+ * What the JSOX bot understands and what it says: questions typed into
  * Telegram ("Milo 还有多少？", "今天卖了多少", "low stock"), and the daily
  * report sent by Telegram, email and phone notification. Pure -- no
  * database, no network -- so it is tested in bot.test.mjs; notify.mjs does
@@ -13,7 +13,7 @@
 const WORDS = {
   help: /^\/?(help|start|menu|帮助|说明|菜单|功能|你会什么|你会做什么|你可以做什么|你能做什么|能做什么|可以问什么|怎么用|怎样用|教我|bantuan|tolong|apa boleh|apa awak boleh buat|macam mana guna)\s*[?？!！]*$/i,
   examples: /^\/?(例子|举例|更多例子|更多问题|还可以问什么|还能问什么|其他问题|examples?|more examples|more questions|contoh|lagi contoh|contoh soalan)\s*[?？!！]*$/i,
-  greet: /^(你好|您好|哈喽|哈啰|嗨|早|早安|早上好|午安|下午好|晚上好|晚安|在吗|在不在|hi|hello|hey|hai|helo|halo|yo|morning|good (morning|afternoon|evening|night)|selamat (pagi|tengah hari|petang|malam)|salam|assalamualaikum)(\s?(啊|呀|吖|哦|老板|boss|bos|bot|suxin|小助手|助手|there|semua))*\s*[!！~。.?？]*$/i,
+  greet: /^(你好|您好|哈喽|哈啰|嗨|早|早安|早上好|午安|下午好|晚上好|晚安|在吗|在不在|hi|hello|hey|hai|helo|halo|yo|morning|good (morning|afternoon|evening|night)|selamat (pagi|tengah hari|petang|malam)|salam|assalamualaikum)(\s?(啊|呀|吖|哦|老板|boss|bos|bot|jsox|suxin|小助手|助手|there|semua))*\s*[!！~。.?？]*$/i,
   thanks: /^(谢谢|多谢|感谢|谢啦|谢了|thx|thanks|thank you|thank u|ty|tq|terima kasih|好的|好|ok|okay|okok|收到|明白|知道了|了解|noted|baik|baiklah|faham|👍|🙏)(\s?(你|啦|了|哦|喔|lah|ya|bos|boss|very much|so much|banyak))*\s*[!！~。.]*$/i,
   dailyOff: /^\/stop\b|(关掉|关闭|停止|取消|暂停|不要|别再?|不用|stop|turn off|unsubscribe( from)?|pause|matikan|hentikan|berhenti|jangan)\s*(再?发|send|hantar)?\s*((每日|每天|早上|the|daily|morning|harian)\s*)*(的)?\s*(报告|report|laporan)/i,
   dailyOn: /(打开|开启|恢复|重新发|继续发|turn on|resume|subscribe( to)?|hidupkan|sambung semula|teruskan)\s*((每日|每天|早上|the|daily|morning|harian)\s*)*(的)?\s*(报告|report|laporan)/i,
@@ -243,8 +243,8 @@ export function previousRange(period, now = Date.now(), offsetMinutes = 480) {
 
 const T = {
   zh: {
-    help: '我是 SuXin 助手。你可以这样问我：\n• Milo 还有多少？ / Milo 多少钱？\n• 今天卖了多少？ 昨天？ 这个星期？ 这个月？\n• 这个月赚多少？\n• 什么最好卖？\n• 有什么没货了？ / 低库存\n• 谁卖最多？\n• 库存价值多少？\n• 有什么采购单要收货？\n• 报告\n发「例子」看更多问题（会员、几点最忙、作废、税、进货、报损、卖不动…）。\n每天早上 8 点我会发营业报告给你。',
-    notLinked: '这个 Telegram 还没有连接到 SuXin。请在 SuXin 收银后台 → 设置 → 通知，按「连接 Telegram」。',
+    help: '我是 JSOX 助手。你可以这样问我：\n• Milo 还有多少？ / Milo 多少钱？\n• 今天卖了多少？ 昨天？ 这个星期？ 这个月？\n• 这个月赚多少？\n• 什么最好卖？\n• 有什么没货了？ / 低库存\n• 谁卖最多？\n• 库存价值多少？\n• 有什么采购单要收货？\n• 报告\n发「例子」看更多问题（会员、几点最忙、作废、税、进货、报损、卖不动…）。\n每天早上 8 点我会发营业报告给你。',
+    notLinked: '这个 Telegram 还没有连接到 JSOX。请在 JSOX 收银后台 → 设置 → 通知，按「连接 Telegram」。',
     linked: (name, company) => `✅ 已连接：${name} · ${company}\n每天早上 8 点会收到营业报告。发「帮助」看可以问什么。`,
     badCode: '这个连接码不对或已过期（15 分钟内有效）。请在 设置 → 通知 再按一次「连接 Telegram」。',
     noSalesRight: '你的账号不能看销售。请老板在「员工 → 角色」给你看报表的权限。',
@@ -259,13 +259,13 @@ const T = {
     expHead: (n) => `⏰ 30 天内到期 ${n} 批`, expDays: (d) => (d < 0 ? `已过期 ${-d} 天` : d === 0 ? '今天到期' : `还有 ${d} 天`),
     lowNone: '✅ 没有低库存的商品。',
     left: '剩', reorderAt: '补货点',
-    reportHead: (company, date) => `📊 SuXin 每日报告 · ${company}\n${date}`,
+    reportHead: (company, date) => `📊 JSOX 每日报告 · ${company}\n${date}`,
     methods: { CASH: '现金', QR: 'DuitNow QR', CARD: '刷卡', EWALLET: '电子钱包' },
     more: (n) => `…还有 ${n} 样`,
   },
   en: {
-    help: 'I am the SuXin assistant. Ask me:\n• How many Milo? / Milo price?\n• Sales today, yesterday, this week, this month\n• Profit this month\n• Best sellers\n• What is out of stock? / Low stock\n• Who sold most?\n• Stock value\n• Purchase orders to receive\n• Report\nSend "examples" for more (customers, busiest hours, voids, tax, deliveries, write-offs, slow sellers…).\nI send the day\'s report every morning at 8.',
-    notLinked: 'This Telegram is not connected to SuXin yet. In the SuXin back office go to Settings → Notifications and press Connect Telegram.',
+    help: 'I am the JSOX assistant. Ask me:\n• How many Milo? / Milo price?\n• Sales today, yesterday, this week, this month\n• Profit this month\n• Best sellers\n• What is out of stock? / Low stock\n• Who sold most?\n• Stock value\n• Purchase orders to receive\n• Report\nSend "examples" for more (customers, busiest hours, voids, tax, deliveries, write-offs, slow sellers…).\nI send the day\'s report every morning at 8.',
+    notLinked: 'This Telegram is not connected to JSOX yet. In the JSOX back office go to Settings → Notifications and press Connect Telegram.',
     linked: (name, company) => `✅ Connected: ${name} · ${company}\nYou will get the report every morning at 8. Send "help" to see what to ask.`,
     badCode: 'That link code is wrong or has expired (15 minutes). Press Connect Telegram again under Settings → Notifications.',
     noSalesRight: 'Your account may not see sales. Ask the owner to give your role the reports permission.',
@@ -280,13 +280,13 @@ const T = {
     expHead: (n) => `⏰ ${n} batches expire within 30 days`, expDays: (d) => (d < 0 ? `expired ${-d} days ago` : d === 0 ? 'expires today' : `${d} days left`),
     lowNone: '✅ Nothing is low.',
     left: 'left', reorderAt: 'reorder at',
-    reportHead: (company, date) => `📊 SuXin daily report · ${company}\n${date}`,
+    reportHead: (company, date) => `📊 JSOX daily report · ${company}\n${date}`,
     methods: { CASH: 'Cash', QR: 'DuitNow QR', CARD: 'Card', EWALLET: 'E-wallet' },
     more: (n) => `…and ${n} more`,
   },
   ms: {
-    help: 'Saya pembantu SuXin. Tanya saya:\n• Berapa stok Milo? / Harga Milo?\n• Jualan hari ini, semalam, minggu ini, bulan ini\n• Untung bulan ini\n• Paling laris\n• Apa stok habis? / Stok rendah\n• Siapa jual paling banyak?\n• Nilai stok\n• Pesanan belian untuk diterima\n• Laporan\nHantar "contoh" untuk lebih (pelanggan, waktu sibuk, batal, cukai, barang masuk, rosak, tak laku…).\nSaya hantar laporan setiap pagi jam 8.',
-    notLinked: 'Telegram ini belum disambung ke SuXin. Di pejabat SuXin, pergi ke Tetapan → Pemberitahuan dan tekan Sambung Telegram.',
+    help: 'Saya pembantu JSOX. Tanya saya:\n• Berapa stok Milo? / Harga Milo?\n• Jualan hari ini, semalam, minggu ini, bulan ini\n• Untung bulan ini\n• Paling laris\n• Apa stok habis? / Stok rendah\n• Siapa jual paling banyak?\n• Nilai stok\n• Pesanan belian untuk diterima\n• Laporan\nHantar "contoh" untuk lebih (pelanggan, waktu sibuk, batal, cukai, barang masuk, rosak, tak laku…).\nSaya hantar laporan setiap pagi jam 8.',
+    notLinked: 'Telegram ini belum disambung ke JSOX. Di pejabat JSOX, pergi ke Tetapan → Pemberitahuan dan tekan Sambung Telegram.',
     linked: (name, company) => `✅ Disambung: ${name} · ${company}\nAnda akan terima laporan setiap pagi jam 8. Hantar "bantuan" untuk lihat apa boleh ditanya.`,
     badCode: 'Kod sambungan salah atau tamat tempoh (15 minit). Tekan Sambung Telegram semula di Tetapan → Pemberitahuan.',
     noSalesRight: 'Akaun anda tidak boleh lihat jualan. Minta pemilik beri kebenaran laporan.',
@@ -301,7 +301,7 @@ const T = {
     expHead: (n) => `⏰ ${n} kelompok luput dalam 30 hari`, expDays: (d) => (d < 0 ? `luput ${-d} hari lalu` : d === 0 ? 'luput hari ini' : `tinggal ${d} hari`),
     lowNone: '✅ Tiada stok rendah.',
     left: 'tinggal', reorderAt: 'paras pesan',
-    reportHead: (company, date) => `📊 Laporan harian SuXin · ${company}\n${date}`,
+    reportHead: (company, date) => `📊 Laporan harian JSOX · ${company}\n${date}`,
     methods: { CASH: 'Tunai', QR: 'DuitNow QR', CARD: 'Kad', EWALLET: 'E-dompet' },
     more: (n) => `…dan ${n} lagi`,
   },
@@ -382,7 +382,7 @@ export function reportText({ company, summary, lows, start, lang = 'zh', showSal
 /** The notification's short form: one line each. */
 export function reportPush({ summary, lows, lang = 'zh', showSales = true }) {
   const w = words(lang);
-  const title = lang === 'zh' ? 'SuXin 每日报告' : lang === 'ms' ? 'Laporan harian SuXin' : 'SuXin daily report';
+  const title = lang === 'zh' ? 'JSOX 每日报告' : lang === 'ms' ? 'Laporan harian JSOX' : 'JSOX daily report';
   const sales = showSales ? `${w.total} ${rm(summary.totalSen)} · ${summary.receipts} ${w.receipts}` : '';
   const low = lows.length ? w.lowHead(lows.length) : w.lowNone;
   return { title, body: [sales, low].filter(Boolean).join('\n') };
