@@ -170,8 +170,9 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
     const cols = aisles.length > 5 ? 2 : 1;
     const rows = Math.max(1, Math.ceil(aisles.length / cols));
     W = 1.8 + cols * (GL + 1.8);
-    // The back wall and the side wall (the walls in front would hide the shop).
-    boxes.push({ id: 'wall-back', x: 0, y: 0, w: W, d: 0.3, h: 1.8, color: '#cbd5e1', pick: false }, { id: 'wall-side', x: 0, y: 0, w: 0.3, d: 2.4 + rows * 2.6 + 4.6, h: 1.8, color: '#b8c4cf', pick: false });
+    // The back wall and the side wall.
+    // Low and see-through, so turned round they never hide the shop.
+    boxes.push({ id: 'wall-back', x: 0, y: 0, w: W, d: 0.3, h: 1.1, color: '#cbd5e1', pick: false, cls: 'wall' }, { id: 'wall-side', x: 0, y: 0, w: 0.3, d: 2.4 + rows * 2.6 + 4.6, h: 1.1, color: '#b8c4cf', pick: false, cls: 'wall' });
     aisles.forEach((a, i) => {
       const x = 1.4 + (i % cols) * (GL + 1.8);
       const gy = 1.6 + Math.floor(i / cols) * 2.6;

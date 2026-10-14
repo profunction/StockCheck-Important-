@@ -278,11 +278,17 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     if (a.bob) add('0,0;0,-0.06;0,0', 0.6);
   };
   // Words painted on the floor lie along the room: its axes as the screen sees them now.
+  // Always reading left to right, never upside down, whichever way the picture faces.
   const floorMatrix = () => {
     const o = project(0, 0, 0);
-    const ax = (x, y) => { const p = project(x, y, 0); return [p[0] - o[0], p[1] - o[1]]; };
-    const [a, b] = turns % 2 ? ax(0, -1) : ax(1, 0);
-    const [c, d] = turns % 2 ? ax(1, 0) : ax(0, 1);
+    const ax = ([x, y]) => { const p = project(x, y, 0); return [p[0] - o[0], p[1] - o[1]]; };
+    // The four floor directions on the screen: along the one pointing most to the right,
+    // down the one beside it that keeps the writing the right way round (not mirrored).
+    const dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(ax);
+    const i = dirs.reduce((best, v, k) => (v[0] > dirs[best][0] ? k : best), 0);
+    const [a, b] = dirs[i];
+    const turnsOk = (v) => a * v[1] - b * v[0] > 0;
+    const [c, d] = [dirs[(i + 1) % 4], dirs[(i + 3) % 4]].find(turnsOk) || dirs[(i + 1) % 4];
     return `matrix(${a.toFixed(3)} ${b.toFixed(3)} ${c.toFixed(3)} ${d.toFixed(3)} 0 0)`;
   };
   let keepBase = false;
@@ -390,7 +396,12 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     pic.replaceChildren(defs(uid), ...ground, svg('g', { filter: `url(#${uid}-soft)` }, shadows), ...kids, svg('g', { class: 'iso-labels' }, labels));
     const pad = 0.35;
     // The frame stays the size of the whole floor at any angle, so turning does not jump about.
-    if (!base || !keepBase) base = Number.isFinite(minX) ? { x: minX - pad, y: minY - pad, w: maxX - minX + pad * 2, h: maxY - minY + pad * 2 } : { x: 0, y: 0, w: 10, h: 10 };
+    if (!base || !keepBase) {
+      const was = base;
+      base = Number.isFinite(minX) ? { x: minX - pad, y: minY - pad, w: maxX - minX + pad * 2, h: maxY - minY + pad * 2 } : { x: 0, y: 0, w: 10, h: 10 };
+      // Drawn again (a tap, fresh figures): keep looking at the same place.
+      if (was) pan = [pan[0] + was.x + was.w / 2 - (base.x + base.w / 2), pan[1] + was.y + was.h / 2 - (base.y + base.h / 2)];
+    }
     view();
     });
   };
@@ -453,11 +464,46 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   const setZoom = (z) => { zoom = Math.max(0.7, Math.min(8, z)); view(); };
   // Turning, a frame at a time so a big picture keeps up.
   let wanted = null;
+  // The floor point in the middle of the picture now, so turning keeps it there.
+  const middle = () => (base ? [base.x + base.w / 2 + pan[0], base.y + base.h / 2 + pan[1]] : null);
+  const floorAt = ([sx, sy]) => spinning(() => {
+    // Back from the screen to the floor (z = 0): undo the projection, the part turn, the quarter turns.
+    let x = (sx / C + sy / S) / 2;
+    let y = (sy / S - sx / C) / 2;
+    if (fine) {
+      const { W: fw, D: fd } = floorSize;
+      const c = Math.cos(-fine); const s2 = Math.sin(-fine);
+      [x, y] = [fw / 2 + (x - fw / 2) * c - (y - fd / 2) * s2, fd / 2 + (x - fw / 2) * s2 + (y - fd / 2) * c];
+    }
+    const sizes = [[current.W, current.D]];
+    for (let i = 0; i < turns; i++) sizes.push([sizes[i][1], sizes[i][0]]);
+    for (let i = turns; i > 0; i--) [x, y] = [y, sizes[i - 1][1] - x];
+    return [x, y];
+  });
+  const screenOf = ([x, y]) => {
+    const b = turn({ x, y, w: 0, d: 0 }, current.W, current.D, turns).box;
+    return spinning(() => project(b.x, b.y, 0));
+  };
   const turnTo = (a) => {
     wanted = a;
     if (turnTo.busy) return;
     turnTo.busy = true;
-    requestAnimationFrame(() => { turnTo.busy = false; setAngle(wanted); keepBase = true; draw(); keepBase = false; });
+    requestAnimationFrame(() => {
+      turnTo.busy = false;
+      const mid = middle();
+      const spot = mid ? floorAt(mid) : null;
+      setAngle(wanted);
+      floorSize = turn({ x: 0, y: 0 }, current.W, current.D, turns);
+      floorSize = { W: floorSize.W, D: floorSize.D };
+      keepBase = true;
+      draw();
+      keepBase = false;
+      if (spot && base) {
+        const [px, py] = screenOf(spot);
+        pan = [px - (base.x + base.w / 2), py - (base.y + base.h / 2)];
+        view();
+      }
+    });
   };
   const glide = (by) => {
     const from = angle;
@@ -486,7 +532,6 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   const full = (on) => {
     el.classList.toggle('full', typeof on === 'boolean' ? on : undefined);
     document.body.classList.toggle('iso-full-open', el.classList.contains('full'));
-    pan = [0, 0];
     setTimeout(view, 30);
   };
   const tools = document.createElement('div');
