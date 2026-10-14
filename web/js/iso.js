@@ -121,7 +121,7 @@ let uids = 0;
  * (extra CSS class, e.g. 'pulse'), [kind] and [pick] (false: not
  * tappable). [onPick] gets the box tapped. Returns { el, draw(boxes, W, D), select(id) }.
  */
-export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null, hint = '', extraTools = [] } = {}) {
+export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null, hint = '', extraTools = [], fillHeight = false } = {}) {
   const uid = `iso${++uids}`;
   let turns = 0;
   let zoom = 1;
@@ -146,7 +146,8 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     if (homeZoom == null) { homeZoom = w < 560 ? 1.9 : w < 900 ? 1.3 : 1; zoom = homeZoom; }
     if (el.classList.contains('full')) { pic.style.height = '100%'; return; }
     const most = Math.min(height, Math.round((window.innerHeight || 800) * 0.78));
-    const want = narrow() ? (window.innerHeight || 800) * 0.6 : w * base.h / base.w;
+    // [fillHeight]: as tall as the screen allows, beside a panel (the warehouse's command view).
+    const want = narrow() ? (window.innerHeight || 800) * 0.6 : fillHeight ? most : w * base.h / base.w;
     pic.style.height = `${Math.round(Math.min(most, Math.max(320, want)))}px`;
   };
   if (typeof ResizeObserver === 'function') new ResizeObserver(() => view()).observe(pic);

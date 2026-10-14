@@ -1,5 +1,15 @@
 /** The warehouse system's own words, in the site's three languages. */
 const en = {
+  // The 3D warehouse: layers, panel, live feed (web/wh/map.js)
+  whMapLive: 'Live', whMap_cartons: 'Cartons', whMapAct10m: '< 10 min', whMapAct1h: '< 1 hour', whMapAct1d: '< 1 day', whMapCartonsKey: 'Height = cartons',
+  whMapTab_overview: 'Overview', whMapTab_racks: 'Racks', whMapTab_info: 'Details',
+  whMapWaiting: 'Waiting for you', whMapNothingWaiting: 'Nothing waiting.', whMapOnRoad: 'Lorries on the road', whMapFlow: 'Orders going out',
+  whMapEmptyBins: 'Empty slots', whMapEmptyBinsSub: 'ready to put away', whMapNearFull: 'Nearly full', whMapNearFullSub: 'over 80%',
+  whMapExpiredLots: 'Expired lots', whMapExpiredSub: 'move to QC', whMap30d: 'Within 30 days', whMap30dSub: 'first expiry, first out',
+  whMapFirstExpiry: 'Expiring first', whMapShowOnMap: 'Show', whMapNoDates: 'No expiry dates recorded here.',
+  whMapFeed: 'Latest', whFeed_RECEIVE: 'Received', whFeed_TRANSFER_IN: 'Transfer in', whFeed_TRANSFER_OUT: 'Transfer out', whFeed_SALE: 'Sold', whFeed_WRITE_OFF: 'Written off', whFeed_OTHER: 'Adjusted',
+  whAgoNow: 'just now', whAgoMin: '{n} min ago', whAgoHour: '{n} h ago', whAgoDay: '{n} days ago',
+  whMapTaskPack: 'Pack', whMapTaskYard: 'Waiting in the yard',
   // Outbound and docks (web/wh/outbound.js, docks.js)
   whOutbound: 'Outbound', whOutboundSub: 'Every order going out, step by step', whOutboundN: '{n} going out',
   whOutboundHelp: 'Every order leaving this place, from made to signed for. Tap a step to see only those; tap an order for what to do next.',
@@ -184,6 +194,16 @@ const en = {
 };
 
 const zh = {
+  // 3D 仓库：图层、侧栏、实时动态
+  whMapLive: '实时', whMap_cartons: '纸箱', whMapAct10m: '10 分钟内', whMapAct1h: '1 小时内', whMapAct1d: '1 天内', whMapCartonsKey: '高度 = 箱数',
+  whMapTab_overview: '概况', whMapTab_racks: '货架', whMapTab_info: '详情',
+  whMapWaiting: '等你处理', whMapNothingWaiting: '没有要处理的。', whMapOnRoad: '在路上的车', whMapFlow: '出货流程',
+  whMapEmptyBins: '空库位', whMapEmptyBinsSub: '可以上架', whMapNearFull: '快满了', whMapNearFullSub: '超过 80%',
+  whMapExpiredLots: '过期批次', whMapExpiredSub: '移去品检区', whMap30d: '30 天内到期', whMap30dSub: '先到期先出',
+  whMapFirstExpiry: '最先到期', whMapShowOnMap: '在图上看', whMapNoDates: '这里还没有记录到期日。',
+  whMapFeed: '最新动态', whFeed_RECEIVE: '收货', whFeed_TRANSFER_IN: '调入', whFeed_TRANSFER_OUT: '调出', whFeed_SALE: '卖出', whFeed_WRITE_OFF: '报废', whFeed_OTHER: '调整',
+  whAgoNow: '刚刚', whAgoMin: '{n} 分钟前', whAgoHour: '{n} 小时前', whAgoDay: '{n} 天前',
+  whMapTaskPack: '打包', whMapTaskYard: '停车场等着',
   // 出货与码头
   whOutbound: '出货单', whOutboundSub: '每张出货单走到哪一步', whOutboundN: '{n} 张出货中',
   whOutboundHelp: '从这里出去的每一张单，从开单到签收。点上面的步骤只看那一步；点一张单看下一步要做什么。',
@@ -366,6 +386,16 @@ const zh = {
 };
 
 const ms = {
+  // Gudang 3D: lapisan, panel, aktiviti langsung
+  whMapLive: 'Langsung', whMap_cartons: 'Kotak', whMapAct10m: '< 10 min', whMapAct1h: '< 1 jam', whMapAct1d: '< 1 hari', whMapCartonsKey: 'Tinggi = bilangan kotak',
+  whMapTab_overview: 'Ringkasan', whMapTab_racks: 'Rak', whMapTab_info: 'Butiran',
+  whMapWaiting: 'Menunggu anda', whMapNothingWaiting: 'Tiada yang menunggu.', whMapOnRoad: 'Lori di jalan', whMapFlow: 'Pesanan keluar',
+  whMapEmptyBins: 'Slot kosong', whMapEmptyBinsSub: 'sedia untuk disimpan', whMapNearFull: 'Hampir penuh', whMapNearFullSub: 'lebih 80%',
+  whMapExpiredLots: 'Lot luput', whMapExpiredSub: 'pindah ke QC', whMap30d: 'Dalam 30 hari', whMap30dSub: 'luput dulu, keluar dulu',
+  whMapFirstExpiry: 'Luput dahulu', whMapShowOnMap: 'Tunjuk', whMapNoDates: 'Tiada tarikh luput direkod di sini.',
+  whMapFeed: 'Terkini', whFeed_RECEIVE: 'Terima', whFeed_TRANSFER_IN: 'Pindah masuk', whFeed_TRANSFER_OUT: 'Pindah keluar', whFeed_SALE: 'Jual', whFeed_WRITE_OFF: 'Hapus kira', whFeed_OTHER: 'Laras',
+  whAgoNow: 'baru tadi', whAgoMin: '{n} min lalu', whAgoHour: '{n} jam lalu', whAgoDay: '{n} hari lalu',
+  whMapTaskPack: 'Bungkus', whMapTaskYard: 'Menunggu di halaman',
   // Keluar dan dok
   whOutbound: 'Pesanan keluar', whOutboundSub: 'Setiap pesanan keluar, langkah demi langkah', whOutboundN: '{n} sedang keluar',
   whOutboundHelp: 'Setiap pesanan yang keluar dari sini, dari dibuat hingga ditandatangani. Tekan satu langkah untuk lihat itu sahaja; tekan pesanan untuk langkah seterusnya.',

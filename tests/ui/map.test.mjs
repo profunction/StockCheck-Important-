@@ -13,18 +13,23 @@ for (const [pic, bin] of Object.entries(bins)) {
   seed.set[`${W}products/${p.barcode}`] = { ...seed.set[`${W}products/${p.barcode}`], shelves: { gudang: bin } };
 }
 seed.set[`${W}transfers/out1`] = { transferNo: 'TR-OUT-1', fromBranch: 'gudang', toBranch: 'ipoh', status: 'APPROVED', lines: [{ barcode: item('malt').barcode, name: 'Malt', qtyMilli: 2000 }], createdAt: Date.now() };
+// A lorry the docks page called to OUT-2 for that transfer.
+seed.set[`${W}tmsTrips/trip1`] = { tripNo: 'TRP-1', branchId: 'gudang', status: 'LOADING', dock: 'OUT-2', plate: 'WXY 1234', driverName: 'Ali', createdAt: Date.now(), stops: [{ kind: 'TRANSFER', refId: 'out1', ref: 'TR-OUT-1', to: 'ipoh', status: 'PENDING' }] };
+// Malt's slot nearly full: 9 of a 10-unit maximum would be over 80%.
+seed.set[`${W}products/${item('malt').barcode}`].maxStockMilli = 1000;
 seed.set[`${W}picklists/pk1`] = { pickNo: 'PCK-1', branchId: 'gudang', status: 'PICKING', orders: [], lines: [{ barcode: item('water').barcode, name: 'Water', bin: 'B1-L1-02', qtyMilli: 6000, pickedMilli: 0 }], createdAt: Date.now() };
 
 const phone = process.argv.includes('--phone');
 const s = await start({ seedPatch: seed, viewport: phone ? { width: 390, height: 844 } : { width: 1366, height: 860 } });
 const { page, base, step, shot } = s;
 
-await step('the warehouse: racks, a lorry arriving and one leaving', async () => {
+await step('the warehouse: racks, a lorry arriving and one at its dock; live', async () => {
   await page.goto(`${base}/warehouse/#/map`);
   await page.waitForSelector('select[data-act="map-place"]');
   await page.selectOption('select[data-act="map-place"]', 'gudang');
   await page.waitForSelector('.iso-svg .iso-box');
-  await page.waitForSelector('.iso-box[data-id="lorry-TR-OUT-1"]');
+  await page.waitForSelector('.iso-box[data-id="lorry-WXY 1234"]');
+  await page.waitForSelector('.map-live:has-text(":")');
   await page.waitForSelector('.iso-box[data-id^="lorry-PO-"]');
   if (await page.$('.map-demo')) throw new Error('shows the sample');
   const used = await page.textContent('.map-kpis .stat:first-child .value');
@@ -49,6 +54,20 @@ await step('the other colourings: expiry, picking (the slot to pick pulses), act
   await page.click('button[data-act="iso-in"]');
   await page.waitForSelector('.iso-box');
   await shot('map-3-turned');
+});
+
+await step('the panel: what is waiting, the outbound line, the racks at a glance; the cartons layer', async () => {
+  await page.click('.map-tabs button[data-tab="overview"]');
+  await page.waitForSelector('[data-card="tasks"] [data-task="pick-pk1"]');
+  await page.waitForSelector('[data-card="flow"] [data-flow="CREATED"]');
+  await page.click('.map-tabs button[data-tab="racks"]');
+  await page.waitForSelector('[data-card="first-expiry"]');
+  const full = await page.textContent('.map-panel .map-kpis .stat:nth-child(2) .value');
+  if (Number(full) < 1) throw new Error(`nearly full ${full}`);
+  await page.click('.map-modes button[data-mode="cartons"]');
+  await page.click('.map-modes button[data-mode="fill"]');
+  await page.waitForSelector('.map-legend:has-text("> 80%")');
+  await shot('map-4-panel');
 });
 
 await step('a place without shelf codes: a sample, and how to fill it in', async () => {
