@@ -2,7 +2,7 @@
 const en = {
   // The 3D warehouse: layers, panel, live feed (web/wh/map.js)
   whMapLive: 'Live', whMap_cartons: 'Cartons', whMapAct10m: '< 10 min', whMapAct1h: '< 1 hour', whMapAct1d: '< 1 day', whMapCartonsKey: 'Height = cartons',
-  whMapTab_overview: 'Overview', whMapTab_racks: 'Racks', whMapTab_info: 'Details',
+  whMapTab_overview: 'Overview', whMapPanelHide: 'Hide the panel', whMapPanelShow: 'Panel', whMapPanelToggle: 'Show or hide the panel', whMapTab_racks: 'Racks', whMapTab_info: 'Details',
   whMapWaiting: 'Waiting for you', whMapNothingWaiting: 'Nothing waiting.', whMapOnRoad: 'Lorries on the road', whMapFlow: 'Orders going out',
   whMapEmptyBins: 'Empty slots', whMapEmptyBinsSub: 'ready to put away', whMapNearFull: 'Nearly full', whMapNearFullSub: 'over 80%',
   whMapExpiredLots: 'Expired lots', whMapExpiredSub: 'move to QC', whMap30d: 'Within 30 days', whMap30dSub: 'first expiry, first out',
@@ -196,7 +196,7 @@ const en = {
 const zh = {
   // 3D 仓库：图层、侧栏、实时动态
   whMapLive: '实时', whMap_cartons: '纸箱', whMapAct10m: '10 分钟内', whMapAct1h: '1 小时内', whMapAct1d: '1 天内', whMapCartonsKey: '高度 = 箱数',
-  whMapTab_overview: '概况', whMapTab_racks: '货架', whMapTab_info: '详情',
+  whMapTab_overview: '概况', whMapPanelHide: '收起侧栏', whMapPanelShow: '打开侧栏', whMapPanelToggle: '打开或收起侧栏', whMapTab_racks: '货架', whMapTab_info: '详情',
   whMapWaiting: '等你处理', whMapNothingWaiting: '没有要处理的。', whMapOnRoad: '在路上的车', whMapFlow: '出货流程',
   whMapEmptyBins: '空库位', whMapEmptyBinsSub: '可以上架', whMapNearFull: '快满了', whMapNearFullSub: '超过 80%',
   whMapExpiredLots: '过期批次', whMapExpiredSub: '移去品检区', whMap30d: '30 天内到期', whMap30dSub: '先到期先出',
@@ -388,7 +388,7 @@ const zh = {
 const ms = {
   // Gudang 3D: lapisan, panel, aktiviti langsung
   whMapLive: 'Langsung', whMap_cartons: 'Kotak', whMapAct10m: '< 10 min', whMapAct1h: '< 1 jam', whMapAct1d: '< 1 hari', whMapCartonsKey: 'Tinggi = bilangan kotak',
-  whMapTab_overview: 'Ringkasan', whMapTab_racks: 'Rak', whMapTab_info: 'Butiran',
+  whMapTab_overview: 'Ringkasan', whMapPanelHide: 'Sembunyi panel', whMapPanelShow: 'Panel', whMapPanelToggle: 'Tunjuk atau sembunyi panel', whMapTab_racks: 'Rak', whMapTab_info: 'Butiran',
   whMapWaiting: 'Menunggu anda', whMapNothingWaiting: 'Tiada yang menunggu.', whMapOnRoad: 'Lori di jalan', whMapFlow: 'Pesanan keluar',
   whMapEmptyBins: 'Slot kosong', whMapEmptyBinsSub: 'sedia untuk disimpan', whMapNearFull: 'Hampir penuh', whMapNearFullSub: 'lebih 80%',
   whMapExpiredLots: 'Lot luput', whMapExpiredSub: 'pindah ke QC', whMap30d: 'Dalam 30 hari', whMap30dSub: 'luput dulu, keluar dulu',

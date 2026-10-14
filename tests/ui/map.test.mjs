@@ -70,6 +70,18 @@ await step('the panel: what is waiting, the outbound line, the racks at a glance
   await shot('map-4-panel');
 });
 
+await step('the panel put away and brought back; it stays away next time', async () => {
+  await page.click('button[data-act="panel-hide"]');
+  await page.waitForSelector('.map-layout.panel-off .map-panel', { state: 'hidden' });
+  await shot('map-5-no-panel');
+  await page.click('button[data-act="panel-show"]');
+  await page.waitForSelector('.map-layout:not(.panel-off) .map-panel');
+  await page.click('button[data-act="iso-panel"]');
+  await page.waitForSelector('.map-layout.panel-off');
+  if (await page.evaluate(() => localStorage.getItem('jsox-map-panel')) !== 'off') throw new Error('not remembered');
+  await page.click('button[data-act="iso-panel"]');
+});
+
 await step('a place without shelf codes: a sample, and how to fill it in', async () => {
   await page.selectOption('select[data-act="map-place"]', 'ipoh');
   await page.waitForSelector('.map-demo');

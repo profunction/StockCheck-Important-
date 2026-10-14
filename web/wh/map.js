@@ -352,18 +352,29 @@ function build(data) {
 function draw(box, data) {
   let m = build(data);
   const info = h('div', { class: 'map-info', 'data-card': 'info' });
-  let panels = true;
+  // The side panel can be put away, and stays away next time (this phone or computer only).
+  let panelOn = true;
+  try { panelOn = localStorage.getItem('jsox-map-panel') !== 'off'; } catch { /* no storage */ }
+  const layoutEl = h('div', { class: 'map-layout' });
   const stage = h('div', { class: 'map-stage wh3d' });
   const scene = isoScene({
     boxes: m.all(), W: m.W, D: m.D, height: 820, fillHeight: true, hint: t('whMapHint'),
     onPick: (b) => { scene.select(b.id); showInfo(b); },
-    extraTools: [{ label: '▤', act: 'iso-panel', title: t('whMapTasks'), onClick: () => { panels = !panels; stage.classList.toggle('no-panels', !panels); } }],
+    extraTools: [{ label: '▤', act: 'iso-panel', title: t('whMapPanelToggle'), onClick: () => setPanel(!panelOn) }],
   });
   const feedBox = h('div', { class: 'wh3d-tasks wh3d-feed', 'data-card': 'feed' });
   const layers = h('div', { class: 'map-layers' });
   const tabs = h('div', { class: 'seg map-tabs' });
   const panelBody = h('div', { class: 'map-panel-body' });
-  const panel = h('aside', { class: 'card map-panel' }, tabs, panelBody);
+  const panel = h('aside', { class: 'card map-panel' },
+    h('div', { class: 'row map-panel-top' }, tabs, h('button', { class: 'ghost map-panel-hide', 'data-act': 'panel-hide', title: t('whMapPanelHide'), 'aria-label': t('whMapPanelHide'), onclick: () => setPanel(false) }, '›')),
+    panelBody);
+  const reopen = h('button', { class: 'map-panel-open', 'data-act': 'panel-show', onclick: () => setPanel(true) }, `‹ ${t('whMapPanelShow')}`);
+  const setPanel = (on) => {
+    panelOn = on;
+    try { localStorage.setItem('jsox-map-panel', on ? 'on' : 'off'); } catch { /* no storage */ }
+    layoutEl.classList.toggle('panel-off', !on);
+  };
 
   const showInfo = (b) => {
     tab = 'info';
@@ -469,7 +480,8 @@ function draw(box, data) {
   mount(box,
     m.demo ? h('div', { class: 'card map-demo' }, h('b', {}, t('whMapDemoTitle')), h('p', { class: 'muted', style: { margin: '4px 0 0' } }, t('whMapDemoHelp')),
       canMove() ? h('button', { style: { marginTop: '8px' }, onclick: () => go('stock') }, t('whStock')) : null) : null,
-    h('div', { class: 'map-layout' }, stage, panel));
+    mount(layoutEl, stage, panel, reopen));
+  setPanel(panelOn);
 
   return {
     /** A fresh read: the same view, the new picture. */

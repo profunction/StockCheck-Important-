@@ -271,3 +271,12 @@ button.ob-lane.on { border: 2px solid var(--wh); background: var(--wh-soft); }
   .map-layout { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
   .map-panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; }
 }
+/* The side panel, put away and brought back */
+.map-layout { position: relative; }
+.map-panel-top { gap: 6px; flex-wrap: nowrap; }
+.map-panel-top .map-tabs { flex: 1; }
+.map-panel-hide { min-width: 38px; min-height: 38px; padding: 0; font-size: 22px; line-height: 1; }
+.map-panel-open { display: none; position: absolute; top: 12px; right: 12px; z-index: 3; min-height: 38px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .1); }
+.map-layout.panel-off { grid-template-columns: minmax(0, 1fr); }
+.map-layout.panel-off .map-panel { display: none; }
+.map-layout.panel-off .map-panel-open { display: inline-flex; }
