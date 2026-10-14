@@ -280,3 +280,7 @@ button.ob-lane.on { border: 2px solid var(--wh); background: var(--wh-soft); }
 .map-layout.panel-off { grid-template-columns: minmax(0, 1fr); }
 .map-layout.panel-off .map-panel { display: none; }
 .map-layout.panel-off .map-panel-open { display: inline-flex; }
+@media (max-width: 600px) {
+  /* On a phone the picture's toolbar runs along its top: the button goes under the picture. */
+  .map-layout.panel-off .map-panel-open { position: static; justify-self: end; }
+}
