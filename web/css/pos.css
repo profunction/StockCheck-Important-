@@ -950,6 +950,8 @@ body.iso-full-open { overflow: hidden; }
 .map-info h3 { margin: 0; }
 @media (max-width: 600px) {
   .iso-tools { top: auto; bottom: 10px; right: 10px; grid-auto-flow: column; gap: 6px; }
+  /* More buttons than the width: they scroll sideways, 360° first in view. */
+  .iso-tools:not(.top) { left: 10px; justify-content: start; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
   .iso-btn { width: 38px; height: 38px; font-size: 17px; }
 }
 
