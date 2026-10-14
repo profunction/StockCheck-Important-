@@ -126,3 +126,56 @@ export function laneBoard(orders) {
   }
   return out;
 }
+
+/** The packing tables. */
+export const STATIONS = ['P1', 'P2', 'P3', 'P4'];
+
+/**
+ * Automatic dispatch (自动): what the warehouse would do next on its own at
+ * [branch], worked out from the same records as the board --
+ *
+ *   picklists  orders ready to pick (transfers approved, reservations held,
+ *              not on a picklist yet), one picklist per lorry they are
+ *              planned on, else per place they go to
+ *   stations   orders picked and not packed yet, each given the packing
+ *              table with the fewest waiting (and the first empty lane)
+ *   docks      lorries waiting in the yard whose orders are all packed,
+ *              urgent first, each called to a free dock
+ *
+ * [ordersToPick] is picking.js's, passed in so this file stays alone.
+ * Nothing is written here; the WMS (web/wh/auto.js) writes it.
+ */
+export function autoPlan(data, branch, ordersToPick) {
+  const orders = outboundOrders(data, branch);
+  const live = (data.trips || []).filter((tr) => ['PLANNED', 'LOADING'].includes(tr.status) && (tr.branchId || '') === (branch || ''));
+  const tripOf = new Map(live.flatMap((tr) => (tr.stops || []).map((s) => [`${s.kind}:${s.refId}`, tr])));
+
+  const groups = new Map();
+  for (const o of ordersToPick(data, branch).filter((x) => x.kind === 'RESERVATION' || x.status === 'APPROVED')) {
+    const tr = tripOf.get(`${o.kind}:${o.id}`);
+    const key = tr ? `trip:${tr.id}` : o.kind === 'TRANSFER' ? `to:${o.to ?? ''}` : `customer:${o.to || o.id}`;
+    if (!groups.has(key)) groups.set(key, { key, trip: tr || null, orders: [] });
+    groups.get(key).orders.push(o);
+  }
+
+  const load = new Map(STATIONS.map((s) => [s, 0]));
+  for (const o of orders) if (o.stage === 'PACKING' && STATIONS.includes(o.pack?.station)) load.set(o.pack.station, load.get(o.pack.station) + 1);
+  const lanes = laneBoard(orders);
+  const laneLoad = new Map(LANES.map((l) => [l, lanes.get(l).length]));
+  const stations = [];
+  for (const o of orders.filter((x) => x.stage === 'PACKING' && !STATIONS.includes(x.pack?.station))) {
+    const station = [...load.entries()].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))[0][0];
+    const lane = o.pack?.lane || [...laneLoad.entries()].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))[0][0];
+    load.set(station, load.get(station) + 1);
+    laneLoad.set(lane, laneLoad.get(lane) + 1);
+    stations.push({ order: o, station, lane });
+  }
+
+  const board = dockBoard(data.trips || [], orders, branch);
+  const free = [...board.free];
+  const ready = board.yard.filter((y) => y.orders.length && y.orders.every((o) => ['PACKED', 'LOADED'].includes(o.stage)))
+    .sort((a, b) => (b.orders.some((o) => o.urgent) - a.orders.some((o) => o.urgent)) || ((a.trip.createdAt || 0) - (b.trip.createdAt || 0)));
+  const docks = ready.slice(0, free.length).map((y, i) => ({ trip: y.trip, dock: free[i] }));
+
+  return { picklists: [...groups.values()], stations, docks };
+}

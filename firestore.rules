@@ -836,7 +836,25 @@ service cloud.firestore {
                       && inMyBranch(resource.data)
                       && request.resource.data.status in ['OPEN', 'PACKED', 'LOADED']
                       && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['status', 'urgent', 'cartons', 'weightKg', 'lane', 'packedAt', 'packedByName', 'tripId', 'dock', 'loadedAt', 'loadedByName', 'updatedAt']);
+                           .hasOnly(['status', 'urgent', 'cartons', 'weightKg', 'lane', 'station', 'packedAt', 'packedByName', 'tripId', 'dock', 'loadedAt', 'loadedByName', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      // ------------------------------------------------- automatic dispatch
+      //
+      // A warehouse switched to Auto (web/wh/auto.js): a manager turns it on
+      // or off; any WMS screen there may take the lease (only in its own
+      // name) and note when it last ran. Never deleted.
+      match /whAuto/{placeId} {
+        allow read: if can('RECORD_STOCK_MOVEMENTS');
+        allow create, update: if !moduleOff('warehouse') && (
+          ((isAdmin() || can('WH_APPROVE'))
+             && request.resource.data.on is bool
+             && request.resource.data.diff(resource == null ? {} : resource.data).affectedKeys()
+                  .hasOnly(['on', 'updatedAt', 'updatedByName', 'updatedByUid']))
+          || (resource != null && can('RECORD_STOCK_MOVEMENTS')
+             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leaseBy', 'leaseUntil', 'lastRun', 'lastDone'])
+             && request.resource.data.get('leaseBy', '') == request.auth.uid));
         allow delete: if false;
       }
 

@@ -142,6 +142,8 @@ async function route() {
     mount(mainEl, h('div', { class: 'card' }, menuButton(), h('p', {}, t('planNoWarehouse'))));
     return;
   }
+  // Automatic dispatch runs while the WMS is open (auto.js), wherever it is switched on.
+  import('./auto.js').then((m) => m.startAutopilot()).catch(() => {});
   try {
     const module = await item.page();
     stopPage = module.render(mainEl, sub) || null;

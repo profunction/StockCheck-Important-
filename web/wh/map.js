@@ -31,7 +31,7 @@ import { lorryBoxes } from '../js/town.js';
 import { layout, parseBin } from '../js/warehouse3d.js';
 import { lineDone } from '../js/picking.js';
 import { expiring, packOf } from '../js/wms.js';
-import { dockBoard, LANES, laneBoard, loadedOn, OUT_DOCKS, outboundOrders, STAGES, stageCounts } from '../js/outbound.js';
+import { dockBoard, LANES, laneBoard, loadedOn, OUT_DOCKS, outboundOrders, STAGES, STATIONS, stageCounts } from '../js/outbound.js';
 import { canMove, failed, head, isMine, loading, myPlaces, pill, placeName, shelfOf } from './common.js';
 import { loadAll, stockRows } from './data.js';
 import { expiryPill } from './stock.js';
@@ -158,6 +158,10 @@ function build(data) {
   const board = dockBoard(data.trips || [], orders, scope);
   const lanes = laneBoard(orders);
   const packing = orders.filter((o) => o.stage === 'PACKING');
+  // At its packing table when it has one (auto.js gives them); the rest fill the free tables.
+  const atTable = STATIONS.map(() => null);
+  for (const o of packing) { const i = STATIONS.indexOf(o.pack?.station); if (i >= 0 && !atTable[i]) atTable[i] = o; }
+  for (const o of packing) if (!atTable.includes(o)) { const i = atTable.indexOf(null); if (i >= 0) atTable[i] = o; }
   const linesIn = (po) => `${(po.lines || []).filter((l) => (l.receivedMilli || 0) + (l.damagedMilli || 0) >= (l.qtyMilli || 0)).length}/${(po.lines || []).length}`;
   const arriving = [
     ...data.pos.filter((p) => ['ORDERED', 'PARTIAL'].includes(p.status) && here(p.branchId))
@@ -215,7 +219,7 @@ function build(data) {
   tile('z-packing', SIDE, RY, 4.6, 4.4, '#ede9fe');
   words('w-packing', SIDE, RY + 0.1, 4.6, 0.6, t('whMapPacking'));
   [[0.5, 1.2], [2.6, 1.2], [0.5, 2.9], [2.6, 2.9]].forEach(([dx, dy], i) => {
-    const o = packing[i];
+    const o = atTable[i];
     boxes.push({ id: `pack-${i}`, x: SIDE + dx, y: RY + dy, w: 1.4, d: 0.8, h: 0.55, color: o ? '#a78bfa' : '#cbd5e1', pick: !!o, order: o,
       label: o ? `P${i + 1} · ${o.ref}` : `P${i + 1}`, labelCls: o ? 'task' : 'small', title: o ? `${o.ref} · ${t('ob_PACKING')}` : `P${i + 1}` });
     boxes.push({ id: `pack-${i}-box`, x: SIDE + dx + 0.2, y: RY + dy + 0.15, z: 0.55, w: 0.45, d: 0.4, h: 0.3, color: COLOR.kraft, kind: 'carton', pick: false, noShadow: true,
@@ -329,7 +333,7 @@ function build(data) {
       return [{ key: `pick-${x.id}`, tone: 'pick', text: `${t('whMapTaskPick')} ${formatQty(l.qtyMilli - (l.pickedMilli || 0))} × ${l.name} → ${l.bin || '—'}${x.pickerName ? ` · ${x.pickerName}` : ''}`,
         focus: c ? `c${floor.cells.indexOf(c)}-beam` : `picker-${x.id}`, go: () => go('picking', x.id) }];
     }),
-    ...packing.map((o, i) => ({ key: `pack-${o.key}`, tone: 'pack', text: `${t('whMapTaskPack')} ${o.urgent ? '⚡ ' : ''}${o.ref} → P${i + 1}`, focus: i < 4 ? `pack-${i}` : '', go: () => go('outbound', o.key) })),
+    ...packing.map((o) => { const i = atTable.indexOf(o); return { key: `pack-${o.key}`, tone: 'pack', text: `${t('whMapTaskPack')} ${o.urgent ? '⚡ ' : ''}${o.ref}${i >= 0 ? ` → ${STATIONS[i]}` : ''}`, focus: i >= 0 ? `pack-${i}` : '', go: () => go('outbound', o.key) }; }),
     ...board.yard.map((y) => ({ key: `yard-${y.trip.id}`, tone: 'out', text: `${t('whMapTaskYard')} 🚚 ${y.trip.plate || ''}`, focus: `lorry-${tripJob(y).ref}`, go: () => go('docks') })),
     ...arriving.map((j) => ({ key: `in-${j.ref}`, tone: 'in', text: `${t('whMapTaskIn')} ${j.ref} · ${j.who}`, focus: `lorry-${j.ref}`, go: j.go })),
   ];

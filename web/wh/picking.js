@@ -62,7 +62,7 @@ export function render(main, sub) {
 function card(p) {
   const pr = progress(p.lines);
   return h('button', { class: 'wh-card pk-card', 'data-pick': p.id, onclick: () => go('picking', p.id) },
-    h('div', { class: 'row' }, h('strong', { class: 'grow' }, p.pickNo), p.zone ? h('span', { class: 'pill shelf' }, `${t('whPickZone')} ${p.zone}`) : null, pill(t(`pk_${p.status}`), PK_TONE[p.status])),
+    h('div', { class: 'row' }, h('strong', { class: 'grow' }, p.pickNo), p.auto ? h('span', { class: 'pill warn', 'data-auto': '1' }, `⚡ ${t('whAuto')}`) : null, p.zone ? h('span', { class: 'pill shelf' }, `${t('whPickZone')} ${p.zone}`) : null, pill(t(`pk_${p.status}`), PK_TONE[p.status])),
     h('div', {}, `${(p.orders || []).length} ${t('whOrdersN')} · ${(p.orders || []).map((o) => o.ref).join(', ')}`),
     h('div', { class: 'pk-bar' }, h('span', { style: { width: `${pr.total ? Math.round(100 * pr.done / pr.total) : 0}%` } })),
     h('div', { class: 'muted' }, `${pr.done}/${pr.total} ${t('whLines')}`, p.pickerName ? ` · ${t('whPickBy')} ${p.pickerName}` : '', ` · ${dateTime(p.doneAt || p.startedAt || p.createdAt)}`));

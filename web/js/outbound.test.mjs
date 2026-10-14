@@ -82,3 +82,37 @@ test('the docks: a lorry at its bay with its orders, the rest wait in the yard',
   const lanes = laneBoard(orders.map((o) => ({ ...o, stage: o.ref === 'TR-A' ? 'LOADED' : o.stage })));
   assert.deepEqual(lanes.get('S1').map((o) => o.ref), ['TR-X']);
 });
+
+test('automatic: a picklist per lorry, else per place; a packing table each; ready lorries to free docks', async () => {
+  const { autoPlan } = await import('./outbound.js');
+  const { ordersToPick } = await import('./picking.js');
+  const line = [{ barcode: '1', qtyMilli: 1000 }];
+  const data = {
+    transfers: [
+      { id: 'a', transferNo: 'TR-A', fromBranch: 'gd', toBranch: 'ipoh', status: 'APPROVED', lines: line, approvedAt: 1 },
+      { id: 'b', transferNo: 'TR-B', fromBranch: 'gd', toBranch: 'ipoh', status: 'APPROVED', lines: line, approvedAt: 2 },
+      { id: 'c', transferNo: 'TR-C', fromBranch: 'gd', toBranch: 'kl', status: 'PENDING', lines: line, createdAt: 3 },
+      { id: 'd', transferNo: 'TR-D', fromBranch: 'gd', toBranch: 'kl', status: 'APPROVED', lines: line, approvedAt: 4 },
+      { id: 'p', transferNo: 'TR-P', fromBranch: 'gd', toBranch: 'kl', status: 'APPROVED', lines: line, approvedAt: 5 },
+      { id: 'q', transferNo: 'TR-Q', fromBranch: 'gd', toBranch: 'kl', status: 'APPROVED', lines: line, approvedAt: 6 },
+    ],
+    reservations: [{ id: 'r', reservationNo: 'RSV-1', branchId: 'gd', forWhom: 'Ali', status: 'OPEN', lines: line, createdAt: 5 }],
+    picklists: [
+      { id: 'pk', status: 'DONE', branchId: 'gd', orders: [{ kind: 'TRANSFER', id: 'p' }, { kind: 'TRANSFER', id: 'q' }], createdAt: 1 },
+    ],
+    packs: [{ kind: 'TRANSFER', orderId: 'q', status: 'PACKED', lane: 'S1' }],
+    trips: [
+      { id: 't1', branchId: 'gd', status: 'PLANNED', createdAt: 1, stops: [{ kind: 'TRANSFER', refId: 'd' }, { kind: 'RESERVATION', refId: 'r' }] },
+      { id: 't2', branchId: 'gd', status: 'PLANNED', createdAt: 2, stops: [{ kind: 'TRANSFER', refId: 'q' }] },
+      { id: 't3', branchId: 'gd', status: 'LOADING', dock: 'OUT-1', stops: [] },
+    ],
+  };
+  const plan = autoPlan(data, 'gd', ordersToPick);
+  // Waiting for approval (TR-C) is not picked yet; TR-D and RSV-1 share lorry t1; TR-A and TR-B both go to Ipoh.
+  assert.deepEqual(plan.picklists.map((g) => [g.key, g.orders.map((o) => o.ref).sort().join()]).sort(),
+    [['to:ipoh', 'TR-A,TR-B'], ['trip:t1', 'RSV-1,TR-D']]);
+  // TR-P is picked: a packing table, and the lane with the fewest (S1 has TR-Q already).
+  assert.deepEqual(plan.stations.map((s) => [s.order.ref, s.station, s.lane]), [['TR-P', 'P1', 'S2']]);
+  // t2 carries only TR-Q, packed: called to the first free dock (OUT-1 is t3's).
+  assert.deepEqual(plan.docks.map((d) => [d.trip.id, d.dock]), [['t2', 'OUT-2']]);
+});

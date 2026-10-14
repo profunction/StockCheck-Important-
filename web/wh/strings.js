@@ -11,6 +11,8 @@ const en = {
   whAgoNow: 'just now', whAgoMin: '{n} min ago', whAgoHour: '{n} h ago', whAgoDay: '{n} days ago',
   whMapTaskPack: 'Pack', whMapTaskYard: 'Waiting in the yard',
   // Outbound and docks (web/wh/outbound.js, docks.js)
+  whAuto: 'Auto', whManual: 'Manual', whStation: 'Table', whAutoOnOk: 'Auto on: picklists, packing tables and docks are planned on their own.', whAutoOffOk: 'Back to manual.',
+  whAutoHelpOn: 'New orders become picklists by lorry, picked orders get a packing table and lane, packed lorries are called to a free dock. Runs while the WMS is open.', whAutoHelpOff: 'Everything planned by hand.',
   whOutbound: 'Outbound', whOutboundSub: 'Every order going out, step by step', whOutboundN: '{n} going out',
   whOutboundHelp: 'Every order leaving this place, from made to signed for. Tap a step to see only those; tap an order for what to do next.',
   whOutboundNone: 'No orders here.', whAll: 'All', whOptional: 'optional',
@@ -205,6 +207,8 @@ const zh = {
   whAgoNow: '刚刚', whAgoMin: '{n} 分钟前', whAgoHour: '{n} 小时前', whAgoDay: '{n} 天前',
   whMapTaskPack: '打包', whMapTaskYard: '停车场等着',
   // 出货与码头
+  whAuto: '自动', whManual: '手动', whStation: '打包台', whAutoOnOk: '已开自动：拣货单、打包台、码头会自己安排。', whAutoOffOk: '改回手动了。',
+  whAutoHelpOn: '新单按车自动开拣货单，拣好的单自动分打包台和待出货区，打包好的车自动叫到空码头。WMS 开着就会运行。', whAutoHelpOff: '全部自己安排。',
   whOutbound: '出货单', whOutboundSub: '每张出货单走到哪一步', whOutboundN: '{n} 张出货中',
   whOutboundHelp: '从这里出去的每一张单，从开单到签收。点上面的步骤只看那一步；点一张单看下一步要做什么。',
   whOutboundNone: '这里没有单。', whAll: '全部', whOptional: '可不填',
@@ -397,6 +401,8 @@ const ms = {
   whAgoNow: 'baru tadi', whAgoMin: '{n} min lalu', whAgoHour: '{n} jam lalu', whAgoDay: '{n} hari lalu',
   whMapTaskPack: 'Bungkus', whMapTaskYard: 'Menunggu di halaman',
   // Keluar dan dok
+  whAuto: 'Auto', whManual: 'Manual', whStation: 'Meja', whAutoOnOk: 'Auto hidup: senarai ambil, meja bungkus dan dok dirancang sendiri.', whAutoOffOk: 'Kembali ke manual.',
+  whAutoHelpOn: 'Pesanan baru jadi senarai ambil ikut lori, pesanan siap ambil dapat meja bungkus dan lorong, lori yang siap dipanggil ke dok kosong. Berjalan selagi WMS dibuka.', whAutoHelpOff: 'Semua dirancang sendiri.',
   whOutbound: 'Pesanan keluar', whOutboundSub: 'Setiap pesanan keluar, langkah demi langkah', whOutboundN: '{n} sedang keluar',
   whOutboundHelp: 'Setiap pesanan yang keluar dari sini, dari dibuat hingga ditandatangani. Tekan satu langkah untuk lihat itu sahaja; tekan pesanan untuk langkah seterusnya.',
   whOutboundNone: 'Tiada pesanan di sini.', whAll: 'Semua', whOptional: 'pilihan',

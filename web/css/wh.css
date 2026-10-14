@@ -284,3 +284,9 @@ button.ob-lane.on { border: 2px solid var(--wh); background: var(--wh-soft); }
   /* On a phone the picture's toolbar runs along its top: the button goes under the picture. */
   .map-layout.panel-off .map-panel-open { position: static; justify-self: end; }
 }
+/* Manual | Auto (auto.js) */
+.ob-auto { display: inline-flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.ob-auto button { min-height: 34px; padding: 0 12px; border: 0; border-radius: 9px; background: none; font-weight: 600; font-size: 13.5px; color: var(--muted); }
+.ob-auto button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-1); }
+.ob-auto.on button.on { background: var(--wh); color: #fff; }
+.ob-auto button:disabled { opacity: 1; cursor: default; }

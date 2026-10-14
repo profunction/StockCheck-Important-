@@ -347,6 +347,16 @@ await expect('keeper: change which order it is refused', false, () => updateDoc(
 await expect('keeper: load it at OUT-1', true, () => updateDoc(doc(as('keeper1'), ws('outbound/TR-appr2')), { status: 'LOADED', tripId: 't1', dock: 'OUT-1', loadedAt: 3, loadedByName: 'K', updatedAt: 3 }));
 await expect('keeper: delete a packing record refused', false, () => deleteDoc(doc(as('keeper1'), ws('outbound/TR-appr2'))));
 
+// Automatic dispatch: a manager switches it; a worker's screen only takes the lease in its own name.
+await expect('keeper: switch Auto on refused', false, () => setDoc(doc(as('keeper1'), ws('whAuto/-')), { on: true, updatedAt: 1 }));
+await expect('admin: switch Auto on', true, () => setDoc(doc(as('admin1'), ws('whAuto/-')), { on: true, updatedAt: 1, updatedByName: 'A', updatedByUid: 'admin1' }));
+await expect('keeper: take the lease in their own name', true, () => updateDoc(doc(as('keeper1'), ws('whAuto/-')), { leaseBy: 'keeper1', leaseUntil: 2 }));
+await expect('keeper: take the lease in someone else\'s name refused', false, () => updateDoc(doc(as('keeper1'), ws('whAuto/-')), { leaseBy: 'buyer1', leaseUntil: 3 }));
+await expect('keeper: note the run', true, () => updateDoc(doc(as('keeper1'), ws('whAuto/-')), { lastRun: 4, lastDone: { picklists: 1, stations: 0, docks: 0 } }));
+await expect('keeper: switch Auto off refused', false, () => updateDoc(doc(as('keeper1'), ws('whAuto/-')), { on: false }));
+await expect('cashier: read Auto refused', false, () => getDoc(doc(as('cashier1'), ws('whAuto/-'))));
+await expect('keeper: give a packing table', true, () => updateDoc(doc(as('keeper1'), ws('outbound/TR-appr2')), { station: 'P2', updatedAt: 5 }));
+
 // Warehouse: buying, approving, receiving ------------------------------------
 await expect('buyer: raise a purchase order', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('')));
 await expect('buyer: submit it for approval', true, () => setDoc(doc(as('buyer1'), ws('purchaseOrders/b1')), po('', 'SUBMITTED')));

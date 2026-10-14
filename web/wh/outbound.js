@@ -23,6 +23,7 @@ import { LANES, laneBoard, outboundOrders, packKey, STAGES, stageCounts } from '
 import { audit, canMove, failed, head, loading, myPlaces, pill, placeName, qtyText, send } from './common.js';
 import { loadOutbound } from './data.js';
 import { go } from './main.js';
+import { autoSettings, canSwitchAuto, setAuto } from './auto.js';
 
 export const STAGE_TONE = { CREATED: '', PICKING: 'warn', PACKING: 'warn', PACKED: 'shelf', LOADED: 'shelf', ON_ROAD: 'good', DELIVERED: 'good' };
 let scope = null;
@@ -68,12 +69,29 @@ export function render(main, sub) {
   if (sub) return one(main, sub);
   const strip = h('div', { class: 'ob-stages', role: 'tablist' });
   const box = h('div');
+  const autoBox = h('div', { class: 'ob-auto-wrap' });
   mount(main,
-    head(t('whOutbound'), placeSelect(() => render(main)),
+    head(t('whOutbound'), autoBox, placeSelect(() => render(main)),
       h('button', { 'data-act': 'go-docks', onclick: () => go('docks') }, icon('truck', 17), h('span', { class: 'hide-sm' }, t('whDocks')))),
     h('p', { class: 'muted' }, t('whOutboundHelp')),
     strip, box);
   loading(box);
+  // Manual or Auto (auto.js): who switched it, and when it last ran.
+  const drawAuto = (rec) => {
+    const on = !!rec?.on;
+    const flip = async () => {
+      try {
+        await setAuto(scope, !on);
+        toast(on ? t('whAutoOffOk') : t('whAutoOnOk'), 'ok');
+        drawAuto({ ...rec, on: !on });
+        if (!on) setTimeout(() => render(main), 2500);
+      } catch (err) { toast(err.message || String(err), 'error'); }
+    };
+    mount(autoBox, h('div', { class: `ob-auto${on ? ' on' : ''}`, 'data-card': 'auto', title: on ? t('whAutoHelpOn') : t('whAutoHelpOff') },
+      h('button', { class: on ? '' : 'on', 'data-act': 'auto-manual', disabled: !canSwitchAuto() || !on, onclick: flip }, t('whManual')),
+      h('button', { class: on ? 'on' : '', 'data-act': 'auto-on', disabled: !canSwitchAuto() || on, onclick: flip }, `⚡ ${t('whAuto')}`)));
+  };
+  autoSettings().then((m) => drawAuto(m.get(scope || ''))).catch(() => drawAuto(null));
   loadOutbound().then((data) => {
     const orders = outboundOrders(data, scope);
     const counts = stageCounts(orders);
@@ -95,6 +113,7 @@ export function render(main, sub) {
 function card(o) {
   const where = [
     o.pack?.cartons ? `📦 ${o.pack.cartons} ${t('whCartons')}` : '',
+    o.stage === 'PACKING' && o.pack?.station ? `${t('whStation')} ${o.pack.station}` : '',
     o.stage === 'PACKED' && o.pack?.lane ? `${t('whLane')} ${o.pack.lane}` : '',
     o.trip ? `🚚 ${o.trip.plate || ''}${o.trip.dock && ['PLANNED', 'LOADING'].includes(o.trip.status) ? ` @ ${o.trip.dock}` : ''}` : '',
   ].filter(Boolean).join(' · ');
@@ -150,7 +169,7 @@ function show(box, o, lanes) {
     draw();
   };
   const packForm = () => h('section', { class: 'card ob-pack', 'data-card': 'pack' },
-    h('h2', {}, t('whPackTitle')),
+    h('h2', {}, o.pack?.station ? `${t('whPackTitle')} · ${t('whStation')} ${o.pack.station}` : t('whPackTitle')),
     h('div', { class: 'field' }, t('whCartons'),
       h('div', { class: 'wh-step big' },
         h('button', { type: 'button', 'aria-label': '−', onclick: () => { cartons = Math.max(1, cartons - 1); draw(); } }, icon('minus', 20)),
