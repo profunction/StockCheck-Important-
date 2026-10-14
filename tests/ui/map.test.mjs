@@ -82,6 +82,20 @@ await step('the panel put away and brought back; it stays away next time', async
   await page.click('button[data-act="iso-panel"]', { timeout: 5000 });
 });
 
+await step('the owner turns 3D off for everyone, and back on', async () => {
+  await page.click('button[data-act="v3d-off"]');
+  await page.click('.dialog .actions button:last-child');
+  await page.waitForFunction(() => window.__store.get('workspaces/w1/pos/settings')?.show3d === false);
+  await page.waitForSelector('[data-card="v3d-off"] button[data-act="v3d-on"]');
+  if (await page.$('.iso-svg')) throw new Error('3D still drawn');
+  // The panel stays useful without the picture.
+  await page.waitForSelector('.map-panel .map-tabs');
+  await shot('map-6-off');
+  await page.click('button[data-act="v3d-on"]');
+  await page.waitForFunction(() => window.__store.get('workspaces/w1/pos/settings')?.show3d === true);
+  await page.waitForSelector('.iso-svg .iso-box');
+});
+
 await step('a place without shelf codes: a sample, and how to fill it in', async () => {
   await page.selectOption('select[data-act="map-place"]', 'ipoh');
   await page.waitForSelector('.map-demo');

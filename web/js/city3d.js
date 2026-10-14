@@ -9,7 +9,7 @@
 import { h, mount } from './dom.js';
 import { t } from './i18n.js';
 import { rm } from './money.js';
-import { isoScene } from './iso.js';
+import { menu3d, scene3d } from './view3d.js';
 import { cityLayout } from './town.js';
 
 export { cityLayout };
@@ -19,9 +19,11 @@ export { cityLayout };
  * says where a tap on a shop or a warehouse leads.
  */
 export function cityCard(places, moving, { links = {} } = {}) {
+  // 3D turned off for this company: no card, but for the owner (to turn it back on).
+  if (!menu3d()) return null;
   const info = h('div', { class: 'city-info' });
   const { boxes, W, D } = cityLayout(places, moving);
-  const scene = isoScene({
+  const scene = scene3d({
     boxes: boxes.map((b) => ({ ...b, title: b.title || (b.place ? b.place.name : null) })), W, D, height: 680,
     onPick: (b) => {
       scene.select(b.id);

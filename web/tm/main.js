@@ -16,6 +16,7 @@ import { canManage, canWork } from './common.js';
 import { appSwitcher, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
+import { menu3d } from '../js/view3d.js';
 // The words of the Connections page (连接), for the menu entry that opens it.
 import '../js/connections.js';
 
@@ -29,11 +30,11 @@ const MENU = [
   { id: 'lorries', icon: 'box', label: 'tmLorries', page: () => import('./lorries.js') },
   { id: 'pod', icon: 'receipt', label: 'tmPod', page: () => import('./pod.js'), bottom: true },
   { id: 'roadmap', icon: 'store', label: 'tmRoadMap', page: () => import('./roadmap.js'), bottom: true },
-  { id: 'map', icon: 'grid', label: 'tmMap', page: () => import('./map.js') },
+  { id: 'map', icon: 'grid', label: 'tmMap', when: menu3d, page: () => import('./map.js') },
   { id: 'connections', icon: 'plug', label: 'cnTitle', page: () => import('./connections.js') },
 ]
 
-const allowed = () => true;
+const allowed = (item) => !item.when || item.when();
 
 function currentRoute() {
   const [group = '', ...rest] = location.hash.replace(/^#\/?/, '').split('/');

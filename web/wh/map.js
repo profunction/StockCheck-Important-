@@ -25,7 +25,8 @@ import { h, mount } from '../js/dom.js';
 import { t } from '../js/i18n.js';
 import { formatQty } from '../js/money.js';
 import { session } from '../js/session.js';
-import { isoScene, shade } from '../js/iso.js';
+import { shade } from '../js/iso.js';
+import { scene3d } from '../js/view3d.js';
 import { lorryBoxes } from '../js/town.js';
 import { layout, parseBin } from '../js/warehouse3d.js';
 import { lineDone } from '../js/picking.js';
@@ -342,7 +343,10 @@ function build(data) {
   });
   const units = bins.reduce((s, b) => s + onHand(b), 0);
   return {
-    all, W, D: dockY + 9, demo, floor, cellOf, soonest, toPick, tasks, feed, queue, orders,
+    all, W, D: dockY + 9, demo, floor,
+    // Where the picture starts (and ⌂ goes back to): the racks, filling it.
+    home: { x: RX - 2, y: RY - 0.6, w: floor.W + 2.6, d: floor.D + 1.2, h: Math.max(1, ...floor.cells.map((c) => c.z)) + 0.8 },
+    cellOf, soonest, toPick, tasks, feed, queue, orders,
     stats: { used: stockedCells.length, total: floor.cells.length, units, onRoad: (data.trips || []).filter((x) => x.status === 'ON_ROAD' && here(x.branchId)).length, soon: lots.filter((l) => l.daysLeft <= 30).length },
     racks: { empty: emptyCells.length, nearFull: nearFull.length, expired, within30, first: lots.slice(0, 8).map((l) => ({ ...l, bin: binOf(l.key) })) },
     flows: stageCounts(orders),
@@ -357,8 +361,8 @@ function draw(box, data) {
   try { panelOn = localStorage.getItem('jsox-map-panel') !== 'off'; } catch { /* no storage */ }
   const layoutEl = h('div', { class: 'map-layout' });
   const stage = h('div', { class: 'map-stage wh3d' });
-  const scene = isoScene({
-    boxes: m.all(), W: m.W, D: m.D, height: 820, fillHeight: true, hint: t('whMapHint'),
+  const scene = scene3d({
+    boxes: m.all(), W: m.W, D: m.D, height: 820, fillHeight: true, home: m.home, hint: t('whMapHint'),
     onPick: (b) => { scene.select(b.id); showInfo(b); },
     extraTools: [{ label: '▤', act: 'iso-panel', title: t('whMapPanelToggle'), onClick: () => setPanel(!panelOn) }],
   });
@@ -476,7 +480,8 @@ function draw(box, data) {
   drawLayers();
   drawPanel();
   drawFeed();
-  mount(stage, h('div', { class: 'map-pic' }, scene.el, feedBox), layers);
+  // 3D turned off for this company: the panel stays, the picture's extras go.
+  mount(stage, h('div', { class: 'map-pic' }, scene.el, scene.off ? null : feedBox), scene.off ? null : layers);
   mount(box,
     m.demo ? h('div', { class: 'card map-demo' }, h('b', {}, t('whMapDemoTitle')), h('p', { class: 'muted', style: { margin: '4px 0 0' } }, t('whMapDemoHelp')),
       canMove() ? h('button', { style: { marginTop: '8px' }, onclick: () => go('stock') }, t('whStock')) : null) : null,

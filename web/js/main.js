@@ -14,6 +14,7 @@ import './strings-pro.js';
 import { appSwitcher, startApp, themeToggle } from './apps.js';
 import { isTillLocked, tillLockButton, toggleTillLock } from './tilllock.js';
 import { helpFab, stopTillHelp } from './pagehelp.js';
+import { menu3d } from './view3d.js';
 
 const app = document.getElementById('app');
 
@@ -21,7 +22,7 @@ const app = document.getElementById('app');
 const MENU = [
   { id: 'pos', icon: 'cart', label: 'navRegister', may: 'pos.sell', page: () => import('./register.js') },
   // The shop floor in 3D: tables, shelves and tills, as they are now.
-  { id: 'floor', icon: 'grid', label: 'floor3d', may: 'pos.reports', page: () => import('./floor3d.js') },
+  { id: 'floor', icon: 'grid', label: 'floor3d', may: 'pos.reports', when: menu3d, page: () => import('./floor3d.js') },
   // JSOX Every Data: what is shown inside follows the company's modules (dashboard.js).
   // Every Data is its own page now (/data/); the old address goes there.
   { id: 'cloud', icon: 'chart', label: 'navCloud', perm: ['POS_REPORTS', 'POS_MANAGE', 'RECORD_STOCK_MOVEMENTS', 'WH_PURCHASE', 'WH_APPROVE'], href: '/data/', hidden: true },
@@ -70,6 +71,7 @@ const MENU = [
  * pages that belong to every plan.
  */
 function allowed(item) {
+  if (item.when && !item.when()) return false;
   // A till locked to the register (tilllock.js) shows the register only.
   if (isTillLocked() && item.id !== 'pos') return false;
   if (item.may) return session.may(item.may);

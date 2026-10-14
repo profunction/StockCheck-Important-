@@ -121,7 +121,7 @@ let uids = 0;
  * (extra CSS class, e.g. 'pulse'), [kind] and [pick] (false: not
  * tappable). [onPick] gets the box tapped. Returns { el, draw(boxes, W, D), select(id) }.
  */
-export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null, hint = '', extraTools = [], fillHeight = false } = {}) {
+export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null, hint = '', extraTools = [], fillHeight = false, home = null } = {}) {
   const uid = `iso${++uids}`;
   let turns = 0;
   let zoom = 1;
@@ -143,12 +143,32 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   const fit = () => {
     const w = pic.clientWidth;
     if (!w || !base) return;
-    if (homeZoom == null) { homeZoom = w < 560 ? 1.9 : w < 900 ? 1.3 : 1; zoom = homeZoom; }
+    // Starting a little closer in than the whole site, so the racks and lorries read at a glance.
+    const first = homeZoom == null;
+    if (first) { homeZoom = w < 560 ? 1.9 : w < 900 ? 1.45 : 1.3; zoom = homeZoom; }
     if (el.classList.contains('full')) { pic.style.height = '100%'; return; }
-    const most = Math.min(height, Math.round((window.innerHeight || 800) * 0.78));
+    const screen = window.innerHeight || 800;
+    // Big: most of the screen (all of it below the page's title, beside a panel).
+    const most = fillHeight ? Math.max(460, screen - 120) : Math.max(Math.min(height, 900), Math.round(screen * 0.82));
     // [fillHeight]: as tall as the screen allows, beside a panel (the warehouse's command view).
-    const want = narrow() ? (window.innerHeight || 800) * 0.6 : fillHeight ? most : w * base.h / base.w;
-    pic.style.height = `${Math.round(Math.min(most, Math.max(320, want)))}px`;
+    const want = narrow() ? screen * 0.68 : fillHeight ? most : Math.max(screen * 0.66, w * base.h / base.w);
+    pic.style.height = `${Math.round(Math.min(most, Math.max(360, want)))}px`;
+    if (first && home) homeView();
+  };
+  // [home] ({x, y, w, d, h} on the floor): the part to fill the picture with at the
+  // start and on ⌂ -- the racks, say, rather than the whole yard round them.
+  const homeView = () => {
+    if (!home || !base) { zoom = homeZoom || 1; pan = [0, 0]; return; }
+    const r = turn(home, current.W, current.D, turns).box;
+    const corners = [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.d], [r.x + r.w, r.y + r.d]]
+      .flatMap(([a, c]) => [project(a, c, 0), project(a, c, home.h || 0)]);
+    const xs = corners.map((p) => p[0]);
+    const ys = corners.map((p) => p[1]);
+    const shape = (pic.clientWidth && pic.clientHeight) ? pic.clientWidth / pic.clientHeight : base.w / base.h;
+    const bw = Math.max(base.w, base.h * shape);
+    const bh = bw / shape;
+    zoom = Math.max(1, Math.min(4, bw / ((Math.max(...xs) - Math.min(...xs)) * 1.08), bh / ((Math.max(...ys) - Math.min(...ys)) * 1.08)));
+    pan = [(Math.max(...xs) + Math.min(...xs)) / 2 - (base.x + base.w / 2), (Math.max(...ys) + Math.min(...ys)) / 2 - (base.y + base.h / 2)];
   };
   if (typeof ResizeObserver === 'function') new ResizeObserver(() => view()).observe(pic);
   const view = () => {
@@ -418,7 +438,7 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     btn('⟳', 'iso-right', () => { turns = (turns + 1) % 4; pan = [0, 0]; draw(); }),
     btn('+', 'iso-in', () => setZoom(zoom * 1.35)),
     btn('−', 'iso-out', () => setZoom(zoom / 1.35)),
-    btn('⌂', 'iso-home', () => { zoom = homeZoom || 1; pan = [0, 0]; view(); }),
+    btn('⌂', 'iso-home', () => { homeView(); view(); }),
     ...extraTools.map((x) => btn(x.label, x.act, x.onClick, x.title)));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && el.classList.contains('full')) full(); });
   el.append(pic, tools);

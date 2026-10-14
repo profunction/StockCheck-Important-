@@ -14,6 +14,7 @@ import '../js/strings-pro.js';
 import { appSwitcher, startApp, themeToggle } from '../js/apps.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
+import { menu3d } from '../js/view3d.js';
 // The words of the Connections page (连接), for the menu entry that opens it.
 import '../js/connections.js';
 
@@ -27,7 +28,7 @@ const MENU = [
   { id: 'picking', icon: 'basket', label: 'whPicking', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./picking.js'), bottom: true },
   { id: 'outbound', icon: 'tag', label: 'whOutbound', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./outbound.js') },
   { id: 'docks', icon: 'truck', label: 'whDocks', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./docks.js') },
-  { id: 'map', icon: 'grid', label: 'whMap', perm: null, page: () => import('./map.js') },
+  { id: 'map', icon: 'grid', label: 'whMap', perm: null, when: menu3d, page: () => import('./map.js') },
   { id: 'adjust', icon: 'sliders', label: 'whAdjust', perm: 'RECORD_STOCK_MOVEMENTS', page: () => import('./adjust.js') },
   { id: 'stock', icon: 'barcode', label: 'whStock', perm: null, page: () => import('./stock.js'), bottom: true },
   { id: 'reserve', icon: 'lock', label: 'whReserve', perm: ['RECORD_STOCK_MOVEMENTS', 'POS_MANAGE'], page: () => import('./reserve.js') },
@@ -46,6 +47,7 @@ const MENU = [
 ];
 
 function allowed(item) {
+  if (item.when && !item.when()) return false;
   // [may] asks the module registry: module on and permission held.
   if (item.may) return session.may(item.may);
   if (!item.perm) return true;

@@ -6,7 +6,7 @@
  */
 import { h, mount } from '../js/dom.js';
 import { t } from '../js/i18n.js';
-import { isoScene } from '../js/iso.js';
+import { scene3d } from '../js/view3d.js';
 import { cityLayout } from '../js/town.js';
 import { nextStop, TRIP_LIVE, tripProgress } from '../js/tms.js';
 import { head, loadFleet, myPlaces, pill, placeName, stopTo, TRIP_TONE } from './common.js';
@@ -31,7 +31,7 @@ export function render(main) {
     });
     const { boxes, W, D } = cityLayout(all, moving);
     const info = h('div', { class: 'city-info' }, h('span', { class: 'muted' }, t('tmMapTap')));
-    const scene = isoScene({
+    const scene = scene3d({
       boxes, W, D, height: 680,
       onPick: (b) => {
         scene.select(b.id);

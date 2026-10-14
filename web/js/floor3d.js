@@ -10,7 +10,7 @@ import { dateTime, h, mount, timeOfDay } from './dom.js';
 import { t } from './i18n.js';
 import { formatQty, rm } from './money.js';
 import { onChange, session, ws } from './session.js';
-import { isoScene } from './iso.js';
+import { scene3d } from './view3d.js';
 import { shopLayout } from './town.js';
 import { layoutFor } from './modes.js';
 import { totalsFor } from './register.js';
@@ -80,7 +80,7 @@ export function render(main) {
     const boxes = layout.boxes.map((b) => (b.kitchen ? { ...b, label: t('floor3dKitchen') }
       : b.table?.order ? { ...b, label: `${b.label} · ${rm(billTotal(b.table.order))}` } : b));
     if (!scene) {
-      scene = isoScene({ boxes, W: layout.W, D: layout.D, height: 680, floorColor: fnb ? '#eadbc4' : null, onPick: (b) => { scene.select(b.id); show(b); } });
+      scene = scene3d({ boxes, W: layout.W, D: layout.D, height: 680, floorColor: fnb ? '#eadbc4' : null, onPick: (b) => { scene.select(b.id); show(b); } });
       mount(stage, scene.el, h('div', { class: 'map-legend' },
         fnb ? [h('span', {}, h('i', { style: { background: '#f59e0b' } }), t('floor3dBusyKey')), h('span', {}, h('i', { style: { background: '#9ccfb8' } }), t('floor3dFreeKey'))]
           : h('span', {}, t('floor3dShelfKey')),

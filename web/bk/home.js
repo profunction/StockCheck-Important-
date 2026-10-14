@@ -9,7 +9,7 @@ import { icon } from '../js/icons.js';
 import { aging, balanceOf, profitAndLoss, sums } from '../js/books.js';
 import { accounts, books, canPost, company, dayMs, monthStart, ymd } from './data.js';
 import { head, money, moneyAccount, rmText, table } from './common.js';
-import { isoScene } from '../js/iso.js';
+import { menu3d, scene3d } from '../js/view3d.js';
 import { moneyLayout } from '../js/town.js';
 import { go } from './main.js';
 
@@ -66,9 +66,11 @@ export function render(main) {
 
 /** The figures above as towers in 3D (town.js); a tap says what one is and opens its page. */
 function towers(figures) {
+  // 3D turned off for this company: no card, but for the owner (to turn it back on).
+  if (!menu3d()) return null;
   const info = h('div', { class: 'city-info' }, h('span', { class: 'muted' }, t('bk3dTap')));
   const { boxes, W, D } = moneyLayout(figures);
-  const scene = isoScene({
+  const scene = scene3d({
     boxes: boxes.map((b) => (b.fig ? { ...b, title: `${b.fig.label}: ${rmText(b.fig.sen)}` } : b)), W, D, height: 560,
     onPick: (b) => {
       const f = b.fig;
