@@ -145,20 +145,20 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
     W = Math.max(9, 1 + cols * pitch);
     // The kitchen along the back wall: the line, the stoves, the pass.
     boxes.push({ id: 'kitchen-floor', x: 0.3, y: 0.3, w: W - 0.6, d: 2.4, h: 0, color: '#d9dee3', pick: false },
-      { id: 'kitchen-line', x: 0.6, y: 0.4, w: W - 1.2, d: 0.8, h: 0.95, color: '#cbd5e1', pick: false, label: labels.kitchen || null, labelCls: 'small', kitchen: true },
-      { id: 'kitchen-pass', x: 0.6, y: 2.1, w: W - 1.2, d: 0.35, h: 1.0, color: '#94a3b8', pick: false, noShadow: true });
-    for (let k = 0; k * 1.6 + 1.4 < W - 1; k++) boxes.push({ id: `stove-${k}`, x: 1 + k * 1.6, y: 0.5, z: 0.95, w: 0.9, d: 0.6, h: 0.08, color: '#1f2937', pick: false, noShadow: true });
-    for (let k = 0; k < Math.min(3, cooking); k++) person(`cook-${k}`, 1.4 + k * 2.2, 1.5, 0, { color: '#f8fafc', anim: { path: [[0.6, 0], [0.6, 0], [0, 0]], dur: 5, ease: true, bob: true, begin: `${k * 0.7}s` } });
+      { id: 'kitchen-line', x: 0.6, y: 0.4, w: W - 1.2, d: 0.8, h: 0.95, color: '#cbd5e1', label: labels.kitchen || null, labelCls: 'small', kitchen: true },
+      { id: 'kitchen-pass', x: 0.6, y: 2.1, w: W - 1.2, d: 0.35, h: 1.0, color: '#94a3b8', kitchen: true, noShadow: true });
+    for (let k = 0; k * 1.6 + 1.4 < W - 1; k++) boxes.push({ id: `stove-${k}`, x: 1 + k * 1.6, y: 0.5, z: 0.95, w: 0.9, d: 0.6, h: 0.08, color: '#1f2937', kitchen: true, noShadow: true });
+    for (let k = 0; k < Math.min(3, cooking); k++) person(`cook-${k}`, 1.4 + k * 2.2, 1.5, 0, { color: '#f8fafc', pick: true, kitchen: true, anim: { path: [[0.6, 0], [0.6, 0], [0, 0]], dur: 5, ease: true, bob: true, begin: `${k * 0.7}s` } });
     tables.forEach((tb, i) => {
       const x = 0.9 + (i % cols) * pitch;
       const ty = 3.6 + Math.floor(i / cols) * pitch;
       const color = TABLE_COLOR[tb.state] || TABLE_COLOR.free;
-      boxes.push({ id: `table-${tb.name}-leg`, x: x + 0.45, y: ty + 0.45, w: 0.2, d: 0.2, h: 0.7, color: '#374151', pick: false, noShadow: true },
+      boxes.push({ id: `table-${tb.name}-leg`, x: x + 0.45, y: ty + 0.45, w: 0.2, d: 0.2, h: 0.7, color: '#374151', table: tb, noShadow: true },
         { id: `table-${tb.name}`, x, y: ty, z: 0.7, w: 1.1, d: 1.1, h: 0.07, color, label: tb.label || tb.name, labelCls: tb.state === 'free' ? 'small' : 'task', table: tb, cls: tb.state === 'free' ? '' : 'busy' });
       const seats = [[0.35, -0.55], [0.35, 1.25], [-0.55, 0.35], [1.25, 0.35]];
-      seats.forEach(([cx, cy], k) => boxes.push({ id: `chair-${tb.name}-${k}`, x: x + cx, y: ty + cy, w: 0.4, d: 0.4, h: 0.42, color: '#7c5a3a', pick: false }));
+      seats.forEach(([cx, cy], k) => boxes.push({ id: `chair-${tb.name}-${k}`, x: x + cx, y: ty + cy, w: 0.4, d: 0.4, h: 0.42, color: '#7c5a3a', table: tb }));
       if (tb.state !== 'free') {
-        seats.slice(0, Math.max(1, Math.min(4, tb.guests || 2))).forEach(([cx, cy], k) => person(`guest-${tb.name}-${k}`, x + cx + 0.03, ty + cy + 0.03, i + k, { z: 0.42, h: 0.42 }));
+        seats.slice(0, Math.max(1, Math.min(4, tb.guests || 2))).forEach(([cx, cy], k) => person(`guest-${tb.name}-${k}`, x + cx + 0.03, ty + cy + 0.03, i + k, { z: 0.42, h: 0.42, pick: true, table: tb }));
       }
     });
     y = 3.6 + Math.ceil(Math.max(1, tables.length) / cols) * pitch;
@@ -175,9 +175,9 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
     aisles.forEach((a, i) => {
       const x = 1.4 + (i % cols) * (GL + 1.8);
       const gy = 1.6 + Math.floor(i / cols) * 2.6;
-      boxes.push({ id: `gondola-${a.id}-base`, x, y: gy, w: GL, d: 0.9, h: 0.15, color: '#475569', pick: false },
+      boxes.push({ id: `gondola-${a.id}-base`, x, y: gy, w: GL, d: 0.9, h: 0.15, color: '#475569', aisle: a },
         { id: `gondola-${a.id}`, x, y: gy + 0.41, w: GL, d: 0.08, h: 1.45, color: '#e2e8f0', aisle: a, title: a.name, noShadow: true });
-      for (const z of [0.6, 1.05]) boxes.push({ id: `gondola-${a.id}-p${z}`, x, y: gy, z, w: GL, d: 0.9, h: 0.04, color: '#cbd5e1', pick: false, noShadow: true });
+      for (const z of [0.6, 1.05]) boxes.push({ id: `gondola-${a.id}-p${z}`, x, y: gy, z, w: GL, d: 0.9, h: 0.04, color: '#cbd5e1', aisle: a, noShadow: true });
       // Both sides stocked, level by level; a product shows as many facings as there is room for.
       const list = a.products.length ? a.products : [];
       for (let side = 0; side < 2; side++) {
@@ -187,7 +187,7 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
             if (!p || p.level === 'out') continue;
             const color = p.level === 'low' ? STOCK_COLOR.low : (p.color || a.color || PALETTE[i % PALETTE.length]);
             boxes.push({ id: `item-${a.id}-${side}-${lv}-${k}`, x: x + 0.04 + k * (GL / per), y: gy + (side ? 0.52 : 0.06), z: [0.15, 0.64, 1.09][lv], w: GL / per - 0.08, d: 0.32, h: 0.34,
-              color, aisle: a, title: `${a.name} · ${p.name}`, noShadow: true });
+              color, aisle: a, product: p, title: `${a.name} · ${p.name}`, noShadow: true });
           }
         }
       }
@@ -199,7 +199,7 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
     for (let k = 0; k < Math.min(6, shoppers); k++) {
       const row = k % Math.max(1, aisles.length);
       person(`shopper-${k}`, 1.8 + (k * 1.7) % (W - 3.5), 1.6 + Math.floor(row / cols) * 2.6 + 1.35, k,
-        { anim: { path: [[1.4, 0], [1.4, 0], [0, 0], [0, 0]], dur: 8 + k, ease: true, bob: true, begin: `${k * 0.9}s` } });
+        { pick: true, shopper: true, anim: { path: [[1.4, 0], [1.4, 0], [0, 0], [0, 0]], dur: 8 + k, ease: true, bob: true, begin: `${k * 0.9}s` } });
     }
   }
   // The front: a checkout per till (a counter, its belt and screen, and its
@@ -208,18 +208,18 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
   tillList.forEach((tl, i) => {
     const x = 0.9 + i * 1.9;
     boxes.push({ id: `till-${tl.name}`, x, y: fy, w: 0.8, d: 1.8, h: 0.85, color: '#e2e8f0', label: tl.name, labelCls: 'small', till: tl },
-      { id: `till-${tl.name}-belt`, x: x + 0.08, y: fy + 0.1, z: 0.85, w: 0.64, d: 1.1, h: 0.03, color: '#111827', pick: false, noShadow: true },
-      { id: `till-${tl.name}-screen`, x: x + 0.25, y: fy + 1.35, z: 0.85, w: 0.3, d: 0.06, h: 0.32, color: '#14a37f', pick: false, noShadow: true });
-    if (tl.sen > 0) person(`cashier-${i}`, x + 0.95, fy + 1.1, i + 3, { color: '#14a37f' });
+      { id: `till-${tl.name}-belt`, x: x + 0.08, y: fy + 0.1, z: 0.85, w: 0.64, d: 1.1, h: 0.03, color: '#111827', till: tl, noShadow: true },
+      { id: `till-${tl.name}-screen`, x: x + 0.25, y: fy + 1.35, z: 0.85, w: 0.3, d: 0.06, h: 0.32, color: '#14a37f', till: tl, noShadow: true });
+    if (tl.sen > 0) person(`cashier-${i}`, x + 0.95, fy + 1.1, i + 3, { color: '#14a37f', pick: true, till: tl });
   });
-  if (fnb) for (let k = 0; k < Math.min(5, takeaway); k++) person(`takeaway-${k}`, 0.9 + tillList.length * 1.9 + 0.3, fy + 0.2 + k * 0.6, k, { anim: { path: [[0, 0.05], [0, 0]], dur: 3, bob: true, begin: `${k * 0.4}s` } });
+  if (fnb) for (let k = 0; k < Math.min(5, takeaway); k++) person(`takeaway-${k}`, 0.9 + tillList.length * 1.9 + 0.3, fy + 0.2 + k * 0.6, k, { pick: true, takeaway: true, anim: { path: [[0, 0.05], [0, 0]], dur: 3, bob: true, begin: `${k * 0.4}s` } });
   W = Math.max(W, 1.6 + tillList.length * 1.9 + 2.4);
   const doorX = W - 3.2;
-  boxes.push({ id: 'mat', x: doorX, y: fy + 1.2, w: 2.4, d: 1.2, h: 0, color: '#334155', pick: false, label: labels.entrance || null, labelCls: 'floor', labelSize: 0.32 },
-    { id: 'door-a', x: doorX - 0.1, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', pick: false },
-    { id: 'door-b', x: doorX + 1.4, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', pick: false,
+  boxes.push({ id: 'mat', x: doorX, y: fy + 1.2, w: 2.4, d: 1.2, h: 0, color: '#334155', entrance: true, label: labels.entrance || null, labelCls: 'floor', labelSize: 0.32 },
+    { id: 'door-a', x: doorX - 0.1, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', entrance: true },
+    { id: 'door-b', x: doorX + 1.4, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', entrance: true,
       anim: { path: [[0.5, 0], [0.5, 0], [0, 0], [0, 0]], dur: 7, ease: true } });
-  if (!fnb) boxes.push({ id: 'baskets', x: doorX - 1.1, y: fy + 1.4, w: 0.5, d: 0.4, h: 0.5, color: '#e5484d', pick: false });
+  if (!fnb) boxes.push({ id: 'baskets', x: doorX - 1.1, y: fy + 1.4, w: 0.5, d: 0.4, h: 0.5, color: '#e5484d', entrance: true });
   return { boxes, W, D: fy + 2.9 };
 }
 

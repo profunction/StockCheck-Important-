@@ -1051,3 +1051,17 @@ body.iso-full-open { overflow: hidden; }
   .fl-layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
   .fl-panel { position: sticky; top: 12px; }
 }
+/* Send us your floor plan (view3d.js planOffer) */
+.v3d-plan { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line-strong, var(--line)); background: var(--surface); font-size: 14px; }
+.v3d-plan .btn { white-space: nowrap; }
+.iso-wrap.spinning .iso-btn[data-act="iso-spin"] { background: var(--brand, #0f766e); color: #fff; }
+/* The shop floor's panel, put away and brought back */
+.fl-layout { position: relative; }
+.fl-panel-top { margin-bottom: -6px; }
+.fl-panel-hide { min-width: 36px; min-height: 36px; padding: 0; font-size: 22px; line-height: 1; }
+.fl-panel-open { display: none; position: absolute; top: 12px; right: 12px; z-index: 3; min-height: 38px; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .1); }
+.fl-layout.panel-off { grid-template-columns: minmax(0, 1fr); }
+.fl-layout.panel-off .fl-panel { display: none; }
+.fl-layout.panel-off .fl-panel-open { display: inline-flex; }
+@media (max-width: 600px) { .fl-layout.panel-off .fl-panel-open { position: static; justify-self: end; } }
+.iso-btn[data-act="iso-spin"] { width: auto; min-width: 46px; padding: 0 8px; font-size: 12.5px; font-weight: 700; }

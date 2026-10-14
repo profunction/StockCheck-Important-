@@ -21,7 +21,7 @@ import { h, mount, timeOfDay } from './dom.js';
 import { addStrings, t } from './i18n.js';
 import { formatQty, rm } from './money.js';
 import { onChange, session, ws } from './session.js';
-import { night3d, scene3d } from './view3d.js';
+import { night3d, planOffer, scene3d } from './view3d.js';
 import { shopLayout, STOCK_COLOR, TABLE_COLOR } from './town.js';
 import { layoutFor } from './modes.js';
 import { totalsFor } from './register.js';
@@ -33,15 +33,21 @@ addStrings({
   en: { floor3dAvg: 'Average bill', floor3dShoppers: 'Customers, last 30 min', floor3dBest: 'Best sellers today', floor3dLowList: 'Running out', floor3dKitchenQ: 'Kitchen queue',
     floor3dTakeaway: 'Takeaway', floor3dEntrance: 'ENTRANCE', floor3dShelfN: 'Shelf', floor3dNothingYet: 'Nothing sold yet today.', floor3dAllStocked: 'Nothing running out.',
     floor3dNoQueue: 'Nothing cooking.', floor3dMin: '{n} min', floor3d_free: 'Free', floor3d_ordering: 'Ordering', floor3d_eating: 'Eating', floor3dStockOk: 'In stock', floor3dStockLow: 'Low', floor3dStockOut: 'Sold out (gap)',
-    floor3dNoProducts: 'Add products (and categories) and the shelves fill up here.', floor3dProducts: 'Products' },
+    floor3dNoProducts: 'Add products (and categories) and the shelves fill up here.', floor3dProducts: 'Products',
+    floor3dPrice: 'Price', floor3dOnHand: 'On hand', floor3dSoldToday: 'Sold today', floor3dRecent: 'Receipts in the last 30 min', floor3dToday: 'Receipts today', floor3dEntranceInfo: 'Entrance',
+    floor3dPanelHide: 'Hide the panel', floor3dPanelShow: 'Panel', floor3dNoTakeaway: 'Nobody waiting for takeaway.' },
   zh: { floor3dAvg: '平均每单', floor3dShoppers: '最近 30 分钟客人', floor3dBest: '今天最好卖', floor3dLowList: '快卖完', floor3dKitchenQ: '厨房排队',
     floor3dTakeaway: '外卖', floor3dEntrance: '入口', floor3dShelfN: '货架', floor3dNothingYet: '今天还没有卖。', floor3dAllStocked: '没有快卖完的。',
     floor3dNoQueue: '厨房没有在做的单。', floor3dMin: '{n} 分钟', floor3d_free: '空桌', floor3d_ordering: '点餐中', floor3d_eating: '用餐中', floor3dStockOk: '有货', floor3dStockLow: '快没了', floor3dStockOut: '卖完（空位）',
-    floor3dNoProducts: '加了商品（和类别）以后，货架就会摆满。', floor3dProducts: '商品' },
+    floor3dNoProducts: '加了商品（和类别）以后，货架就会摆满。', floor3dProducts: '商品',
+    floor3dPrice: '价钱', floor3dOnHand: '库存', floor3dSoldToday: '今天卖了', floor3dRecent: '最近 30 分钟的单', floor3dToday: '今天的单', floor3dEntranceInfo: '入口',
+    floor3dPanelHide: '收起侧栏', floor3dPanelShow: '打开侧栏', floor3dNoTakeaway: '没有人在等外卖。' },
   ms: { floor3dAvg: 'Purata bil', floor3dShoppers: 'Pelanggan, 30 min lalu', floor3dBest: 'Paling laris hari ini', floor3dLowList: 'Hampir habis', floor3dKitchenQ: 'Giliran dapur',
     floor3dTakeaway: 'Bungkus', floor3dEntrance: 'PINTU MASUK', floor3dShelfN: 'Rak', floor3dNothingYet: 'Belum ada jualan hari ini.', floor3dAllStocked: 'Tiada yang hampir habis.',
     floor3dNoQueue: 'Tiada yang dimasak.', floor3dMin: '{n} min', floor3d_free: 'Kosong', floor3d_ordering: 'Memesan', floor3d_eating: 'Makan', floor3dStockOk: 'Ada stok', floor3dStockLow: 'Rendah', floor3dStockOut: 'Habis (kosong)',
-    floor3dNoProducts: 'Tambah produk (dan kategori) dan rak akan penuh di sini.', floor3dProducts: 'Produk' },
+    floor3dNoProducts: 'Tambah produk (dan kategori) dan rak akan penuh di sini.', floor3dProducts: 'Produk',
+    floor3dPrice: 'Harga', floor3dOnHand: 'Stok', floor3dSoldToday: 'Terjual hari ini', floor3dRecent: 'Resit 30 min lalu', floor3dToday: 'Resit hari ini', floor3dEntranceInfo: 'Pintu masuk',
+    floor3dPanelHide: 'Sembunyi panel', floor3dPanelShow: 'Panel', floor3dNoTakeaway: 'Tiada yang menunggu bungkus.' },
 });
 
 const inList = () => [...session.branchIds, ''].slice(0, 30);
@@ -86,15 +92,30 @@ export function render(main) {
   const stage = h('div', { class: 'map-stage' }, h('p', { class: 'muted', style: { padding: '16px' } }, t('loading')));
   const info = h('div', { class: 'map-info', 'data-card': 'info' }, h('p', { class: 'muted', style: { margin: 0 } }, t('floor3dTap')));
   const panelBody = h('div', { class: 'fl-panel-body' });
-  const panel = h('aside', { class: 'card fl-panel' }, info, panelBody);
+  // The panel can be put away, and stays away next time (this screen only).
+  const layoutEl = h('div', { class: 'fl-layout' });
+  const setPanel = (on) => {
+    try { localStorage.setItem('jsox-floor-panel', on ? 'on' : 'off'); } catch { /* no storage */ }
+    layoutEl.classList.toggle('panel-off', !on);
+  };
+  const panel = h('aside', { class: 'card fl-panel' },
+    h('div', { class: 'row fl-panel-top' }, h('span', { class: 'grow' }), h('button', { class: 'ghost fl-panel-hide', 'data-act': 'panel-hide', title: t('floor3dPanelHide'), 'aria-label': t('floor3dPanelHide'), onclick: () => setPanel(false) }, '›')),
+    info, panelBody);
+  const reopen = h('button', { class: 'fl-panel-open', 'data-act': 'panel-show', onclick: () => setPanel(true) }, `‹ ${t('floor3dPanelShow')}`);
+  mount(layoutEl, stage, panel, reopen);
+  let panelOn = true;
+  try { panelOn = localStorage.getItem('jsox-floor-panel') !== 'off'; } catch { /* no storage */ }
+  setPanel(panelOn);
   mount(main,
     h('div', { class: 'page-head' }, menuButton(), h('h1', {}, t('floor3d')), h('span', { class: 'grow' }), h('span', { class: 'muted' }, session.branchName())),
-    lead, h('div', { class: 'fl-layout' }, stage, panel));
+    lead, layoutEl, planOffer());
 
   let sales = [];
   let orders = [];
   let levels = null;
   let scene = null;
+  // What the last drawing knew, for a tap on anything in it.
+  let now = { sold: new Map(), cooking: [], takeaway: [], recent: [] };
   const draw = () => {
     const nowFnb = layoutFor(session.settings) === 'fnb';
     if (nowFnb !== fnb) { fnb = nowFnb; scene = null; lead.textContent = t(fnb ? 'floor3dLeadFnb' : 'floor3dLeadShop'); }
@@ -137,7 +158,9 @@ export function render(main) {
     const cookingOrders = orders.filter((o) => (o.lines || []).some((l) => l.sent));
     const takeaway = orders.filter((o) => !o.table).length;
     const halfHour = Date.now() - 30 * 60_000;
-    const shoppers = sales.filter((s) => (s.createdAt || 0) >= halfHour).length;
+    const recent = sales.filter((s) => (s.createdAt || 0) >= halfHour);
+    const shoppers = recent.length;
+    now = { sold, cooking: cookingOrders, takeaway: orders.filter((o) => !o.table), recent };
     const layout = shopLayout({
       fnb, aisles, tables, tills: [...tills.values()], shoppers, cooking: cookingOrders.length, takeaway,
       labels: { kitchen: t('floor3dKitchen'), entrance: t('floor3dEntrance') },
@@ -191,6 +214,27 @@ export function render(main) {
           h('span', {}, t('floor3dSince'), h('b', {}, timeOfDay(o.openedAt || o.createdAt || o.updatedAt)))),
         h('div', { class: 'muted' }, (o.lines || []).slice(0, 6).map((l) => `${formatQty(l.qtyMilli)} × ${l.name}`).join(' · '))]
         : h('p', { class: 'muted', style: { margin: 0 } }, t('floor3dFree')));
+    } else if (b.product) {
+      const p = session.find(b.product.barcode) || {};
+      const l = levels?.get(b.product.barcode);
+      const sold = now.sold.get(b.product.name);
+      mount(info, h('h3', {}, b.product.name), h('div', { class: 'city-figs' },
+        p.priceSen != null ? h('span', {}, t('floor3dPrice'), h('b', {}, rm(p.priceSen))) : null,
+        l ? h('span', {}, t('floor3dOnHand'), h('b', { style: b.product.level === 'ok' ? null : { color: STOCK_COLOR[b.product.level] } }, formatQty(Math.max(0, l.onHand)))) : null,
+        h('span', {}, t('floor3dSoldToday'), h('b', {}, sold ? `${formatQty(sold.qtyMilli)} · ${rm(sold.sen)}` : '0'))),
+      h('div', { class: 'muted' }, `${b.aisle?.name || ''} · ${b.product.barcode || ''}`));
+    } else if (b.kitchen) {
+      mount(info, h('h3', {}, `${t('floor3dKitchenQ')} · ${now.cooking.length}`), now.cooking.length
+        ? now.cooking.map((o) => h('div', { class: 'fl-row' }, h('b', {}, o.table || t('floor3dTakeaway')), h('span', { class: 'grow muted' }, (o.lines || []).filter((l) => l.sent).map((l) => `${formatQty(l.qtyMilli)} × ${l.name}`).join(', '))))
+        : h('p', { class: 'muted', style: { margin: 0 } }, t('floor3dNoQueue')));
+    } else if (b.takeaway) {
+      mount(info, h('h3', {}, `${t('floor3dTakeaway')} · ${now.takeaway.length}`), now.takeaway.length
+        ? now.takeaway.map((o) => h('div', { class: 'fl-row' }, h('span', { class: 'grow' }, (o.lines || []).slice(0, 3).map((l) => l.name).join(', ')), h('b', {}, rm(billTotal(o)))))
+        : h('p', { class: 'muted', style: { margin: 0 } }, t('floor3dNoTakeaway')));
+    } else if (b.shopper || b.entrance) {
+      mount(info, h('h3', {}, b.entrance ? t('floor3dEntranceInfo') : t('floor3dShoppers')), h('div', { class: 'city-figs' },
+        h('span', {}, t('floor3dRecent'), h('b', {}, String(now.recent.length))), h('span', {}, t('floor3dToday'), h('b', {}, String(sales.length)))),
+      now.recent.slice(0, 4).map((x) => h('div', { class: 'fl-row' }, h('span', { class: 'grow muted' }, timeOfDay(x.createdAt)), h('b', {}, rm(x.totalSen || 0)))));
     } else if (b.aisle) {
       const a = b.aisle;
       mount(info, h('h3', {}, a.name), h('div', { class: 'city-figs' },

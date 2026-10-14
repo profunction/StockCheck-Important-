@@ -56,4 +56,23 @@ await step('POS shop floor, shop: shelves stocked with the products, signs, chec
   await shot('town-4-shop');
 });
 
+await step('the shop floor: tap a product, the doors; the panel put away and back; the floor plan offer', async () => {
+  const tap = (sel) => page.evaluate((x) => document.querySelector(`${x} polygon:last-of-type`).dispatchEvent(new MouseEvent('click', { bubbles: true })), sel);
+  await tap('.iso-box[data-id^="item-"]');
+  await page.waitForSelector('.map-info:has-text("今天卖了")');
+  await tap('.iso-box[data-id="door-a"]');
+  await page.waitForSelector('.map-info h3:has-text("入口")');
+  await page.click('button[data-act="panel-hide"]');
+  await page.waitForSelector('.fl-layout.panel-off');
+  await page.click('button[data-act="panel-show"]');
+  await page.waitForSelector('.fl-layout:not(.panel-off) .fl-panel');
+  await page.waitForSelector('[data-card="plan-offer"] a[href^="https://wa.me/"]');
+});
+
+await step('a 3D link opens it full screen, turning on a TV', async () => {
+  await page.goto(`${base}/pos/?view3d=full&spin#/floor`);
+  await page.waitForSelector('.iso-wrap.full.spinning');
+  await shot('town-5-tv');
+});
+
 process.exit(await s.done() ? 1 : 0);

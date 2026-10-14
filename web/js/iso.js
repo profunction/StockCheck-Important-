@@ -17,8 +17,19 @@
 const C = Math.cos(Math.PI / 6);
 const S = 0.5;
 
+// A turn of less than a quarter, on top of turn()'s quarter turns: the picture
+// can face any way round. Set only while one picture draws (withSpin).
+let spin = null;
+/** Runs [fn] with the floor turned [rad] about (cx, cy); back to none after. */
+export function withSpin(rad, cx, cy, fn) {
+  const was = spin;
+  spin = rad ? { c: Math.cos(rad), s: Math.sin(rad), cx, cy } : null;
+  try { return fn(); } finally { spin = was; }
+}
+const spun = (x, y) => (spin ? [spin.cx + (x - spin.cx) * spin.c - (y - spin.cy) * spin.s, spin.cy + (x - spin.cx) * spin.s + (y - spin.cy) * spin.c] : [x, y]);
+
 /** A world point on the screen. */
-export const project = (x, y, z = 0) => [(x - y) * C, (x + y) * S - z];
+export const project = (x0, y0, z = 0) => { const [x, y] = spun(x0, y0); return [(x - y) * C, (x + y) * S - z]; };
 
 /**
  * [box] after [turns] quarter turns of a [W] x [D] floor, with the floor's
@@ -44,7 +55,7 @@ export function turnVector([dx, dy], turns = 0) {
 
 /** Back to front, then bottom to top: the order a painter would lay them down. */
 export function paintOrder(boxes) {
-  const depth = (b) => b.x + (b.w || 0) / 2 + b.y + (b.d || 0) / 2;
+  const depth = (b) => { const [x, y] = spun(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2); return x + y; };
   return [...boxes].sort((a, b) => (a.h === 0) !== (b.h === 0) ? (a.h === 0 ? -1 : 1) : depth(a) - depth(b) || (a.z || 0) - (b.z || 0));
 }
 
@@ -123,7 +134,18 @@ let uids = 0;
  */
 export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 560, floor = true, floorColor = null, hint = '', extraTools = [], fillHeight = false, home = null } = {}) {
   const uid = `iso${++uids}`;
+  // Which way round, in degrees: quarter turns (turn()) and what is left over (withSpin).
+  let angle = 0;
   let turns = 0;
+  let fine = 0;
+  const setAngle = (a) => {
+    angle = ((a % 360) + 360) % 360;
+    const q = Math.round(angle / 90);
+    turns = ((q % 4) + 4) % 4;
+    fine = (angle - q * 90) * Math.PI / 180;
+  };
+  let floorSize = { W, D };
+  const spinning = (fn) => withSpin(fine, floorSize.W / 2, floorSize.D / 2, fn);
   let zoom = 1;
   let pan = [0, 0];
   let selected = null;
@@ -153,7 +175,7 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     // [fillHeight]: as tall as the screen allows, beside a panel (the warehouse's command view).
     const want = narrow() ? screen * 0.68 : fillHeight ? most : Math.max(screen * 0.66, w * base.h / base.w);
     pic.style.height = `${Math.round(Math.min(most, Math.max(360, want)))}px`;
-    if (first && home) homeView();
+    if (first && home) spinning(homeView);
   };
   // [home] ({x, y, w, d, h} on the floor): the part to fill the picture with at the
   // start and on ⌂ -- the racks, say, rather than the whole yard round them.
@@ -255,6 +277,15 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     }
     if (a.bob) add('0,0;0,-0.06;0,0', 0.6);
   };
+  // Words painted on the floor lie along the room: its axes as the screen sees them now.
+  const floorMatrix = () => {
+    const o = project(0, 0, 0);
+    const ax = (x, y) => { const p = project(x, y, 0); return [p[0] - o[0], p[1] - o[1]]; };
+    const [a, b] = turns % 2 ? ax(0, -1) : ax(1, 0);
+    const [c, d] = turns % 2 ? ax(1, 0) : ax(0, 1);
+    return `matrix(${a.toFixed(3)} ${b.toFixed(3)} ${c.toFixed(3)} ${d.toFixed(3)} 0 0)`;
+  };
+  let keepBase = false;
   const draw = (list = current.boxes, w0 = current.W, d0 = current.D) => {
     current = { boxes: list, W: w0, D: d0 };
     // Rising from the floor, once, when the picture first appears.
@@ -263,6 +294,8 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     risen = 0;
     const turned = list.map((b) => ({ ...turn(b, w0, d0, turns).box, src: b }));
     const { W: tw, D: td } = turn({ x: 0, y: 0 }, w0, d0, turns);
+    floorSize = { W: tw, D: td };
+    spinning(() => {
     const slab = { x: -0.8, y: -0.8, z: -0.35, w: tw + 1.6, d: td + 1.6, h: 0.35 };
     const shadows = [];
     const kids = [];
@@ -308,7 +341,7 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
         if (src.label) {
           const [lx, ly] = project(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2, 0);
           const size = src.labelSize || 0.42;
-          const flip = turns % 2 ? 'matrix(0.866 -0.5 0.866 0.5 0 0)' : 'matrix(0.866 0.5 -0.866 0.5 0 0)';
+          const flip = floorMatrix();
           labels.push(svg('g', { transform: `translate(${lx.toFixed(3)} ${ly.toFixed(3)})` },
             svg('text', { class: 'iso-floortext', transform: flip, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': size.toFixed(3) }, String(src.label))));
         }
@@ -339,7 +372,7 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
         // Painted on the floor, along the room, like the words on a warehouse floor.
         const [lx, ly] = project(b.x + (b.w || 0) / 2, b.y + (b.d || 0) / 2, 0);
         const size = src.labelSize || 0.42;
-        const flip = turns % 2 ? 'matrix(0.866 -0.5 0.866 0.5 0 0)' : 'matrix(0.866 0.5 -0.866 0.5 0 0)';
+        const flip = floorMatrix();
         labels.push(svg('g', { transform: `translate(${lx.toFixed(3)} ${ly.toFixed(3)})` },
           svg('text', { class: 'iso-floortext', transform: flip, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': size.toFixed(3) }, String(src.label))));
       } else if (src.label) {
@@ -356,8 +389,10 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     }
     pic.replaceChildren(defs(uid), ...ground, svg('g', { filter: `url(#${uid}-soft)` }, shadows), ...kids, svg('g', { class: 'iso-labels' }, labels));
     const pad = 0.35;
-    base = Number.isFinite(minX) ? { x: minX - pad, y: minY - pad, w: maxX - minX + pad * 2, h: maxY - minY + pad * 2 } : { x: 0, y: 0, w: 10, h: 10 };
+    // The frame stays the size of the whole floor at any angle, so turning does not jump about.
+    if (!base || !keepBase) base = Number.isFinite(minX) ? { x: minX - pad, y: minY - pad, w: maxX - minX + pad * 2, h: maxY - minY + pad * 2 } : { x: 0, y: 0, w: 10, h: 10 };
     view();
+    });
   };
 
   // Drag to move, two fingers to zoom; a tap that moved a little is still a tap.
@@ -369,11 +404,13 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   let turning = null;
   pic.addEventListener('contextmenu', (e) => e.preventDefault());
   pic.addEventListener('pointerdown', (e) => {
-    if (e.button === 2) { turning = { x: e.clientX }; dragged = true; return; }
+    // Right-drag, or shift-drag, turns it round, any way.
+    if (e.button === 2 || e.shiftKey) { turning = { x: e.clientX, angle }; dragged = true; stopSpin(); return; }
     fingers.set(e.pointerId, [e.clientX, e.clientY]);
     if (fingers.size === 2) {
       const [a, b] = [...fingers.values()];
-      pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, zoom };
+      pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, zoom, twist: Math.atan2(b[1] - a[1], b[0] - a[0]), angle };
+      stopSpin();
       dragged = true;
       return;
     }
@@ -382,14 +419,16 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   });
   pic.addEventListener('pointermove', (e) => {
     if (turning) {
-      const dx = e.clientX - turning.x;
-      if (Math.abs(dx) > 90) { turns = (turns + (dx > 0 ? 1 : 3)) % 4; turning.x = e.clientX; pan = [0, 0]; draw(); }
+      turnTo(turning.angle + (e.clientX - turning.x) * 0.45);
       return;
     }
     if (fingers.has(e.pointerId)) fingers.set(e.pointerId, [e.clientX, e.clientY]);
     if (pinch && fingers.size === 2) {
       const [a, b] = [...fingers.values()];
       setZoom(pinch.zoom * (Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d));
+      // Two fingers turning: the picture turns with them.
+      const tw = (Math.atan2(b[1] - a[1], b[0] - a[0]) - pinch.twist) * 180 / Math.PI;
+      if (Math.abs(tw) > 4) turnTo(pinch.angle + tw);
       return;
     }
     if (!start || !base) return;
@@ -412,6 +451,27 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   pic.addEventListener('wheel', (e) => { e.preventDefault(); setZoom(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15)); }, { passive: false });
 
   const setZoom = (z) => { zoom = Math.max(0.7, Math.min(8, z)); view(); };
+  // Turning, a frame at a time so a big picture keeps up.
+  let wanted = null;
+  const turnTo = (a) => {
+    wanted = a;
+    if (turnTo.busy) return;
+    turnTo.busy = true;
+    requestAnimationFrame(() => { turnTo.busy = false; setAngle(wanted); keepBase = true; draw(); keepBase = false; });
+  };
+  const glide = (by) => {
+    const from = angle;
+    const t0 = performance.now();
+    const step = (now) => { const k = Math.min(1, (now - t0) / 260); turnTo(from + by * (1 - (1 - k) * (1 - k))); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  };
+  // All the way round, slowly, until stopped (a showroom screen).
+  let spinTimer = null;
+  const startSpin = () => {
+    el.classList.add('spinning');
+    spinTimer = setInterval(() => { if (!document.hidden && el.isConnected) turnTo(angle + 1.5); else if (!el.isConnected) stopSpin(); }, 90);
+  };
+  const stopSpin = () => { if (spinTimer) clearInterval(spinTimer); spinTimer = null; el.classList.remove('spinning'); };
   const btn = (label, act, fn, title = act) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -423,8 +483,8 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     b.onclick = fn;
     return b;
   };
-  const full = () => {
-    el.classList.toggle('full');
+  const full = (on) => {
+    el.classList.toggle('full', typeof on === 'boolean' ? on : undefined);
     document.body.classList.toggle('iso-full-open', el.classList.contains('full'));
     pan = [0, 0];
     setTimeout(view, 30);
@@ -434,11 +494,12 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   if (hint) tools.append(Object.assign(document.createElement('span'), { className: 'iso-hint', textContent: hint }));
   tools.append(
     btn('⛶', 'iso-full', full, 'Full screen'),
-    btn('⟲', 'iso-left', () => { turns = (turns + 3) % 4; pan = [0, 0]; draw(); }),
-    btn('⟳', 'iso-right', () => { turns = (turns + 1) % 4; pan = [0, 0]; draw(); }),
+    btn('⟲', 'iso-left', () => { stopSpin(); glide(-30); }),
+    btn('⟳', 'iso-right', () => { stopSpin(); glide(30); }),
+    btn('360°', 'iso-spin', () => (spinTimer ? stopSpin() : startSpin()), 'Turn all the way round'),
     btn('+', 'iso-in', () => setZoom(zoom * 1.35)),
     btn('−', 'iso-out', () => setZoom(zoom / 1.35)),
-    btn('⌂', 'iso-home', () => { homeView(); view(); }),
+    btn('⌂', 'iso-home', () => { spinning(homeView); view(); }),
     ...extraTools.map((x) => btn(x.label, x.act, x.onClick, x.title)));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && el.classList.contains('full')) full(); });
   el.append(pic, tools);
@@ -446,6 +507,8 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
   return {
     el,
     draw,
+    full: () => full(true),
+    spin: startSpin,
     select: (id) => { selected = id; draw(); },
     /** Brings box [id] to the middle, closer in. */
     focus: (id, z = 2.4) => {

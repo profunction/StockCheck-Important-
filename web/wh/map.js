@@ -26,7 +26,7 @@ import { t } from '../js/i18n.js';
 import { formatQty } from '../js/money.js';
 import { session } from '../js/session.js';
 import { shade } from '../js/iso.js';
-import { night3d, scene3d } from '../js/view3d.js';
+import { night3d, planOffer, scene3d } from '../js/view3d.js';
 import { lorryBoxes } from '../js/town.js';
 import { layout, parseBin } from '../js/warehouse3d.js';
 import { lineDone } from '../js/picking.js';
@@ -198,7 +198,7 @@ function build(data) {
   const docksIn = Math.max(2, Math.min(4, arriving.length));
   const PAL = PALETTES[night3d() ? 'night' : 'day'];
   const boxes = [];
-  const tile = (id, x, y, w, d, color) => boxes.push({ id, x, y, w, d, h: 0, color, pick: false });
+  const tile = (id, x, y, w, d, color, extra = null) => boxes.push({ id, x, y, w, d, h: 0, color, pick: !!extra, ...(extra || {}) });
   const words = (id, x, y, w, d, label, size = 0.5) => boxes.push({ id, x, y, w, d, h: 0, color: 'transparent', pick: false, label, labelCls: 'floor', labelSize: size, noFill: true });
 
   // The yard: the docked lorries, a road along the front, then a queue lane behind each dock.
@@ -208,15 +208,17 @@ function build(data) {
   tile('floor-in', 0.2, 0.2, W - 0.4, dockY + 1.2, PAL.floor);
   tile('yard', 0.2, dockY + 1.5, W - 0.4, laneY + LANE_D + 0.6 - dockY - 1.5, PAL.yard);
   const half = (RX + RW - 0.6) / 2;
-  tile('z-staging', 0.6, ZONE_Y, half, ZONE_D, PAL.staging);
+  tile('z-staging', 0.6, ZONE_Y, half, ZONE_D, PAL.staging, { zone: 'staging' });
   words('w-staging', 0.6, ZONE_Y + 0.2, half, 0.6, t('whMapStaging'));
-  tile('z-receiving', 0.6 + half + 0.4, ZONE_Y, half - 0.4, ZONE_D, PAL.receiving);
+  tile('z-receiving', 0.6 + half + 0.4, ZONE_Y, half - 0.4, ZONE_D, PAL.receiving, { zone: 'receiving' });
   words('w-receiving', 0.6 + half + 0.4, ZONE_Y + 0.2, half - 0.4, 0.6, t('whMapReceiving'));
   // The staging lanes, S1..S6, with a carton stack for each packed order.
   const laneW = half / LANES.length;
   LANES.forEach((l, i) => {
     const x = 0.6 + i * laneW;
     if (i) boxes.push({ id: `lane-line-${l}`, x, y: ZONE_Y + 0.9, w: 0.04, d: ZONE_D - 1, h: 0, color: PAL.laneSep, pick: false });
+    // The lane itself can be tapped: what waits in it.
+    tile(`lane-${l}-floor`, x + 0.05, ZONE_Y + 0.9, laneW - 0.1, ZONE_D - 1, PAL.staging, { laneInfo: { lane: l, orders: lanes.get(l) } });
     words(`lane-${l}`, x, ZONE_Y + ZONE_D - 0.6, laneW, 0.5, l, 0.32);
     lanes.get(l).slice(0, 3).forEach((o, k) => {
       const bx = x + 0.12 + (k % 2) * 0.42;
@@ -228,23 +230,23 @@ function build(data) {
     });
   });
   // To the side: the packing tables, QC and returns, the forklifts' charging.
-  tile('z-packing', SIDE, RY, 4.6, 4.4, PAL.packing);
+  tile('z-packing', SIDE, RY, 4.6, 4.4, PAL.packing, { zone: 'packing' });
   words('w-packing', SIDE, RY + 0.1, 4.6, 0.6, t('whMapPacking'));
   [[0.5, 1.2], [2.6, 1.2], [0.5, 2.9], [2.6, 2.9]].forEach(([dx, dy], i) => {
     const o = atTable[i];
-    boxes.push({ id: `pack-${i}`, x: SIDE + dx, y: RY + dy, w: 1.4, d: 0.8, h: 0.55, color: o ? '#a78bfa' : PAL.table, pick: !!o, order: o,
+    boxes.push({ id: `pack-${i}`, x: SIDE + dx, y: RY + dy, w: 1.4, d: 0.8, h: 0.55, color: o ? '#a78bfa' : PAL.table, packTable: { station: STATIONS[i], order: o }, order: o,
       label: o ? `P${i + 1} · ${o.ref}` : `P${i + 1}`, labelCls: o ? 'task' : 'small', title: o ? `${o.ref} · ${t('ob_PACKING')}` : `P${i + 1}` });
     boxes.push({ id: `pack-${i}-box`, x: SIDE + dx + 0.2, y: RY + dy + 0.15, z: 0.55, w: 0.45, d: 0.4, h: 0.3, color: COLOR.kraft, kind: 'carton', pick: false, noShadow: true,
       ...(o ? { anim: { path: [[0, 0], [0.5, 0], [0.5, 0], [0, 0]], dur: 4, ease: true, begin: `${i * 0.6}s` } } : {}) });
   });
-  tile('z-qc', SIDE, RY + 5, 4.6, 3, PAL.qc);
+  tile('z-qc', SIDE, RY + 5, 4.6, 3, PAL.qc, { zone: 'qc' });
   words('w-qc', SIDE, RY + 5.1, 4.6, 0.6, t('whMapQc'));
   boxes.push({ id: 'qc-1', x: SIDE + 0.8, y: RY + 6.2, w: 1, d: 1, h: 0.7, color: PAL.qcBox, pick: false }, { id: 'qc-2', x: SIDE + 2.4, y: RY + 6.4, w: 0.8, d: 0.8, h: 0.5, color: PAL.qcBox, pick: false });
-  tile('z-charge', SIDE, RY + 8.6, 4.6, 2.6, PAL.charge);
+  tile('z-charge', SIDE, RY + 8.6, 4.6, 2.6, PAL.charge, { zone: 'charge' });
   words('w-charge', SIDE, RY + 8.7, 4.6, 0.6, t('whMapCharging'));
   // A forklift, out of its charging bay and back.
   const forkMove = { path: [[-1.6, 0], [-1.6, 0], [-1.6, -3.2], [-1.6, -3.2], [-1.6, 0], [0, 0], [0, 0]], dur: 16, ease: true };
-  boxes.push({ id: 'fork-body', x: SIDE + 1, y: RY + 9.7, w: 0.9, d: 1.2, h: 0.6, color: '#f59e0b', pick: false, anim: forkMove },
+  boxes.push({ id: 'fork-body', x: SIDE + 1, y: RY + 9.7, w: 0.9, d: 1.2, h: 0.6, color: '#f59e0b', zone: 'charge', anim: forkMove },
     { id: 'fork-mast', x: SIDE + 1.05, y: RY + 9.55, w: 0.8, d: 0.12, h: 1.5, color: '#334155', pick: false, noShadow: true, anim: forkMove },
     { id: 'fork-tine', x: SIDE + 1.15, y: RY + 9, w: 0.6, d: 0.55, h: 0.05, color: '#334155', pick: false, noShadow: true, anim: forkMove },
     { id: 'fork-load', x: SIDE + 1.2, y: RY + 9.05, z: 0.05, w: 0.5, d: 0.45, h: 0.35, color: COLOR.kraft, kind: 'carton', pick: false, noShadow: true, anim: forkMove },
@@ -263,7 +265,7 @@ function build(data) {
   const dock = (i, kind, job) => {
     const x = dockAt(i, kind);
     const name = kind === 'OUT' ? OUT_DOCKS[i] : `IN-${i + 1}`;
-    boxes.push({ id: `dock-${name}`, x, y: dockY, z: 0, w: 1.6, d: 1.2, h: 0, color: kind === 'IN' ? PAL.dockIn : PAL.dockOut, label: name, labelCls: 'dock', pick: false });
+    boxes.push({ id: `dock-${name}`, x, y: dockY, z: 0, w: 1.6, d: 1.2, h: 0, color: kind === 'IN' ? PAL.dockIn : PAL.dockOut, label: name, labelCls: 'dock', dockInfo: { name, kind, job } });
     boxes.push({ id: `bump-${name}`, x: x + 0.1, y: dockY + 1.15, w: 1.4, d: 0.1, h: 0.22, color: '#facc15', pick: false, noShadow: true });
     if (!job) return;
     lorry(job, kind, x + 0.35, dockY + 1.4);
@@ -373,7 +375,7 @@ function build(data) {
   });
   const units = bins.reduce((s, b) => s + onHand(b), 0);
   return {
-    all, W, D: laneY + LANE_D + 0.8, demo, floor,
+    all, W, D: laneY + LANE_D + 0.8, demo, floor, arriving, packing, lanes,
     // Where the picture starts (and ⌂ goes back to): the racks, filling it.
     home: { x: RX - 2, y: RY - 0.6, w: floor.W + 2.6, d: floor.D + 1.2, h: Math.max(1, ...floor.cells.map((c) => c.z)) + 0.8 },
     cellOf, soonest, toPick, tasks, feed, queue, orders,
@@ -423,6 +425,36 @@ function draw(box, data) {
       const o = b.order;
       mount(info, h('h3', {}, `${o.urgent ? '⚡ ' : ''}${o.ref}`), h('p', { class: 'muted' }, `${t(`ob_${o.stage}`)}${o.pack?.lane ? ` · ${o.pack.lane}` : ''}${o.pack?.cartons ? ` · 📦 ${o.pack.cartons}` : ''}`),
         h('button', { class: 'primary', onclick: () => go('outbound', o.key) }, t('whMapOpen')));
+      return;
+    }
+    if (b.packTable) {
+      const { station, order: o } = b.packTable;
+      mount(info, h('h3', {}, `${t('whStation')} ${station}`), o
+        ? [h('p', { class: 'muted' }, `${o.urgent ? '⚡ ' : ''}${o.ref} · ${o.lines.length} ${t('whLines')}`), h('button', { class: 'primary', onclick: () => go('outbound', o.key) }, t('whMapOpen'))]
+        : h('p', { class: 'muted', style: { margin: 0 } }, t('whMapTableFree')));
+      return;
+    }
+    if (b.laneInfo) {
+      const { lane, orders: here } = b.laneInfo;
+      mount(info, h('h3', {}, `${t('whLane')} ${lane} · ${here.length}`), here.length
+        ? here.map((o) => h('button', { class: 'wh-row', onclick: () => go('outbound', o.key) }, h('span', { class: 'grow' }, `${o.urgent ? '⚡ ' : ''}${o.ref}`), h('span', { class: 'muted' }, `📦 ${o.pack?.cartons || 0}${o.trip ? ` · 🚚 ${o.trip.plate || ''}` : ''}`)))
+        : h('p', { class: 'muted', style: { margin: 0 } }, t('whLaneFree')));
+      return;
+    }
+    if (b.dockInfo) {
+      const { name, job } = b.dockInfo;
+      if (job) { showInfo({ lorry: job }); mount(info, h('h3', {}, `${name} · ${job.ref}`), ...[...info.childNodes].slice(1)); return; }
+      mount(info, h('h3', {}, name), h('p', { class: 'muted', style: { margin: 0 } }, t('whDockFree')), h('button', { onclick: () => go('docks') }, t('whDocks')));
+      return;
+    }
+    if (b.zone) {
+      const z = b.zone;
+      const list = (rows) => (rows.length ? rows : [h('p', { class: 'muted', style: { margin: 0 } }, t('whMapNothingHere'))]);
+      if (z === 'receiving') mount(info, h('h3', {}, `${t('whMapReceiving')} · ${m.arriving.length}`), ...list(m.arriving.map((j) => h('button', { class: 'wh-row', onclick: j.go }, h('span', { class: 'grow' }, j.ref), h('span', { class: 'muted' }, j.who)))));
+      else if (z === 'staging') mount(info, h('h3', {}, t('whMapStaging')), ...list(LANES.filter((l) => m.lanes.get(l).length).map((l) => h('div', { class: 'wh-row' }, h('b', {}, l), h('span', { class: 'grow muted' }, m.lanes.get(l).map((o) => o.ref).join(', '))))));
+      else if (z === 'packing') mount(info, h('h3', {}, `${t('whMapPacking')} · ${m.packing.length}`), ...list(m.packing.map((o) => h('button', { class: 'wh-row', onclick: () => go('outbound', o.key) }, h('span', { class: 'grow' }, o.ref), h('span', { class: 'muted' }, o.pack?.station || '')))));
+      else if (z === 'qc') mount(info, h('h3', {}, `${t('whMapQc')} · ${m.racks.expired.length}`), h('p', { class: 'muted' }, t('whMapExpiredSub')), ...list(m.racks.expired.slice(0, 8).map((l) => h('div', { class: 'wh-row map-lot' }, h('span', { class: 'grow' }, l.name || l.key), expiryPill(l.expiry)))));
+      else mount(info, h('h3', {}, t('whMapCharging')), h('p', { class: 'muted', style: { margin: 0 } }, t('whMapForklift')));
       return;
     }
     if (b.lorry) {
@@ -515,7 +547,8 @@ function draw(box, data) {
   mount(box,
     m.demo ? h('div', { class: 'card map-demo' }, h('b', {}, t('whMapDemoTitle')), h('p', { class: 'muted', style: { margin: '4px 0 0' } }, t('whMapDemoHelp')),
       canMove() ? h('button', { style: { marginTop: '8px' }, onclick: () => go('stock') }, t('whStock')) : null) : null,
-    mount(layoutEl, stage, panel, reopen));
+    mount(layoutEl, stage, panel, reopen),
+    planOffer());
   setPanel(panelOn);
 
   return {

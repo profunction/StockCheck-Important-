@@ -96,6 +96,29 @@ await step('the owner turns 3D off for everyone, and back on', async () => {
   await page.waitForSelector('.iso-svg .iso-box');
 });
 
+await step('turns any way round, all the way round, and everything can be tapped', async () => {
+  const vb = () => page.$eval('.iso-svg', (e) => e.innerHTML.length);
+  const before = await page.$eval('.iso-box[data-id="dock-OUT-2"] polygon', (p) => p.getAttribute('points'));
+  await page.click('button[data-act="iso-right"]');
+  await page.waitForTimeout(450);
+  const after = await page.$eval('.iso-box[data-id="dock-OUT-2"] polygon', (p) => p.getAttribute('points'));
+  if (before === after) throw new Error('did not turn');
+  await page.click('button[data-act="iso-spin"]');
+  await page.waitForSelector('.iso-wrap.spinning');
+  await page.click('button[data-act="iso-spin"]');
+  await page.waitForSelector('.iso-wrap:not(.spinning)');
+  if (!(await vb())) throw new Error('empty picture');
+  const tap = (id) => page.evaluate((x) => document.querySelector(`.iso-box[data-id="${x}"] polygon:last-of-type`).dispatchEvent(new MouseEvent('click', { bubbles: true })), id);
+  await tap('dock-OUT-2');
+  await page.waitForSelector('.map-info h3:has-text("OUT-2")');
+  await tap('z-qc');
+  await page.waitForSelector('.map-info h3');
+  await tap('pack-0');
+  await page.waitForSelector('.map-info h3:has-text("P1")');
+  await page.waitForSelector('[data-card="plan-offer"] a[href^="https://wa.me/"]');
+  await page.click('button[data-act="iso-home"]');
+});
+
 await step('a place without shelf codes: a sample, and how to fill it in', async () => {
   await page.selectOption('select[data-act="map-place"]', 'ipoh');
   await page.waitForSelector('.map-demo');
