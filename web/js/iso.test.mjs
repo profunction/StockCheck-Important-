@@ -96,6 +96,9 @@ test('the shop floor: a café with its kitchen, tables by state and guests; a sh
   assert.equal(items.length, 48);
   assert.ok(items.some((x) => x.color === STOCK_COLOR.low));
   assert.equal(shop.boxes.filter((x) => x.id.startsWith('cashier-')).length, 0);
+  // The way round, numbered: in, a basket, the aisles, the till, out; a café also the kitchen.
+  assert.deepEqual(shop.boxes.filter((x) => x.kind === 'flow').flatMap((f) => f.steps.map((st) => st.n)), [1, 2, 3, 4, 5]);
+  assert.deepEqual(cafe.boxes.filter((x) => x.kind === 'flow').flatMap((f) => f.steps.map((st) => st.n)).sort(), [1, 2, 3, 4, 5, 6]);
 });
 
 test('the books as towers: as tall as the amount, overdue on top in red, a loss in red', async () => {

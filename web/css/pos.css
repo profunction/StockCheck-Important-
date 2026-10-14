@@ -1065,6 +1065,8 @@ body.iso-full-open { overflow: hidden; }
 .fl-layout.panel-off .fl-panel { display: none; }
 .fl-layout.panel-off .fl-panel-open { display: inline-flex; }
 @media (max-width: 600px) { .fl-layout.panel-off .fl-panel-open { position: static; justify-self: end; } }
+/* Clear of the panel's button above them. */
+@media (min-width: 601px) { .fl-layout.panel-off .iso-tools:not(.top) { top: 62px; } }
 /* Real 3D (WebGL, glb3d.js) laid over the picture: turns all the way round */
 .iso-btn[data-act="v3d-real"], .iso-btn[data-act="g3d-save"] { width: auto; min-width: 46px; padding: 0 8px; font-size: 12.5px; font-weight: 700; }
 .iso-wrap.real .iso-btn[data-act="v3d-real"] { background: var(--brand, #0f766e); color: #fff; }
@@ -1072,6 +1074,18 @@ body.iso-full-open { overflow: hidden; }
 .iso-wrap.real .iso-btn[data-act="iso-left"], .iso-wrap.real .iso-btn[data-act="iso-right"], .iso-wrap.real .iso-btn[data-act="iso-in"], .iso-wrap.real .iso-btn[data-act="iso-out"], .iso-wrap.real .iso-btn[data-act="iso-home"] { display: none; }
 .iso-wrap.real .iso-svg { visibility: hidden; }
 .iso-wrap.real .iso-hint { display: none; }
+/* A process on the floor: a line with arrows running along it, numbered steps */
+.iso-flow { fill: none; stroke-width: .09; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: .32 .2; animation: iso-flow 1.2s linear infinite; pointer-events: none; }
+.iso-flow-under { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: .17; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.iso-wrap.night .iso-flow-under { stroke: rgba(0, 0, 0, .45); }
+@keyframes iso-flow { to { stroke-dashoffset: -.52; } }
+@media (prefers-reduced-motion: reduce) { .iso-flow { animation: none; } }
+.iso-step { pointer-events: none; }
+.iso-step rect { fill: var(--iso-tag); stroke-width: .03; }
+.iso-step line { stroke-width: .04; }
+.iso-step circle { stroke: #fff; stroke-width: .04; }
+.iso-step text { fill: var(--iso-tag-ink); font-weight: 700; }
+.iso-step text.n { fill: #fff; font-weight: 800; }
 .iso-wrap .iso-tools { z-index: 2; }
 .g3d { position: absolute; inset: 0; z-index: 1; overflow: hidden; border-radius: inherit; background: #eef5f4; }
 .iso-wrap.night .g3d { background: #08131e; }

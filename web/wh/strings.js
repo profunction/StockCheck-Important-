@@ -192,6 +192,8 @@ const en = {
   whMapBins: 'Slots used', whMapUnits: 'Units on shelves', whMapDocks: 'Lorries', whMapYard: 'Waiting in the yard',
   whMapTap: 'Tap a slot or a lorry to see what is there. Drag to move, ⟲ ⟳ to turn.',
   whMapStaging: 'STAGING', whMapReceiving: 'RECEIVING', whMapPacking: 'PACKING', whMapQc: 'QC & RETURNS', whMapCharging: 'CHARGING',
+  whStep1: 'Lorry arrives', whStep2: 'Unload & check', whStep3: 'Put away on the racks', whStep4: 'Pick the order', whStep5: 'Pack', whStep6: 'Wait in a lane', whStep7: 'Load the lorry', whStep8: 'Off to the customer',
+  whFlowIn: 'Goods in (1–3)', whFlowOut: 'Goods out (4–8)',
   whMapHint: 'Drag to move · right-drag to turn', whMapTasks: 'Tasks', whMapTaskPick: 'Pick', whMapTaskIn: 'Receive', whMapTaskOut: 'Load',
 };
 
@@ -386,6 +388,8 @@ const zh = {
   whMapBins: '用了的货位', whMapUnits: '货架上件数', whMapDocks: '货车', whMapYard: '在外面排队',
   whMapTap: '点一格货位或货车，看里面有什么。拖动可以移动，⟲ ⟳ 转方向。',
   whMapStaging: '暂放区', whMapReceiving: '收货区', whMapPacking: '打包区', whMapQc: '质检和退货', whMapCharging: '叉车充电',
+  whStep1: '货车到了', whStep2: '卸货验收', whStep3: '上架', whStep4: '拣货', whStep5: '打包', whStep6: '暂放等车', whStep7: '装车', whStep8: '出发送货',
+  whFlowIn: '进货流程 (1–3)', whFlowOut: '出货流程 (4–8)',
   whMapHint: '拖动移动 · 右键拖动转方向', whMapTasks: '任务', whMapTaskPick: '拣', whMapTaskIn: '收货', whMapTaskOut: '装车',
 };
 
@@ -580,6 +584,8 @@ const ms = {
   whMapBins: 'Slot digunakan', whMapUnits: 'Unit di rak', whMapDocks: 'Lori', whMapYard: 'Menunggu di luar',
   whMapTap: 'Tekan slot atau lori untuk lihat isinya. Seret untuk gerak, ⟲ ⟳ untuk pusing.',
   whMapStaging: 'STAGING', whMapReceiving: 'TERIMA', whMapPacking: 'PEMBUNGKUSAN', whMapQc: 'QC & PULANGAN', whMapCharging: 'CAS FORKLIFT',
+  whStep1: 'Lori tiba', whStep2: 'Punggah & semak', whStep3: 'Simpan ke rak', whStep4: 'Ambil pesanan', whStep5: 'Bungkus', whStep6: 'Tunggu di lorong', whStep7: 'Muat lori', whStep8: 'Hantar ke pelanggan',
+  whFlowIn: 'Barang masuk (1–3)', whFlowOut: 'Barang keluar (4–8)',
   whMapHint: 'Seret untuk gerak · seret kanan untuk pusing', whMapTasks: 'Tugas', whMapTaskPick: 'Ambil', whMapTaskIn: 'Terima', whMapTaskOut: 'Muat',
 };
 

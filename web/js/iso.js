@@ -298,7 +298,9 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
     rising = firstDraw && !still;
     firstDraw = false;
     risen = 0;
-    const turned = list.map((b) => ({ ...turn(b, w0, d0, turns).box, src: b }));
+    // A process line (kind 'flow') is drawn on the floor with its numbered steps, not as a box.
+    const flows = list.filter((b) => b.kind === 'flow');
+    const turned = list.filter((b) => b.kind !== 'flow').map((b) => ({ ...turn(b, w0, d0, turns).box, src: b }));
     const { W: tw, D: td } = turn({ x: 0, y: 0 }, w0, d0, turns);
     floorSize = { W: tw, D: td };
     spinning(() => {
@@ -323,6 +325,26 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
       for (let x = 0; x <= Math.ceil(tw); x++) { const a = project(x, -0.8, 0); const c = project(x, td + 0.8, 0); grid.push(`M${a[0].toFixed(2)} ${a[1].toFixed(2)}L${c[0].toFixed(2)} ${c[1].toFixed(2)}`); }
       for (let y = 0; y <= Math.ceil(td); y++) { const a = project(-0.8, y, 0); const c = project(tw + 0.8, y, 0); grid.push(`M${a[0].toFixed(2)} ${a[1].toFixed(2)}L${c[0].toFixed(2)} ${c[1].toFixed(2)}`); }
       ground.push(svg('path', { class: 'iso-grid', d: grid.join('') }));
+    }
+    const steps = [];
+    for (const f of flows) {
+      const at = ([x, y]) => { const q = turn({ x, y, w: 0, d: 0 }, w0, d0, turns).box; return project(q.x, q.y, 0); };
+      const line = (f.points || []).map(at);
+      if (line.length < 2) continue;
+      const d = line.map(([a, c], i) => `${i ? 'L' : 'M'}${a.toFixed(3)} ${c.toFixed(3)}`).join('');
+      ground.push(svg('path', { class: 'iso-flow-under', d }), svg('path', { class: 'iso-flow', d, stroke: f.color }));
+      for (const st of f.steps || []) {
+        const [sx, sy] = at(st.at);
+        const text = String(st.label || '');
+        const size = 0.3;
+        const wide = [...text].reduce((n, ch) => n + (ch.charCodeAt(0) > 0x2e80 ? 1 : 0.62), 0) * size + size * 1.2;
+        steps.push(svg('g', { class: 'iso-step', 'data-step': st.n },
+          text ? svg('rect', { x: (sx).toFixed(3), y: (sy - 0.62 - size * 0.75).toFixed(3), width: (wide + 0.4).toFixed(3), height: (size * 1.5).toFixed(3), rx: (size * 0.75).toFixed(3), stroke: f.color }) : null,
+          svg('line', { x1: sx, y1: sy, x2: sx, y2: sy - 0.62, stroke: f.color }),
+          svg('circle', { cx: sx, cy: sy - 0.62, r: 0.27, fill: f.color }),
+          svg('text', { class: 'n', x: sx, y: (sy - 0.62 + 0.01).toFixed(3), 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': 0.3 }, String(st.n)),
+          text ? svg('text', { x: (sx + 0.38).toFixed(3), y: (sy - 0.62 + 0.01).toFixed(3), 'dominant-baseline': 'middle', 'font-size': size }, text) : null));
+      }
     }
     for (const b of paintOrder(turned)) {
       const src = b.src;
@@ -393,7 +415,7 @@ export function isoScene({ boxes = [], W = 10, D = 10, onPick = null, height = 5
         grow([[lx - wide / 2, y - size * 1.2]]);
       }
     }
-    pic.replaceChildren(defs(uid), ...ground, svg('g', { filter: `url(#${uid}-soft)` }, shadows), ...kids, svg('g', { class: 'iso-labels' }, labels));
+    pic.replaceChildren(defs(uid), ...ground, svg('g', { filter: `url(#${uid}-soft)` }, shadows), ...kids, svg('g', { class: 'iso-labels' }, labels, steps));
     const pad = 0.35;
     // The frame stays the size of the whole floor at any angle, so turning does not jump about.
     if (!base || !keepBase) {

@@ -66,6 +66,10 @@ export async function start({ seedPatch = {}, lang = 'zh', viewport = { width: 1
   page.on('console', (m) => { if (m.type() === 'error' && !/favicon|Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
   await page.addInitScript(([l, patch]) => {
     localStorage.setItem('pos.lang', JSON.stringify(l));
+    // The simple (2D) picture unless a test asks for the real 3D, which opens by itself.
+    if (!sessionStorage.getItem('keep3d')) localStorage.setItem('jsox-3d-flat', 'on');
+    // The 3D pages' side panels start put away; the tests start with them out (unless a test changed it).
+    if (!sessionStorage.getItem('keep3d')) for (const k of ['jsox-map-panel', 'jsox-floor-panel']) if (localStorage.getItem(k) == null) localStorage.setItem(k, 'on');
     window.__seedPatch = patch;
     document.addEventListener('securitypolicyviolation', (e) => console.error(`blocked by the security policy: ${e.violatedDirective} ${e.blockedURI}`));
     window.print = () => { window.__printed = (window.__printed || 0) + 1; };

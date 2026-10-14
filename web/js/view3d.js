@@ -19,13 +19,13 @@ import { session, ws } from './session.js';
 addStrings({
   en: { v3dOff: '3D pictures are turned off for this company.', v3dOn: 'Turn 3D on', v3dTurnOff: 'Turn 3D off for everyone', v3dTurnOffQ: 'Turn the 3D pictures off for everyone in the company? You can turn them back on here.', v3dSaved: 'Saved', v3dNight: 'Dark showroom look', v3dDay: 'Light look', v3dLink: 'Copy a link that opens this 3D full screen (add &spin for a TV)', v3dLinkOk: 'Link copied. Open it on any screen; sign in once.',
     v3dPlan: 'Have a floor plan of your shop or warehouse? Send it to us and we will build your own company in 3D.', v3dPlanBtn: 'Send us your floor plan', v3dPlanMsg: 'Hi JSOX, here is our floor plan. Please build our company in 3D.',
-    v3dReal: 'Real 3D: turn it all the way round (360°)', v3dFlat: 'Back to the simple picture', v3dRealHint: 'Drag to turn 360° · scroll or two fingers to zoom · right-drag to move', v3dTurn: 'Turn round on its own', v3dSave: 'Save as a .glb 3D file', v3dSaved3d: '.glb file saved', v3dUp: 'Upload your own .glb model (made from your floor plan)', v3dUpOk: 'Your 3D model is up. Everyone in the company now sees it here.', v3dUpBig: 'That file is too big (30 MB at most).', v3dUpType: 'Choose a .glb file.', v3dDrop: 'Remove your own model (back to the live picture)', v3dDropQ: 'Remove your own 3D model? This picture goes back to the live one.', v3dNoGl: 'This browser cannot show real 3D.', v3dLoading: 'Loading 3D…' },
+    v3dReal: 'Switch between real 3D (turns 360°) and the simple picture (2D)', v3dFlat: 'Back to the simple picture', v3dRealHint: 'Drag to turn 360° · scroll or two fingers to zoom · right-drag to move', v3dTurn: 'Turn round on its own', v3dSave: 'Save as a .glb 3D file', v3dSaved3d: '.glb file saved', v3dUp: 'Upload your own .glb model (made from your floor plan)', v3dUpOk: 'Your 3D model is up. Everyone in the company now sees it here.', v3dUpBig: 'That file is too big (30 MB at most).', v3dUpType: 'Choose a .glb file.', v3dDrop: 'Remove your own model (back to the live picture)', v3dDropQ: 'Remove your own 3D model? This picture goes back to the live one.', v3dNoGl: 'This browser cannot show real 3D.', v3dLoading: 'Loading 3D…' },
   zh: { v3dOff: '这家公司关闭了 3D 图。', v3dOn: '开启 3D 图', v3dTurnOff: '为所有人关闭 3D 图', v3dTurnOffQ: '为公司里所有人关闭 3D 图吗？之后可以在这里再打开。', v3dSaved: '已保存', v3dNight: '深色展示模式', v3dDay: '浅色模式', v3dLink: '复制链接：一打开就是全屏 3D（电视加 &spin 会自己转）', v3dLinkOk: '链接已复制。在任何屏幕打开，登入一次就可以。',
     v3dPlan: '有你店面或仓库的平面图吗？发给我们，我们帮你做成你公司自己的 3D。', v3dPlanBtn: '把平面图发给我们', v3dPlanMsg: '你好 JSOX，这是我们的平面图，请帮我们做成公司自己的 3D。',
-    v3dReal: '真正 3D：360° 转', v3dFlat: '回到简单图', v3dRealHint: '拖动 360° 转 · 滚轮或双指放大 · 右键拖动移动', v3dTurn: '自己慢慢转', v3dSave: '下载 .glb 3D 文件', v3dSaved3d: '.glb 文件已下载', v3dUp: '上传你自己的 .glb 3D 模型（用平面图做的）', v3dUpOk: '3D 模型已上传，公司里每个人在这里都会看到。', v3dUpBig: '文件太大了（最多 30 MB）。', v3dUpType: '请选 .glb 文件。', v3dDrop: '删除自己的模型（回到实时 3D）', v3dDropQ: '删除你自己的 3D 模型吗？这里会回到实时的 3D。', v3dNoGl: '这个浏览器不能显示真正 3D。', v3dLoading: '3D 加载中…' },
+    v3dReal: '切换：真正 3D（360° 转）/ 简单图（2D）', v3dFlat: '回到简单图', v3dRealHint: '拖动 360° 转 · 滚轮或双指放大 · 右键拖动移动', v3dTurn: '自己慢慢转', v3dSave: '下载 .glb 3D 文件', v3dSaved3d: '.glb 文件已下载', v3dUp: '上传你自己的 .glb 3D 模型（用平面图做的）', v3dUpOk: '3D 模型已上传，公司里每个人在这里都会看到。', v3dUpBig: '文件太大了（最多 30 MB）。', v3dUpType: '请选 .glb 文件。', v3dDrop: '删除自己的模型（回到实时 3D）', v3dDropQ: '删除你自己的 3D 模型吗？这里会回到实时的 3D。', v3dNoGl: '这个浏览器不能显示真正 3D。', v3dLoading: '3D 加载中…' },
   ms: { v3dOff: 'Gambar 3D dimatikan untuk syarikat ini.', v3dOn: 'Hidupkan 3D', v3dTurnOff: 'Matikan 3D untuk semua', v3dTurnOffQ: 'Matikan gambar 3D untuk semua orang dalam syarikat? Boleh dihidupkan semula di sini.', v3dSaved: 'Disimpan', v3dNight: 'Rupa gelap (pameran)', v3dDay: 'Rupa cerah', v3dLink: 'Salin pautan yang membuka 3D ini skrin penuh (tambah &spin untuk TV)', v3dLinkOk: 'Pautan disalin. Buka di mana-mana skrin; log masuk sekali.',
     v3dPlan: 'Ada pelan lantai kedai atau gudang anda? Hantar kepada kami dan kami bina syarikat anda sendiri dalam 3D.', v3dPlanBtn: 'Hantar pelan lantai', v3dPlanMsg: 'Hai JSOX, ini pelan lantai kami. Tolong bina syarikat kami dalam 3D.',
-    v3dReal: '3D sebenar: pusing 360°', v3dFlat: 'Kembali ke gambar ringkas', v3dRealHint: 'Seret untuk pusing 360° · tatal atau dua jari untuk zum · seret kanan untuk alih', v3dTurn: 'Pusing sendiri', v3dSave: 'Simpan fail 3D .glb', v3dSaved3d: 'Fail .glb disimpan', v3dUp: 'Muat naik model .glb anda sendiri (dari pelan lantai)', v3dUpOk: 'Model 3D anda sudah dimuat naik. Semua orang dalam syarikat melihatnya di sini.', v3dUpBig: 'Fail terlalu besar (maksimum 30 MB).', v3dUpType: 'Pilih fail .glb.', v3dDrop: 'Buang model sendiri (kembali ke 3D langsung)', v3dDropQ: 'Buang model 3D anda sendiri? Gambar ini kembali ke yang langsung.', v3dNoGl: 'Pelayar ini tidak boleh menunjukkan 3D sebenar.', v3dLoading: 'Memuatkan 3D…' },
+    v3dReal: 'Tukar: 3D sebenar (pusing 360°) / gambar ringkas (2D)', v3dFlat: 'Kembali ke gambar ringkas', v3dRealHint: 'Seret untuk pusing 360° · tatal atau dua jari untuk zum · seret kanan untuk alih', v3dTurn: 'Pusing sendiri', v3dSave: 'Simpan fail 3D .glb', v3dSaved3d: 'Fail .glb disimpan', v3dUp: 'Muat naik model .glb anda sendiri (dari pelan lantai)', v3dUpOk: 'Model 3D anda sudah dimuat naik. Semua orang dalam syarikat melihatnya di sini.', v3dUpBig: 'Fail terlalu besar (maksimum 30 MB).', v3dUpType: 'Pilih fail .glb.', v3dDrop: 'Buang model sendiri (kembali ke 3D langsung)', v3dDropQ: 'Buang model 3D anda sendiri? Gambar ini kembali ke yang langsung.', v3dNoGl: 'Pelayar ini tidak boleh menunjukkan 3D sebenar.', v3dLoading: 'Memuatkan 3D…' },
 });
 
 /** Does this company show 3D pictures? */
@@ -77,12 +77,16 @@ export function modelKey() {
   return `${app}-${page}`.toLowerCase().replace(/[^a-z0-9-]/g, '');
 }
 
-/** Real 3D chosen on this phone or computer (else the simple picture). */
+/**
+ * Real 3D unless this phone or computer chose the simple picture (2D):
+ * it opens solid, turning slowly round until someone touches it.
+ */
 function real3d() {
-  try { return localStorage.getItem('jsox-3d-real') === 'on'; } catch { return false; }
+  if (!hasWebGL()) return false;
+  try { return localStorage.getItem('jsox-3d-flat') !== 'on'; } catch { return true; }
 }
 function setReal3d(on) {
-  try { localStorage.setItem('jsox-3d-real', on ? 'on' : 'off'); } catch { /* no storage */ }
+  try { localStorage.setItem('jsox-3d-flat', on ? 'off' : 'on'); } catch { /* no storage */ }
 }
 
 const MAX_MODEL = 30 * 1024 * 1024;
@@ -102,9 +106,12 @@ function withReal(scene, opts, key) {
   const host = h('div', { class: 'g3d', 'data-card': 'g3d' });
   const tip = h('div', { class: 'g3d-hint' }, t('v3dRealHint'));
   const on = () => el.classList.contains('real');
+  // The switch says where it goes: to the simple picture (2D), or back to 3D.
+  const label = () => { const btn = el.querySelector('[data-act="v3d-real"]'); if (btn) btn.textContent = on() ? '2D' : '3D 360°'; };
   const show = async ({ spin = false } = {}) => {
     if (!hasWebGL()) { toast(t('v3dNoGl'), 'error'); return; }
     el.classList.add('real');
+    label();
     if (!host.isConnected) el.prepend(host);
     if (view) { if (spin) view.autoRotate(true); return; }
     if (opening) return;
@@ -112,7 +119,7 @@ function withReal(scene, opts, key) {
     const now = scene.current();
     let model = null;
     if (stored()?.path) model = await getDownloadURL(ref(storage, stored().path)).catch(() => null);
-    opening = glbView(host, { ...now, onPick: opts.onPick, night: el.classList.contains('night'), floorColor: opts.floorColor, floor: opts.floor !== false, spin, model });
+    opening = glbView(host, { ...now, onPick: opts.onPick, night: el.classList.contains('night'), floorColor: opts.floorColor, floor: opts.floor !== false, spin, model, focus: opts.home3d || opts.home || null });
     try {
       view = await opening;
     } catch (err) {
@@ -121,7 +128,7 @@ function withReal(scene, opts, key) {
       return;
     } finally { opening = null; host.querySelector('.g3d-wait')?.remove(); }
     // Turned off again while it was loading.
-    if (!on()) { view.dispose(); view = null; return; }
+    if (!on()) { view.dispose(); view = null; label(); return; }
     host.dataset.ready = '1';
     host.view = view;
     mark();
@@ -133,6 +140,7 @@ function withReal(scene, opts, key) {
     host.remove();
     delete host.dataset.ready;
     mark();
+    label();
   };
   const save = async () => {
     if (!view) return;
@@ -226,7 +234,7 @@ export function scene3d(opts, { onChange = () => window.dispatchEvent(new HashCh
   let real = null;
   const act = (name) => () => real?.act[name]();
   extraTools.unshift(
-    { label: '360°', act: 'v3d-real', first: true, title: t('v3dReal'), onClick: act('real') },
+    { label: '3D 360°', act: 'v3d-real', first: true, title: t('v3dReal'), onClick: act('real') },
     { label: '↻', act: 'g3d-turn', first: true, title: t('v3dTurn'), onClick: act('turn') },
     { label: '.glb', act: 'g3d-save', first: true, title: t('v3dSave'), onClick: act('save') },
     ...(session.isAdmin ? [
@@ -242,12 +250,13 @@ export function scene3d(opts, { onChange = () => window.dispatchEvent(new HashCh
   const asked = new URLSearchParams(location.search);
   const full = asked.get('view3d') === 'full';
   const spin = full && asked.has('spin');
+  // Real 3D straight away (turning slowly round until touched), unless this screen chose 2D.
   if (full || spin || real.wanted()) {
     setTimeout(() => {
       if (!scene.el.isConnected) return;
       if (full) scene.full();
-      if (spin || real.wanted()) real.show({ spin });
-    }, 400);
+      if (spin || real.wanted()) real.show({ spin: true });
+    }, full ? 400 : 0);
   }
   return scene;
 }

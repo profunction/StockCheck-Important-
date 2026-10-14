@@ -296,9 +296,45 @@ function build(data) {
     inLane.get(l.name).slice(0, 3).forEach((j, k) => lorry(j, l.kind, l.x + 0.35, laneY + 0.25 + k * 3));
   }
 
+  // The work through the warehouse, painted on the floor with numbered
+  // steps: goods in (1-3, blue) from the lorry to the racks; goods out
+  // (4-8, teal) from the racks through packing and the lanes onto a lorry.
+  const oddRack = floor.racks[1];
+  const aisleY = oddRack ? RY + oddRack.y + 1.8 : RY + floor.D + 0.3;
+  const inX = dockAt(0, 'IN') + 0.8;
+  const outX = dockAt(0, 'OUT') + 0.8;
+  const stageX = 0.6 + half / 2;
+  const front = ZONE_Y - 0.45;
+  const lane = RX + RW + 0.6;
+  const step = (n, at) => ({ n, at, label: t(`whStep${n}`) });
+  boxes.push({ id: 'flow-in', kind: 'flow', color: COLOR.inbound, pick: false, name: t('whFlowIn'),
+    points: [[inX, dockY + 2.6], [inX, ZONE_Y + 1.3], [inX, front - 0.25], [RX - 0.9, front - 0.25], [RX - 0.9, aisleY - 0.15], [RX + RW * 0.3, aisleY - 0.15]],
+    steps: [step(1, [inX, dockY + 2.6]), step(2, [inX, ZONE_Y + 1.3]), step(3, [RX + RW * 0.3, aisleY - 0.15])] });
+  boxes.push({ id: 'flow-out', kind: 'flow', color: COLOR.outbound, pick: false, name: t('whFlowOut'),
+    points: [[RX + RW * 0.55, aisleY + 0.15], [lane, aisleY + 0.15], [lane, RY + 2.45], [SIDE + 2.3, RY + 2.45], [lane + 0.2, RY + 2.45], [lane + 0.2, front + 0.2], [stageX, front + 0.2],
+      [stageX, ZONE_Y + 1.4], [outX, ZONE_Y + 1.4], [outX, dockY + 2.6], [outX, roadY + 0.9], [0.5, roadY + 0.9]],
+    steps: [step(4, [RX + RW * 0.55, aisleY + 0.15]), step(5, [SIDE + 2.3, RY + 2.45]), step(6, [stageX, ZONE_Y + 1.4]), step(7, [outX, dockY + 0.4]), step(8, [1.4, roadY + 0.9])] });
+
+  // The people at work: unloading and checking at receiving, a packer at
+  // every table, the forklift's driver, loaders at the docks with a lorry,
+  // someone keeping an eye on the lanes, the guard at the gate.
+  const staff = [];
+  const worker = (id, x, y, extra = {}) => staff.push({ id, x, y, w: 0.34, d: 0.34, h: 0.55, color: '#2f6fde', kind: 'person', role: 'worker', pick: false, noShadow: true, ...extra });
+  worker('staff-unload', inX - 0.55, ZONE_Y + 1.6, { carry: true, anim: { path: [[0, dockY - ZONE_Y - 1.2], [0, dockY - ZONE_Y - 1.2], [0, 0], [0, 0]], dur: 9, ease: true, bob: true } });
+  worker('staff-check', inX + 0.6, ZONE_Y + 0.9, { color: '#0ea5e9', anim: { path: [[0, 0]], dur: 1, bob: true }, face: Math.PI / 2 });
+  [[0.5, 1.2], [2.6, 1.2], [0.5, 2.9], [2.6, 2.9]].forEach(([dx, dy], i) => worker(`staff-pack-${i}`, SIDE + dx + 0.55, RY + dy + 0.9, {
+    color: '#8b5cf6', face: Math.PI, ...(atTable[i] ? { anim: { path: [[0, 0]], dur: 1, bob: true } } : {}) }));
+  worker('staff-fork', SIDE + 1.28, RY + 10.1, { z: 0.6, h: 0.42, color: '#f59e0b', face: Math.PI, anim: forkMove });
+  board.docks.forEach((d, i) => {
+    if (!d.trip) return;
+    worker(`staff-load-${i}`, dockAt(i, 'OUT') + 1.1, dockY + 0.1, { color: '#0d9488', carry: true, anim: { path: [[0, 0], [0, 1.0], [0, 1.0], [0, 0]], dur: 5, ease: true, bob: true, begin: `${i * 0.7}s` } });
+  });
+  staff.push({ id: 'staff-lead', x: stageX + 1.6, y: ZONE_Y + 0.4, w: 0.34, d: 0.34, h: 0.55, color: '#0f766e', kind: 'person', pick: false, noShadow: true, face: 0.6, anim: { path: [[0, 0]], dur: 1, bob: true } });
+  staff.push({ id: 'staff-guard', x: W - 1.2, y: roadY - 0.7, w: 0.34, d: 0.34, h: 0.55, color: '#1e3a8a', kind: 'person', pick: false, noShadow: true, face: 0 });
+
   // Pickers: where their next line is, with how far they have got.
   const cellOf = new Map(floor.cells.filter((c) => c.code).map((c) => [c.code, c]));
-  const people = [];
+  const people = [...staff];
   picks.filter((x) => x.status === 'PICKING').forEach((x, i) => {
     const next = (x.lines || []).find((l) => !lineDone(l));
     const done = (x.lines || []).filter(lineDone).length;
@@ -306,10 +342,15 @@ function build(data) {
     // In the aisle in front of the bin; else waiting in staging.
     const px = c ? RX + c.x + 0.3 : 1 + i;
     const py = c ? RY + c.y + (Math.floor(c.y) % 2 ? 1.05 : -0.55) : ZONE_Y + 0.6;
-    people.push({ id: `picker-${x.id}`, x: px, y: py, w: 0.34, d: 0.34, h: 0.55, color: '#f97316', kind: 'person',
+    people.push({ id: `picker-${x.id}`, x: px, y: py, w: 0.34, d: 0.34, h: 0.55, color: '#f97316', kind: 'person', role: 'worker',
       label: `${x.pickerName || t('whPickBy')} · ${done}/${(x.lines || []).length}`, labelCls: 'task', title: x.pickNo, pickList: x,
       anim: { path: [[0.9, 0], [0.9, 0], [-0.7, 0], [-0.7, 0]], dur: 7, ease: true, bob: true } });
   });
+  // Nobody picking just now: someone walking the aisle all the same.
+  if (!picks.some((x) => x.status === 'PICKING')) {
+    people.push({ id: 'staff-aisle', x: RX + RW * 0.45, y: aisleY - 0.2, w: 0.34, d: 0.34, h: 0.55, color: '#f97316', kind: 'person', role: 'worker', pick: false, noShadow: true,
+      anim: { path: [[RW * 0.3, 0], [RW * 0.3, 0], [-RW * 0.3, 0], [-RW * 0.3, 0]], dur: 14, ease: true, bob: true } });
+  }
 
   // Each slot: an orange beam, and on it cartons coloured by the layer (none when empty).
   const cellBoxes = () => floor.cells.flatMap((c, i) => {
@@ -378,6 +419,8 @@ function build(data) {
     all, W, D: laneY + LANE_D + 0.8, demo, floor, arriving, packing, lanes,
     // Where the picture starts (and ⌂ goes back to): the racks, filling it.
     home: { x: RX - 2, y: RY - 0.6, w: floor.W + 2.6, d: floor.D + 1.2, h: Math.max(1, ...floor.cells.map((c) => c.z)) + 0.8 },
+    // In real 3D: the building and its docks, not the yard behind.
+    home3d: { x: 0, y: 0, w: W, d: dockY + 3 },
     cellOf, soonest, toPick, tasks, feed, queue, orders,
     stats: { used: stockedCells.length, total: floor.cells.length, units, onRoad: (data.trips || []).filter((x) => x.status === 'ON_ROAD' && here(x.branchId)).length, soon: lots.filter((l) => l.daysLeft <= 30).length },
     racks: { empty: emptyCells.length, nearFull: nearFull.length, expired, within30, first: lots.slice(0, 8).map((l) => ({ ...l, bin: binOf(l.key) })) },
@@ -388,13 +431,14 @@ function build(data) {
 function draw(box, data) {
   let m = build(data);
   const info = h('div', { class: 'map-info', 'data-card': 'info' });
-  // The side panel can be put away, and stays away next time (this phone or computer only).
-  let panelOn = true;
-  try { panelOn = localStorage.getItem('jsox-map-panel') !== 'off'; } catch { /* no storage */ }
+  // The side panel starts put away, so the 3D has the whole width; ‹ brings it out,
+  // and it stays out or away next time (this phone or computer only).
+  let panelOn = false;
+  try { panelOn = localStorage.getItem('jsox-map-panel') === 'on'; } catch { /* no storage */ }
   const layoutEl = h('div', { class: 'map-layout' });
   const stage = h('div', { class: 'map-stage wh3d' });
   const scene = scene3d({
-    boxes: m.all(), W: m.W, D: m.D, height: 820, fillHeight: true, home: m.home, hint: t('whMapHint'),
+    boxes: m.all(), W: m.W, D: m.D, height: 820, fillHeight: true, home: m.home, home3d: m.home3d, hint: t('whMapHint'),
     onPick: (b) => { scene.select(b.id); showInfo(b); },
     extraTools: [{ label: '▤', act: 'iso-panel', title: t('whMapPanelToggle'), onClick: () => setPanel(!panelOn) }],
   });
@@ -535,7 +579,7 @@ function draw(box, data) {
     mount(layers,
       h('div', { class: 'wh-chips map-modes' }, MODES.map((k) => h('button', { class: mode === k ? 'on' : '', 'data-mode': k, onclick: () => { mode = k; refreshScene(); } }, t(`whMap_${k}`)))),
       h('div', { class: 'map-legend' }, keys.map(([c, label]) => h('span', {}, h('i', { style: { background: c } }), label)),
-        h('span', {}, h('i', { style: { background: COLOR.inbound } }), t('whMapIn')), h('span', {}, h('i', { style: { background: COLOR.outbound } }), t('whMapOut'))));
+        h('span', { class: 'map-flow-key' }, h('i', { style: { background: COLOR.inbound } }), t('whFlowIn')), h('span', { class: 'map-flow-key' }, h('i', { style: { background: COLOR.outbound } }), t('whFlowOut'))));
   };
   const refreshScene = () => { scene.draw(m.all(), m.W, m.D); drawLayers(); };
 

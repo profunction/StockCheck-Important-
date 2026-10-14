@@ -118,7 +118,7 @@ await step('turns any way round, all the way round, and everything can be tapped
 await step('real 3D: 360° round, taps, saved as .glb, the owner puts up their own model', async () => {
   await page.click('button[data-act="v3d-real"]');
   await page.waitForSelector('.iso-wrap.real .g3d[data-ready] canvas.g3d-canvas');
-  if (await page.evaluate(() => localStorage.getItem('jsox-3d-real')) !== 'on') throw new Error('not remembered');
+  if (await page.evaluate(() => localStorage.getItem('jsox-3d-flat')) !== 'off') throw new Error('not remembered');
   if (await page.$eval('.g3d', (e) => e.view.count()) < 20) throw new Error('3D nearly empty');
   // Drag: it turns round.
   const box = await page.$eval('.g3d canvas', (c) => { const r = c.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
@@ -162,6 +162,20 @@ await step('a place without shelf codes: a sample, and how to fill it in', async
   await page.selectOption('select[data-act="map-place"]', 'ipoh');
   await page.waitForSelector('.map-demo');
   await page.waitForSelector('.iso-box.demo');
+});
+
+await step('first time on a screen: real 3D turning by itself, the panel put away, the work in 8 numbered steps', async () => {
+  await page.evaluate(() => { sessionStorage.setItem('keep3d', '1'); for (const k of ['jsox-3d-flat', 'jsox-map-panel']) localStorage.removeItem(k); });
+  await page.reload();
+  await page.waitForSelector('select[data-act="map-place"]');
+  await page.selectOption('select[data-act="map-place"]', 'gudang');
+  await page.waitForSelector('.iso-wrap.real .g3d.turning[data-ready]');
+  await page.waitForSelector('.map-layout.panel-off button[data-act="panel-show"]');
+  const steps = await page.$$eval('.iso-step', (g) => g.map((x) => x.dataset.step).join());
+  if (steps !== '1,2,3,4,5,6,7,8') throw new Error(steps);
+  await page.click('button[data-act="v3d-real"]');
+  await page.waitForSelector('.iso-wrap:not(.real)');
+  if (await page.evaluate(() => localStorage.getItem('jsox-3d-flat')) !== 'on') throw new Error('2D not remembered');
 });
 
 process.exit(await s.done() ? 1 : 0);

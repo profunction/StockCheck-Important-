@@ -131,8 +131,120 @@ export function buildModel(T, boxes, { W = 10, D = 10, night = false, floor = tr
     labels.add(sp);
   };
 
+  // People as people: legs, a shirt (a hi-vis vest and hard hat at work in
+  // the warehouse, a chef's hat in the kitchen), arms, a head. About as tall
+  // as a door; sat down when they are on a chair.
+  const SKIN = ['#f1c6a0', '#d9a77c', '#a8714a', '#e8b98f'];
+  let people = 0;
+  function person(b, color, on) {
+    const fig = new T.Group();
+    fig.name = 'person';
+    const k = people++;
+    const sat = (b.z || 0) > 0.2;
+    const piece = (geo, m, sx, sy, sz, px, py, pz, parent = fig) => {
+      const mesh = new T.Mesh(geo, on ? glow : m);
+      mesh.scale.set(sx, sy, sz);
+      mesh.position.set(px, py, pz);
+      mesh.castShadow = true;
+      parent.add(mesh);
+      return mesh;
+    };
+    const limb = (x, y) => { const g = new T.Group(); g.position.set(x, y, 0); fig.add(g); return g; };
+    const trousers = mat(b.role === 'cook' ? '#e5e7eb' : '#1f2937');
+    const legs = [-0.06, 0.06].map((x) => { const g = limb(x, 0.42); piece(unit, trousers, 0.095, 0.42, 0.11, 0, -0.21, 0, g); piece(unit, mat('#111827'), 0.1, 0.05, 0.16, 0, -0.41, 0.03, g); return g; });
+    const shirt = mat(color);
+    piece(unit, shirt, 0.27, 0.34, 0.15, 0, 0.6, 0);
+    if (b.role === 'worker') {
+      piece(unit, mat('#facc15'), 0.285, 0.25, 0.165, 0, 0.62, 0);
+      piece(unit, mat('#e2e8f0'), 0.29, 0.03, 0.17, 0, 0.6, 0);
+    }
+    if (b.role === 'cashier' || b.role === 'cook') piece(unit, mat(b.role === 'cook' ? '#f8fafc' : '#0f766e'), 0.25, 0.3, 0.02, 0, 0.55, 0.085);
+    const arms = [-0.17, 0.17].map((x) => { const g = limb(x, 0.75); piece(unit, shirt, 0.075, 0.3, 0.085, 0, -0.15, 0, g); piece(ball, mat(SKIN[k % SKIN.length]), 0.07, 0.07, 0.07, 0, -0.32, 0, g); return g; });
+    const skin = mat(SKIN[k % SKIN.length]);
+    piece(round, skin, 0.07, 0.06, 0.07, 0, 0.8, 0);
+    piece(ball, skin, 0.2, 0.22, 0.2, 0, 0.92, 0);
+    if (b.role === 'worker') {
+      piece(ball, mat('#f59e0b'), 0.23, 0.14, 0.23, 0, 1.0, 0);
+      piece(round, mat('#f59e0b'), 0.27, 0.015, 0.27, 0, 0.96, 0.01);
+    } else if (b.role === 'cook') {
+      piece(round, mat('#ffffff'), 0.18, 0.16, 0.18, 0, 1.07, 0);
+    } else {
+      piece(ball, mat(['#1f2937', '#3f2a1d', '#111827', '#5b3a24'][k % 4]), 0.21, 0.13, 0.21, 0, 0.99, -0.01);
+    }
+    if (b.carry) piece(unit, mat('#c8a26b'), 0.26, 0.2, 0.2, 0, 0.62, 0.2);
+    if (sat) {
+      // On a chair: legs out in front, a little lower.
+      for (const g of legs) g.rotation.x = -Math.PI / 2;
+      fig.position.y -= 0.2;
+    }
+    fig.rotation.y = b.face ?? 0;
+    fig.userData.legs = legs;
+    fig.userData.arms = arms;
+    fig.userData.carry = !!b.carry;
+    if (b.carry) for (const g of arms) g.rotation.x = -1.1;
+    return fig;
+  }
+
+  // A process drawn on the floor: a coloured line from step to step with
+  // arrows running along it, and at each step a numbered post saying what
+  // happens there -- so anyone can follow the work through the place.
+  const flowArrows = [];
+  const arrowGeo = new T.ConeGeometry(0.13, 0.32, 3);
+  arrowGeo.rotateX(Math.PI / 2);
+  const flow = (f) => {
+    const pts = (f.points || []).map(([x, y]) => new T.Vector3(x, 0.035, y));
+    if (pts.length < 2) return;
+    const line = new T.MeshStandardMaterial({ color: new T.Color(f.color), emissive: new T.Color(f.color), emissiveIntensity: 0.35, roughness: 0.6 });
+    let total = 0;
+    const segs = [];
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1];
+      const c = pts[i];
+      const len = a.distanceTo(c);
+      if (!len) continue;
+      const seg = new T.Mesh(unit, line);
+      seg.scale.set(0.14, 0.02, len + 0.14);
+      seg.position.copy(a).add(c).multiplyScalar(0.5);
+      seg.rotation.y = Math.atan2(c.x - a.x, c.z - a.z);
+      seg.receiveShadow = true;
+      seg.name = `${f.name || 'flow'} line`;
+      group.add(seg);
+      segs.push({ a, c, len, from: total });
+      total += len;
+    }
+    const arrowMat = new T.MeshBasicMaterial({ color: new T.Color(f.color) });
+    const n = Math.max(2, Math.floor(total / 1.1));
+    const arrows = Array.from({ length: n }, () => { const m = new T.Mesh(arrowGeo, arrowMat); labels.add(m); return m; });
+    flowArrows.push({ arrows, segs, total, speed: 0.9 });
+    for (const st of f.steps || []) {
+      const [x, y] = st.at;
+      const ring = new T.Mesh(round, line);
+      ring.scale.set(0.62, 0.03, 0.62);
+      ring.position.set(x, 0.03, y);
+      ring.name = `step ${st.n}`;
+      group.add(ring);
+      const pole = new T.Mesh(round, mat('#e2e8f0'));
+      pole.scale.set(0.035, 1.55, 0.035);
+      pole.position.set(x, 0.8, y);
+      group.add(pole);
+      const cv = stepCanvas(st.n, st.label, f.color, night);
+      const tex = new T.CanvasTexture(cv);
+      tex.colorSpace = T.SRGBColorSpace;
+      // The same size on the screen however far away: always readable.
+      const sp = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, depthTest: false, sizeAttenuation: false }));
+      const size = 0.03;
+      sp.scale.set(size * cv.width / cv.height, size, 1);
+      sp.center.set(0.08, 0.5);
+      sp.position.set(x, 1.6, y);
+      sp.renderOrder = 10;
+      sp.userData.step = st;
+      labels.add(sp);
+    }
+  };
+
   let tags = 0;
   for (const b of boxes) {
+    if (b.kind === 'flow') { flow(b); continue; }
     const z = b.z || 0;
     const h = b.h || 0;
     const w = b.w || 0;
@@ -160,9 +272,18 @@ export function buildModel(T, boxes, { W = 10, D = 10, night = false, floor = tr
       const r = Math.max(w, d) * 1.2;
       add(ball, mat('#22a06b'), r, r, r, cx, z + tall + r * 0.3, cz);
     } else if (b.kind === 'person') {
-      const r = Math.max(0.18, Math.min(w, d) * 0.9);
-      add(round, mat(color), r, h, r, cx, z + h / 2, cz);
-      add(ball, mat('#f1c6a0'), 0.3, 0.3, 0.3, cx, z + h + 0.16, cz);
+      const fig = person(b, color, on);
+      fig.position.set(cx, z, cz);
+      part.add(fig);
+      part.userData.fig = fig;
+    } else if (b.kind === 'wheel') {
+      // A tyre: round, its axle along the lorry's width (the thin side).
+      const r = h / 2;
+      const across = w < d;
+      const mesh = add(round, mat('#111827'), r * 2, across ? w : d, r * 2, cx, z + r, cz);
+      mesh.rotation.set(across ? 0 : Math.PI / 2, 0, across ? Math.PI / 2 : 0);
+      const hub = add(round, mat('#cbd5e1'), r, (across ? w : d) * 1.04, r, cx, z + r, cz);
+      hub.rotation.copy(mesh.rotation);
     } else if (!h) {
       // A tile on the floor: a hair thick, so it shows.
       add(unit, mat(color, kind), w, 0.02, d, cx, z + 0.01, cz);
@@ -180,14 +301,55 @@ export function buildModel(T, boxes, { W = 10, D = 10, night = false, floor = tr
         }
       }
     }
-    if (b.anim?.path?.length) movers.push({ obj: part, path: [[0, 0], ...b.anim.path], dur: b.anim.dur || 8 });
+    if (b.anim?.path?.length) movers.push({ obj: part, fig: part.userData.fig, path: [[0, 0], ...b.anim.path], dur: b.anim.dur || 8, begin: parseFloat(b.anim.begin) || 0, walk: !!b.anim.bob });
+
     part.userData.src = b;
     if (b.pick !== false) pickables.push(part);
     group.add(part);
     if (b.label && b.labelCls === 'floor') floorWords(b, b.label);
     else if (b.label && tags++ < 400) tag(b, b.label, z + (b.kind === 'tree' ? h + 0.6 : b.kind === 'person' ? h + 0.35 : h));
   }
-  return { group, labels, movers, pickables };
+  return { group, labels, movers, pickables, flowArrows };
+}
+
+/** A step's sign: its number in a coloured circle, then what happens there. */
+function stepCanvas(n, label, color, night) {
+  const px = 44;
+  const c = document.createElement('canvas');
+  const g = c.getContext('2d');
+  const font = `700 ${px}px system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif`;
+  g.font = font;
+  const hgt = Math.ceil(px * 1.7);
+  const text = String(label || '');
+  const w = Math.ceil(hgt + (text ? g.measureText(text).width + px * 0.9 : 0));
+  c.width = w;
+  c.height = hgt;
+  const r = hgt / 2;
+  if (text) {
+    g.fillStyle = night ? 'rgba(8,20,32,.94)' : 'rgba(255,255,255,.96)';
+    g.beginPath();
+    g.moveTo(r, 2); g.lineTo(w - r, 2); g.arc(w - r, r, r - 2, -Math.PI / 2, Math.PI / 2); g.lineTo(r, hgt - 2); g.closePath();
+    g.fill();
+    g.strokeStyle = color;
+    g.lineWidth = 4;
+    g.stroke();
+  }
+  g.fillStyle = color;
+  g.beginPath();
+  g.arc(r, r, r - 2, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = '#ffffff';
+  g.font = `800 ${Math.round(px * 1.05)}px system-ui, sans-serif`;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(String(n), r, r + 2);
+  if (text) {
+    g.font = font;
+    g.fillStyle = night ? '#e2ebf3' : '#0b1b2b';
+    g.textAlign = 'left';
+    g.fillText(text, hgt + px * 0.25, r + 2);
+  }
+  return c;
 }
 
 /**
@@ -196,7 +358,7 @@ export function buildModel(T, boxes, { W = 10, D = 10, night = false, floor = tr
  *   useModel(url|null), dispose() }.
  * [onPick] gets the box tapped. [night] the dark showroom look.
  */
-export async function glbView(host, { boxes = [], W = 10, D = 10, onPick = null, night = false, floor = true, floorColor = null, spin = false, model = null } = {}) {
+export async function glbView(host, { boxes = [], W = 10, D = 10, onPick = null, night = false, floor = true, floorColor = null, spin = false, model = null, focus = null } = {}) {
   const { THREE: T, OrbitControls, GLTFLoader, GLTFExporter } = await loadThree();
   const renderer = new T.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -224,9 +386,9 @@ export async function glbView(host, { boxes = [], W = 10, D = 10, onPick = null,
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.maxPolarAngle = Math.PI / 2 - 0.04; // never under the floor
+  controls.maxPolarAngle = Math.PI * 0.44; // never down at the floor, or under it
   controls.minDistance = 2;
-  controls.autoRotateSpeed = 1.2;
+  controls.autoRotateSpeed = 0.9;
   controls.screenSpacePanning = false;
 
   let size = { W, D };
@@ -238,11 +400,16 @@ export async function glbView(host, { boxes = [], W = 10, D = 10, onPick = null,
   let framed = false;
   controls.addEventListener('change', () => { dirty = true; });
 
-  const frame = (w, d) => {
+  // Looking at [focus] ({x, y, w, d} on the floor: the part that matters, say the
+  // building rather than the yard), else the whole floor.
+  const frame = (w, d, f = null) => {
     const span = Math.max(w, d, 6);
-    controls.target.set(w / 2, 0, d / 2);
+    // A tall phone screen: further back, so the width fits.
+    const look = (f ? Math.max(f.w, f.d, 5) : span) * (camera.aspect < 1 ? Math.min(1.8, 0.8 / Math.max(0.4, camera.aspect)) : 1);
+    const [fx, fz] = f ? [f.x + f.w / 2, f.y + f.d / 2] : [w / 2, d / 2];
+    controls.target.set(fx, 0, fz);
     controls.maxDistance = span * 4;
-    camera.position.set(w / 2 + span * 0.85, span * 0.8, d / 2 + span * 0.95);
+    camera.position.set(fx + look * 0.72, look * 0.72, fz + look * 0.82);
     sun.position.set(w / 2 - span * 0.6, span * 1.4, d / 2 + span * 0.8);
     sun.target.position.set(w / 2, 0, d / 2);
     const s = sun.shadow.camera;
@@ -265,7 +432,7 @@ export async function glbView(host, { boxes = [], W = 10, D = 10, onPick = null,
     if (built) { clear(built.group); clear(built.labels); }
     built = buildModel(T, list, { W: w, D: d, night, floor, floorColor, selected });
     scene.add(built.group, built.labels);
-    if (!framed || size.W !== w || size.D !== d) { frame(w, d); framed = true; size = { W: w, D: d }; }
+    if (!framed || size.W !== w || size.D !== d) { frame(w, d, framed ? null : focus); framed = true; size = { W: w, D: d }; }
     dirty = true;
   };
 
@@ -328,14 +495,37 @@ export async function glbView(host, { boxes = [], W = 10, D = 10, onPick = null,
     if (document.hidden) return;
     controls.update();
     // Lorries driving in, people walking: along their path, round and round.
+    const sec = (now - t0) / 1000;
     if (built?.movers.length && !still) {
       for (const m of built.movers) {
-        const k = (((now - t0) / 1000) % m.dur) / m.dur * (m.path.length - 1);
+        const k = ((((sec - m.begin) % m.dur) + m.dur) % m.dur) / m.dur * (m.path.length - 1);
         const i = Math.min(m.path.length - 2, Math.floor(k));
         const f = k - i;
         const [ax, ay] = m.path[i];
         const [bx, by] = m.path[i + 1] || m.path[i];
         m.obj.position.set(ax + (bx - ax) * f, 0, ay + (by - ay) * f);
+        if (!m.fig) continue;
+        // People face the way they walk and swing their legs; standing, they get on with their work.
+        const moving = Math.hypot(bx - ax, by - ay) > 0.01;
+        if (moving) m.fig.rotation.y = Math.atan2(bx - ax, by - ay);
+        const swing = moving && m.walk ? Math.sin(sec * 9) * 0.55 : 0;
+        const { legs = [], arms = [] } = m.fig.userData;
+        legs.forEach((g, j) => { g.rotation.x = j ? swing : -swing; });
+        if (!m.fig.userData.carry && m.walk) arms.forEach((g, j) => { g.rotation.x = moving ? (j ? -swing : swing) * 0.8 : -0.9 + Math.sin(sec * 5 + j * 1.7) * 0.35; });
+      }
+      dirty = true;
+    }
+    if (built?.flowArrows.length && !still) {
+      for (const fl of built.flowArrows) {
+        const gap = fl.total / fl.arrows.length;
+        fl.arrows.forEach((ar, j) => {
+          const along = (sec * fl.speed + j * gap) % fl.total;
+          const sg = fl.segs.find((x) => along >= x.from && along <= x.from + x.len) || fl.segs[fl.segs.length - 1];
+          const q = (along - sg.from) / sg.len;
+          ar.position.lerpVectors(sg.a, sg.c, Math.min(1, Math.max(0, q)));
+          ar.position.y = 0.09;
+          ar.rotation.y = Math.atan2(sg.c.x - sg.a.x, sg.c.z - sg.a.z);
+        });
       }
       dirty = true;
     }

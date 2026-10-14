@@ -21,7 +21,7 @@ export function lorryBoxes(id, x, y, { along = 'y', color = '#2f6fde', label = n
     { id: `${id}-band`, x: -0.01, y: -0.01, z: 0.26, w: 0.92, d: 1.87, h: 0.14, color },
     { id: `${id}-cab`, x: 0.04, y: 1.95, z: 0.24, w: 0.82, d: 0.72, h: 0.78, color },
     { id: `${id}-glass`, x: 0.1, y: 2.62, z: 0.58, w: 0.7, d: 0.06, h: 0.32, color: '#1e293b' },
-    ...[[0.0, 0.25], [0.74, 0.25], [0.0, 1.35], [0.74, 1.35], [0.0, 2.2], [0.74, 2.2]].map(([wx, wy], i) => ({ id: `${id}-w${i}`, x: wx, y: wy, z: 0, w: 0.16, d: 0.34, h: 0.28, color: '#111827' })),
+    ...[[0.0, 0.25], [0.74, 0.25], [0.0, 1.35], [0.74, 1.35], [0.0, 2.2], [0.74, 2.2]].map(([wx, wy], i) => ({ id: `${id}-w${i}`, x: wx, y: wy, z: 0, w: 0.16, d: 0.34, h: 0.28, color: '#111827', kind: 'wheel' })),
   ];
   return parts.map((p) => {
     const q = along === 'x' ? { ...p, x: x + p.y, y: y + p.x, w: p.d, d: p.w } : { ...p, x: x + p.x, y: y + p.y };
@@ -127,7 +127,8 @@ const PALETTE = ['#4fa3d9', '#e3a03c', '#d9653b', '#8b5cf6', '#14a37f', '#ec4899
  *   cooking, takeaway  how many cooks, how many waiting at the counter
  *
  * Both: tills [{ name, sen, receipts }]; labels { kitchen, entrance } for
- * the floor lettering.
+ * the floor lettering, and labels.steps { enter, basket, shop, seat, cook,
+ * serve, pay, leave } for the numbered steps of the way round.
  */
 export const TABLE_COLOR = { free: '#d6b98c', ordering: '#60a5fa', eating: '#f59e0b' };
 export const STOCK_COLOR = { low: '#f59e0b', out: '#e5484d' };
@@ -148,7 +149,7 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
       { id: 'kitchen-line', x: 0.6, y: 0.4, w: W - 1.2, d: 0.8, h: 0.95, color: '#cbd5e1', label: labels.kitchen || null, labelCls: 'small', kitchen: true },
       { id: 'kitchen-pass', x: 0.6, y: 2.1, w: W - 1.2, d: 0.35, h: 1.0, color: '#94a3b8', kitchen: true, noShadow: true });
     for (let k = 0; k * 1.6 + 1.4 < W - 1; k++) boxes.push({ id: `stove-${k}`, x: 1 + k * 1.6, y: 0.5, z: 0.95, w: 0.9, d: 0.6, h: 0.08, color: '#1f2937', kitchen: true, noShadow: true });
-    for (let k = 0; k < Math.min(3, cooking); k++) person(`cook-${k}`, 1.4 + k * 2.2, 1.5, 0, { color: '#f8fafc', pick: true, kitchen: true, anim: { path: [[0.6, 0], [0.6, 0], [0, 0]], dur: 5, ease: true, bob: true, begin: `${k * 0.7}s` } });
+    for (let k = 0; k < Math.min(3, cooking); k++) person(`cook-${k}`, 1.4 + k * 2.2, 1.5, 0, { color: '#f8fafc', role: 'cook', face: Math.PI, pick: true, kitchen: true, anim: { path: [[0.6, 0], [0.6, 0], [0, 0]], dur: 5, ease: true, bob: true, begin: `${k * 0.7}s` } });
     tables.forEach((tb, i) => {
       const x = 0.9 + (i % cols) * pitch;
       const ty = 3.6 + Math.floor(i / cols) * pitch;
@@ -211,11 +212,47 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
     boxes.push({ id: `till-${tl.name}`, x, y: fy, w: 0.8, d: 1.8, h: 0.85, color: '#e2e8f0', label: tl.name, labelCls: 'small', till: tl },
       { id: `till-${tl.name}-belt`, x: x + 0.08, y: fy + 0.1, z: 0.85, w: 0.64, d: 1.1, h: 0.03, color: '#111827', till: tl, noShadow: true },
       { id: `till-${tl.name}-screen`, x: x + 0.25, y: fy + 1.35, z: 0.85, w: 0.3, d: 0.06, h: 0.32, color: '#14a37f', till: tl, noShadow: true });
-    if (tl.sen > 0) person(`cashier-${i}`, x + 0.95, fy + 1.1, i + 3, { color: '#14a37f', pick: true, till: tl });
+    if (tl.sen > 0) person(`cashier-${i}`, x + 0.95, fy + 1.1, i + 3, { color: '#14a37f', pick: true, till: tl, role: 'cashier', face: -Math.PI / 2 });
   });
   if (fnb) for (let k = 0; k < Math.min(5, takeaway); k++) person(`takeaway-${k}`, 0.9 + tillList.length * 1.9 + 0.3, fy + 0.2 + k * 0.6, k, { pick: true, takeaway: true, anim: { path: [[0, 0.05], [0, 0]], dur: 3, bob: true, begin: `${k * 0.4}s` } });
   W = Math.max(W, 1.6 + tillList.length * 1.9 + 2.4);
   const doorX = W - 3.2;
+  // The way a customer goes round, painted on the floor with numbered steps
+  // ([labels.steps] says what each is); and the staff who keep it going.
+  const st = labels.steps || {};
+  const step = (n, at, label) => ({ n, at, label: label || '' });
+  const staff = (id, x, yy, extra = {}) => boxes.push({ id, x, y: yy, w: 0.34, d: 0.34, h: 0.55, color: '#0f766e', kind: 'person', pick: false, ...extra });
+  const inAt = [doorX + 1.95, fy + 2.2];
+  const outAt = [doorX + 0.45, fy + 2.2];
+  const payAt = [0.45, fy + 0.9];
+  if (fnb) {
+    const t0 = tables[0] ? [1.45, 4.15] : [W / 2, 4.15];
+    const walk = 2.7;
+    boxes.push({ id: 'flow-guest', kind: 'flow', color: '#2f6fde', pick: false,
+      points: [inAt, [inAt[0], fy - 0.35], [walk, fy - 0.35], [walk, t0[1]], [t0[0] + 0.75, t0[1]], [walk, t0[1]], [walk, fy - 0.35], [payAt[0], fy - 0.35], payAt, [payAt[0], outAt[1]], outAt],
+      steps: [step(1, inAt, st.enter), step(2, [t0[0] + 0.75, t0[1]], st.seat), step(5, payAt, st.pay), step(6, outAt, st.leave)] });
+    boxes.push({ id: 'flow-kitchen', kind: 'flow', color: '#e3a03c', pick: false,
+      points: [[2.35, 3.75], [2.35, 2.85], [W / 2, 2.85], [W / 2, 1.7], [W / 2 + 0.5, 1.7], [W / 2 + 0.5, 3.0], [2.05, 3.0], [2.05, 3.4]],
+      steps: [step(3, [W / 2, 1.7], st.cook), step(4, [W / 2 + 0.5, 3.0], st.serve)] });
+    // A waiter between the pass and the tables; a cook at the stoves even when it is quiet.
+    staff('staff-waiter', W / 2 + 0.3, 3.0, { color: '#111827', role: 'cashier', carry: true, anim: { path: [[-(W / 2 - 1.7), 0], [-(W / 2 - 1.7), 0.6], [-(W / 2 - 1.7), 0.6], [0, 0], [0, 0]], dur: 12, ease: true, bob: true } });
+    if (!cooking) staff('staff-cook', W / 2 - 0.2, 1.45, { color: '#f8fafc', role: 'cook', face: Math.PI, anim: { path: [[0, 0]], dur: 1, bob: true } });
+  } else {
+    const rows = boxes.filter((b) => b.id.startsWith('gondola-') && b.id.endsWith('-base'));
+    const right = Math.max(3, ...rows.map((b) => b.x + b.w)) + 0.7;
+    const walks = [...new Set(rows.map((b) => b.y + 1.75))].sort((a, c) => c - a);
+    const snake = walks.flatMap((wy, i) => (i % 2 ? [[1.0, wy], [right, wy]] : [[right, wy], [1.0, wy]]));
+    const end = snake[snake.length - 1] || [1.0, fy - 0.3];
+    const mid = walks.length ? [(right + 1.0) / 2, walks[0]] : [W / 2, fy - 0.3];
+    boxes.push({ id: 'flow-shop', kind: 'flow', color: '#2f6fde', pick: false,
+      points: [inAt, [inAt[0], fy + 1.0], [doorX - 0.85, fy + 1.0], [doorX - 0.85, fy - 0.3], [right, fy - 0.3], ...snake, [end[0], fy - 0.3], [payAt[0], fy - 0.3], payAt, [payAt[0], outAt[1]], outAt],
+      steps: [step(1, inAt, st.enter), step(2, [doorX - 0.85, fy + 1.0], st.basket), step(3, mid, st.shop), step(4, payAt, st.pay), step(5, outAt, st.leave)] });
+    // Someone filling the shelves, and a shopper or two with a basket even when it is quiet.
+    const firstRow = rows[0];
+    if (firstRow) staff('staff-restock', firstRow.x + 1.2, firstRow.y + 1.25, { role: 'worker', carry: true, anim: { path: [[2.4, 0], [2.4, 0], [0, 0], [0, 0]], dur: 11, ease: true, bob: true } });
+    for (let k = shoppers; k < 2 && walks.length; k++) staff(`staff-shopper-${k}`, 2 + k * 2.4, walks[k % walks.length] - 0.1, { color: SHIRTS[(k + 2) % SHIRTS.length], carry: true, anim: { path: [[1.6, 0], [1.6, 0], [0, 0], [0, 0]], dur: 9 + k * 2, ease: true, bob: true, begin: `${k}s` } });
+  }
+  staff('staff-guard', doorX + 2.7, fy + 1.6, { color: '#1e3a8a', face: -Math.PI / 2 });
   boxes.push({ id: 'mat', x: doorX, y: fy + 1.2, w: 2.4, d: 1.2, h: 0, color: '#334155', entrance: true, label: labels.entrance || null, labelCls: 'floor', labelSize: 0.32 },
     { id: 'door-a', x: doorX - 0.1, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', entrance: true },
     { id: 'door-b', x: doorX + 1.4, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', entrance: true,

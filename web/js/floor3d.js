@@ -35,19 +35,22 @@ addStrings({
     floor3dNoQueue: 'Nothing cooking.', floor3dMin: '{n} min', floor3d_free: 'Free', floor3d_ordering: 'Ordering', floor3d_eating: 'Eating', floor3dStockOk: 'In stock', floor3dStockLow: 'Low', floor3dStockOut: 'Sold out (gap)',
     floor3dNoProducts: 'Add products (and categories) and the shelves fill up here.', floor3dProducts: 'Products',
     floor3dPrice: 'Price', floor3dOnHand: 'On hand', floor3dSoldToday: 'Sold today', floor3dRecent: 'Receipts in the last 30 min', floor3dToday: 'Receipts today', floor3dEntranceInfo: 'Entrance',
-    floor3dPanelHide: 'Hide the panel', floor3dPanelShow: 'Panel', floor3dNoTakeaway: 'Nobody waiting for takeaway.' },
+    floor3dPanelHide: 'Hide the panel', floor3dPanelShow: 'Panel', floor3dNoTakeaway: 'Nobody waiting for takeaway.',
+    floor3dStep_enter: 'Come in', floor3dStep_basket: 'Take a basket', floor3dStep_shop: 'Shop the aisles', floor3dStep_seat: 'Sit down & order', floor3dStep_cook: 'Kitchen cooks', floor3dStep_serve: 'Served to the table', floor3dStep_pay: 'Pay at the till', floor3dStep_leave: 'Thank you, bye' },
   zh: { floor3dAvg: '平均每单', floor3dShoppers: '最近 30 分钟客人', floor3dBest: '今天最好卖', floor3dLowList: '快卖完', floor3dKitchenQ: '厨房排队',
     floor3dTakeaway: '外卖', floor3dEntrance: '入口', floor3dShelfN: '货架', floor3dNothingYet: '今天还没有卖。', floor3dAllStocked: '没有快卖完的。',
     floor3dNoQueue: '厨房没有在做的单。', floor3dMin: '{n} 分钟', floor3d_free: '空桌', floor3d_ordering: '点餐中', floor3d_eating: '用餐中', floor3dStockOk: '有货', floor3dStockLow: '快没了', floor3dStockOut: '卖完（空位）',
     floor3dNoProducts: '加了商品（和类别）以后，货架就会摆满。', floor3dProducts: '商品',
     floor3dPrice: '价钱', floor3dOnHand: '库存', floor3dSoldToday: '今天卖了', floor3dRecent: '最近 30 分钟的单', floor3dToday: '今天的单', floor3dEntranceInfo: '入口',
-    floor3dPanelHide: '收起侧栏', floor3dPanelShow: '打开侧栏', floor3dNoTakeaway: '没有人在等外卖。' },
+    floor3dPanelHide: '收起侧栏', floor3dPanelShow: '打开侧栏', floor3dNoTakeaway: '没有人在等外卖。',
+    floor3dStep_enter: '进门', floor3dStep_basket: '拿篮子', floor3dStep_shop: '逛货架选购', floor3dStep_seat: '入座点餐', floor3dStep_cook: '厨房煮', floor3dStep_serve: '上菜', floor3dStep_pay: '收银台付款', floor3dStep_leave: '谢谢光临' },
   ms: { floor3dAvg: 'Purata bil', floor3dShoppers: 'Pelanggan, 30 min lalu', floor3dBest: 'Paling laris hari ini', floor3dLowList: 'Hampir habis', floor3dKitchenQ: 'Giliran dapur',
     floor3dTakeaway: 'Bungkus', floor3dEntrance: 'PINTU MASUK', floor3dShelfN: 'Rak', floor3dNothingYet: 'Belum ada jualan hari ini.', floor3dAllStocked: 'Tiada yang hampir habis.',
     floor3dNoQueue: 'Tiada yang dimasak.', floor3dMin: '{n} min', floor3d_free: 'Kosong', floor3d_ordering: 'Memesan', floor3d_eating: 'Makan', floor3dStockOk: 'Ada stok', floor3dStockLow: 'Rendah', floor3dStockOut: 'Habis (kosong)',
     floor3dNoProducts: 'Tambah produk (dan kategori) dan rak akan penuh di sini.', floor3dProducts: 'Produk',
     floor3dPrice: 'Harga', floor3dOnHand: 'Stok', floor3dSoldToday: 'Terjual hari ini', floor3dRecent: 'Resit 30 min lalu', floor3dToday: 'Resit hari ini', floor3dEntranceInfo: 'Pintu masuk',
-    floor3dPanelHide: 'Sembunyi panel', floor3dPanelShow: 'Panel', floor3dNoTakeaway: 'Tiada yang menunggu bungkus.' },
+    floor3dPanelHide: 'Sembunyi panel', floor3dPanelShow: 'Panel', floor3dNoTakeaway: 'Tiada yang menunggu bungkus.',
+    floor3dStep_enter: 'Masuk', floor3dStep_basket: 'Ambil bakul', floor3dStep_shop: 'Pilih di lorong', floor3dStep_seat: 'Duduk & pesan', floor3dStep_cook: 'Dapur masak', floor3dStep_serve: 'Hidang ke meja', floor3dStep_pay: 'Bayar di kaunter', floor3dStep_leave: 'Terima kasih' },
 });
 
 const inList = () => [...session.branchIds, ''].slice(0, 30);
@@ -103,8 +106,9 @@ export function render(main) {
     info, panelBody);
   const reopen = h('button', { class: 'fl-panel-open', 'data-act': 'panel-show', onclick: () => setPanel(true) }, `‹ ${t('floor3dPanelShow')}`);
   mount(layoutEl, stage, panel, reopen);
-  let panelOn = true;
-  try { panelOn = localStorage.getItem('jsox-floor-panel') !== 'off'; } catch { /* no storage */ }
+  // Put away to start with, so the 3D has the whole width.
+  let panelOn = false;
+  try { panelOn = localStorage.getItem('jsox-floor-panel') === 'on'; } catch { /* no storage */ }
   setPanel(panelOn);
   mount(main,
     h('div', { class: 'page-head' }, menuButton(), h('h1', {}, t('floor3d')), h('span', { class: 'grow' }), h('span', { class: 'muted' }, session.branchName())),
@@ -163,7 +167,8 @@ export function render(main) {
     now = { sold, cooking: cookingOrders, takeaway: orders.filter((o) => !o.table), recent };
     const layout = shopLayout({
       fnb, aisles, tables, tills: [...tills.values()], shoppers, cooking: cookingOrders.length, takeaway,
-      labels: { kitchen: t('floor3dKitchen'), entrance: t('floor3dEntrance') },
+      labels: { kitchen: t('floor3dKitchen'), entrance: t('floor3dEntrance'),
+        steps: Object.fromEntries(['enter', 'basket', 'shop', 'seat', 'cook', 'serve', 'pay', 'leave'].map((k) => [k, t(`floor3dStep_${k}`)])) },
     });
     const night = night3d();
     if (!scene) {
