@@ -1034,3 +1034,20 @@ body.iso-full-open { overflow: hidden; }
 .map-stage:has(.iso-wrap.night) .wh3d-task { background: rgba(10, 24, 36, .9); color: #dbe4ec; border-color: rgba(148, 197, 255, .12); }
 .map-stage:has(.iso-wrap.night) .map-layers { background: #0a1520; border-color: #12263a; }
 .map-stage:has(.iso-wrap.night) .map-legend { color: #9fb3c8; }
+/* The shop floor 3D beside its panel (floor3d.js) */
+.fl-layout { display: grid; gap: 12px; }
+.fl-layout .map-stage { margin: 0; }
+.fl-panel { display: grid; gap: 14px; align-content: start; margin: 0; }
+.fl-panel h3 { margin: 0 0 6px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.fl-panel .map-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.fl-panel .stat { margin: 0; padding: 10px 12px; }
+.fl-panel .stat .value { font-size: 22px; }
+.fl-panel-body { display: grid; gap: 14px; }
+.fl-row { display: flex; align-items: center; gap: 8px; padding: 6px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.fl-row:last-child { border-bottom: 0; }
+.fl-rank { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-size: 12px; font-weight: 700; flex: none; }
+.fl-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+@media (min-width: 1100px) {
+  .fl-layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+  .fl-panel { position: sticky; top: 12px; }
+}

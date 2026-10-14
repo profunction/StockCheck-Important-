@@ -28,22 +28,31 @@ await step('a tap on the shop: its takings and receipts', async () => {
   await shot('town-2-tap');
 });
 
-await step('POS shop floor, restaurant: tables with chairs, one with a bill open', async () => {
+await step('POS shop floor, restaurant: kitchen, tables by state with guests, the kitchen queue', async () => {
   await page.goto(`${base}/pos/#/floor`);
   await page.waitForSelector('.iso-box[data-id^="till-"]');
   // Changed while the page is open: it follows, as a till would.
   await page.evaluate((k) => window.__put(k, { ...window.__store.get(k), mode: 'FNB' }), `${W}pos/settings`);
   await page.evaluate((k) => window.__put(k, { table: '3', branchId: '', orderType: 'DINE_IN', lines: [{ barcode: '1', name: 'Nasi Lemak', qtyMilli: 2000, unitPriceSen: 650, taxIds: [] }], discountIds: [], openedAt: Date.now() - 1200_000, updatedAt: Date.now() }), `${W}orders/o3`);
+  await page.evaluate((k) => window.__put(k, { table: '2', branchId: '', orderType: 'DINE_IN', lines: [{ barcode: '1', name: 'Mee Goreng', qtyMilli: 1000, unitPriceSen: 700, taxIds: [], sent: true }], discountIds: [], openedAt: Date.now() - 600_000, updatedAt: Date.now() }), `${W}orders/o2`);
   await page.waitForSelector('.iso-box[data-id="table-3"].busy');
   await page.waitForSelector('.iso-box[data-id="table-1"]:not(.busy)');
+  await page.waitForSelector('.iso-box[data-id^="guest-3-"]');
+  await page.waitForSelector('.iso-box[data-id="cook-0"]');
+  await page.waitForSelector('[data-card="kitchen"]:has-text("Mee Goreng")');
   await page.evaluate(() => document.querySelector('.iso-box[data-id="table-3"] polygon:last-of-type').dispatchEvent(new MouseEvent('click', { bubbles: true })));
   await page.waitForSelector('.map-info:has-text("Nasi Lemak")');
   await shot('town-3-fnb');
 });
 
-await step('POS shop floor, shop: a shelf per category', async () => {
+await step('POS shop floor, shop: shelves stocked with the products, signs, checkouts, the panel', async () => {
   await page.evaluate((k) => window.__put(k, { ...window.__store.get(k), mode: 'RETAIL' }), `${W}pos/settings`);
-  await page.waitForSelector('.iso-box[data-id^="shelf-"]');
+  await page.waitForSelector('.iso-box[data-id^="gondola-"]');
+  await page.waitForSelector('.iso-box[data-id^="sign-"]');
+  await page.waitForSelector('.iso-box[data-id^="item-"]');
+  await page.waitForSelector('.iso-box[data-id="door-a"]');
+  await page.waitForSelector('[data-card="kpis"]');
+  await page.waitForSelector('[data-card="running-out"]');
   await shot('town-4-shop');
 });
 

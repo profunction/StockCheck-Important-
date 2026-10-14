@@ -108,50 +108,119 @@ export function cityLayout(places, moving = []) {
 const PALETTE = ['#4fa3d9', '#e3a03c', '#d9653b', '#8b5cf6', '#14a37f', '#ec4899', '#64748b', '#0ea5e9'];
 
 /**
- * The shop floor (POS 店面 3D). A restaurant: its tables in rows, each
- * with four chairs, amber while a bill is open on it; the kitchen at the
- * back. A shop: a shelf per category, as tall as what it sold today. Both:
- * the tills at the front, as tall as their takings.
- *   tables  [{ name, order }]          order: the open bill or null
- *   shelves [{ id, name, color, sen }]
- *   tills   [{ name, sen, receipts }]
+ * The shop floor (POS 店面 3D), drawn as the shop it is -- whether or not
+ * anything sold today.
+ *
+ * A shop: a shelf unit (gondola) per category, both sides stocked with
+ * that category's products, sold-out ones a gap and low ones in amber,
+ * its sign hanging over it; customers of the last half hour in the
+ * aisles; the checkouts at the front, a cashier at each till that sold
+ * today; the glass doors of the entrance.
+ *   aisles  [{ id, name, color, sen, products: [{ name, level }] }]   level ok | low | out
+ *   shoppers  how many people to show in the aisles
+ *
+ * A restaurant: the kitchen at the back with a cook per bill cooking, the
+ * tables in rows with their chairs, coloured by how far the table has got
+ * and the guests sat at them, the counter at the front with its takeaway
+ * queue.
+ *   tables  [{ name, state, guests, label }]   state free | ordering | eating
+ *   cooking, takeaway  how many cooks, how many waiting at the counter
+ *
+ * Both: tills [{ name, sen, receipts }]; labels { kitchen, entrance } for
+ * the floor lettering.
  */
-export function shopLayout({ fnb = false, tables = [], shelves = [], tills = [] }) {
+export const TABLE_COLOR = { free: '#d6b98c', ordering: '#60a5fa', eating: '#f59e0b' };
+export const STOCK_COLOR = { low: '#f59e0b', out: '#e5484d' };
+const SHIRTS = ['#2f6fde', '#e3a03c', '#14a37f', '#ec4899', '#8b5cf6', '#0ea5e9', '#d9653b'];
+
+export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], shoppers = 0, cooking = 0, takeaway = 0, labels = {} }) {
   const boxes = [];
-  let y = 0;
-  let W = 8;
+  const person = (id, x, y, i, extra = {}) => boxes.push({ id, x, y, w: 0.34, d: 0.34, h: 0.55, color: SHIRTS[i % SHIRTS.length], kind: 'person', pick: false, ...extra });
+  const tillList = tills.length ? tills : [{ name: 'POS', sen: 0, receipts: 0 }];
+  let W;
+  let y;
   if (fnb) {
-    boxes.push({ id: 'kitchen', x: 0.5, y: 0.2, w: 5, d: 1, h: 1.1, color: '#9fb0c0', label: 'kitchen', kitchen: true, pick: false, kind: 'building' });
-    const cols = Math.max(2, Math.ceil(Math.sqrt(tables.length)));
-    const pitch = 2.6;
+    const cols = Math.max(3, Math.ceil(Math.sqrt(Math.max(1, tables.length) * 1.4)));
+    const pitch = 2.5;
+    W = Math.max(9, 1 + cols * pitch);
+    // The kitchen along the back wall: the line, the stoves, the pass.
+    boxes.push({ id: 'kitchen-floor', x: 0.3, y: 0.3, w: W - 0.6, d: 2.4, h: 0, color: '#d9dee3', pick: false },
+      { id: 'kitchen-line', x: 0.6, y: 0.4, w: W - 1.2, d: 0.8, h: 0.95, color: '#cbd5e1', pick: false, label: labels.kitchen || null, labelCls: 'small', kitchen: true },
+      { id: 'kitchen-pass', x: 0.6, y: 2.1, w: W - 1.2, d: 0.35, h: 1.0, color: '#94a3b8', pick: false, noShadow: true });
+    for (let k = 0; k * 1.6 + 1.4 < W - 1; k++) boxes.push({ id: `stove-${k}`, x: 1 + k * 1.6, y: 0.5, z: 0.95, w: 0.9, d: 0.6, h: 0.08, color: '#1f2937', pick: false, noShadow: true });
+    for (let k = 0; k < Math.min(3, cooking); k++) person(`cook-${k}`, 1.4 + k * 2.2, 1.5, 0, { color: '#f8fafc', anim: { path: [[0.6, 0], [0.6, 0], [0, 0]], dur: 5, ease: true, bob: true, begin: `${k * 0.7}s` } });
     tables.forEach((tb, i) => {
-      const x = 0.6 + (i % cols) * pitch;
-      const ty = 2.2 + Math.floor(i / cols) * pitch;
-      const busy = !!tb.order;
-      boxes.push({ id: `table-${tb.name}`, x, y: ty, w: 1.3, d: 1.3, h: 0.55, color: busy ? '#f59e0b' : '#9ccfb8', label: tb.name, table: tb, cls: busy ? 'busy' : '' });
-      for (const [cx, cy] of [[0.45, -0.5], [0.45, 1.45], [-0.5, 0.45], [1.45, 0.45]]) {
-        boxes.push({ id: `chair-${tb.name}-${cx}-${cy}`, x: x + cx, y: ty + cy, w: 0.4, d: 0.4, h: 0.35, color: '#a16207', pick: false });
+      const x = 0.9 + (i % cols) * pitch;
+      const ty = 3.6 + Math.floor(i / cols) * pitch;
+      const color = TABLE_COLOR[tb.state] || TABLE_COLOR.free;
+      boxes.push({ id: `table-${tb.name}-leg`, x: x + 0.45, y: ty + 0.45, w: 0.2, d: 0.2, h: 0.7, color: '#374151', pick: false, noShadow: true },
+        { id: `table-${tb.name}`, x, y: ty, z: 0.7, w: 1.1, d: 1.1, h: 0.07, color, label: tb.label || tb.name, labelCls: tb.state === 'free' ? 'small' : 'task', table: tb, cls: tb.state === 'free' ? '' : 'busy' });
+      const seats = [[0.35, -0.55], [0.35, 1.25], [-0.55, 0.35], [1.25, 0.35]];
+      seats.forEach(([cx, cy], k) => boxes.push({ id: `chair-${tb.name}-${k}`, x: x + cx, y: ty + cy, w: 0.4, d: 0.4, h: 0.42, color: '#7c5a3a', pick: false }));
+      if (tb.state !== 'free') {
+        seats.slice(0, Math.max(1, Math.min(4, tb.guests || 2))).forEach(([cx, cy], k) => person(`guest-${tb.name}-${k}`, x + cx + 0.03, ty + cy + 0.03, i + k, { z: 0.42, h: 0.42 }));
       }
     });
-    W = Math.max(6, 0.6 + cols * pitch);
-    y = 2.2 + Math.ceil(tables.length / cols) * pitch;
+    y = 3.6 + Math.ceil(Math.max(1, tables.length) / cols) * pitch;
+    // Plants by the walls.
+    boxes.push({ id: 'plant-a', x: 0.3, y: 3, w: 0.5, d: 0.5, h: 0.9, color: '#16a34a', kind: 'tree', pick: false }, { id: 'plant-b', x: W - 0.8, y: 3, w: 0.5, d: 0.5, h: 0.9, color: '#16a34a', kind: 'tree', pick: false });
   } else {
-    const top = Math.max(1, ...shelves.map((s) => s.sen || 0));
-    shelves.forEach((s, i) => {
-      boxes.push({ id: `shelf-${s.id}`, x: 0.6, y: 0.4 + i * 2, w: 6, d: 0.9, h: 0.6 + 2.4 * (s.sen || 0) / top, color: s.color || PALETTE[i % PALETTE.length], label: s.name, shelf: s, kind: 'carton' });
+    const GL = 6;
+    const per = 12;
+    const cols = aisles.length > 5 ? 2 : 1;
+    const rows = Math.max(1, Math.ceil(aisles.length / cols));
+    W = 1.8 + cols * (GL + 1.8);
+    // The back wall and the side wall (the walls in front would hide the shop).
+    boxes.push({ id: 'wall-back', x: 0, y: 0, w: W, d: 0.3, h: 1.8, color: '#cbd5e1', pick: false }, { id: 'wall-side', x: 0, y: 0, w: 0.3, d: 2.4 + rows * 2.6 + 4.6, h: 1.8, color: '#b8c4cf', pick: false });
+    aisles.forEach((a, i) => {
+      const x = 1.4 + (i % cols) * (GL + 1.8);
+      const gy = 1.6 + Math.floor(i / cols) * 2.6;
+      boxes.push({ id: `gondola-${a.id}-base`, x, y: gy, w: GL, d: 0.9, h: 0.15, color: '#475569', pick: false },
+        { id: `gondola-${a.id}`, x, y: gy + 0.41, w: GL, d: 0.08, h: 1.45, color: '#e2e8f0', aisle: a, title: a.name, noShadow: true });
+      for (const z of [0.6, 1.05]) boxes.push({ id: `gondola-${a.id}-p${z}`, x, y: gy, z, w: GL, d: 0.9, h: 0.04, color: '#cbd5e1', pick: false, noShadow: true });
+      // Both sides stocked, level by level; a product shows as many facings as there is room for.
+      const list = a.products.length ? a.products : [];
+      for (let side = 0; side < 2; side++) {
+        for (let lv = 0; lv < 3; lv++) {
+          for (let k = 0; k < per; k++) {
+            const p = list.length ? list[(side * 3 * per + lv * per + k) % list.length] : null;
+            if (!p || p.level === 'out') continue;
+            const color = p.level === 'low' ? STOCK_COLOR.low : (p.color || a.color || PALETTE[i % PALETTE.length]);
+            boxes.push({ id: `item-${a.id}-${side}-${lv}-${k}`, x: x + 0.04 + k * (GL / per), y: gy + (side ? 0.52 : 0.06), z: [0.15, 0.64, 1.09][lv], w: GL / per - 0.08, d: 0.32, h: 0.34,
+              color, aisle: a, title: `${a.name} · ${p.name}`, noShadow: true });
+          }
+        }
+      }
+      // The category's sign, hanging over the middle of its shelf.
+      boxes.push({ id: `sign-${a.id}`, x: x + GL / 2 - 1.1, y: gy + 0.4, z: 2.05, w: 2.2, d: 0.1, h: 0.42, color: a.color || PALETTE[i % PALETTE.length], label: a.name, labelCls: 'small', aisle: a, noShadow: true });
     });
-    W = 7.2;
-    y = 0.4 + shelves.length * 2 + 0.4;
+    y = 1.6 + rows * 2.6;
+    // Customers of the last half hour, walking the aisles.
+    for (let k = 0; k < Math.min(6, shoppers); k++) {
+      const row = k % Math.max(1, aisles.length);
+      person(`shopper-${k}`, 1.8 + (k * 1.7) % (W - 3.5), 1.6 + Math.floor(row / cols) * 2.6 + 1.35, k,
+        { anim: { path: [[1.4, 0], [1.4, 0], [0, 0], [0, 0]], dur: 8 + k, ease: true, bob: true, begin: `${k * 0.9}s` } });
+    }
   }
-  // The counter along the front, a till on it per machine that sold today.
-  const topTill = Math.max(1, ...tills.map((x) => x.sen || 0));
-  const list = tills.length ? tills : [{ name: 'POS', sen: 0, receipts: 0 }];
-  boxes.push({ id: 'counter', x: 0.4, y: y + 0.3, w: Math.max(W - 0.8, list.length * 1.6 + 0.4), d: 0.9, h: 0.8, color: '#cbd5e1', pick: false });
-  list.forEach((tl, i) => {
-    boxes.push({ id: `till-${tl.name}`, x: 0.7 + i * 1.6, y: y + 0.4, z: 0.8, w: 1.1, d: 0.7, h: 0.3 + 1.4 * (tl.sen || 0) / topTill, color: '#14a37f', label: tl.name, till: tl });
+  // The front: a checkout per till (a counter, its belt and screen, and its
+  // cashier if it sold today), and the glass doors of the entrance.
+  const fy = y + 0.6;
+  tillList.forEach((tl, i) => {
+    const x = 0.9 + i * 1.9;
+    boxes.push({ id: `till-${tl.name}`, x, y: fy, w: 0.8, d: 1.8, h: 0.85, color: '#e2e8f0', label: tl.name, labelCls: 'small', till: tl },
+      { id: `till-${tl.name}-belt`, x: x + 0.08, y: fy + 0.1, z: 0.85, w: 0.64, d: 1.1, h: 0.03, color: '#111827', pick: false, noShadow: true },
+      { id: `till-${tl.name}-screen`, x: x + 0.25, y: fy + 1.35, z: 0.85, w: 0.3, d: 0.06, h: 0.32, color: '#14a37f', pick: false, noShadow: true });
+    if (tl.sen > 0) person(`cashier-${i}`, x + 0.95, fy + 1.1, i + 3, { color: '#14a37f' });
   });
-  W = Math.max(W, list.length * 1.6 + 1.2);
-  return { boxes, W, D: y + 1.6 };
+  if (fnb) for (let k = 0; k < Math.min(5, takeaway); k++) person(`takeaway-${k}`, 0.9 + tillList.length * 1.9 + 0.3, fy + 0.2 + k * 0.6, k, { anim: { path: [[0, 0.05], [0, 0]], dur: 3, bob: true, begin: `${k * 0.4}s` } });
+  W = Math.max(W, 1.6 + tillList.length * 1.9 + 2.4);
+  const doorX = W - 3.2;
+  boxes.push({ id: 'mat', x: doorX, y: fy + 1.2, w: 2.4, d: 1.2, h: 0, color: '#334155', pick: false, label: labels.entrance || null, labelCls: 'floor', labelSize: 0.32 },
+    { id: 'door-a', x: doorX - 0.1, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', pick: false },
+    { id: 'door-b', x: doorX + 1.4, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', pick: false,
+      anim: { path: [[0.5, 0], [0.5, 0], [0, 0], [0, 0]], dur: 7, ease: true } });
+  if (!fnb) boxes.push({ id: 'baskets', x: doorX - 1.1, y: fy + 1.4, w: 0.5, d: 0.4, h: 0.5, color: '#e5484d', pick: false });
+  return { boxes, W, D: fy + 2.9 };
 }
 
 /**

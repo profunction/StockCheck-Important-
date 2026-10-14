@@ -78,18 +78,24 @@ test('the town: a lot per place on a grid with roads, shops as tall as their sal
   assert.equal(boxes.filter((x) => x.road).length, 6);
 });
 
-test('the shop floor: tables with chairs, busy ones amber; shelves as tall as their sales; tills at the front', async () => {
-  const { shopLayout } = await import('./town.js');
-  const fnb = shopLayout({ fnb: true, tables: [{ name: '1', order: { id: 'o' } }, { name: '2', order: null }], tills: [{ name: 'Till 1', sen: 500 }] });
+test('the shop floor: a café with its kitchen, tables by state and guests; a shop stocked by category', async () => {
+  const { shopLayout, STOCK_COLOR, TABLE_COLOR } = await import('./town.js');
   const b = (l, id) => l.boxes.find((x) => x.id === id);
-  assert.equal(b(fnb, 'table-1').color, '#f59e0b');
-  assert.equal(b(fnb, 'table-2').color, '#9ccfb8');
-  assert.equal(fnb.boxes.filter((x) => x.id.startsWith('chair-1-')).length, 4);
-  assert.ok(b(fnb, 'kitchen'));
-  const shop = shopLayout({ shelves: [{ id: 'a', name: 'Drinks', sen: 300 }, { id: 'b', name: 'Food', sen: 0 }], tills: [] });
-  assert.equal(b(shop, 'shelf-a').h, 3);
-  assert.equal(b(shop, 'shelf-b').h, 0.6);
-  assert.ok(b(shop, 'till-POS'));
+  const cafe = shopLayout({ fnb: true, cooking: 2, takeaway: 1, tables: [{ name: '1', state: 'eating', guests: 3 }, { name: '2', state: 'free' }], tills: [{ name: 'Till 1', sen: 500 }] });
+  assert.equal(b(cafe, 'table-1').color, TABLE_COLOR.eating);
+  assert.equal(b(cafe, 'table-2').color, TABLE_COLOR.free);
+  assert.equal(cafe.boxes.filter((x) => x.id.startsWith('chair-1-')).length, 4);
+  assert.equal(cafe.boxes.filter((x) => x.id.startsWith('guest-1-')).length, 3);
+  assert.equal(cafe.boxes.filter((x) => x.id.startsWith('guest-2-')).length, 0);
+  assert.equal(cafe.boxes.filter((x) => x.id.startsWith('cook-')).length, 2);
+  assert.ok(b(cafe, 'kitchen-line') && b(cafe, 'takeaway-0') && b(cafe, 'cashier-0'));
+  // A shop with nothing sold today still has its shelves, full of its products.
+  const shop = shopLayout({ aisles: [{ id: 'a', name: 'Drinks', color: '#0ea5e9', sen: 0, products: [{ name: 'Milo', level: 'ok' }, { name: 'Teh', level: 'low' }, { name: 'Kopi', level: 'out' }] }], tills: [] });
+  assert.ok(b(shop, 'gondola-a') && b(shop, 'sign-a') && b(shop, 'till-POS') && b(shop, 'door-a'));
+  const items = shop.boxes.filter((x) => x.id.startsWith('item-a-'));
+  assert.equal(items.length, 48);
+  assert.ok(items.some((x) => x.color === STOCK_COLOR.low));
+  assert.equal(shop.boxes.filter((x) => x.id.startsWith('cashier-')).length, 0);
 });
 
 test('the books as towers: as tall as the amount, overdue on top in red, a loss in red', async () => {
