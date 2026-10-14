@@ -467,7 +467,7 @@ export async function glbView(host, { boxes = [], W = 10, D = 10, onPick = null,
     if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6 || !onPick || !built) return;
     const r = canvas.getBoundingClientRect();
     ray.setFromCamera(new T.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
-    const hit = ray.intersectObjects([...built.pickables, ...built.labels.children.filter((o) => o.isSprite && o.userData.src?.pick !== false)], true)[0];
+    const hit = ray.intersectObjects([...built.pickables, ...built.labels.children.filter((o) => o.isSprite && o.userData.src && o.userData.src.pick !== false)], true)[0];
     let o = hit?.object;
     while (o && !o.userData.src) o = o.parent;
     if (o) onPick(o.userData.src);

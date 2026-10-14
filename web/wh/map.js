@@ -295,6 +295,16 @@ function build(data) {
     words(`q-${l.name}`, l.x - 0.2, laneY + LANE_D - 0.1, 2, 0.5, `${t('whMapQueue')} ${l.name}`, 0.26);
     inLane.get(l.name).slice(0, 3).forEach((j, k) => lorry(j, l.kind, l.x + 0.35, laneY + 0.25 + k * 3));
   }
+  // The company's own lorries are always there: parked in the lanes nobody is
+  // queueing in (free, waiting for work), and coming and going on the road.
+  const idle = { ref: t('whIdleLorry'), who: t('whIdleLorrySub'), go: () => go('docks') };
+  lanesAll.filter((l) => !inLane.get(l.name).length).slice(0, 4).forEach((l, i) => boxes.push(...lorryBoxes(`idle-${l.name}`, l.x + 0.35, laneY + 0.25 + (i % 2) * 3, {
+    along: 'y', color: i % 2 ? '#64748b' : COLOR.outbound, title: t('whIdleLorry'), lorry: idle,
+  })));
+  [0, 1].forEach((k) => boxes.push(...lorryBoxes(`road-lorry-${k}`, 0.3, roadY + 0.48, {
+    along: 'x', color: k ? COLOR.inbound : COLOR.outbound, title: t('whRoadLorry'), lorry: { ref: t('whRoadLorry'), who: '', go: () => go('docks') },
+    anim: { path: [[W - 3.4, 0]], dur: 16, begin: `${k * 8}s` },
+  })));
 
   // The work through the warehouse, painted on the floor with numbered
   // steps: goods in (1-3, blue) from the lorry to the racks; goods out
@@ -419,8 +429,8 @@ function build(data) {
     all, W, D: laneY + LANE_D + 0.8, demo, floor, arriving, packing, lanes,
     // Where the picture starts (and ⌂ goes back to): the racks, filling it.
     home: { x: RX - 2, y: RY - 0.6, w: floor.W + 2.6, d: floor.D + 1.2, h: Math.max(1, ...floor.cells.map((c) => c.z)) + 0.8 },
-    // In real 3D: the building and its docks, not the yard behind.
-    home3d: { x: 0, y: 0, w: W, d: dockY + 3 },
+    // In real 3D: the building, its docks, the road and the front of the yard.
+    home3d: { x: 0, y: 0, w: W, d: laneY + 3.5 },
     cellOf, soonest, toPick, tasks, feed, queue, orders,
     stats: { used: stockedCells.length, total: floor.cells.length, units, onRoad: (data.trips || []).filter((x) => x.status === 'ON_ROAD' && here(x.branchId)).length, soon: lots.filter((l) => l.daysLeft <= 30).length },
     racks: { empty: emptyCells.length, nearFull: nearFull.length, expired, within30, first: lots.slice(0, 8).map((l) => ({ ...l, bin: binOf(l.key) })) },

@@ -258,7 +258,15 @@ export function shopLayout({ fnb = false, aisles = [], tables = [], tills = [], 
     { id: 'door-b', x: doorX + 1.4, y: fy + 2.5, w: 1.1, d: 0.1, h: 1.6, color: '#bae6fd', kind: 'glass', entrance: true,
       anim: { path: [[0.5, 0], [0.5, 0], [0, 0], [0, 0]], dur: 7, ease: true } });
   if (!fnb) boxes.push({ id: 'baskets', x: doorX - 1.1, y: fy + 1.4, w: 0.5, d: 0.4, h: 0.5, color: '#e5484d', entrance: true });
-  return { boxes, W, D: fy + 2.9 };
+  // The road outside: the supplier's lorry unloading at the kerb, and traffic going by.
+  const roadY = fy + 3.3;
+  boxes.push({ id: 'pavement', x: 0, y: fy + 2.7, w: W, d: 0.6, h: 0, color: '#cbd5e1', pick: false },
+    { id: 'road', x: 0, y: roadY, w: W, d: 1.8, h: 0, color: '#4b5866', pick: false });
+  for (let x = 0.3; x + 0.6 < W; x += 1.3) boxes.push({ id: `road-dash-${x.toFixed(1)}`, x, y: roadY + 0.86, w: 0.6, d: 0.08, h: 0, color: '#f1f5f9', pick: false });
+  boxes.push(...lorryBoxes('delivery', 0.5, roadY + 0.05, { along: 'x', color: '#e3a03c', pick: false }),
+    ...lorryBoxes('traffic', 0.2, roadY + 0.95, { along: 'x', color: '#2f6fde', pick: false, anim: { path: [[W - 3, 0]], dur: 11, begin: '2s' } }));
+  staff('staff-driver', 3.3, roadY - 0.25, { color: '#e3a03c', role: 'worker', carry: true, anim: { path: [[0, -0.9], [0, -0.9], [0, 0], [0, 0]], dur: 6, ease: true, bob: true } });
+  return { boxes, W, D: roadY + 1.9 };
 }
 
 /**
