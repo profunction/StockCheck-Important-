@@ -37,7 +37,9 @@ jobs:
       - name: The marketing films' sound (bright, not dark)
         run: node tools/videos/sound.test.mjs
       - name: Payments and licences
-        run: node platform/billing.test.mjs
+        run: |
+          node platform/billing.test.mjs
+          node platform/buyPage.test.mjs
       - name: API shapes and the request chain
         run: |
           node api/lib.test.mjs

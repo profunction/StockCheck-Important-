@@ -27,6 +27,7 @@ import Stripe from 'stripe';
 import { grant, expire, get, findByCode, write, firestoreStore, lifetimeLeft } from './licences.mjs';
 import { PLANS, TERMS, priceSen, ringgit, CURRENCY } from './plans.mjs';
 import { BillingError, handleStripeWebhook, handleToyyibPayWebhook, readToyyibBill, validPlanTerm } from './billing.mjs';
+import { renderBuyPage, simplePage } from './buyPage.mjs';
 
 const {
   PORT = 8787,
@@ -449,126 +450,15 @@ app.post('/toyyibpay/create', express.json(), async (req, res) => {
  */
 app.get('/buy', async (req, res) => {
   const company = String(req.query.company ?? '').trim().toUpperCase();
-  const known = company ? await resolveWorkspace(company) : null;
-
-  const esc = (value) =>
-    String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-  const paid = Object.keys(PLANS).filter((p) => p !== 'TRIAL');
-  const rows = [];
-
-  for (const plan of paid) {
-    const cells = [];
-    for (const term of Object.keys(TERMS)) {
-      if (!validPlanTerm(plan, term)) continue;
-      const sen = priceSen(plan, term);
-      if (!sen) continue;
-      const recurring = TERMS[term].recurring;
-      const buttons = [
-        `<button data-plan="${plan}" data-term="${term}" data-route="checkout" data-method="card">Card / Google Pay</button>`,
-      ];
-      if (recurring) {
-        buttons.push(`<button data-plan="${plan}" data-term="${term}" data-route="toyyibpay">FPX via ToyyibPay (prepaid, no auto-renew)</button>`);
-      } else {
-        buttons.push(
-          `<button data-plan="${plan}" data-term="${term}" data-route="checkout" data-method="fpx">Online banking (FPX)</button>`,
-          `<button data-plan="${plan}" data-term="${term}" data-route="checkout" data-method="grabpay">GrabPay</button>`,
-          `<button data-plan="${plan}" data-term="${term}" data-route="toyyibpay">ToyyibPay (FPX &amp; wallets)</button>`,
-        );
-      }
-      cells.push(
-        `<div class="term"><h3>${TERMS[term].label} — ${ringgit(sen)}</h3>` +
-        (recurring ? '<p class="note">By card it renews automatically; by FPX it is prepaid.</p>' : '') +
-        `<div class="buttons">${buttons.join('')}</div></div>`,
-      );
-    }
-    rows.push(
-      `<section class="plan"><h2>${PLANS[plan].label}${PLANS[plan].pack === 'STANDALONE' ? ' <small>(standalone)</small>' : ''}</h2>` +
-      `<p class="seats">${PLANS[plan].seats >= 1e9 ? 'Unlimited accounts' : `Up to ${PLANS[plan].seats} accounts`}` +
-      `${PLANS[plan].modules.pos && PLANS[plan].tills < 1e9 ? ` · ${PLANS[plan].tills} tills` : ''} · ` +
-      `${Object.entries(PLANS[plan].modules).filter(([, on]) => on).map(([m]) => ({ app: 'phone app', pos: 'POS', warehouse: 'warehouse', api: 'API' }[m])).join(', ')}` +
-      `${PLANS[plan].multiBranch ? ', branches' : ''}${PLANS[plan].loyverse ? ', Loyverse sync' : ''}</p>` +
-      cells.join('') + '</section>',
-    );
-  }
-
-  const bank = BANK_NAME
-    ? `<section class="bank"><h2>Bank transfer</h2>
-       <p>Transfer the amount, then send the slip to ${esc(SUPPORT_EMAIL)} quoting <b>${esc(company || 'your company code')}</b>. The licence is activated by hand, usually the same working day.</p>
-       <dl><dt>Bank</dt><dd>${esc(BANK_NAME)}</dd>
-       <dt>Account</dt><dd>${esc(BANK_ACCOUNT)}</dd>
-       <dt>Name</dt><dd>${esc(BANK_HOLDER)}</dd></dl></section>`
-    : '';
-
-  res.type('html').send(`<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JSOX Barcode Scan — licence</title>
-<style>
- :root { color-scheme: light dark; }
- body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.6;
-        max-width: 42rem; margin: 0 auto; padding: 24px 18px 64px; }
- h1 { font-size: 1.6rem; margin: 0 0 4px; }
- .code { font-family: ui-monospace, Menlo, monospace; }
- .plan { border: 1px solid #8884; border-radius: 8px; padding: 16px; margin: 18px 0; }
- .plan h2 { margin: 0; font-size: 1.15rem; }
- .seats { margin: 2px 0 12px; opacity: .7; font-size: .9rem; }
- .term { border-top: 1px solid #8883; padding-top: 12px; margin-top: 12px; }
- .term h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 600; }
- .note { margin: 0 0 8px; font-size: .85rem; opacity: .7; }
- .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
- button { font: inherit; padding: 9px 14px; border-radius: 6px; cursor: pointer;
-          border: 1px solid #8886; background: #0f5132; color: #fff; }
- button:hover { opacity: .9; }
- .bank dl { display: grid; grid-template-columns: 7rem 1fr; gap: 4px 12px; margin: 10px 0 0; }
- .bank dt { opacity: .7; }
- .warn { background: #a6271d22; border: 1px solid #a6271d66; border-radius: 6px; padding: 12px; }
- #status { margin-top: 16px; min-height: 1.4em; }
-</style></head><body>
-<h1>JSOX Barcode Scan</h1>
-<p>Company code: <b class="code">${esc(company || 'not given')}</b></p>
-${known ? '' : '<p class="warn">That company code was not recognised. Check it on the Profile tab in the app before paying.</p>'}
-${rows.join('')}
-${bank}
-<p id="status"></p>
-<script>
-document.querySelectorAll('button[data-plan]').forEach(function (b) {
-  b.addEventListener('click', async function () {
-    var status = document.getElementById('status');
-    status.textContent = 'Opening payment…';
-    b.disabled = true;
-    try {
-      var route = b.dataset.route === 'toyyibpay' ? '/toyyibpay/create' : '/checkout';
-      var res = await fetch(route, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company: ${JSON.stringify(company)},
-          plan: b.dataset.plan,
-          term: b.dataset.term,
-          method: b.dataset.method,
-        }),
-      });
-      var data = await res.json();
-      if (data.url) { window.location = data.url; return; }
-      status.textContent = data.error || 'That payment could not be started.';
-    } catch (e) {
-      status.textContent = 'Could not reach the server.';
-    }
-    b.disabled = false;
-  });
-});
-</script>
-</body></html>`);
+  const known = Boolean(company && await resolveWorkspace(company));
+  const bank = BANK_NAME ? { name: BANK_NAME, account: BANK_ACCOUNT, holder: BANK_HOLDER, supportEmail: SUPPORT_EMAIL } : null;
+  res.type('html').send(renderBuyPage({ company, known, bank }));
 });
 
 app.get('/paid', (_req, res) =>
-  res.type('html').send(
-    '<h1>Payment received</h1><p>Open StockCheck and pull down to refresh. ' +
-      'Your plan updates within a few seconds.</p>',
-  ),
+  res.type('html').send(simplePage('付款成功', '打开 JSOX，下拉刷新一下。你的方案几秒内就会更新。')),
 );
-app.get('/cancelled', (_req, res) => res.type('html').send('<h1>Payment cancelled</h1><p>Nothing was charged.</p>'));
+app.get('/cancelled', (_req, res) => res.type('html').send(simplePage('付款已取消', '没有扣到任何钱。')));
 
 app.get('/health', async (_req, res) => {
   res.json({
