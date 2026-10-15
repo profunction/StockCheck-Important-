@@ -22,6 +22,7 @@ import { APPS, appState, appSwitcher, langPicker, signOutNow, startApp, themeTog
 import { period, refNo, tempRefNo } from '../js/counting.js';
 import { matchesSearch } from '../js/countexport.js';
 import { deleteCounts, exportCounts, mayDelete, mayExport } from './manage.js';
+import { buyUrl, licenceOk } from '../js/billing.js';
 import { guardTillLock } from '../js/tilllock.js';
 import { helpFab } from '../js/pagehelp.js';
 import { STRINGS } from './strings.js';
@@ -255,6 +256,15 @@ export async function nextRef(now) {
 
 async function newCount() {
   if (!canCount()) { go('#/'); return; }
+  // The one thing an expired trial or subscription stops (firestore.rules
+  // licenceAllowsNewWork()): starting the next count. Told here, with a way
+  // to pay, instead of a raw permission error after the form was filled in.
+  if (!licenceOk()) {
+    mount(mainEl, h('div', { class: 'row cnt-back' }, h('a', { href: '#/' }, `← ${t('cTitle')}`)),
+      h('div', { class: 'card' }, h('h2', { style: { marginTop: 0 } }, t('cLockedTitle')), h('p', { class: 'muted' }, t('cLockedBody')),
+        h('a', { class: 'btn-link primary', href: buyUrl(), target: '_blank', rel: 'noopener', 'data-act': 'bill-renew' }, t('billRenew'))));
+    return;
+  }
   const places = session.sellableBranches();
   const branch = places.length ? h('select', {}, places.map((b) => h('option', { value: b.id, selected: b.id === session.branchId }, b.name))) : null;
   const zone = h('input', { placeholder: t('cZoneHint'), autocomplete: 'off' });

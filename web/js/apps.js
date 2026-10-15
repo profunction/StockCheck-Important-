@@ -18,6 +18,7 @@ import { h, mount } from './dom.js';
 import { addStrings, getLang, LANGS, setLang, t } from './i18n.js';
 import { icon } from './icons.js';
 import { endSession, loadSession, session } from './session.js';
+import { billingBar } from './billing.js';
 import { checkForm, createCompany, joinCompany, resetPassword, signupError } from './signup.js';
 
 addStrings({
@@ -372,11 +373,13 @@ export function startApp(app, brand, render, { stop = () => {} } = {}) {
   const handle = async (user) => {
     stop();
     endSession();
+    billingBar(); // session.licence is now null: hides itself until the next sign-in.
     if (!user) return signInScreen(app, brand);
     mount(app, h('div', { class: 'signin' }, h('p', { class: 'muted' }, t('loading'))));
     try {
       await loadSession(user);
       if (location.hash.match(/^#\/?(signin|join|create|reset)$/)) history.replaceState(null, '', location.pathname);
+      billingBar();
       render();
     } catch (err) {
       // Signed in with Google for the first time: finish registering instead.

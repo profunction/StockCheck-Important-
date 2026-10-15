@@ -431,6 +431,15 @@ a.card.stat:hover { border-color: var(--brand); }
 /* App centre, app switcher, sign-up tabs (apps.js) */
 a.btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 14px; border-radius: var(--radius-sm, 6px); text-decoration: none; color: var(--brand); font-weight: 600; }
 a.btn:hover { background: var(--surface-2); }
+
+/* The trial/subscription bar (billing.js), above every app, in every product. */
+#billing-bar[hidden] { display: none; }
+#billing-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 8px 16px; font-size: 13.5px; font-weight: 600; }
+#billing-bar.warn { background: color-mix(in srgb, var(--accent, #b7791f) 16%, var(--surface)); color: var(--accent, #b7791f); border-bottom: 1px solid color-mix(in srgb, var(--accent, #b7791f) 30%, transparent); }
+#billing-bar.bad { background: color-mix(in srgb, var(--danger) 16%, var(--surface)); color: var(--danger); border-bottom: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
+#billing-bar .grow { flex: 1; min-width: 180px; }
+#billing-bar a.btn-link { min-height: 32px; padding: 0 14px; white-space: nowrap; }
+@media (max-width: 600px) { #billing-bar { font-size: 12.5px; padding: 7px 12px; } }
 .auth-card { display: grid; gap: 16px; width: 100%; max-width: 420px; }
 .auth-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
 .auth-tabs button { justify-content: center; }
