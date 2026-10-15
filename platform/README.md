@@ -84,6 +84,34 @@ the Blaze plan, and this project is deliberately on Spark — and it cannot be i
 the app, because it needs the service-account key. Any host that can hold a
 secret will do; it handles a few requests a day.
 
+**Already deployed.** `.github/workflows/deploy-firebase.yml` builds this
+folder's `Dockerfile` and deploys it to Cloud Run (service `stockcheck-platform`,
+same project, same region as the POS API) on every push to `main` that touches
+`platform/**`. No key file is shipped -- on Cloud Run `db()` in `licences.mjs`
+uses the runtime service account, the same one the POS API already writes
+Firestore with. The deploy step prints the service's URL and its `/health`.
+
+It deploys with no payment keys at all until they are added, and runs correctly
+that way: `/checkout` and the Stripe webhook answer "Stripe not configured",
+`/toyyibpay/create` answers the same for ToyyibPay (see `/health`'s booleans).
+To switch a gateway on, put its keys in Secret Manager yourself -- nobody
+running this deploy ever sees them -- and the next deploy (or `gcloud run
+services update`) picks them up automatically:
+
+```
+printf '%s' 'sk_live_...'  | gcloud secrets create stripe-secret-key    --project stockcheck-fb58e --replication-policy automatic --data-file=-
+printf '%s' 'whsec_...'    | gcloud secrets create stripe-webhook-secret --project stockcheck-fb58e --replication-policy automatic --data-file=-
+printf '%s' '...'          | gcloud secrets create toyyibpay-secret-key  --project stockcheck-fb58e --replication-policy automatic --data-file=-
+printf '%s' '...'          | gcloud secrets create toyyibpay-category-code --project stockcheck-fb58e --replication-policy automatic --data-file=-
+```
+
+(`gcloud secrets versions add <name> --data-file=-` instead of `create` to
+replace a key that already exists.) A `platform-admin-token` secret is made
+automatically on the first deploy, for `GET /licence/:company`.
+
+To run it somewhere else instead (a RM 20/month VPS, Cloudflare Workers,
+Railway, Render -- anything that can hold a secret):
+
 ```
 cp .env.example .env     # fill in
 node server.mjs

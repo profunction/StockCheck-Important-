@@ -29,6 +29,7 @@ on:
       - 'web/**'
       - 'site/**'
       - 'api/**'
+      - 'platform/**'
       - 'rules-test/**'
       - 'tools/videos/voice.mjs'
       - 'tools/videos/mp4.mjs'
@@ -313,10 +314,52 @@ jobs:
         run: |
           echo "::warning::The POS API was not deployed. The key's account needs Cloud Run Admin, Cloud Build Editor, Service Account User, Artifact Registry Admin, Secret Manager Admin and Cloud Scheduler Admin. See api/README.md."
 
+      # The billing platform (platform/server.mjs): Stripe and ToyyibPay
+      # webhooks, the /buy page, licence issuing. Deploys with no payment
+      # keys set -- the webhooks then correctly refuse everything (see
+      # platform/README.md) -- until the owner puts real keys in Secret
+      # Manager themselves; nobody here ever sees them.
+      - name: Deploy the billing platform
+        id: platform
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+        run: |
+          diff -u platform/plans.mjs web/js/plans.js
+          # The admin token (for GET /licence/:company) is made once, like job-key;
+          # the payment keys are added by the owner in Secret Manager when ready.
+          gcloud secrets describe platform-admin-token --project "$PROJECT" >/dev/null 2>&1 || \
+            openssl rand -hex 24 | tr -d '\n' | gcloud secrets create platform-admin-token --project "$PROJECT" --replication-policy automatic --data-file=-
+          SECRETS=""
+          RUNTIME_SA="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
+          for pair in STRIPE_SECRET_KEY=stripe-secret-key STRIPE_WEBHOOK_SECRET=stripe-webhook-secret TOYYIBPAY_SECRET_KEY=toyyibpay-secret-key TOYYIBPAY_CATEGORY_CODE=toyyibpay-category-code ADMIN_TOKEN=platform-admin-token; do
+            name="${pair#*=}"
+            if gcloud secrets describe "$name" --project "$PROJECT" >/dev/null 2>&1; then
+              gcloud secrets add-iam-policy-binding "$name" --project "$PROJECT" --member "serviceAccount:$RUNTIME_SA" \
+                --role roles/secretmanager.secretAccessor --quiet >/dev/null
+              SECRETS="${SECRETS:+$SECRETS,}${pair}:latest"
+            fi
+          done
+          gcloud run deploy stockcheck-platform --source platform --region asia-southeast1 --project "$PROJECT" \
+            --allow-unauthenticated --memory 256Mi --max-instances 2 --quiet \
+            ${SECRETS:+--set-secrets "$SECRETS"}
+          # The service's own URL, so it builds correct Stripe/ToyyibPay callback links.
+          URL=$(gcloud run services describe stockcheck-platform --region asia-southeast1 --project "$PROJECT" --format='value(status.url)')
+          gcloud run services update stockcheck-platform --region asia-southeast1 --project "$PROJECT" --quiet \
+            --update-env-vars "PUBLIC_URL=$URL"
+          echo "PLATFORM_URL=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: If the billing platform did not deploy
+        if: steps.setup.outputs.ready == 'true' && steps.platform.outcome == 'failure'
+        run: |
+          echo "::warning::The billing platform was not deployed. It needs the same account permissions as the POS API (Cloud Run Admin, Cloud Build Editor, Service Account User, Artifact Registry Admin, Secret Manager Admin). See platform/README.md."
+
       - name: Where it is
         if: steps.setup.outputs.ready == 'true'
         run: |
           echo "::notice::POS website https://${PROJECT}.web.app"
+          if [ -n "${{ steps.platform.outputs.PLATFORM_URL }}" ]; then
+            echo "::notice::Billing platform ${{ steps.platform.outputs.PLATFORM_URL }} -- $(curl -fsS "${{ steps.platform.outputs.PLATFORM_URL }}/health" || echo 'health check failed')"
+          fi
 
       - name: Forget the key
         if: always() && steps.setup.outputs.ready == 'true'
