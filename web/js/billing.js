@@ -24,7 +24,7 @@ addStrings({
 });
 
 /** Where the paywall lives: platform/server.mjs's own Cloud Run service. */
-export const PLATFORM_URL = 'https://stockcheck-platform-52988097941.asia-southeast1.run.app';
+export const PLATFORM_URL = 'https://stockcheck-platform-vmhgwx77ha-as.a.run.app';
 
 /** The company's own payment page (platform/server.mjs's GET /buy?company=). */
 export const buyUrl = () => `${PLATFORM_URL}/buy?company=${encodeURIComponent(session.joinCode || session.ws || '')}`;
